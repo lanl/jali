@@ -1,0 +1,26 @@
+##############################################################################
+#
+# Make variables for use by Jali clients. 
+#
+##############################################################################
+
+# Location of orignal source and the version
+Jali_SOURCE_DIR  = @Jali_SOURCE_DIR@
+Jali_VERSION     = @Jali_VERSION@
+
+# Configuration information
+Jali_C_COMPILER   = @CMAKE_C_COMPILER@
+Jali_CXX_COMPILER = @CMAKE_CXX_COMPILER@
+Jali_BUILD_TYPE   = @CMAKE_BUILD_TYPE@
+Jali_TPL_LIST     = @Jali_TPL_LIST@
+
+
+# Jali include directory
+Jali_INCLUDE_DIR  = -I@CMAKE_INSTALL_PREFIX@/include
+Jali_INCLUDE_DIRS = @Jali_MAKE_INCLUDE_DIRS@
+
+# Jali libraries
+Jali_LIB_DIR     = -L@CMAKE_INSTALL_PREFIX@/lib
+Jali_LIB_DIRS    = @Jali_MAKE_LIBRARY_DIRS@
+
+Jali_LINK_LINE   = @LINK_LINE_STRING@

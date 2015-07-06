@@ -1,0 +1,71 @@
+# ############################################################################ #
+#
+#  Jali Configuration File 
+#  To import into other CMake projects
+#
+# ############################################################################ #
+
+#
+# Directories
+#
+set(Jali_BUILD_DIR  @Jali_BINARY_DIR@)
+set(Jali_SOURCE_DIR @Jali_SOURCE_DIR@)
+
+set(Jali_INSTALL_PREFIX @CMAKE_INSTALL_PREFIX@)
+set(Jali_INCLUDE_DIR    @CMAKE_INSTALL_PREFIX@/include)
+set(Jali_LIBRARY_DIR    @CMAKE_INSTALL_PREFIX@/lib)
+set(Jali_BINARY_DIR     @CMAKE_INSTALL_PREFIX@/bin)
+
+set(Jali_INCLUDE_DIRS   @Jali_INCLUDE_DIRS@)
+set(Jali_LIBRARY_DIRS   @Jali_LIBRARY_DIRS@)
+set(Jali_LIBRARIES      @Jali_LIBRARIES@)
+
+#
+# Version
+#
+set(Jali_VERSION          @Jali_VERSION@)
+
+#
+# Compilation 
+#
+set(Jali_BUILD_TYPE        @CMAKE_BUILD_TYPE@)
+
+set(Jali_BUILD_SHARED_LIBS @BUILD_SHARED_LIBS@)
+
+set(Jali_C_COMPILER        @CMAKE_C_COMPILER@)
+set(Jali_CXX_COMPILER      @CMAKE_CXX_COMPILER@)
+set(Jali_Fortran_COMPILER  @CMAKE_Fortran_COMPILER@)
+
+set(Jali_C_COMPILER_FLAGS  "@CMAKE_C_FLAGS@ ${CMAKE_C_FLAGS_${CMAKE_BUILD_TYPE}}")
+set(Jali_CXX_COMPILER_FLAGS  "@CMAKE_CXX_FLAGS@ ${CMAKE_CXX_FLAGS_${CMAKE_BUILD_TYPE}}")
+set(Jali_Fortran_COMPILER_FLAGS  "@CMAKE_Fortran_FLAGS@ ${CMAKE_Fortran_FLAGS_${CMAKE_BUILD_TYPE}}")
+
+# 
+# Code configuration options
+#
+
+# Grid support
+set(Jali_ENABLE_STRUCTURED      @ENABLE_Structured@)
+set(Jali_ENABLE_UNSTRUCTURED    @ENABLE_Unstructured@)
+
+# Mesh frameworks
+set(Jali_ENABLE_STK_Mesh        @ENABLE_STK_Mesh@)
+set(Jali_ENABLE_MOAB_Mesh       @ENABLE_MOAB_Mesh@)
+set(Jali_ENABLE_MSTK_Mesh       @ENABLE_MSTK_Mesh@)
+
+# CCSE Options
+set(Jali_CCSE_ENABLE_MPI        @ENABLE_MPI@)
+set(Jali_CCSE_ENABLE_OpenMP     @ENABLE_OpenMP@)
+set(Jali_CCSE_SPACEDIM          @Jali_SPACEDIM@)
+set(Jali_CCSE_PRECISION         @Jali_PRECISION@)
+set(Jali_CCSE_DEFINES           @BL_DEFINES@)
+
+# External Packages
+# Configuration file that defines the TPL include paths
+set(Jali_ENABLED_TPLS           @Jali_ENABLED_TPLS@)
+include("@CMAKE_INSTALL_PREFIX@/lib/JaliConfigTPL.cmake")
+
+# 
+# Exported Targets
+# File that defines the Jali exported targets
+include("@CMAKE_INSTALL_PREFIX@/lib/JaliTargets.cmake")
