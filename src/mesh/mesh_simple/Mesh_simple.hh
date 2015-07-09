@@ -267,6 +267,12 @@ public:
 		      double* source_begin, double* source_end);
 
 
+  void write_to_exodus_file(const std::string exodusfilename) const
+  {}
+
+  void write_to_gmv_file(const std::string gmvfilename) const
+  {}
+
 private:
   void update_internals_();
   void clear_internals_();

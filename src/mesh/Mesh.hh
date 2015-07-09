@@ -561,6 +561,14 @@ class Mesh
                                             std::vector<int> *edge_dirs) const = 0;
 
 
+  // Export mesh alone to different format files
+
+  virtual
+  void write_to_exodus_file(const std::string exodusfilename) const = 0;
+
+  virtual
+  void write_to_gmv_file(const std::string gmvfilename) const = 0;
+
  private:
 
   unsigned int celldim, spacedim;

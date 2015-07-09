@@ -259,6 +259,12 @@ class bogus_mesh : public Jali::Mesh {
                          Jali::Entity_ID_List *entids) const
   {}
 
+  void write_to_exodus_file (const std::string filename) const
+  {}
+
+  void write_to_gmv_file (const std::string filename) const
+  {}
+
  private:
 
 };
