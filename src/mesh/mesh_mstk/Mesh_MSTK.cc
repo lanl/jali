@@ -4948,4 +4948,20 @@ void Mesh_MSTK::inherit_labeled_sets(MAttrib_ptr copyatt) {
 } // inherit_labeled_sets
 
 
+// Write mesh out to exodus file
+
+void
+Mesh_MSTK::write_to_exodus_file(const std::string filename) const {
+  MESH_ExportToFile(mesh,filename.c_str(),"exodusii",-1,NULL,NULL,mpicomm);
+}
+
+// Write mesh out to exodus file
+
+void
+Mesh_MSTK::write_to_gmv_file(const std::string filename) const {
+  MESH_ExportToGMV(mesh,filename.c_str(),"gmv",-1,NULL,NULL,mpicomm);
+}
+
+
+
 } // close namespace Jali

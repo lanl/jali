@@ -302,6 +302,16 @@ public:
 			 std::vector<Entity_ID> *entids) const; 
 
 
+  //
+  // Export mesh
+  //
+
+  int write_to_gmv_file(std::string gmvfilename) const;
+
+  int write_to_exodus_file(std::string exodusfilename) const;
+  
+
+
 private:
 
   MPI_Comm mpicomm;
