@@ -306,9 +306,9 @@ public:
   // Export mesh
   //
 
-  int write_to_gmv_file(std::string gmvfilename) const;
+  int write_to_gmv_file(const std::string gmvfilename) const;
 
-  int write_to_exodus_file(std::string exodusfilename) const;
+  int write_to_exodus_file(const std::string exodusfilename) const;
   
 
 
