@@ -4959,7 +4959,7 @@ Mesh_MSTK::write_to_exodus_file(const std::string filename) const {
 
 void
 Mesh_MSTK::write_to_gmv_file(const std::string filename) const {
-  MESH_ExportToGMV(mesh,filename.c_str(),"gmv",-1,NULL,NULL,mpicomm);
+  MESH_ExportToFile(mesh,filename.c_str(),"gmv",-1,NULL,NULL,mpicomm);
 }
 
 
