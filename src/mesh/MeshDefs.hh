@@ -42,6 +42,15 @@ enum Mesh_type
   GENERAL        // general unstructured
 };
 
+// Mesh Geometry Type
+
+enum Geom_type
+{
+  CARTESIAN,
+  CYLINDRICAL,
+  SPHERICAL
+}
+
 // Cells (aka zones/elements) are the highest dimension entities in a mesh 
 // Nodes (aka vertices) are lowest dimension entities in a mesh 
 // Faces in a 3D mesh are 2D entities, in a 2D mesh are 1D entities
