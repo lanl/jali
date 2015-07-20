@@ -49,7 +49,7 @@ enum Geom_type
   CARTESIAN,
   CYLINDRICAL,
   SPHERICAL
-}
+};
 
 // Cells (aka zones/elements) are the highest dimension entities in a mesh 
 // Nodes (aka vertices) are lowest dimension entities in a mesh 
