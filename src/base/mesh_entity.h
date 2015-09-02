@@ -15,14 +15,14 @@
 namespace jali {
 
 /*!
-    \class mesh_entity mesh_entity.h
-    \brief mesh_entity provides a generic base class for mesh entities.
+  \class mesh_entity mesh_entity.h
+  \brief mesh_entity provides a generic base class for mesh entities.
  */
 
 struct mesh_entity_t {
 
-    //! Destructor
-     virtual ~mesh_entity_t() {}
+  //! Destructor
+  virtual ~mesh_entity_t() {}
 
 }; // struct mesh_entity_t
 

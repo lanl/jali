@@ -37,6 +37,8 @@ public:
   //! Destructor
   virtual ~vertex_() {}
 
+  std::size_t id() const { return vertex_policy_t::id(); }
+
 }; // class vertex_
 
 } // namespace jali
