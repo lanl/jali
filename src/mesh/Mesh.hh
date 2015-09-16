@@ -44,6 +44,12 @@ class Mesh
 
  public:
 
+  typedef std::vector<int>::iterator node_iterator;
+  typedef std::vector<int>::iterator edge_iterator;
+  typedef std::vector<int>::iterator face_iterator;
+  typedef std::vector<int>::iterator cell_iterator;
+
+
   // constructor
 
   Mesh(const bool request_faces=true,
@@ -115,7 +121,6 @@ class Mesh
     return mesh_type_;
   }
 
-
   // Get parallel type of entity - OWNED, GHOST, ALL (See MeshDefs.hh)
 
   virtual
@@ -157,7 +162,53 @@ class Mesh
   virtual
   Entity_ID GID(const Entity_ID lid, const Entity_kind kind) const = 0;
 
+  
+  // iterators for mesh entities
 
+  node_iterator begin_nodes() {return nodeids.begin();}
+  node_iterator end_nodes() {return nodeids.end();}
+  node_iterator begin_owned_nodes() {return nodeids.begin();}
+  node_iterator end_owned_nodes() {
+    return nodeids.begin()+num_entities(NODE,OWNED);
+  }
+  node_iterator begin_ghost_nodes() { // ghost nodes start after owned nodes
+    return nodeids.begin()+num_entities(NODE,OWNED); 
+  }
+  node_iterator end_ghost_nodes() { return nodeids.end();}
+
+
+  edge_iterator begin_edges() {return edgeids.begin();}
+  edge_iterator end_edges() {return edgeids.end();}
+  edge_iterator begin_owned_edges() {return edgeids.begin();}
+  edge_iterator end_owned_edges() {
+    return edgeids.begin()+num_entities(EDGE,OWNED);
+  }
+  edge_iterator begin_ghost_edges() { // ghost edges start after owned edges
+    return edgeids.begin()+num_entities(EDGE,OWNED); 
+  }
+  edge_iterator end_ghost_edges() { return edgeids.end();}
+
+  face_iterator begin_faces() {return faceids.begin();}
+  face_iterator end_faces() {return faceids.end();}
+  face_iterator begin_owned_faces() {return faceids.begin();}
+  face_iterator end_owned_faces() {
+    return faceids.begin()+num_entities(FACE,OWNED);
+  }
+  face_iterator begin_ghost_faces() { // ghost faces start after owned faces
+    return faceids.begin()+num_entities(FACE,OWNED); 
+  }
+  face_iterator end_ghost_faces() { return faceids.end();}
+
+  cell_iterator begin_cells() {return cellids.begin();}
+  cell_iterator end_cells() {return cellids.end();}
+  cell_iterator begin_owned_cells() {return cellids.begin();}
+  cell_iterator end_owned_cells() {
+    return cellids.begin()+num_entities(CELL,OWNED);
+  }
+  cell_iterator begin_ghost_cells() { // ghost cells start after owned cells
+    return cellids.begin()+num_entities(CELL,OWNED); 
+  }
+  cell_iterator end_ghost_cells() { return cellids.end();}
 
   //
   // Mesh Entity Adjacencies
@@ -510,6 +561,8 @@ class Mesh
                          const Parallel_type ptype,
                          Entity_ID_List *entids) const = 0;
 
+
+
  protected:
 
   int compute_cell_geometric_quantities() const;
@@ -560,20 +613,46 @@ class Mesh
                                             Entity_ID_List *edgeids,
                                             std::vector<int> *edge_dirs) const = 0;
 
+  
 
-  // Export mesh alone to different format files
+  // maintain a list of entity indices just to enable iterators for
+  // entity indices
 
-  virtual
-  void write_to_exodus_file(const std::string exodusfilename) const = 0;
+  mutable std::vector<int> nodeids, edgeids, faceids, cellids;
 
-  virtual
-  void write_to_gmv_file(const std::string gmvfilename) const = 0;
 
  private:
+
+
+  // The following methods are declared const since they do not modify the
+  // mesh but just modify cached variables declared as mutable
+
+  int compute_cell_geometry(const Entity_ID cellid, 
+                            double *volume, 
+                            JaliGeometry::Point *centroid) const;
+  int compute_face_geometry(const Entity_ID faceid, 
+                            double *area, 
+                            JaliGeometry::Point *centroid, 
+                            JaliGeometry::Point *normal0,
+                            JaliGeometry::Point *normal1) const;
+  int compute_edge_geometry(const Entity_ID edgeid,
+			    double *length,
+			    JaliGeometry::Point *edge_vector) const;
+
+
+  void cache_cell2face_info() const; 
+  void cache_face2cell_info() const;
+  void cache_cell2edge_info() const;
+  void cache_face2edge_info() const;
+
+
+  // Data 
 
   unsigned int celldim, spacedim;
 
   MPI_Comm comm;
+
+  // Some cached variables
 
   mutable std::vector<double> cell_volumes, face_areas, edge_lengths;
   mutable std::vector<JaliGeometry::Point> cell_centroids,
@@ -597,28 +676,6 @@ class Mesh
     edge_geometry_precomputed;
 
   JaliGeometry::GeometricModelPtr geometric_model_;
-
-
-  // The following methods are declared const since they do not modify the
-  // mesh but just modify cached variables declared as mutable
-
-  int compute_cell_geometry(const Entity_ID cellid, 
-                            double *volume, 
-                            JaliGeometry::Point *centroid) const;
-  int compute_face_geometry(const Entity_ID faceid, 
-                            double *area, 
-                            JaliGeometry::Point *centroid, 
-                            JaliGeometry::Point *normal0,
-                            JaliGeometry::Point *normal1) const;
-  int compute_edge_geometry(const Entity_ID edgeid,
-			    double *length,
-			    JaliGeometry::Point *edge_vector) const;
-
-
-  void cache_cell2face_info() const; 
-  void cache_face2cell_info() const;
-  void cache_cell2edge_info() const;
-  void cache_face2edge_info() const;
 
 }; // End class Mesh
 
