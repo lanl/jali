@@ -85,6 +85,12 @@ if (BUILD_TESTS)
    # Add UnitTest include directories
    include_directories(${UnitTest_INCLUDE_DIRS})
 
+    # Need to copy files for the tests 
+    if (NOT (${MESH_FACTORY_SOURCE_DIR} EQUAL ${MESH_FACTORY_BINARY_DIR}))
+        execute_process(COMMAND ${CMAKE_COMMAND} -E 
+          copy_directory ${MESH_FACTORY_SOURCE_DIR}/test ${MESH_FACTORY_BINARY_DIR}/test) 
+    endif()
+
    # Test: test_mesh_factory
    add_Jali_test(mesh_factory test_mesh_factory
                    KIND unit
