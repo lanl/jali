@@ -110,8 +110,14 @@ if (BUILD_TESTS)
 
     add_Jali_test(mesh_geometry test_mesh_geometry
                     KIND unit
-		            SOURCE ${test_src_files}
-		            LINK_LIBS ${test_link_libs})
+		    SOURCE ${test_src_files}
+		    LINK_LIBS ${test_link_libs})
 
+    # Test mesh entity iterators
+
+    add_Jali_test(mesh_iterators test_entity_iterators
+                  KIND unit
+                  SOURCE test/Main.cc test/test_entity_iterators.cc
+		  LINK_LIBS ${test_link_libs})
 endif()
   
