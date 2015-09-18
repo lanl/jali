@@ -3423,6 +3423,17 @@ void Mesh_MSTK::init_nodes() {
 
   init_vertex_id2handle_maps();
 
+  // Populate the nodeids array in the base class so that
+  // node_iterators work
+    
+  Mesh::nodeids.resize(num_entities(NODE,ALL));
+  int lid = 0;
+  std::vector<int>::iterator it = Mesh::nodeids.begin();
+  while (it != Mesh::nodeids.end()) {
+    *it = lid++;
+    ++it;
+  }
+
 }
 
 
@@ -3444,6 +3455,17 @@ void Mesh_MSTK::init_edges() {
   // direction from the master and must be flipped
 
   init_pedge_dirs();
+
+  // Populate the edgeids array in the base class so that
+  // node_iterators work
+  
+  Mesh::edgeids.resize(num_entities(EDGE,ALL));
+  int lid = 0;
+  std::vector<int>::iterator it = Mesh::edgeids.begin();
+  while (it != Mesh::edgeids.end()) {
+    *it = lid++;
+    ++it;
+  }
 
 }
 
@@ -3467,6 +3489,16 @@ void Mesh_MSTK::init_faces() {
 
   init_pface_dirs();
 
+  // Populate the faceids array in the base class so that
+  // face_iterators work
+  
+  Mesh::faceids.resize(num_entities(FACE,ALL));
+  int lid = 0;
+  std::vector<int>::iterator it = Mesh::faceids.begin();
+  while (it != Mesh::faceids.end()) {
+    *it = lid++;
+    ++it;
+  }
 }
 
 
@@ -3482,6 +3514,16 @@ void Mesh_MSTK::init_cells() {
 
   init_cell_id2handle_maps();
 
+  // Populate the cellids array in the base class so that
+  // cell_iterators work
+  
+  Mesh::cellids.resize(num_entities(CELL,ALL));
+  int lid = 0;
+  std::vector<int>::iterator it = Mesh::cellids.begin();
+  while (it != Mesh::cellids.end()) {
+    *it = lid++;
+    ++it;
+  }
 }
 
 
@@ -3497,7 +3539,7 @@ void Mesh_MSTK::init_vertex_id2handle_maps() {
 
   nv = MESH_Num_Vertices(mesh);
 
-  vtx_id_to_handle.reserve(nv);
+  vtx_id_to_handle.resize(nv);
 
   idx = 0; lid = 1;
   while ((vtx = MSet_Next_Entry(OwnedVerts,&idx))) {
@@ -3510,9 +3552,10 @@ void Mesh_MSTK::init_vertex_id2handle_maps() {
   while ((vtx = MSet_Next_Entry(NotOwnedVerts,&idx))) {
     MEnt_Set_ID(vtx,lid);
     vtx_id_to_handle[lid-1] = vtx;
+    
     lid++;
   }
-    
+
 } // Mesh_MSTK::init_edge_id2handle_maps
 
 
@@ -3528,7 +3571,7 @@ void Mesh_MSTK::init_edge_id2handle_maps() {
 
   ne = MESH_Num_Edges(mesh);
 
-  edge_id_to_handle.reserve(ne);
+  edge_id_to_handle.resize(ne);
 
   idx = 0; lid = 1;
   while ((edge = MSet_Next_Entry(OwnedEdges,&idx))) {
@@ -3559,7 +3602,7 @@ void Mesh_MSTK::init_face_id2handle_maps() {
 
   nf = (cell_dimension() == 2) ? MESH_Num_Edges(mesh) : MESH_Num_Faces(mesh);
 
-  face_id_to_handle.reserve(nf);
+  face_id_to_handle.resize(nf);
 
   idx = 0; lid = 1;
   while ((genface = MSet_Next_Entry(OwnedFaces,&idx))) {
@@ -3590,7 +3633,7 @@ void Mesh_MSTK::init_cell_id2handle_maps() {
 
   nc = (cell_dimension() == 2) ? MESH_Num_Faces(mesh) : MESH_Num_Regions(mesh);
 
-  cell_id_to_handle.reserve(nc);
+  cell_id_to_handle.resize(nc);
 
   idx = 0; lid = 1;
   while ((gencell = MSet_Next_Entry(OwnedCells,&idx))) {

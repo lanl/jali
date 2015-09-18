@@ -415,12 +415,10 @@ TEST(MESH_GEOMETRY_SOLID)
   MPI_Comm_rank(MPI_COMM_WORLD,&me);
 
   const Jali::Framework frameworks[] = {  
-    Jali::STKMESH,
     Jali::MSTK,
     Jali::Simple
   };
   const char *framework_names[] = {
-    "STKMesh",
     "MSTK",
     "Simple"
   };

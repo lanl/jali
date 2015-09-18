@@ -356,6 +356,35 @@ void Mesh_simple::update_internals_()
 
       }
 
+  // populate entity ids arrays in the base class so that iterators work
+
+  int lid;
+  std::vector<int>::iterator it;
+
+  Mesh::nodeids.resize(num_nodes_);
+  lid = 0;
+  it = Mesh::nodeids.begin();
+  while (it != Mesh::nodeids.end()) {
+    *it = lid++;
+    ++it;
+  }
+
+  Mesh::faceids.resize(num_faces_);
+  lid = 0;
+  it = Mesh::faceids.begin();
+  while (it != Mesh::faceids.end()) {
+    *it = lid++;
+    ++it;
+  }
+
+  Mesh::cellids.resize(num_cells_);
+  lid = 0;
+  it = Mesh::cellids.begin();
+  while (it != Mesh::cellids.end()) {
+    *it = lid++;
+    ++it;
+  }
+
 }
 
 
@@ -389,13 +418,13 @@ unsigned int Mesh_simple::num_entities (Jali::Entity_kind kind,
 {
   switch (kind) {
     case Jali::FACE: 
-      return num_faces_;
+      return (ptype != Jali::GHOST) ? num_faces_ : 0;
       break;
     case Jali::NODE:
-      return num_nodes_;
+      return (ptype != Jali::GHOST) ? num_nodes_ : 0;
       break;
     case Jali::CELL:
-      return num_cells_;
+      return (ptype != Jali::GHOST) ? num_cells_ : 0;
       break;
     default:
       throw std::exception();
