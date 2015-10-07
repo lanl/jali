@@ -57,6 +57,27 @@ enum Geom_type
 // BOUNDARY_FACE is a special type of entity that is need so that process 
 // kernels can define composite vectors (see src/data_structures) on 
 // exterior boundary faces of the mesh only
+//
+// Wedges are special subcell entities that are a simplicial
+// decomposition of cell. In 3D, a wedge is tetrahedron formed by one
+// point of the edge, the midpoint of the edge, the "center" of the
+// face and the "center" of the cell volume. In 2D, a wedge is a
+// triangle formed by an end-point of the edge, the mid-point of the
+// edge and the center of the cell. In 1D, (IS THIS CORRECT?), wedges
+// are lines, that are formed by the endpoint of the cell and the
+// midpoint of the cell. There are two wedges associated with an edge
+// of cell face in 3D.
+//
+// Corners are also subcell entities that are associated uniquely with 
+// a node of a cell. Each corner is the union of all the wedges incident
+// upon that node in the cell
+//
+// Facets are the boundary entity between two wedges in adjacent
+// cells. In 3D, a facet is a triangular subface of the cell face
+// shared by two wedges in adjacent cells. In 2D, a facet is half of
+// an edge that is shared by two wedges in adjacent cells
+//
+
     
 enum Entity_kind 
 {
@@ -64,6 +85,9 @@ enum Entity_kind
   EDGE,
   FACE,
   CELL,
+  WEDGE,
+  CORNER,
+  FACET,
   BOUNDARY_FACE
 };
 
