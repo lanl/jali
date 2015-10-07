@@ -67,7 +67,9 @@ class MeshFactory {
                const JaliGeometry::GeometricModelPtr &gm = 
                (JaliGeometry::GeometricModelPtr) NULL,
                const bool request_faces = true,
-               const bool request_edges = false);
+               const bool request_edges = false,
+               const bool request_wedges=false,
+               const bool request_corners=false);
 
 
   /// Create a hexahedral mesh of the specified dimensions
@@ -77,7 +79,9 @@ class MeshFactory {
                const JaliGeometry::GeometricModelPtr &gm = 
                (JaliGeometry::GeometricModelPtr) NULL,
                const bool request_faces = true,
-               const bool request_edges = false);
+               const bool request_edges = false,
+               const bool request_wedges=false,
+               const bool request_corners=false);
 
     
   /// Create a quadrilateral mesh of the specified dimensions
@@ -87,7 +91,9 @@ class MeshFactory {
                const JaliGeometry::GeometricModelPtr &gm = 
                (JaliGeometry::GeometricModelPtr) NULL,
                const bool request_faces = true,
-               const bool request_edges = false);
+               const bool request_edges = false,
+               const bool request_wedges=false,
+               const bool request_corners=false);
 
     
   /// Create a mesh by extract subsets of entities from an existing mesh
@@ -97,7 +103,9 @@ class MeshFactory {
                const bool flatten = false,
                const bool extrude = false,
                const bool request_faces = true,
-               const bool request_edges = false);
+               const bool request_edges = false,
+               const bool request_wedges=false,
+               const bool request_corners=false);
 
 
   /// Create a mesh by reading the specified file (or set of files) -- operator
@@ -105,9 +113,12 @@ class MeshFactory {
                     const JaliGeometry::GeometricModelPtr &gm = 
                     (JaliGeometry::GeometricModelPtr) NULL,
                     const bool request_faces = true,
-                    const bool request_edges = false) {
+                    const bool request_edges = false,
+                    const bool request_wedges=false,
+                    const bool request_corners=false) {
     
-    return create(filename, gm, request_faces, request_edges);
+    return create(filename, gm, request_faces, request_edges, request_wedges,
+                  request_corners);
   }
   
   /// Create a hexahedral mesh of the specified dimensions -- operator
@@ -117,10 +128,12 @@ class MeshFactory {
                     const JaliGeometry::GeometricModelPtr &gm = 
                     (JaliGeometry::GeometricModelPtr) NULL,
                     const bool request_faces = true,
-                    const bool request_edges = false) {
+                    const bool request_edges = false,
+                    const bool request_wedges=false,
+                    const bool request_corners=false) {
     
     return create(x0, y0, z0, x1, y1, z1, nx, ny, nz, gm, 
-                  request_faces, request_edges);
+                  request_faces, request_edges, request_wedges, request_corners);
   }
 
   /// Create a quadrilateral mesh of the specified dimensions -- operator
@@ -130,9 +143,12 @@ class MeshFactory {
                     const JaliGeometry::GeometricModelPtr &gm = 
                     (JaliGeometry::GeometricModelPtr) NULL,
                     const bool request_faces = true,
-                    const bool request_edges = false)  {
+                    const bool request_edges = false,
+                    const bool request_wedges=false,
+                    const bool request_corners=false)  {
  
-    return create(x0, y0, x1, y1, nx, ny, gm, request_faces, request_edges);
+    return create(x0, y0, x1, y1, nx, ny, gm, request_faces, request_edges,
+                  request_wedges, request_corners);
   }
 
   /// Create a mesh by extract subsets of entities from an existing mesh
@@ -142,10 +158,12 @@ class MeshFactory {
                     const bool flatten = false,
                     const bool extrude = false,
                     const bool request_faces = true,
-                    const bool request_edges = false) {
+                    const bool request_edges = false,
+                    const bool request_wedges=false,
+                    const bool request_corners=false) {
     
     return create(inmesh, setnames, setkind, flatten, extrude,
-                  request_faces, request_edges);
+                  request_faces, request_edges, request_wedges, request_corners);
   }
 
 };

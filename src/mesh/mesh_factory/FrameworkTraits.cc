@@ -47,16 +47,18 @@ class bogus_mesh : public Jali::Mesh {
   /// Default constructor.
   bogus_mesh(const char *filename, const MPI_Comm& comm,
              const JaliGeometry::GeometricModelPtr& gm,
-             const bool request_faces, const bool request_edges) 
-    : Mesh(request_faces,request_edges,comm)
+             const bool request_faces, const bool request_edges,
+             const bool request_wedges, const bool request_corners) 
+      : Mesh(request_faces,request_edges,request_wedges,request_corners,comm)
   {
     Exceptions::Jali_throw(Errors::Message("reading not supported"));
   }
   
   bogus_mesh(const char *filename, const MPI_Comm& comm, int dim,
              const JaliGeometry::GeometricModelPtr& gm,
-             const bool request_faces, const bool request_edges) 
-    : Mesh(request_faces,request_edges,comm)
+             const bool request_faces, const bool request_edges,
+             const bool request_wedges, const bool request_corners) 
+      : Mesh(request_faces,request_edges,request_wedges,request_corners,comm)
   {
     Exceptions::Jali_throw(Errors::Message("reading not supported"));
   }
@@ -66,8 +68,9 @@ class bogus_mesh : public Jali::Mesh {
 	     int nx, int ny, int nz, 
 	     const MPI_Comm& comm,
              const JaliGeometry::GeometricModelPtr& gm,
-             const bool request_faces, const bool request_edges)
-    : Mesh(request_faces,request_edges,comm)
+             const bool request_faces, const bool request_edges,
+             const bool request_wedges, const bool request_corners)
+      : Mesh(request_faces,request_edges,request_wedges,request_corners,comm)
   {
     Exceptions::Jali_throw(Errors::Message("generation not supported"));
   }
@@ -77,8 +80,9 @@ class bogus_mesh : public Jali::Mesh {
 	     int nx, int ny,
 	     const MPI_Comm& comm,
              const JaliGeometry::GeometricModelPtr& gm,
-             const bool request_faces, const bool request_edges)
-    : Mesh(request_faces,request_edges,comm)
+             const bool request_faces, const bool request_edges,
+             const bool request_wedges, const bool request_corners)
+      : Mesh(request_faces,request_edges,request_wedges,request_corners,comm)
   {
     Exceptions::Jali_throw(Errors::Message("generation not supported"));
   }
@@ -87,7 +91,8 @@ class bogus_mesh : public Jali::Mesh {
              const std::vector<std::string>& setnames,
              const Jali::Entity_kind setkind,
              const bool flatten, const bool extrude,
-             const bool request_faces, const bool request_edges)
+             const bool request_faces, const bool request_edges,
+             const bool request_wedges, const bool request_corners)
   {
     Exceptions::Jali_throw(Errors::Message("extraction not supported"));
   }
@@ -96,7 +101,8 @@ class bogus_mesh : public Jali::Mesh {
              const std::vector<std::string>& setnames,
              const Jali::Entity_kind setkind,
              const bool flatten, const bool extrude,
-             const bool request_faces, const bool request_edges)
+             const bool request_faces, const bool request_edges,
+             const bool request_wedges, const bool request_corners)
   {
     Exceptions::Jali_throw(Errors::Message("extraction not supported"));
   }
@@ -105,7 +111,8 @@ class bogus_mesh : public Jali::Mesh {
              const std::vector<int>& entity_list,
              const Jali::Entity_kind entity_kind,
              const bool flatten, const bool extrude,
-             const bool request_faces, const bool request_edges)
+             const bool request_faces, const bool request_edges,
+             const bool request_wedges, const bool request_corners)
   {
     Exceptions::Jali_throw(Errors::Message("extraction not supported"));
   }
@@ -441,12 +448,15 @@ struct FrameworkTraits {
   read(const MPI_Comm& comm, const std::string& fname,
        const JaliGeometry::GeometricModelPtr& gm,
        const bool request_faces, 
-       const bool request_edges)
+       const bool request_edges,
+       const bool request_wedges,
+       const bool request_corners)
   {
     Mesh *
       result(new typename read_mesh::type(fname.c_str(), comm,
                                           gm, 
-                                          request_faces, request_edges));
+                                          request_faces, request_edges,
+                                          request_wedges, request_corners));
     return result;
   }
   
@@ -489,13 +499,16 @@ struct FrameworkTraits {
            const MPI_Comm& comm,
            const JaliGeometry::GeometricModelPtr& gm,
            const bool request_faces, 
-           const bool request_edges)
+           const bool request_edges,
+           const bool request_wedges,
+           const bool request_corners)
   {
     Mesh *
       result(new typename generate_mesh::type(x0, y0, z0, x1, y1, z1, 
                                               nx, ny, nz, comm,
                                               gm, 
-                                              request_faces, request_edges));
+                                              request_faces, request_edges,
+                                              request_wedges, request_corners));
     return result;
   }
   
@@ -507,12 +520,15 @@ struct FrameworkTraits {
            const MPI_Comm& comm,
            const JaliGeometry::GeometricModelPtr& gm,
            const bool request_faces, 
-           const bool request_edges)
+           const bool request_edges,
+           const bool request_wedges,
+           const bool request_corners)
   {
     Mesh *
       result(new typename generate_mesh::type(x0, y0, x1, y1, nx, ny, comm,
                                               gm,
-                                              request_faces, request_edges));
+                                              request_faces, request_edges,
+                                              request_wedges, request_corners));
     return result;
   }
   
@@ -549,13 +565,16 @@ struct FrameworkTraits {
           const bool flatten = false,
           const bool extrude = false,
           const bool request_faces = true, 
-          const bool request_edges = false)
+          const bool request_edges = false,
+          const bool request_wedges = false,
+          const bool request_corners = false)
   {
     Mesh *
       result(new typename extract_mesh::type(inmesh,
                                              setnames,setkind,
                                              flatten,extrude,
-                                             request_faces,request_edges));
+                                             request_faces,request_edges,
+                                             request_wedges,request_corners));
     return result;
   }
 
@@ -568,13 +587,16 @@ struct FrameworkTraits {
           const bool flatten = false,
           const bool extrude = false,
           const bool request_faces = true, 
-          const bool request_edges = false)
+          const bool request_edges = false,
+          const bool request_wedges = false,
+          const bool request_corners = false)
   {
     Mesh *
       result(new typename extract_mesh::type(inmesh,
                                              setnames,setkind,
                                              flatten,extrude,
-                                             request_faces,request_edges));
+                                             request_faces,request_edges,
+                                             request_wedges,request_corners));
     return result;
   }
 
@@ -587,14 +609,18 @@ struct FrameworkTraits {
           const bool flatten = false,
           const bool extrude = false,
           const bool request_faces = true, 
-          const bool request_edges = false)
+          const bool request_edges = false,
+          const bool request_wedges = false,
+          const bool request_corners = false)
   {
     Mesh *
       result(new typename extract_mesh::type(inmesh,
                                              entity_id_list, entity_kind,
                                              flatten, extrude,
                                              request_faces,
-                                             request_edges));
+                                             request_edges,
+                                             request_wedges,
+                                             request_corners));
     return result;
   }
 
@@ -706,7 +732,8 @@ Mesh *
 framework_read(const MPI_Comm& comm, const Framework& f, 
                const std::string& fname,
                const JaliGeometry::GeometricModelPtr& gm,
-               const bool request_faces, const bool request_edges)
+               const bool request_faces, const bool request_edges,
+               const bool request_wedges, const bool request_corners)
 {
   Mesh *result;
   int myPID;
@@ -717,28 +744,32 @@ framework_read(const MPI_Comm& comm, const Framework& f,
       std::cout << "Using SimpleMesh framework to read mesh" << std::endl;
     result = FrameworkTraits<Simple>::read(comm, fname, 
                                            gm, 
-                                           request_faces, request_edges);
+                                           request_faces, request_edges,
+                                           request_wedges, request_corners);
     break;
   case STKMESH:
     if (myPID == 0)
       std::cout << "Using STKmesh framework to read mesh" << std::endl;
     result = FrameworkTraits<STKMESH>::read(comm, fname,
                                             gm, 
-                                            request_faces, request_edges);
+                                            request_faces, request_edges,
+                                            request_wedges, request_corners);
     break;
   case MOAB:
     if (myPID == 0)
       std::cout << "Using MOAB framework to read mesh" << std::endl;
     result = FrameworkTraits<MOAB>::read(comm, fname,
                                          gm, 
-                                         request_faces, request_edges);
+                                         request_faces, request_edges,
+                                         request_wedges, request_corners);
     break;
   case MSTK:
     if (myPID == 0)
       std::cout << "Using MSTK framework to read mesh" << std::endl;
     result = FrameworkTraits<MSTK>::read(comm, fname,
                                          gm,
-                                         request_faces, request_edges);
+                                         request_faces, request_edges,
+                                         request_wedges, request_corners);
     break;
   default:
     {
@@ -812,7 +843,8 @@ framework_generate(const MPI_Comm& comm, const Framework& f,
                    const unsigned int& nx, const unsigned int& ny, 
                    const unsigned int& nz,
                    const JaliGeometry::GeometricModelPtr& gm,
-                   const bool request_faces, const bool request_edges)
+                   const bool request_faces, const bool request_edges,
+                   const bool request_wedges, const bool request_corners)
 {
   Mesh *result;
   int myPID;
@@ -824,7 +856,8 @@ framework_generate(const MPI_Comm& comm, const Framework& f,
     result = FrameworkTraits<Simple>::generate(x0, y0, z0, x1, y1, z1, 
                                                nx, ny, nz, comm,
                                                gm,
-                                               request_faces, request_edges);
+                                               request_faces, request_edges,
+                                               request_wedges, request_corners);
     break;
   case STKMESH:
     if (myPID == 0)
@@ -832,7 +865,8 @@ framework_generate(const MPI_Comm& comm, const Framework& f,
     result = FrameworkTraits<STKMESH>::generate(x0, y0, z0, x1, y1, z1, 
                                                 nx, ny, nz, comm,
                                                 gm,
-                                                request_faces, request_edges);
+                                                request_faces, request_edges,
+                                                request_wedges, request_corners);
     break;
   case MOAB:
     if (myPID == 0)
@@ -840,7 +874,8 @@ framework_generate(const MPI_Comm& comm, const Framework& f,
     result = FrameworkTraits<MOAB>::generate(x0, y0, z0, x1, y1, z1, 
                                              nx, ny, nz, comm,
                                              gm,
-                                             request_faces, request_edges);
+                                             request_faces, request_edges,
+                                             request_wedges, request_corners);
     break;
   case MSTK:
     if (myPID == 0)
@@ -848,7 +883,8 @@ framework_generate(const MPI_Comm& comm, const Framework& f,
     result = FrameworkTraits<MSTK>::generate(x0, y0, z0, x1, y1, z1, 
                                              nx, ny, nz, comm,
                                              gm,
-                                             request_faces, request_edges);
+                                             request_faces, request_edges,
+                                             request_wedges, request_corners);
     break;
   default:
     {
@@ -869,7 +905,8 @@ framework_generate(const MPI_Comm& comm, const Framework& f,
                    const double& x1, const double& y1,
                    const unsigned int& nx, const unsigned int& ny,
                    const JaliGeometry::GeometricModelPtr& gm,
-                   const bool request_faces, const bool request_edges)
+                   const bool request_faces, const bool request_edges,
+                  const bool request_wedges, const bool request_corners)
 {
   Mesh *result;
   int myPID;
@@ -880,28 +917,32 @@ framework_generate(const MPI_Comm& comm, const Framework& f,
       std::cout << "Using SimpleMesh framework to generate mesh" << std::endl;
     result = FrameworkTraits<Simple>::generate(x0, y0, x1, y1, nx, ny, comm,
                                                gm,
-                                               request_faces, request_edges);
+                                               request_faces, request_edges,
+                                               request_wedges, request_corners);
     break;
   case STKMESH:
     if (myPID == 0)
       std::cout << "Using STKmesh framework to generate mesh" << std::endl;
     result = FrameworkTraits<STKMESH>::generate(x0, y0, x1, y1, nx, ny, comm,
                                                 gm,
-                                                request_faces, request_edges);
+                                                request_faces, request_edges,
+                                                request_wedges, request_corners);
     break;
   case MOAB:
     if (myPID == 0)
       std::cout << "Using MOAB framework to generate mesh" << std::endl;
     result = FrameworkTraits<MOAB>::generate(x0, y0, x1, y1, nx, ny, comm,
                                              gm,
-                                             request_faces, request_edges);
+                                             request_faces, request_edges,
+                                             request_wedges, request_corners);
     break;
   case MSTK:
     if (myPID == 0)
       std::cout << "Using MSTK framework to generate mesh" << std::endl;
     result = FrameworkTraits<MSTK>::generate(x0, y0, x1, y1, nx, ny, comm,
                                              gm,
-                                             request_faces, request_edges);
+                                             request_faces, request_edges,
+                                             request_wedges, request_corners);
     break;
   default:
     {
@@ -975,6 +1016,7 @@ framework_extract(const MPI_Comm& comm, const Framework& f,
                   const std::vector<std::string>& setnames,
                   const Entity_kind setkind,
                   const bool request_faces, const bool request_edges,
+                  const bool request_wedges, const bool request_corners,
                   const bool flatten, const bool extrude)
 {
   Mesh *result;
@@ -984,28 +1026,32 @@ framework_extract(const MPI_Comm& comm, const Framework& f,
                                               inmesh,
                                               setnames, setkind, 
                                               flatten, extrude, 
-                                              request_faces, request_edges);
+                                              request_faces, request_edges,
+                                              request_wedges, request_corners);
     break;
   case STKMESH:
     result = FrameworkTraits<STKMESH>::extract(comm, 
                                                inmesh, 
                                                setnames, setkind,
                                                flatten, extrude,
-                                               request_faces, request_edges);
+                                               request_faces, request_edges,
+                                               request_wedges, request_corners);
     break;
   case MOAB:
     result = FrameworkTraits<MOAB>::extract(comm, 
                                             inmesh, 
                                             setnames, setkind,
                                             flatten, extrude, 
-                                            request_faces, request_edges);
+                                            request_faces, request_edges,
+                                            request_wedges, request_corners);
     break;
   case MSTK:
     result = FrameworkTraits<MSTK>::extract(comm, 
                                             inmesh, 
                                             setnames, setkind,
                                             flatten, extrude, 
-                                            request_faces, request_edges);
+                                            request_faces, request_edges,
+                                            request_wedges, request_corners);
     break;
   default:
     {
@@ -1023,6 +1069,7 @@ framework_extract(const MPI_Comm& comm, const Framework& f,
                   const std::vector<std::string>& setnames,
                   const Entity_kind setkind,
                   const bool request_faces, const bool request_edges,
+                  const bool request_wedges, const bool request_corners,
                   const bool flatten, const bool extrude)
 {
   Mesh *result;
@@ -1032,28 +1079,32 @@ framework_extract(const MPI_Comm& comm, const Framework& f,
                                               inmesh, 
                                               setnames, setkind, 
                                               flatten, extrude, 
-                                              request_faces, request_edges);
+                                              request_faces, request_edges,
+                                              request_wedges, request_corners);
     break;
   case STKMESH:
     result = FrameworkTraits<STKMESH>::extract(comm, 
                                                inmesh, 
                                                setnames, setkind,
                                                flatten, extrude,
-                                               request_faces, request_edges);
+                                               request_faces, request_edges,
+                                               request_wedges, request_corners);
     break;
   case MOAB:
     result = FrameworkTraits<MOAB>::extract(comm, 
                                             inmesh, 
                                             setnames, setkind,
                                             flatten, extrude, 
-                                            request_faces, request_edges);
+                                            request_faces, request_edges,
+                                            request_wedges, request_corners);
     break;
   case MSTK:
     result = FrameworkTraits<MSTK>::extract(comm, 
                                             inmesh, 
                                             setnames, setkind,
                                             flatten, extrude, 
-                                            request_faces, request_edges);
+                                            request_faces, request_edges,
+                                            request_wedges, request_corners);
     break;
   default:
     {
@@ -1071,6 +1122,7 @@ framework_extract(const MPI_Comm& comm, const Framework& f,
                   const std::vector<int>& entity_id_list,
                   const Entity_kind entity_kind,
                   const bool request_faces, const bool request_edges,
+                  const bool request_wedges, const bool request_corners,
                   const bool flatten, const bool extrude)
 {
   Mesh *result;
@@ -1081,7 +1133,8 @@ framework_extract(const MPI_Comm& comm, const Framework& f,
                                               entity_id_list, 
                                               entity_kind, 
                                               flatten, extrude, 
-                                              request_faces, request_edges);
+                                              request_faces, request_edges,
+                                              request_wedges, request_corners);
     break;
   case STKMESH:
     result = FrameworkTraits<STKMESH>::extract(comm, 
@@ -1089,7 +1142,8 @@ framework_extract(const MPI_Comm& comm, const Framework& f,
                                                entity_id_list, 
                                                entity_kind,
                                                flatten, extrude,
-                                               request_faces, request_edges);
+                                               request_faces, request_edges,
+                                               request_wedges, request_corners);
     break;
   case MOAB:
     result = FrameworkTraits<MOAB>::extract(comm, 
@@ -1097,7 +1151,8 @@ framework_extract(const MPI_Comm& comm, const Framework& f,
                                             entity_id_list, 
                                             entity_kind,
                                             flatten, extrude, 
-                                            request_faces, request_edges);
+                                            request_faces, request_edges,
+                                            request_wedges, request_corners);
     break;
   case MSTK:
     result = FrameworkTraits<MSTK>::extract(comm, 
@@ -1105,7 +1160,8 @@ framework_extract(const MPI_Comm& comm, const Framework& f,
                                             entity_id_list, 
                                             entity_kind,
                                             flatten, extrude, 
-                                            request_faces, request_edges);
+                                            request_faces, request_edges,
+                                            request_wedges, request_corners);
     break;
   default:
     {
