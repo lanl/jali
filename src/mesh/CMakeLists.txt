@@ -119,5 +119,19 @@ if (BUILD_TESTS)
                   KIND unit
                   SOURCE test/Main.cc test/test_entity_iterators.cc
 		  LINK_LIBS ${test_link_libs})
+
+    # Test wedge entities
+
+    add_Jali_test(wedge_tests test_wedges
+                  KIND unit
+		  SOURCE test/Main.cc test/test_wedges.cc
+                  LINK_LIBS ${test_link_libs})
+
+    # Test corner entities
+
+    add_Jali_test(corner_tests test_corners
+                  KIND unit
+		  SOURCE test/Main.cc test/test_corners.cc
+                  LINK_LIBS ${test_link_libs})
 endif()
   
