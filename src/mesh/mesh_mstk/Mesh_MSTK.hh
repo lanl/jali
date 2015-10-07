@@ -49,14 +49,18 @@ public:
 	     const JaliGeometry::GeometricModelPtr& gm = 
 	     (JaliGeometry::GeometricModelPtr) NULL,
 	     const bool request_faces = true,
-	     const bool request_edges = false);
+	     const bool request_edges = false,
+             const bool request_wedges = false,
+             const bool request_corners = false);
 
   Mesh_MSTK (const char *filename, const MPI_Comm& incomm, 
              int space_dimension,
 	     const JaliGeometry::GeometricModelPtr& gm = 
 	     (JaliGeometry::GeometricModelPtr) NULL,
 	     const bool request_faces = true,
-	     const bool request_edges = false);
+	     const bool request_edges = false,
+             const bool request_wedges = false,
+             const bool request_corners = false);
 
   // Constructors that generate a mesh internally (regular hexahedral mesh only)
 
@@ -69,7 +73,9 @@ public:
             const JaliGeometry::GeometricModelPtr& gm = 
             (JaliGeometry::GeometricModelPtr) NULL,
 	    const bool request_faces = true,
-	    const bool request_edges = false);
+	    const bool request_edges = false,
+            const bool request_wedges = false,
+            const bool request_corners = false);
 
 
   // 2D
@@ -80,7 +86,9 @@ public:
 	    const JaliGeometry::GeometricModelPtr& gm = 
 	    (JaliGeometry::GeometricModelPtr) NULL,
 	    const bool request_faces = true,
-	    const bool request_edges = false);
+	    const bool request_edges = false,
+            const bool request_wedges = false,
+            const bool request_corners = false);
 
   // Construct a mesh by extracting a subset of entities from another
   // mesh. The subset may be specified by a setname or a list of
@@ -95,7 +103,9 @@ public:
             const bool flatten = false,
             const bool extrude = false,
 	    const bool request_faces = true,
-	    const bool request_edges = false);
+	    const bool request_edges = false,
+            const bool request_wedges = false,
+            const bool request_corners = false);
 
   Mesh_MSTK(const Mesh& inmesh,
             const std::vector<std::string>& setnames,
@@ -103,7 +113,9 @@ public:
             const bool flatten = false,
             const bool extrude = false,
 	    const bool request_faces = true,
-	    const bool request_edges = false);
+	    const bool request_edges = false,
+            const bool request_wedges = false,
+            const bool request_corners = false);
 
   Mesh_MSTK(const Mesh& inmesh,
             const std::vector<int>& entity_list,
@@ -111,7 +123,9 @@ public:
             const bool flatten = false,
             const bool extrude = false,
 	    const bool request_faces = true,
-	    const bool request_edges = false);
+	    const bool request_edges = false,
+            const bool request_wedges = false,
+            const bool request_corners = false);
 
 
   ~Mesh_MSTK ();
