@@ -604,7 +604,6 @@ Entity_ID Mesh::cell_get_corner_at_node(const Entity_ID cellid,
   assert(corners_requested);
   if (!corner_info_cached) cache_corner_info();
 
-  Entity_ID_List cell_corner_ids[cellid];
   Entity_ID_List::iterator itc = cell_corner_ids[cellid].begin();
   while (itc != cell_corner_ids[cellid].end()) {
     int cornerid = *itc;
