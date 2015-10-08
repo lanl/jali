@@ -180,6 +180,27 @@ TEST(MESH_CORNERS_2D) {
 
         ++itc;
       } // while (itc != ccorners.end())
+
+
+      // Cross check in a different way. Get corner of cell at each
+      // node of the cell and add up the volumes of the corners
+      // obtained this way. Compare to cell volume
+
+      Jali::Entity_ID_List cnodes;
+      mesh->cell_get_nodes(c,&cnodes);
+
+      double cellvol2 = 0.0;
+      Jali::Entity_ID_List::iterator itn = cnodes.begin();
+      while (itn != cnodes.end()) {
+        Jali::Entity_ID n = *itn;
+
+        Jali::Entity_ID corner = mesh->cell_get_corner_at_node(c,n);
+        cellvol2 += mesh->corner_volume(corner);
+        ++itn;
+      }
+
+      CHECK_CLOSE(cellvol,cellvol2,1.0e-06);
+
     } // for c = 0, ncells
   }
 
@@ -352,6 +373,26 @@ TEST(MESH_CORNERS_3D) {
 
         ++itc;
       } // while (itc != ccorners.end())
+
+      // Cross check in a different way. Get corner of cell at each
+      // node of the cell and add up the volumes of the corners
+      // obtained this way. Compare to cell volume
+
+      Jali::Entity_ID_List cnodes;
+      mesh->cell_get_nodes(c,&cnodes);
+
+      double cellvol2 = 0.0;
+      Jali::Entity_ID_List::iterator itn = cnodes.begin();
+      while (itn != cnodes.end()) {
+        Jali::Entity_ID n = *itn;
+
+        Jali::Entity_ID corner = mesh->cell_get_corner_at_node(c,n);
+        cellvol2 += mesh->corner_volume(corner);
+        ++itn;
+      }
+
+      CHECK_CLOSE(cellvol,cellvol2,1.0e-06);
+
     } // for c = 0, ncells
   }
 
