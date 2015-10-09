@@ -4,7 +4,7 @@
  * @author Rao V. Garimella
  * @date   Mon Oct 5, 2015
  * 
- * @brief  Test functionality of wedges (simplices forming a decomposition of the cell)
+ * @brief  Test functionality of corners (groups of wedges of a cell sharing a node)
  * 
  * 
  */
@@ -77,6 +77,8 @@ TEST(MESH_CORNERS_2D) {
     MPI_Allreduce(&ierr,&aerr,1,MPI_INT,MPI_SUM,MPI_COMM_WORLD);
     CHECK_EQUAL(aerr,0);
 
+    double totalvol = 0.0; // total volume of domain
+
     int ncells = mesh->num_entities(Jali::CELL,Jali::ALL);
     for (Jali::Entity_ID c = 0; c < ncells; ++c) {
       std::vector<Jali::Entity_ID> ccorners;
@@ -87,6 +89,7 @@ TEST(MESH_CORNERS_2D) {
       CHECK_EQUAL(4,ccorners.size());
 
       double cellvol = mesh->cell_volume(c);
+      totalvol += cellvol;
             
       Jali::Entity_ID_List::iterator itc = ccorners.begin();
       while (itc != ccorners.end()) {
@@ -202,6 +205,26 @@ TEST(MESH_CORNERS_2D) {
       CHECK_CLOSE(cellvol,cellvol2,1.0e-06);
 
     } // for c = 0, ncells
+
+    // Now get corners of nodes, add up their volumes and make sure
+    // it compares accurately to the total volume of the domain
+    
+    double totalvol2 = 0.0;
+
+    int nnodes = mesh->num_entities(Jali::NODE,Jali::ALL);
+    for (int n = 0; n < nnodes; ++n) {
+      Jali::Entity_ID_List corners;
+      mesh->node_get_corners(n,Jali::ALL,&corners);
+
+      Jali::Entity_ID_List::iterator itc = corners.begin();
+      while (itc != corners.end()) {
+        Jali::Entity_ID cn = *itc;
+        totalvol2 += mesh->corner_volume(cn);
+        ++itc;
+      }
+    }
+
+    CHECK_CLOSE(totalvol, totalvol2, 1.0e-06);
   }
 
 }
@@ -264,6 +287,8 @@ TEST(MESH_CORNERS_3D) {
     MPI_Allreduce(&ierr,&aerr,1,MPI_INT,MPI_SUM,MPI_COMM_WORLD);
     CHECK_EQUAL(aerr,0);
 
+    double totalvol = 0.0; // total volume of domain
+
     int ncells = mesh->num_entities(Jali::CELL,Jali::ALL);
     for (Jali::Entity_ID c = 0; c < ncells; ++c) {
       std::vector<Jali::Entity_ID> ccorners;
@@ -274,6 +299,7 @@ TEST(MESH_CORNERS_3D) {
       CHECK_EQUAL(8,ccorners.size());
 
       double cellvol = mesh->cell_volume(c);
+      totalvol += cellvol;
             
       Jali::Entity_ID_List::iterator itc = ccorners.begin();
       while (itc != ccorners.end()) {
@@ -394,6 +420,27 @@ TEST(MESH_CORNERS_3D) {
       CHECK_CLOSE(cellvol,cellvol2,1.0e-06);
 
     } // for c = 0, ncells
+
+
+    // Now get corners of nodes, add up their volumes and make sure
+    // it compares accurately to the total volume of the domain
+    
+    double totalvol2 = 0.0;
+
+    int nnodes = mesh->num_entities(Jali::NODE,Jali::ALL);
+    for (int n = 0; n < nnodes; ++n) {
+      Jali::Entity_ID_List corners;
+      mesh->node_get_corners(n,Jali::ALL,&corners);
+
+      Jali::Entity_ID_List::iterator itc = corners.begin();
+      while (itc != corners.end()) {
+        Jali::Entity_ID cn = *itc;
+        totalvol2 += mesh->corner_volume(cn);
+        ++itc;
+      }
+    }
+
+    CHECK_CLOSE(totalvol, totalvol2, 1.0e-06);
   }
 
 } // MESH_CORNERS_3D
