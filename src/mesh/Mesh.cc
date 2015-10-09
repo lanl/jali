@@ -662,8 +662,8 @@ void Mesh::node_get_corners(const Entity_ID nodeid, Parallel_type ptype,
 
   switch (ptype) {
     case ALL:
-      cornerids->resize(corner_wedge_ids[nodeid].size());
-      std::copy(node_wedge_ids[nodeid].begin(), node_wedge_ids[nodeid].end(),
+      cornerids->resize(node_corner_ids[nodeid].size());
+      std::copy(node_corner_ids[nodeid].begin(), node_corner_ids[nodeid].end(),
                 cornerids->begin());
       break;
     default:
