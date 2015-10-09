@@ -492,7 +492,7 @@ class Mesh
   Entity_ID wedge_get_opposite_wedge (const Entity_ID wedgeid) const;
 
   // adjacent wedge along edge in the same cell. The two wedges share
-  // facet 1 of wedge comprised of node, edge center and zone center
+  // facet 1 of wedge comprised of edge center, face center and zone center
   // in 3D, and node and zone center in 2D
 
 
