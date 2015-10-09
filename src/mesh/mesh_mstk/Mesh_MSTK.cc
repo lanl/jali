@@ -20,16 +20,17 @@ namespace Jali
 Mesh_MSTK::Mesh_MSTK (const char *filename, const MPI_Comm& incomm,
 		      const JaliGeometry::GeometricModelPtr& gm,
 		      const bool request_faces,
-		      const bool request_edges) :
-  Mesh(request_faces,request_edges,incomm), 
-  mpicomm(incomm), meshxyz(NULL), 
-  faces_initialized(false), edges_initialized(false),
-  target_cell_volumes(NULL), min_cell_volumes(NULL)
-{  
-
+		      const bool request_edges,
+                      const bool request_wedges,
+                      const bool request_corners) :
+    Mesh(request_faces,request_edges,request_wedges,request_corners,incomm), 
+    mpicomm(incomm), meshxyz(NULL), 
+    faces_initialized(false), edges_initialized(false),
+    target_cell_volumes(NULL), min_cell_volumes(NULL) {  
+  
   int numprocs;
   MPI_Comm_size(mpicomm,&numprocs);
-
+  
   // Assume three dimensional problem if constructor called without 
   // the space_dimension parameter
 
@@ -145,12 +146,13 @@ Mesh_MSTK::Mesh_MSTK (const char *filename, const MPI_Comm& incomm,
 		      int space_dimension,
 		      const JaliGeometry::GeometricModelPtr& gm,
 		      const bool request_faces,
-		      const bool request_edges) :
-  Mesh(request_faces,request_edges,incomm), 
-  mpicomm(incomm), meshxyz(NULL), 
-  faces_initialized(false), edges_initialized(false),
-  target_cell_volumes(NULL), min_cell_volumes(NULL)
-{
+		      const bool request_edges,
+                      const bool request_wedges,
+                      const bool request_corners) :
+    Mesh(request_faces,request_edges,request_wedges, request_corners,incomm), 
+    mpicomm(incomm), meshxyz(NULL), 
+    faces_initialized(false), edges_initialized(false),
+    target_cell_volumes(NULL), min_cell_volumes(NULL) {
 
   // Assume three dimensional problem if constructor called without 
   // the space_dimension parameter
@@ -243,12 +245,14 @@ Mesh_MSTK::Mesh_MSTK(const double x0, const double y0, const double z0,
 		     const MPI_Comm& incomm,
 		     const JaliGeometry::GeometricModelPtr& gm,
 		     const bool request_faces,
-		     const bool request_edges) :
-  Mesh(request_faces,request_edges,incomm), 
-  mpicomm(incomm), meshxyz(NULL), 
-  faces_initialized(false), edges_initialized(false),
-  target_cell_volumes(NULL), min_cell_volumes(NULL)
-{
+		     const bool request_edges,
+                     const bool request_wedges,
+                     const bool request_corners) :
+    Mesh(request_faces,request_edges,request_wedges,request_corners,incomm),
+    mpicomm(incomm), meshxyz(NULL), 
+    faces_initialized(false), edges_initialized(false),
+    target_cell_volumes(NULL), min_cell_volumes(NULL) {
+
   int ok;
 
   int space_dimension = 3;
@@ -325,12 +329,14 @@ Mesh_MSTK::Mesh_MSTK(const double x0, const double y0,
 		     const MPI_Comm& incomm,
 		     const JaliGeometry::GeometricModelPtr& gm,
 		     const bool request_faces,
-		     const bool request_edges) :
-  Mesh(request_faces,request_edges,incomm), 
-  mpicomm(incomm), meshxyz(NULL), 
-  faces_initialized(false), edges_initialized(false),
-  target_cell_volumes(NULL), min_cell_volumes(NULL)
-{
+		     const bool request_edges,
+                     const bool request_wedges,
+                     const bool request_corners) :
+    Mesh(request_faces,request_edges,request_wedges,request_corners,incomm), 
+    mpicomm(incomm), meshxyz(NULL), 
+    faces_initialized(false), edges_initialized(false),
+                   target_cell_volumes(NULL), min_cell_volumes(NULL) {
+
   int ok;
   int space_dim = 2;
   pre_create_steps_(space_dim, incomm, gm);
@@ -339,7 +345,7 @@ Mesh_MSTK::Mesh_MSTK(const double x0, const double y0,
   if (myprocid == 0) {
     int DebugWait=0;
     while (DebugWait);
-    }
+  }
 
 
   Mesh::set_mesh_type(RECTANGULAR);   // Discretizations can use this info if they want
@@ -408,11 +414,12 @@ Mesh_MSTK::Mesh_MSTK (const Mesh *inmesh,
                       const bool flatten,
                       const bool extrude,
 		      const bool request_faces,
-		      const bool request_edges) :
-  mpicomm(inmesh->get_comm()),
-  Mesh(request_faces,request_edges)
-{  
-
+		      const bool request_edges,
+                      const bool request_wedges,
+                      const bool request_corners) :
+    mpicomm(inmesh->get_comm()),
+    Mesh(request_faces,request_edges,request_wedges,request_corners) {  
+  
   Mesh_ptr inmesh_mstk = ((Mesh_MSTK *)inmesh)->mesh;
 
   int mkid = MSTK_GetMarker();
@@ -460,9 +467,11 @@ Mesh_MSTK::Mesh_MSTK (const Mesh& inmesh,
                       const bool flatten,
                       const bool extrude,
 		      const bool request_faces,
-		      const bool request_edges) :
+		      const bool request_edges,
+                      const bool request_wedges,
+                      const bool request_corners) :
   mpicomm(inmesh.get_comm()),
-  Mesh(request_faces,request_edges)
+  Mesh(request_faces,request_edges,request_wedges,request_corners)
 {  
 
   Mesh_ptr inmesh_mstk = ((Mesh_MSTK&) inmesh).mesh;
@@ -519,9 +528,11 @@ Mesh_MSTK::Mesh_MSTK (const Mesh& inmesh,
                       const bool flatten,
                       const bool extrude,
 		      const bool request_faces,
-		      const bool request_edges) :
+		      const bool request_edges,
+                      const bool request_wedges,
+                      const bool request_corners) :
   mpicomm(inmesh.get_comm()),
-  Mesh(request_faces,request_edges)
+  Mesh(request_faces,request_edges,request_wedges, request_corners)
 {
   // store pointers to the MESH_XXXFromID functions so that they can
   // be called without a switch statement 

@@ -86,7 +86,9 @@ Mesh *
 MeshFactory::create(const std::string& filename, 
                     const JaliGeometry::GeometricModelPtr &gm,
                     const bool request_faces, 
-                    const bool request_edges)
+                    const bool request_edges,
+                    const bool request_wedges,
+                    const bool request_corners)
 {
   // check the file format
   Format fmt = file_format(my_comm, filename);
@@ -112,7 +114,8 @@ MeshFactory::create(const std::string& filename,
     if (framework_reads(*i, fmt, numproc > 1)) {
       try {
         result = framework_read(my_comm, *i, filename, gm, 
-                                request_faces, request_edges);
+                                request_faces, request_edges,
+                                request_wedges, request_corners);
         if (gm && (gm->dimension() != result->space_dimension())) {
           Errors::Message mesg("Geometric model and mesh dimension do not match");
           Exceptions::Jali_throw(mesg);
@@ -161,7 +164,9 @@ MeshFactory::create(double x0, double y0, double z0,
                     int nx, int ny, int nz, 
                     const JaliGeometry::GeometricModelPtr &gm,
                     const bool request_faces, 
-                    const bool request_edges)
+                    const bool request_edges,
+                    const bool request_wedges,
+                    const bool request_corners)
 {
   Mesh *result;
   Message e("MeshFactory::create: error: ");
@@ -203,7 +208,8 @@ MeshFactory::create(double x0, double y0, double z0,
                                     x0, y0, z0, x1, y1, z1, 
                                     nx, ny, nz,
                                     gm, 
-                                    request_faces, request_edges);
+                                    request_faces, request_edges,
+                                    request_wedges, request_corners);
         return result;
       } catch (const Message& msg) {
         ierr[0] += 1;
@@ -245,7 +251,9 @@ MeshFactory::create(double x0, double y0,
                     int nx, int ny,
                     const JaliGeometry::GeometricModelPtr &gm,
                     const bool request_faces, 
-                    const bool request_edges)
+                    const bool request_edges,
+                    const bool request_wedges,
+                    const bool request_corners)
 {
   Mesh *result;
   Message e("MeshFactory::create: error: ");
@@ -288,7 +296,8 @@ MeshFactory::create(double x0, double y0,
                                     x0, y0, x1, y1,
                                     nx, ny,
                                     gm,
-                                    request_faces, request_edges);
+                                    request_faces, request_edges,
+                                    request_wedges, request_corners);
         return result;
       } catch (const Message& msg) {
         ierr[0] += 1;
@@ -326,7 +335,9 @@ MeshFactory::create(const Mesh *inmesh,
                     const Entity_kind setkind,
                     const bool flatten, const bool extrude,
                     const bool request_faces, 
-                    const bool request_edges)
+                    const bool request_edges,
+                    const bool request_wedges,
+                    const bool request_corners)
 {
   Mesh *result;
   Message e("MeshFactory::create: error: ");
@@ -344,7 +355,8 @@ MeshFactory::create(const Mesh *inmesh,
       try {
         result = framework_extract(my_comm, *i, inmesh, setnames, setkind, 
                                    flatten, extrude,
-                                   request_faces, request_edges);
+                                   request_faces, request_edges,
+                                   request_wedges, request_corners);
         return result;
       } catch (const Message& msg) {
         ierr[0] += 1;

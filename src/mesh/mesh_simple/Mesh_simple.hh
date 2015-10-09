@@ -36,7 +36,9 @@ public:
 	       const JaliGeometry::GeometricModelPtr gm = 
                (JaliGeometry::GeometricModelPtr) NULL,
 	       const bool request_faces = true,
-	       const bool request_edges = false);
+	       const bool request_edges = false,
+               const bool request_wedges = false,
+               const bool request_corners = false);
   
   Mesh_simple (double x0, double y0,
 	       double x1, double y1,
@@ -44,7 +46,9 @@ public:
 	       const JaliGeometry::GeometricModelPtr &gm = 
                (JaliGeometry::GeometricModelPtr) NULL,
 	       const bool request_faces = true,
-	       const bool request_edges = false);
+	       const bool request_edges = false,
+               const bool request_wedges = false,
+               const bool request_corners = false);
   
   // Construct a mesh by extracting a subset of entities from another
   // mesh. In some cases like extracting a surface mesh from a volume
@@ -58,7 +62,9 @@ public:
               const bool flatten = false,
               const bool extrude = false,
 	      const bool request_faces = true,
-	      const bool request_edges = false);
+	      const bool request_edges = false,
+              const bool request_wedges = false,
+              const bool request_corners = false);
 
   Mesh_simple(const Mesh& inmesh,
               const std::vector<std::string>& setnames,
@@ -66,7 +72,9 @@ public:
               const bool flatten = false,
               const bool extrude = false,
 	      const bool request_faces = true,
-	      const bool request_edges = false);
+	      const bool request_edges = false,
+              const bool request_wedges = false,
+              const bool request_corners = false);
 
   Mesh_simple(const Mesh& inmesh, 
               const std::vector<int>& entity_id_list, 
@@ -74,7 +82,9 @@ public:
               const bool flatten = false,
               const bool extrude = false,
               const bool request_faces = true,
-              const bool request_edges = false);
+              const bool request_edges = false,
+              const bool request_wedges = false,
+              const bool request_corners = false);
   
   virtual ~Mesh_simple ();
   

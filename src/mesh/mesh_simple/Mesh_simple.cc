@@ -15,12 +15,14 @@ Mesh_simple::Mesh_simple (double x0, double y0, double z0,
                           const MPI_Comm& comm,
 			  const JaliGeometry::GeometricModelPtr gm,
                           const bool request_faces,
-                          const bool request_edges):
+                          const bool request_edges,
+                          const bool request_wedges,
+                          const bool request_corners) :
     nx_(nx), ny_(ny), nz_(nz),
     x0_(x0), x1_(x1),
     y0_(y0), y1_(y1),
     z0_(z0), z1_(z1),
-    Mesh(request_faces,request_edges)
+  Mesh(request_faces,request_edges,request_wedges,request_corners)
 {
   Mesh::set_mesh_type(RECTANGULAR);
   if (gm != (JaliGeometry::GeometricModelPtr) NULL) 
@@ -40,7 +42,9 @@ Mesh_simple::Mesh_simple (double x0, double y0,
                           const MPI_Comm& comm,
                           const JaliGeometry::GeometricModelPtr &gm,
                           const bool request_faces,
-                          const bool request_edges) 
+                          const bool request_edges,
+                          const bool request_wedges,
+                          const bool request_corners) 
 {
   Exceptions::Jali_throw(Errors::Message("Simple mesh cannot generate 2D meshes"));
 }
@@ -57,7 +61,9 @@ Mesh_simple::Mesh_simple (const Mesh *inmesh,
                           const bool flatten,
                           const bool extrude,
                           const bool request_faces,
-                          const bool request_edges)
+                          const bool request_edges,
+                          const bool request_wedges,
+                          const bool request_corners)
 {  
   Errors::Message mesg("Construction of new mesh from an existing mesh not yet implemented in the Simple mesh framework\n");
   Exceptions::Jali_throw(mesg);
@@ -69,7 +75,9 @@ Mesh_simple::Mesh_simple (const Mesh& inmesh,
                           const bool flatten,
                           const bool extrude,
                           const bool request_faces,
-                          const bool request_edges)
+                          const bool request_edges,
+                          const bool request_wedges,
+                          const bool request_corners)
 {  
   Errors::Message mesg("Construction of new mesh from an existing mesh not yet implemented in the Simple mesh framework\n");
   Exceptions::Jali_throw(mesg);
@@ -81,7 +89,9 @@ Mesh_simple::Mesh_simple (const Mesh& inmesh,
                           const bool flatten,
                           const bool extrude,
                           const bool request_faces,
-                          const bool request_edges)
+                          const bool request_edges,
+                          const bool request_wedges,
+                          const bool request_corners)
 {  
   Errors::Message mesg("Construction of new mesh from an existing mesh not yet implemented in the Simple mesh framework\n");
   Exceptions::Jali_throw(mesg);
