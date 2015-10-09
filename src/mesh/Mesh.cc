@@ -1748,12 +1748,12 @@ Mesh::corner_get_coordinates (const Entity_ID cornerid,
     std::vector<JaliGeometry::Point> wpoints;
     wedge_get_coordinates(cwedges[1],&wpoints);
     
-    pointcoords->push_back(wpoints[2]);
+    pointcoords->push_back(wpoints[1]);
     
     // Make sure we got the coordinates in the right orientation
     
     JaliGeometry::Point vec0 = (*pointcoords)[1] - (*pointcoords)[0];
-    JaliGeometry::Point vec1 = (*pointcoords)[2] - (*pointcoords)[0];
+    JaliGeometry::Point vec1 = (*pointcoords)[3] - (*pointcoords)[0];
     JaliGeometry::Point cpvec = vec0^vec1; // 2 times the vol of cwedges[0]
     
     // If the sign of cpvec[0] and wedge_volume(cwedges[0]) not the same, then 

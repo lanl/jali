@@ -175,7 +175,7 @@ TEST(MESH_CORNERS_2D) {
           JaliGeometry::Point vec0 = cncoords[(i+1)%4] - cncoords[i];
           JaliGeometry::Point vec1 = cncen - cncoords[i];
           JaliGeometry::Point cpvec = vec0^vec1;
-          double trivol = cpvec[0];
+          double trivol = 0.5*cpvec[0];
           cnvolume2 += trivol;
         }
 
