@@ -39,4 +39,5 @@ Execute the following from the Jali root directory:
       -D ENABLE_MOAB_Mesh:BOOL=FALSE \
       ${SOURCE}
     make -j16
+    ctest -j16
     make install
