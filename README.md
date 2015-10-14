@@ -8,7 +8,7 @@ them for other machines.
 
 Execute the following from the Jali root directory:
 
-    module load mpi/openmpi-1.8.4-intel_15.0.3 cmake
+    module load compilers/gcc/4.9.2 mpi/openmpi-1.8.4-intel_15.0.3 cmake
     SOURCE=`pwd`
     TPL_INSTALL_PREFIX=$SOURCE/inst-tpl
     JALI_INSTALL_PREFIX=$SOURCE/inst-jali
@@ -30,6 +30,7 @@ Execute the following from the Jali root directory:
     cmake \
       -C $TPL_INSTALL_PREFIX/share/cmake/Jali-tpl-config.cmake \
       -D CMAKE_BUILD_TYPE=Debug \
+      -D CMAKE_CXX_FLAGS='-std=c++11' \
       -D CMAKE_INSTALL_PREFIX:FILEPATH=$JALI_INSTALL_PREFIX \
       -D HDF5_NO_SYSTEM_PATHS:BOOL=TRUE \
       -D BOOST_ROOT:FILEPATH=$TPL_INSTALL_PREFIX \
@@ -38,4 +39,5 @@ Execute the following from the Jali root directory:
       -D ENABLE_MOAB_Mesh:BOOL=FALSE \
       ${SOURCE}
     make -j16
+    ctest -j16
     make install
