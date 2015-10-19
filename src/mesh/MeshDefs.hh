@@ -81,6 +81,9 @@ enum Geom_type
     
 enum Entity_kind 
 {
+  ALL_KIND = -3,
+  ANY_KIND = -2,
+  UNKNOWN_KIND = -1,
   NODE = 0,
   EDGE,
   FACE,
@@ -88,7 +91,8 @@ enum Entity_kind
   WEDGE,
   CORNER,
   FACET,
-  BOUNDARY_FACE
+  BOUNDARY_FACE,
+  NUM_ENTITY_KINDS
 };
 
 // Check if Entity_kind is valid
