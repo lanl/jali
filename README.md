@@ -8,7 +8,7 @@ them for other machines.
 
 Execute the following from the Jali root directory:
 
-    module load compilers/gcc/4.9.2 mpi/openmpi-1.8.4-intel_15.0.3 cmake
+    module load openmpi/1.10.0-intel_15.0.3 cmake
     SOURCE=`pwd`
     TPL_INSTALL_PREFIX=$SOURCE/inst-tpl
     JALI_INSTALL_PREFIX=$SOURCE/inst-jali
