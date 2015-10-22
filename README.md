@@ -59,7 +59,7 @@ Execute the following from the Jali root directory:
         -D CMAKE_CXX_COMPILER=`which mpiCC` \
         -D CMAKE_Fortran_COMPILER=`which mpif90` \
         -D DISABLE_EXTERNAL_DOWNLOAD:BOOL=TRUE \
-        -D TPL_DOWNLOAD_DIR:PATH=/usr/local/codes/ngc/private/tpl-downloads2/ \
+        -D TPL_DOWNLOAD_DIR:PATH=/usr/local/codes/ngc/private/tpl-downloads/ \
         -D TPL_INSTALL_PREFIX=$TPL_INSTALL_PREFIX \
         $SOURCE/config/SuperBuild/
     make -j16
