@@ -10,5 +10,7 @@ int main(int argc, char *argv[])
   int ok = UnitTest::RunAllTests ();
   
   MPI_Finalize();
+  
+  return ok;
 }
 
