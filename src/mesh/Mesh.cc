@@ -156,6 +156,7 @@ void Mesh::cache_wedge_info() const {
   wedge_edge_id.resize(num_wedges,-1);
   wedge_face_id.resize(num_wedges,-1);
   wedge_cell_id.resize(num_wedges,-1);
+  wedge_corner_id.resize(num_wedges,-1); // will get filled when corners get built
   wedge_parallel_type.resize(num_wedges,OWNED);
   wedge_adj_wedge_id.resize(num_wedges,-1);
   wedge_opp_wedge_id.resize(num_wedges,-1);
@@ -274,8 +275,10 @@ void Mesh::cache_corner_info() const {
       while (itw != nwedges.end()) {
         Entity_ID w = *itw;
         Entity_ID c2 = wedge_get_cell(w);
-        if (c == c2)
+        if (c == c2) {
           corner_wedge_ids[cornerid].push_back(w);
+          wedge_corner_id[w] = cornerid;
+        }
 
         ++itw;
       } // while (itw != nwedges.end())
@@ -1761,10 +1764,7 @@ Mesh::corner_get_coordinates (const Entity_ID cornerid,
     
     if (cpvec[0]*wedge_volume(cwedges[0]) < 0) {
       // reverse the order of the points
-      std::vector<JaliGeometry::Point> pointcoords2(4);
-      for (int i = 0; i < 4; ++i)
-        pointcoords2[i] = (*pointcoords)[4-i-1];
-      std::swap(*pointcoords,pointcoords2);
+      std::swap((*pointcoords)[1],(*pointcoords)[3]); 
     }
   }
   else if (celldim == 3) {
