@@ -449,6 +449,11 @@ class Mesh
 
   Entity_ID wedge_get_cell (const Entity_ID wedgeid) const;
 
+
+  // corner of a wedge
+
+  Entity_ID wedge_get_corner (const Entity_ID wedgeid) const;
+
   // wedges of a facet
 
   // void wedges_of_a_facet (const Entity_ID facetid, Entity_ID_List *wedgeids) 
@@ -487,7 +492,8 @@ class Mesh
 
   // Opposite wedge in neighboring cell of a wedge. The two wedges
   // share facet 0 of wedge comprised of node, edge center and face
-  // center in 3D, and node and edge center in 2D
+  // center in 3D, and node and edge center in 2D. At boundaries,
+  // this routine returns -1
 
   Entity_ID wedge_get_opposite_wedge (const Entity_ID wedgeid) const;
 
@@ -840,6 +846,7 @@ class Mesh
   mutable std::vector<Entity_ID> wedge_face_id;
   mutable std::vector<Entity_ID> wedge_node_id;
   mutable std::vector<Entity_ID> wedge_cell_id;
+  mutable std::vector<Entity_ID> wedge_corner_id;
   mutable std::vector<Parallel_type> wedge_parallel_type;
   mutable std::vector<Entity_ID> wedge_adj_wedge_id;
   mutable std::vector<Entity_ID> wedge_opp_wedge_id;
@@ -904,6 +911,13 @@ Entity_ID Mesh::wedge_get_cell(const Entity_ID wedgeid) const {
   assert(wedges_requested);
   if (!wedge_info_cached) cache_wedge_info();
   return wedge_cell_id[wedgeid];
+}
+
+inline
+Entity_ID Mesh::wedge_get_corner(const Entity_ID wedgeid) const {
+  assert(wedges_requested);
+  if (!wedge_info_cached) cache_wedge_info();
+  return wedge_corner_id[wedgeid];
 }
 
 inline
