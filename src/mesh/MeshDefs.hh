@@ -91,9 +91,11 @@ enum Entity_kind
   WEDGE,
   CORNER,
   FACET,
-  BOUNDARY_FACE,
-  NUM_ENTITY_KINDS
+  BOUNDARY_FACE
 };
+
+#define NUM_ENTITY_KINDS 8
+
 
 // Check if Entity_kind is valid
 inline 
