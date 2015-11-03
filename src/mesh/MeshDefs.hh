@@ -81,6 +81,9 @@ enum Geom_type
     
 enum Entity_kind 
 {
+  ALL_KIND = -3,
+  ANY_KIND = -2,
+  UNKNOWN_KIND = -1,
   NODE = 0,
   EDGE,
   FACE,
@@ -90,6 +93,9 @@ enum Entity_kind
   FACET,
   BOUNDARY_FACE
 };
+
+#define NUM_ENTITY_KINDS 8
+
 
 // Check if Entity_kind is valid
 inline 
