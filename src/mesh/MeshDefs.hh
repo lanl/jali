@@ -94,7 +94,7 @@ enum Entity_kind
   BOUNDARY_FACE
 };
 
-#define NUM_ENTITY_KINDS 8
+const int NUM_ENTITY_KINDS = 8;
 
 
 // Check if Entity_kind is valid
