@@ -368,7 +368,8 @@ class Mesh
 
   Entity_ID wedge_get_edge (const Entity_ID wedgeid) const;
 
-  // Node of a wedge
+  // Node of a wedge - this will always be the first node of the edge
+  // returned by wedge_get_edge
 
   Entity_ID wedge_get_node (const Entity_ID wedgeid) const;
 
@@ -535,9 +536,22 @@ class Mesh
                              std::vector<JaliGeometry::Point> *ccoords) const = 0;
 
   // Coordinates of wedge
+  // 
+  // If posvol_order = true, then the coordinates will be returned
+  // in an order that will result in a positive volume (in 3D this assumes 
+  // that the computation for volume is done as (V01 x V02).V03 where V0i 
+  // is a vector from coordinate 0 to coordinate i of the tet). If posvol_order
+  // is false, the coordinates will be returned in a fixed order - in 2D, 
+  // this is node point, edge/face center, cell center and in 3D, this is
+  // node point, edge center, face center, cell center
+  //
+  // By default the coordinates are returned in fixed order
+  // (posvol_order = false)
+  
 
   void wedge_get_coordinates (const Entity_ID wedgeid,
-			      std::vector<JaliGeometry::Point> *wcoords) const;
+			      std::vector<JaliGeometry::Point> *wcoords,
+                              bool posvol_order=false) const;
 
 
   // Coordinates of corner points. In 2D, these are ordered in a ccw
@@ -786,7 +800,6 @@ class Mesh
 
  private:
 
-
   // The following methods are declared const since they do not modify the
   // mesh but just modify cached variables declared as mutable
 
@@ -850,6 +863,17 @@ class Mesh
   mutable std::vector<Parallel_type> wedge_parallel_type;
   mutable std::vector<Entity_ID> wedge_adj_wedge_id;
   mutable std::vector<Entity_ID> wedge_opp_wedge_id;
+
+  //! There are two wedges per edge/face/cell combination but both
+  //! their coordinates are returned in a fixed order - node point,
+  //! edge center (in 3D), face center and zone center. This means
+  //! that if we directly calculate the area/volume of the two wedges
+  //! using the coordinates in the returned order, one wedge volume
+  //! will be +ve and the other -ve. The variable wedge_posvol_flag
+  //! tells us whether we have to the wedge will naturally give us a
+  //! positive volume (true) or not (false).
+
+  mutable std::vector<bool> wedge_posvol_flag; 
   
   mutable int num_corners;
   mutable std::vector< std::vector<Entity_ID> > cell_corner_ids;
