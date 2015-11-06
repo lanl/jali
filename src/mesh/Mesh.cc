@@ -160,24 +160,31 @@ void Mesh::cache_wedge_info() const {
   wedge_parallel_type.resize(num_wedges,OWNED);
   wedge_adj_wedge_id.resize(num_wedges,-1);
   wedge_opp_wedge_id.resize(num_wedges,-1);
+  wedge_posvol_flag.resize(num_wedges,true);
   
   int wedgeid = 0;
   for (int c = 0; c < ncells; c++) {
     std::vector<Entity_ID> cfaces;
-    cell_get_faces(c,&cfaces);
+    std::vector<int> cfdirs;
+    cell_get_faces_and_dirs(c,&cfaces,&cfdirs);
 
     Entity_ID_List::iterator itf = cfaces.begin();
+    std::vector<int>::iterator itfd = cfdirs.begin();
     while (itf != cfaces.end()) {
       Entity_ID f = *itf;
+      int fdir = *itfd;
 
       Entity_ID_List fedges;	
       std::vector<int> fedirs;
       face_get_edges_and_dirs(f,&fedges,&fedirs);
 
       Entity_ID_List::iterator ite = fedges.begin();
+      std::vector<int>::iterator ited = fedirs.begin();
       while (ite != fedges.end()) {
         Entity_ID e = *ite;
+        int edir = *ited;
 
+        int dir = fdir*edir;
         Entity_ID enode[2], ewedge[2];
         edge_get_nodes(e,&(enode[0]),&(enode[1]));
         for (int i = 0; i < 2; i++) {
@@ -189,7 +196,22 @@ void Mesh::cache_wedge_info() const {
           wedge_parallel_type[wedgeid] = entity_get_ptype(CELL,c);
           cell_wedge_ids[c].push_back(wedgeid);
           node_wedge_ids[n].push_back(wedgeid);
-          
+
+          // Whethter the fixed ordering of coordinates (n,e,f,c)
+          // gives a +ve or -ve volume depends also on cell dimension
+          // (2D or 3D). If all dirs (cell-to-face) and (face-to-edge)
+          // are +ve, the triangle formed by n,e,c where n is node
+          // point 0 of edge, will give a +ve area. On the other hand, the tet
+          // formed by n,e,f,c will give a -ve area because triangle
+          // n,e,f will point out of the cell.  Here n is node point
+          // 0 of the edge, e is the edge center, f is the face center
+          // and c is the cell center
+
+          if (cell_dimension() == 2)
+            wedge_posvol_flag[wedgeid] = !((i == 0)^(dir == 1));
+          else if (cell_dimension() == 3)
+            wedge_posvol_flag[wedgeid] = !((i == 0)^(dir == -1));
+
           ewedge[i] = wedgeid;
 
           // See if any of the other wedges attached to the node
@@ -220,9 +242,11 @@ void Mesh::cache_wedge_info() const {
         wedge_adj_wedge_id[ewedge[1]] = ewedge[0];
 
         ++ite;
+        ++ited;
       } // while (ite != fedges.end())
 
       ++itf;
+      ++itfd;
     } // while (itf != cfaces.end())
   } // for (int c = 0;....)
 
@@ -1059,6 +1083,14 @@ void Mesh::compute_wedge_geometry(Entity_ID const wedgeid,
                                  JaliGeometry::Point *facet_normal0,
                                  JaliGeometry::Point *facet_normal1) const {
 
+  // First record the flag which indicates if the default ordering
+  // gives us positive volumes for the wedges if we assume n,e,c for
+  // 2D and n,e,f,c for 3D (n - node point, e - edge center, f - face
+  // center, c - cell center. This flag was recorded during the
+  // construction of wedges using purely topological info and so is robust
+
+  bool posvol = wedge_posvol_flag[wedgeid];
+
   if (celldim == 3) {
     
     std::vector<JaliGeometry::Point> wcoords;
@@ -1071,53 +1103,29 @@ void Mesh::compute_wedge_geometry(Entity_ID const wedgeid,
     wedge_get_coordinates(wedgeid,&wcoords);
     
     // vector from edge center to node
-    JaliGeometry::Point vec1 = wcoords[0]-wcoords[1];
+    JaliGeometry::Point vec0 = wcoords[0]-wcoords[1];
     
     // vector from edge center to face center
-    JaliGeometry::Point vec2 = wcoords[2]-wcoords[1];
+    JaliGeometry::Point vec1 = wcoords[2]-wcoords[1];
     
     // vector from edge center to cell center
-    JaliGeometry::Point vec3 = wcoords[3]-wcoords[1];
+    JaliGeometry::Point vec2 = wcoords[3]-wcoords[1];
+
     
+    // Area weighted normal to the triangular facet formed by node
+    // coordinate, edge center and face center such that the normal is
+    // pointing out of the wedge and cell
 
-    // Area weighted normal to the triangular facet formed
-    // by node coordinate, edge center and face center
-    JaliGeometry::Point normal = 0.5*(vec1^vec2);
-    
-    // Make sure normal is pointing out of the cell by comparing
-    // with the face normal pointing out of the cell
+    *facet_normal0 = posvol ? 0.5*(vec0^vec1) : -0.5*(vec0^vec1);
 
-    int dir;
-    JaliGeometry::Point fnormal = face_normal(wedge_face_id[wedgeid],false,
-                                              wedge_cell_id[wedgeid],&dir);
-    
-    double dp = normal*fnormal;
-    if (dp < 0)
-      normal = -normal;
-    
-    *facet_normal0 = normal; 
+    // Volume of wedge adjusted for +ve volume
 
-    // Volume of wedge is the *negative* of the dot product between
-    // the area weighted normal pointing out of the cell as computed
-    // above and the vector from the edge center to the cell center
-
-    *wedge_volume = -(2.0*normal*vec3)/6.0;  // (vec1^vec2)*vec3/6.0
-
+    *wedge_volume = posvol ? (vec1^vec0)*vec2/6.0 : -(vec1^vec0)*vec2/6.0;
 
     // Compute normal of triangular facet formed by edge center, face
     // center and zone center
-    normal = 0.5*(vec2^vec3);
 
-    // Make sure this is pointing out from the node and not into it
-    // Dot it with vec1 which is pointing *into* the node from the 
-    // edge center. This means the normal has to be reversed if the
-    // dot product is greater than 0, not less than 0
-    
-    dp = normal*vec1;
-    if (dp > 0)
-      normal = -normal;
-    
-    *facet_normal1 = normal;
+    *facet_normal1 = posvol ? 0.5*(vec1^vec2) : -0.5*(vec1^vec2);
 
   }
   else if (celldim == 2) {
@@ -1131,55 +1139,32 @@ void Mesh::compute_wedge_geometry(Entity_ID const wedgeid,
     wedge_get_coordinates(wedgeid,&wcoords);
     
     // vector from edge/face center to node
-    JaliGeometry::Point vec1 = wcoords[0]-wcoords[1];
+    JaliGeometry::Point vec0 = wcoords[0]-wcoords[1];
     
     // vector from cell center to edge/face center
-    JaliGeometry::Point vec2 = wcoords[2]-wcoords[1];
+    JaliGeometry::Point vec1 = wcoords[2]-wcoords[1];
     
     // length weighted normal to the segment formed
     // by node coordinate and edge/face center
     
-    JaliGeometry::Point normal(JaliGeometry::Point(vec1[1],-vec1[0]));
+    JaliGeometry::Point normal(JaliGeometry::Point(-vec0[1],vec0[0]));
 
-    // Make sure normal is pointing out of the cell by comparing it with
-    // the face normal pointing out of the cell
-
-    int dir;
-    JaliGeometry::Point fnormal = face_normal(wedge_face_id[wedgeid],false,
-                                              wedge_cell_id[wedgeid],&dir);
-
-    // Adjust sign of the normal to ensure that its pointing out of the cell
-    // (so in the opposite direction of vec2)
+    *facet_normal0 = posvol ? normal : -normal;
     
-    double dp = normal*fnormal;
-    if (dp < 0)
-      normal = -normal;
+    // Area of wedge is 1/2 of the cross-product of vec1 and vec0
     
-    *facet_normal0 = normal;
-    
-    // Area of wedge is the *negative* of the dot product between
-    // the area weighted normal pointing out of the cell as computed
-    // above and the vector from the edge/face center to the cell center
-
-    *wedge_volume = -(normal*vec2)/2.0;
-
+    JaliGeometry::Point cpvec = (vec1^vec0)/2.0;
+    *wedge_volume = posvol ? cpvec[0] : -cpvec[0];
 
     // length weighted normal to the segment formed
     // by cell center and edge/face center
     
-    normal.set(vec2[1],-vec2[0]);
+    normal.set(vec1[1],-vec1[0]);
     
     // Adjust sign of the normal to ensure that its pointing out
-    // from the node. Dot it with vec1 which points *into* the node
-    // from the edge center. This means the normal has to be
-    // reversed if the dot product is greater than (not less than) 0
-    // 
+    // from the node. 
     
-    dp = normal*vec1;
-    if (dp > 0)
-      normal = -normal;
-    
-    *facet_normal1 = normal;
+    *facet_normal1 = posvol ? normal : -normal;
   }
   else if (celldim == 1) {
     // unclear what the definitions of these normals are    
@@ -1506,9 +1491,22 @@ JaliGeometry::Point Mesh::edge_centroid (const Entity_ID edgeid) const {
 
 
 // Coordinates of a wedge 
+// 
+// If posvol_order = true, then the coordinates will be returned
+// in an order that will result in a positive volume (in 3D this assumes 
+// that the computation for volume is done as (V01xV02).V03 where V0i 
+// is a vector from coordinate 0 to coordinate i of the tet). If posvol_order
+// is false, the coordinates will be returned in a fixed order - in 2D, 
+// this is node point, edge/face center, cell center and in 3D, this is
+// node point, edge center, face center, cell center
+//
+// By default the coordinates are returned in fixed order
+// (posvol_order = false)
+  
 
 void Mesh::wedge_get_coordinates (const Entity_ID wedgeid, 
-                                  std::vector<JaliGeometry::Point> *wcoords) const {
+                                  std::vector<JaliGeometry::Point> *wcoords,
+                                  bool posvol_order) const {
 
   if (celldim == 3) {
     wcoords->resize(4); // wedges are tets in 3D cells
@@ -1535,6 +1533,16 @@ void Mesh::wedge_get_coordinates (const Entity_ID wedgeid,
     Entity_ID c = wedge_get_cell(wedgeid);
     (*wcoords)[2] = cell_centroid(c);
   }
+
+  // If caller has requested that coordinates be ordered such that
+  // they will give a +ve volume AND the wedge has been flag as not
+  // giving a +ve volume with its natural coordinate order (node
+  // point, edge center, face center, cell center), then swap the edge
+  // and face centers (in 3D) or face and cell centers (in 2D)
+
+  if (posvol_order && !wedge_posvol_flag[wedgeid])
+    std::swap((*wcoords)[1],(*wcoords)[2]);
+
 } // wedge_get_coordinates
 
 

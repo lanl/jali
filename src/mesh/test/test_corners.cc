@@ -153,6 +153,18 @@ TEST(MESH_CORNERS_2D) {
 
         CHECK_EQUAL(4,cncoords.size());
 
+        // Make sure the first point of the corner has the same coordinates
+        // as the node of the corner
+
+        CHECK_EQUAL(npnt[0],cncoords[0][0]);
+        CHECK_EQUAL(npnt[1],cncoords[0][1]);
+
+        // Also make sure the third point of the corner has the same
+        // coordinates as the centroid of the cell
+
+        CHECK_EQUAL(ccen[0],cncoords[2][0]);
+        CHECK_EQUAL(ccen[1],cncoords[2][1]);
+
         // Find geometric center of corner
 
         JaliGeometry::Point cncen(mesh->space_dimension());

@@ -28,24 +28,13 @@ TEST(MESH_WEDGES_2D)
   MPI_Comm_size(MPI_COMM_WORLD,&nproc);
   MPI_Comm_rank(MPI_COMM_WORLD,&me);
 
-  const Jali::Framework frameworks[] = {  
-    Jali::MSTK
-  };
-  const char *framework_names[] = {
-    "MSTK"
-  };
-  
+  const Jali::Framework frameworks[] = {Jali::MSTK};
+  const char *framework_names[] = {"MSTK"};  
   const int numframeworks = sizeof(frameworks)/sizeof(Jali::Framework);
-
-
   Jali::Framework the_framework;
   for (int fr = 0; fr < numframeworks; fr++) {
 
-
-    // Set the framework
-
     the_framework = frameworks[fr];
-
     if (!Jali::framework_available(the_framework)) continue;
 
     std::cerr << "Testing wedge operators with " << framework_names[fr] << std::endl;
@@ -62,9 +51,7 @@ TEST(MESH_WEDGES_2D)
       Jali::FrameworkPreference prefs(factory.preference());
       prefs.clear(); 
       prefs.push_back(the_framework);
-
       factory.preference(prefs);
-
       mesh = factory(0.0,0.0,1.0,1.0,2,2,NULL,true,true,true,false);
 
     } catch (const Jali::Message& e) {
@@ -77,6 +64,8 @@ TEST(MESH_WEDGES_2D)
 
     MPI_Allreduce(&ierr,&aerr,1,MPI_INT,MPI_SUM,MPI_COMM_WORLD);
     CHECK_EQUAL(aerr,0);
+
+    double dp;
 
     int ncells = mesh->num_entities(Jali::CELL,Jali::ALL);
     for (Jali::Entity_ID c = 0; c < ncells; ++c) {
@@ -119,14 +108,32 @@ TEST(MESH_WEDGES_2D)
         JaliGeometry::Point npnt;
         mesh->node_get_coordinates(n,&npnt);
 
-        // Get the normals to facet0 and facet1 of w;
+        // Get the normal to facet0 of w (facet0 lies on the face)
 
         JaliGeometry::Point normal0 = mesh->wedge_facet_normal(w,0);
         double norm0 = norm(normal0);
+
+        // Make sure it points out of the cell by comparing with
+        // the outward facing face normal
+
+        int fdir;
+        JaliGeometry::Point fnormal = mesh->face_normal(f,false,c,&fdir);
+        dp = normal0*fnormal;
+        CHECK(dp > 0);
+
+        // Get the normal to facet1 of w (facet1 is perpendicular to the edge)
+        
         JaliGeometry::Point normal1 = mesh->wedge_facet_normal(w,1);
         double norm1 = norm(normal1);
 
-        double dp;
+        // Make sure that it points away from the node of the wedge by
+        // comparing with the edge vector going from node n to the
+        // opposite node
+
+        int edir;
+        JaliGeometry::Point evec = mesh->edge_vector(f,false,n,&edir);
+        dp = normal1*evec;
+        CHECK(dp > 0);
 
         // Make sure the link between the edge and the opposite wedge
         // are correct
@@ -207,11 +214,40 @@ TEST(MESH_WEDGES_2D)
           CHECK_EQUAL(wcoords[2][i],ccen[i]);
         }
 
-        // Since there are 48 wedges in a hex element, its volume should
-        // be 1/48th that of the cell
+        // Since there are 8 wedges in a quad element, its volume should
+        // be 1/8th that of the cell
 
         double volume = mesh->wedge_volume(w);
         CHECK_CLOSE(volume,cellvol/cwedges.size(),1.0e-06);
+
+        // Now get the wedge coordinate in the positive volume order
+        std::vector<JaliGeometry::Point> wcoords2;
+        mesh->wedge_get_coordinates(w,&wcoords2,true);
+
+        bool flipped = true;
+        
+        if (wcoords[1][0] == wcoords2[2][0] && 
+            wcoords[1][1] == wcoords2[2][1] &&
+            wcoords[2][0] == wcoords2[1][0] &&
+            wcoords[2][1] == wcoords2[1][1]) {
+
+          // coordinates are flipped - verify that the coordinate flipping
+          // is warranted by computing the wedge volume using the natural
+          // ordering and checking that its the opposite sign of the volume
+          // returned by wedge_volume operator
+          
+          JaliGeometry::Point vec0 = wcoords[1]-wcoords[0];
+          JaliGeometry::Point vec1 = wcoords[2]-wcoords[0];
+          JaliGeometry::Point cpvec = vec0^vec1;
+          double altvolume = cpvec[0];
+          CHECK(altvolume*volume < 0.0);
+
+          vec0 = wcoords2[1]-wcoords2[0];
+          vec1 = wcoords2[2]-wcoords2[0];
+          cpvec = vec0^vec1;
+          altvolume = cpvec[0];
+          CHECK(altvolume*volume > 0.0);
+        }
 
         ++itw;
       } // while (itw != cwedges.end())
@@ -232,28 +268,18 @@ TEST(MESH_WEDGES_3D)
   MPI_Comm_size(MPI_COMM_WORLD,&nproc);
   MPI_Comm_rank(MPI_COMM_WORLD,&me);
 
-  const Jali::Framework frameworks[] = {  
-    Jali::MSTK
-  };
-  const char *framework_names[] = {
-    "MSTK"
-  };
-  
+  const Jali::Framework frameworks[] = {Jali::MSTK};
+  const char *framework_names[] = {"MSTK"};
   const int numframeworks = sizeof(frameworks)/sizeof(Jali::Framework);
-
 
   Jali::Framework the_framework;
   for (int fr = 0; fr < numframeworks; fr++) {
 
-
     // Set the framework
-
     the_framework = frameworks[fr];
-
     if (!Jali::framework_available(the_framework)) continue;
 
     std::cerr << "Testing wedge operators with " << framework_names[fr] << std::endl;
-
 
     // Create the mesh
 
@@ -282,6 +308,7 @@ TEST(MESH_WEDGES_3D)
     MPI_Allreduce(&ierr,&aerr,1,MPI_INT,MPI_SUM,MPI_COMM_WORLD);
     CHECK_EQUAL(aerr,0);
 
+    double dp;
     int ncells = mesh->num_entities(Jali::CELL,Jali::ALL);
     for (Jali::Entity_ID c = 0; c < ncells; ++c) {
       std::vector<Jali::Entity_ID> cwedges;
@@ -325,14 +352,32 @@ TEST(MESH_WEDGES_3D)
         JaliGeometry::Point npnt;
         mesh->node_get_coordinates(n,&npnt);
 
-        // Get the normals to facet0 and facet1 of w;
+        // Get the normal to facet0 of w (facet0 lies on the face)
 
         JaliGeometry::Point normal0 = mesh->wedge_facet_normal(w,0);
         double norm0 = norm(normal0);
+
+        // Make sure it points out of the cell by comparing with
+        // the outward facing face normal
+
+        int fdir;
+        JaliGeometry::Point fnormal = mesh->face_normal(f,false,c,&fdir);
+        dp = normal0*fnormal;
+        CHECK(dp > 0);
+
+        // Get the normal to facet1 of w (facet1 is perpendicular to the edge)
+        
         JaliGeometry::Point normal1 = mesh->wedge_facet_normal(w,1);
         double norm1 = norm(normal1);
 
-        double dp;
+        // Make sure that it points away from the node of the wedge by
+        // comparing with the edge vector going from node n to the
+        // opposite node
+
+        int edir;
+        JaliGeometry::Point evec = mesh->edge_vector(e,false,n,&edir);
+        dp = normal1*evec;
+        CHECK(dp > 0);
 
         // Make sure the link between the edge and the opposite wedge
         // are correct
@@ -400,9 +445,9 @@ TEST(MESH_WEDGES_3D)
         if (w4 != -1 && w2 != -1) 
           CHECK_EQUAL(w4,mesh->wedge_get_adjacent_wedge(w2));
         
-        // Get wedge coordinates and make sure they match up with the
-        // expected coordinates (node, edge center, face center, cell
-        // center)
+        // Get wedge coordinates in the natural order and make sure
+        // they match up with the expected coordinates (node, edge
+        // center, face center, cell center)
 
         std::vector<JaliGeometry::Point> wcoords;
         mesh->wedge_get_coordinates(w,&wcoords);
@@ -419,6 +464,38 @@ TEST(MESH_WEDGES_3D)
 
         double volume = mesh->wedge_volume(w);
         CHECK_CLOSE(volume,cellvol/cwedges.size(),1.0e-06);
+
+        // Now get the wedge coordinate in the positive volume order
+        std::vector<JaliGeometry::Point> wcoords2;
+        mesh->wedge_get_coordinates(w,&wcoords2,true);
+
+        if (wcoords[1][0] == wcoords2[2][0] && 
+            wcoords[1][1] == wcoords2[2][1] &&
+            wcoords[1][2] == wcoords2[2][2] &&
+            wcoords[2][0] == wcoords2[1][0] &&
+            wcoords[2][1] == wcoords2[1][1] &&
+            wcoords[2][2] == wcoords2[1][2]) {
+          // coordinates are flipped - verify that the coordinate flipping
+          // is warranted by computing the wedge volume using the natural
+          // ordering and checking that its the opposite sign of the volume
+          // returned by wedge_volume operator
+          
+          JaliGeometry::Point vec0 = wcoords[1]-wcoords[0];
+          JaliGeometry::Point vec1 = wcoords[2]-wcoords[0];
+          JaliGeometry::Point vec2 = wcoords[3]-wcoords[0];
+          JaliGeometry::Point cpvec = vec0^vec1;
+          double altvolume = cpvec*vec2;
+          CHECK(altvolume < 0.0);
+
+          // Check that we get a +ve volume using the corrected ordering
+
+          vec0 = wcoords2[1]-wcoords2[0];
+          vec1 = wcoords2[2]-wcoords2[0];
+          vec2 = wcoords2[3]-wcoords2[0];
+          cpvec = vec0^vec1;
+          altvolume = cpvec*vec2;
+          CHECK(altvolume > 0.0);
+        }
 
         ++itw;
       }
