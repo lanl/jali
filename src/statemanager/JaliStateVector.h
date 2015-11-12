@@ -30,8 +30,9 @@ class BaseStateVector
 
   //! Constructor 
   
-  BaseStateVector(std::string const name, Entity_kind const on_what, Mesh const * const mesh) : 
-                  myname_(name), on_what_(on_what), mymesh_(mesh) { };
+  BaseStateVector(std::string const name, Entity_kind const on_what, 
+                  Mesh const * const mesh) : 
+      myname_(name), on_what_(on_what), mymesh_(mesh) { };
 
   //! Destructor
   
@@ -73,7 +74,9 @@ class StateVector : public BaseStateVector
 
   //! Meaningful constructor with data
 
-  StateVector(std::string const name, Entity_kind const on_what, Mesh const * const mesh, T* data) : BaseStateVector(name, on_what, mesh) {
+  StateVector(std::string const name, Entity_kind const on_what, 
+              Mesh const * const mesh, T* data) : 
+      BaseStateVector(name, on_what, mesh) {
 
     int num = mesh->num_entities(on_what,ALL);
     mydata_ = std::shared_ptr<std::vector<T>>(new std::vector<T>);
@@ -89,7 +92,9 @@ class StateVector : public BaseStateVector
   //! vector data from the source vector to the new vector.
   //! Modification of one vector's data has no effect on the other.
   
-  StateVector(StateVector const & in_vector) : BaseStateVector(in_vector.myname_, in_vector.on_what_, in_vector.mymesh_) {
+  StateVector(StateVector const & in_vector) : 
+      BaseStateVector(in_vector.myname_, in_vector.on_what_, in_vector.mymesh_),
+      mydata_(new std::vector<T>(in_vector.size())) {
 
     // deep copy of the data
     std::copy((in_vector.mydata_)->begin(),(in_vector.mydata_)->end(),
@@ -120,7 +125,10 @@ class StateVector : public BaseStateVector
   // void* get_data() { return (void*)(&(mydata_[0])); }
 
 
-  const std::type_info& get_type() { const std::type_info& ti = typeid(T);  return ti; }
+  const std::type_info& get_type() { 
+    const std::type_info& ti = typeid(T);  
+    return ti; 
+  }
 
   //! Subset of std::vector functionality. We can add others as needed
 
