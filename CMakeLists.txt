@@ -91,7 +91,6 @@ option(ENABLE_Config_Report "Print out detailed information at the end of a conf
 set(Jali_CONFIG_LOG "${Jali_BINARY_DIR}/jali-config.log"
     CACHE string "Jali configuration log file")
 include(JaliConfigReport)
-message(STATUS "Jali_CONFIG_LOG --------> ${Jali_CONFIG_LOG}")
 #if (ENABLE_Config_Report)
 #    set(cat_exec "cat")
 #    if (WIN32)
@@ -111,3 +110,15 @@ message(STATUS "Jali_CONFIG_LOG --------> ${Jali_CONFIG_LOG}")
 #
 #endif() 
 
+
+
+# add a target to generate API documentation with Doxygen
+find_package(Doxygen)
+if(DOXYGEN_FOUND)
+  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config/doxygen/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
+  add_custom_target(doc
+    ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    COMMENT "Generating API documentation with Doxygen" VERBATIM
+    )
+endif(DOXYGEN_FOUND)
