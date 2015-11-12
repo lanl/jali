@@ -107,19 +107,27 @@ TEST(JaliStateVectorArray) {
 
   CHECK(mesh != NULL);
 
-  std::vector<std::array<double,2>> data1;
-  data1.emplace_back(std::array<double,2>({-1.0,1.0}));
-  data1.emplace_back(std::array<double,2>({-2.0,2.0}));
-  data1.emplace_back(std::array<double,2>({3.0,-3.0}));
-  data1.emplace_back(std::array<double,2>({2.5,-2.5}));
-  data1.emplace_back(std::array<double,2>({4.5,4.5}));
+  // Intel compiler 15.0.3 on moonlight is not letting me code this as
+  // std::vector<std::array<double,2>> data1 = {{-1.0,1.0},
+  //                                            {-2.0,2.0},
+  //                                            {3.0,-3.0},
+  //                                            {4.0,-4.0},
+
+
+  int ncells = mesh->num_entities(Jali::CELL,Jali::ALL);
+
+  std::vector<std::array<double,2>> data1(ncells);
+  data1[0][0] = -1.0; data1[0][1] = 1.0;
+  data1[1][0] = -2.0; data1[1][1] = 2.0;
+  data1[2][0] = 3.0; data1[2][1] = -3.0;
+  data1[3][0] = 4.0; data1[3][1] = -4.0;
 
   Jali::StateVector<std::array<double,2>> myvec1("var1",Jali::CELL,mesh,&(data1[0]));
 
   // Verify we can retrieve the data as expected
 
   CHECK_EQUAL(data1[3][0],myvec1[3][0]);
-  CHECK_EQUAL(data1[4][1],myvec1[4][1]);
+  CHECK_EQUAL(data1[2][1],myvec1[2][1]);
 
   std::array<double,2> myarray = myvec1[2];
   CHECK_EQUAL(myarray[0],data1[2][0]);
