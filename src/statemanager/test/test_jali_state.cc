@@ -100,22 +100,21 @@ TEST(Jali_State_Define) {
 
   std::shared_ptr<Jali::StateVector<double>> myvec1_ptr;
   bool found;
-  found = mystate.get("cellvars",Jali::CELL,myvec1_ptr);
+  found = mystate.get("cellvars",Jali::CELL,&myvec1_ptr);
 
   CHECK(found);
   CHECK_EQUAL(myvec1.size(),myvec1_ptr->size());
   for (int i = 0; i < myvec1.size(); ++i)
     CHECK_EQUAL(myvec1[i],(*myvec1_ptr)[i]);
 
-  // Retrieve the state vector even more easily as a reference
+  // Retrieve the state vector even more easily
 
-  Jali::StateVector<double> myvec1_ref;
-  found = mystate.get("cellvars",Jali::CELL,myvec1_ref);
+  found = mystate.get("cellvars",Jali::CELL,&myvec1_copy);
 
   CHECK(found);
-  CHECK_EQUAL(myvec1.size(),myvec1_ref.size());
+  CHECK_EQUAL(myvec1.size(),myvec1_copy.size());
   for (int i = 0; i < myvec1.size(); ++i)
-    CHECK_EQUAL(myvec1[i],myvec1_ref[i]);
+    CHECK_EQUAL(myvec1[i],myvec1_copy[i]);
 
   
 
