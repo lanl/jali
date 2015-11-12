@@ -100,7 +100,8 @@ public:
     iterator it = state_vectors_.begin();
     while (it != state_vectors_.end()) {
       BaseStateVector const & vector = *(*it);
-      if ((vector.name() == name) && ((vector.on_what() == on_what) || !(ANY_KIND)))
+      if ((vector.name() == name) && 
+          ((on_what == ANY_KIND) || (vector.on_what() == on_what)))
         break;
       else
         ++it;
@@ -125,7 +126,8 @@ public:
     const_iterator it = state_vectors_.cbegin();
     while (it != state_vectors_.cend()) {
       BaseStateVector const & vector = *(*it);
-      if ((vector.name() == name) && ((vector.on_what() == on_what) || (!ANY_KIND)))
+      if ((vector.name() == name) && 
+          ((on_what == ANY_KIND) || (vector.on_what() == on_what)))
         break;
       else
         ++it;
@@ -136,21 +138,22 @@ public:
 
   //! \brief Get state vector 
   
-  //! Get a reference to a statevector with the given name and
-  //! particular entity kind it is on. The function returns true if
-  //! such a vector was found; false otherwise. The caller must know
-  //! the type of elements in the state vector, int, double,
-  //! std::array<double,3> or whatever else. The calling routine must
-  //! declare the state vector as "T vector" where T is StateVector<int>
-  //! or StateVector<double> or StateVector<some_other_type>
+  //! Get a statevector with the given name and particular entity kind
+  //! it is on. The function returns true if such a vector was found;
+  //! false otherwise. The caller must know the type of elements in
+  //! the state vector, int, double, std::array<double,3> or whatever
+  //! else. The calling routine must declare the state vector as "T
+  //! vector" where T is StateVector<int> or StateVector<double> or
+  //! StateVector<some_other_type>. Even though this is a copy into
+  //! *vector, its an inexpensive shallow copy of the meta data only
 
   template <class T>
     bool get(std::string const name, Jali::Entity_kind const on_what, 
-	     StateVector<T> & vector) {
+	     StateVector<T> *vector) {
     
     iterator it = find(name, on_what);
     if (it != state_vectors_.end()) {
-      vector = *(std::static_pointer_cast<StateVector<T>>(*it));
+      *vector = *(std::static_pointer_cast<StateVector<T>>(*it));
       return true;
     }
     else
@@ -171,11 +174,11 @@ public:
 
   template <class T>
     bool get(std::string const name, Jali::Entity_kind const on_what, 
-	     std::shared_ptr<StateVector<T>> vector) {
+	     std::shared_ptr<StateVector<T>> *vector_ptr) {
     
     iterator it = find(name, on_what);
     if (it != state_vectors_.end()) {
-      vector = std::static_pointer_cast<StateVector<T>>(*it);
+      *vector_ptr = std::static_pointer_cast<StateVector<T>>(*it);
       return true;
     }
     else
