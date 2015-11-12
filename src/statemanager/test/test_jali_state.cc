@@ -95,7 +95,30 @@ TEST(Jali_State_Define) {
   CHECK_EQUAL(myvec1.size(),myvec1_copy.size());
   for (int i = 0; i < myvec1.size(); ++i)
     CHECK_EQUAL(myvec1[i],myvec1_copy[i]);
+
+  // Retrieve the state vector more easily as a shared_ptr
+
+  std::shared_ptr<Jali::StateVector<double>> myvec1_ptr;
+  bool found;
+  found = mystate.get("cellvars",Jali::CELL,myvec1_ptr);
+
+  CHECK(found);
+  CHECK_EQUAL(myvec1.size(),myvec1_ptr->size());
+  for (int i = 0; i < myvec1.size(); ++i)
+    CHECK_EQUAL(myvec1[i],(*myvec1_ptr)[i]);
+
+  // Retrieve the state vector even more easily as a reference
+
+  Jali::StateVector<double> myvec1_ref;
+  found = mystate.get("cellvars",Jali::CELL,myvec1_ref);
+
+  CHECK(found);
+  CHECK_EQUAL(myvec1.size(),myvec1_ref.size());
+  for (int i = 0; i < myvec1.size(); ++i)
+    CHECK_EQUAL(myvec1[i],myvec1_ref[i]);
+
   
+
   // Make sure the code fails if we ask for the right name but wrong entity type
 
   itc = mystate.find("cellvars",Jali::FACE);
@@ -110,6 +133,20 @@ TEST(Jali_State_Define) {
   // Make sure the object we retrieved is identical to the one we put in
 
   Jali::StateVector<double> myvec2_copy = *(std::static_pointer_cast<Jali::StateVector<double>>(*itc));
+
+  CHECK_EQUAL(myvec2.size(),myvec2_copy.size());
+  for (int i = 0; i < myvec2.size(); ++i)
+    CHECK_EQUAL(myvec2[i],myvec2_copy[i]);
+  
+
+  // Try to retrieve the vector by name but without giving a specific type
+
+  itc = mystate.find("nodevars",Jali::ANY_KIND);
+  CHECK(mystate.end() != itc);
+
+  // Make sure the object we retrieved is identical to the one we put in
+
+  myvec2_copy = *(std::static_pointer_cast<Jali::StateVector<double>>(*itc));
 
   CHECK_EQUAL(myvec2.size(),myvec2_copy.size());
   for (int i = 0; i < myvec2.size(); ++i)
