@@ -107,11 +107,13 @@ TEST(JaliStateVectorArray) {
 
   CHECK(mesh != NULL);
 
-  std::vector<std::array<double,2>> data1 = {{-1.0,1.0},
-					     {-2.0,2.0},
-					     {3.0,-3.0},
-					     {2.5,-2.5},
-					     {4.5,4.5}}; 
+  std::vector<std::array<double,2>> data1;
+  data1.emplace_back(std::array<double,2>({-1.0,1.0}));
+  data1.emplace_back(std::array<double,2>({-2.0,2.0}));
+  data1.emplace_back(std::array<double,2>({3.0,-3.0}));
+  data1.emplace_back(std::array<double,2>({2.5,-2.5}));
+  data1.emplace_back(std::array<double,2>({4.5,4.5}));
+
   Jali::StateVector<std::array<double,2>> myvec1("var1",Jali::CELL,mesh,&(data1[0]));
 
   // Verify we can retrieve the data as expected
