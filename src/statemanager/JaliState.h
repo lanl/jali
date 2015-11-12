@@ -49,11 +49,17 @@ public:
   typedef std::vector<std::shared_ptr<BaseStateVector>>::const_iterator const_iterator;
   typedef std::vector<std::string>::iterator string_iterator;
 
-  //! Typedefs for permutation iterators to allow iteration through only the state vectors on a specified entity
+  //! Typedef for permutation iterators to allow iteration through only 
+  //! the state vectors on a specified entity
 
   typedef boost::permutation_iterator<std::vector<std::shared_ptr<BaseStateVector>>::iterator, std::vector<int>::iterator> permutation_type;
+
+  //! Typedef for permutation iterators to allow iteration through only 
+  //! the state vector _names_ on a specified entity
+
   typedef boost::permutation_iterator<std::vector<std::string>::iterator, std::vector<int>::iterator> string_permutation;
 
+  
   iterator begin() { return state_vectors_.begin(); };
   iterator end() { return state_vectors_.end(); };
   const_iterator cbegin() const { return state_vectors_.begin(); }
@@ -66,21 +72,38 @@ public:
 
   //! Permutation iterators for iterating over state vectors on a specific entity type 
 
-  permutation_type entity_begin(Jali::Entity_kind entityAssociation) { return boost::make_permutation_iterator(state_vectors_.begin(), entity_indexes_[entityAssociation].begin()); }
-  permutation_type entity_end(Jali::Entity_kind entityAssociation) { return boost::make_permutation_iterator(state_vectors_.begin(), entity_indexes_[entityAssociation].end()); }
+  permutation_type entity_begin(Jali::Entity_kind entitykind) { 
+    return boost::make_permutation_iterator(state_vectors_.begin(), 
+                                            entity_indexes_[entitykind].begin()); 
+  }
+  permutation_type entity_end(Jali::Entity_kind entitykind) { 
+    return boost::make_permutation_iterator(state_vectors_.begin(), 
+                                            entity_indexes_[entitykind].end());
+  }
 
   //! Iterators for vector names of specific entity types
   
-  string_permutation names_entity_begin(Jali::Entity_kind entityAssociation) { return boost::make_permutation_iterator(names_.begin(), entity_indexes_[entityAssociation].begin()); }
-  string_permutation names_entity_end(Jali::Entity_kind entityAssociation) { return boost::make_permutation_iterator(names_.begin(), entity_indexes_[entityAssociation].end()); }
+  string_permutation names_entity_begin(Jali::Entity_kind entitykind) {
+    return boost::make_permutation_iterator(names_.begin(), 
+                                            entity_indexes_[entitykind].begin()); 
+  }
+  string_permutation names_entity_end(Jali::Entity_kind entitykind) { 
+    return boost::make_permutation_iterator(names_.begin(), 
+                                            entity_indexes_[entitykind].end());
+  }
 
-  //! References to state vectors and the [] operator
+  //! References to state vectors
   
   typedef std::shared_ptr<BaseStateVector> pointer;
   typedef const std::shared_ptr<BaseStateVector> const_pointer;
+
+  //! Return pointer to i'th state vector
   pointer operator[](int i) { return state_vectors_[i]; }
+
+  //! Return const pointer to the i'th state vector
   const_pointer operator[](int i) const { return state_vectors_[i]; }
   
+  //! Number of state vectors
   int size() const {return state_vectors_.size();}
 
 
