@@ -122,3 +122,8 @@ if(DOXYGEN_FOUND)
     COMMENT "Generating API documentation with Doxygen" VERBATIM
     )
 endif(DOXYGEN_FOUND)
+
+
+# compile examples only if requested
+
+add_subdirectory(examples)
