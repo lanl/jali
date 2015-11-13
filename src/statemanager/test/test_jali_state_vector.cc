@@ -30,6 +30,8 @@ TEST(JaliStateVectorCells) {
   CHECK_EQUAL(data1[3],myvec1[3]);
 
   std::cout << myvec1 << std::endl;
+
+  delete mesh;
 }
  
 
@@ -48,6 +50,7 @@ TEST(JaliStateVectorNodes) {
   for (int i = 0; i < nnodes; ++i)
     CHECK_EQUAL(data1[i],myvec1[i]);
   
+  delete mesh;
 }
 
 
@@ -98,6 +101,8 @@ TEST(JaliStateVectorAssignCopy) {
   // Verify output
 
   std::cout << myvec1 << std::endl;
+
+  delete mesh;
 }
 
 TEST(JaliStateVectorArray) {
@@ -134,4 +139,6 @@ TEST(JaliStateVectorArray) {
   CHECK_EQUAL(myarray[1],data1[2][1]);
 
   std::cout << myvec1 << std::endl;
+
+  delete mesh;
 }

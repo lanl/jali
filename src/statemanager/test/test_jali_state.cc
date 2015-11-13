@@ -227,6 +227,10 @@ TEST(Jali_State_Define) {
     testCnt++;
   }
 
+  delete mesh1;
+  delete mesh2;
+  delete dataMesh;
+
 }
 
   
