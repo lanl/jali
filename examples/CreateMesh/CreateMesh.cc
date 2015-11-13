@@ -10,7 +10,7 @@
 
 using namespace Jali;
 
-// Fire up Jali, create a mesh and ask the mesh a very basic question
+// Fire up Jali, create a mesh and print out number of CELLS and NODES
 
 int main(int argc, char *argv[]) {
 

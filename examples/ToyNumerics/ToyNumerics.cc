@@ -12,6 +12,11 @@
 #include "JaliStateVector.h"
 #include "JaliState.h"
 
+// Code that attempts to _mock_ what may be done in a staggered grid 
+// numerical scheme with some fields on cells and others on nodes
+// The "numerics" have no relation to any real numerical algorithm but
+// but illustrate how a real algorithm may be written
+
 using namespace Jali;
 
 // Define two variable names that will be used to define state data in

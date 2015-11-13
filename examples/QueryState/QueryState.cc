@@ -12,7 +12,8 @@
 
 using namespace Jali;
 
-// Fire up Jali, create a mesh and ask the mesh a very basic question
+// Fire up Jali, create a mesh and a state manager
+// Add and retrieve state data
 
 //**************************************************************************
 //
