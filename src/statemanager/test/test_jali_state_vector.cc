@@ -116,7 +116,7 @@ TEST(JaliStateVectorArray) {
   // std::vector<std::array<double,2>> data1 = {{-1.0,1.0},
   //                                            {-2.0,2.0},
   //                                            {3.0,-3.0},
-  //                                            {4.0,-4.0},
+  //                                            {4.0,-4.0}};
 
 
   int ncells = mesh->num_entities(Jali::CELL,Jali::ALL);
