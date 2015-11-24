@@ -233,6 +233,85 @@ TEST(Jali_State_Define) {
 
 }
 
+
+TEST(State_Write_Read_With_Mesh) {
+
+  // Define mesh with 4 cells and 9 nodes 
+
+  Jali::MeshFactory mf(MPI_COMM_WORLD);
+  Jali::Mesh *mesh1 = mf(0.0,0.0,1.0,1.0,2,2);
+
+  CHECK(mesh1 != NULL);
+
+  // Create a state object associated with this mesh
+
+  Jali::State mystate1(mesh1);
+
+  // Add a state vector of scalars on cells
+
+  std::vector<double> data1 = {1.0,3.0,2.5,4.5}; 
+  Jali::StateVector<double> & outvec1 = 
+      mystate1.add("cellvars",Jali::CELL,&(data1[0]));
+
+  std::vector<std::array<double,2>> data2(9);
+  // Intel compiler 15.0.3 is not allowing me to initialize with curly brace list
+  for (int i = 0; i < 9; i++)
+    for (int j = 0; j < 3; j++)
+      data2[i][j] = 0.4*i+0.1*j;
+
+  Jali::StateVector<std::array<double,2>> & outvec2 =
+      mystate1.add("nodevars",Jali::NODE,&(data2[0]));
+
+  // Export the fields to the mesh
+
+  mystate1.export_to_mesh();
+
+  // Export the mesh (along with the state fields) to a temporary exodus file
+
+  bool with_fields=true;
+  mesh1->write_to_exodus_file("temp.exo",with_fields);
+  
+
+
+
+  // Now read the mesh back in - No need of wedges, corners, faces, etc 
+  // so just the filename is needed
+
+  Jali::Mesh *mesh2 = mf("temp.exo");
+  
+  // Create a state object associated with this mesh
+
+  Jali::State mystate2(mesh2);
+
+  // Initialize the state object from the mesh
+
+  mystate2.init_from_mesh();
+
+  // Retrieve the cell field and make sure we got back what we put in
+
+  Jali::StateVector<double> invec1;
+  bool status = mystate2.get("cellvars",Jali::CELL, &invec1);
+  CHECK(status);
+
+  CHECK_EQUAL(outvec1.size(),invec1.size());
+  for (int i = 0; i < outvec1.size(); i++) 
+    CHECK_EQUAL(outvec1[i],invec1[i]);
+
+
+  // Retrieve the node field and make sure we got back what we put in
+
+  Jali::StateVector<std::array<double,2>> invec2;
+  status = mystate2.get("nodevars",Jali::NODE,&invec2);
+  CHECK(status);
+
+  CHECK_EQUAL(outvec2.size(),invec2.size());
+  for (int i = 0; i < outvec2.size(); i++)
+    for (int j = 0; j < 2; j++)
+      CHECK_EQUAL(outvec2[i][j],invec2[i][j]);
+  
+  delete mesh1;
+  delete mesh2;
+}
   
 
   
