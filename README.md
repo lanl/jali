@@ -1,3 +1,27 @@
+#
+#    Jali VERSION 0.6.2 (Copyright, Los Alamos National Laboratory)
+#
+
+# Summary
+
+Jali is a parallel unstructured mesh infrastructure library designed
+for use by multi-physics simulations. It supports 2D and 3D arbitrary
+polyhedral meshes distributed over hundreds to thousands of
+nodes. Jali can read and write Exodus II meshes along with fields and sets
+on the mesh. Jali is built upon MSTK, an open source general purpose
+unstructured mesh infrastructure library from LANL. Jali is
+copyrighted as open source but is not yet available to the public. 
+
+# Third Party Libraries
+
+Jali uses a number of third party libraries (TPLs) primarily for mesh
+import/export, mesh partitioning and MPI communication. Before you
+build Jali, you must build the third party libraries as described
+below.
+
+Jali *0.6.2*  uses version *1.0.2* of the TPL set. See
+$JALI_SOURCE/config/SuperBuild/TPLVersions.cmake for details.
+
 # Installation instructions
 
 There are a few configuration examples in `config/configure-examples/`. Below

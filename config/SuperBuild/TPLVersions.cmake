@@ -16,6 +16,22 @@
 #   Upgrade History:
 #
 #   1.0.0       - first version reference used in installations
+#                   Xerces          3.1.1
+#                   MPI version     1.4.4
+#                   Curl            7.37.0
+#                   Zlib            1.2.6
+#                   Metis           5.1.0
+#                   Boost           1.57
+#                   BoostCmake      1.46.1
+#                   HDF5            1.8.8
+#                   NetCDF          4.3.2
+#                   NetCDF fortran  4.2
+#                   Exodus II       6.06
+#                   MSTK            2.25rc1
+#                   Trilinos        11.6.1
+#                   Seacas          11.6.1 
+#   1.0.1       - Boost updated to 1.58
+#   1.0.2       - MSTK updated to 2.25rc1
 
 include(CMakeParseArguments)
 
@@ -65,7 +81,7 @@ endmacro(Jali_tpl_version_write)
 
 set (JALI_TPLS_VERSION_MAJOR 1)
 set (JALI_TPLS_VERSION_MINOR 0)
-set (JALI_TPLS_VERSION_PATCH 0)
+set (JALI_TPLS_VERSION_PATCH 2)
 set (JALI_TPLS_VERSION ${JALI_TPLS_VERSION}.${JALI_TPLS_VERSION_MINOR}.${JALI_TPLS_VERSION_PATCH})
 #   Not sure how to create a meaningful hash key for the collection
 
@@ -203,12 +219,12 @@ set(ExodusII_MD5_SUM       cfd240dbc1251b08fb1d0ee2de40a44c)
 # TPL: MSTK
 #
 set(MSTK_VERSION_MAJOR 2)
-set(MSTK_VERSION_MINOR 23)
-set(MSTK_VERSION_PATCH )
+set(MSTK_VERSION_MINOR 25)
+set(MSTK_VERSION_PATCH rc1)
 set(MSTK_VERSION ${MSTK_VERSION_MAJOR}.${MSTK_VERSION_MINOR}${MSTK_VERSION_PATCH})
 set(MSTK_URL_STRING     "http://software.lanl.gov/ascem/tpls")
 set(MSTK_ARCHIVE_FILE   mstk-${MSTK_VERSION}.tgz)
-set(MSTK_MD5_SUM        d1ceedfd43e18f8b5eee85b2d8e7d4fe)
+set(MSTK_MD5_SUM        4cb7929992fd0155fd115af3cf6f08ab)
 
 #
 # TPL: MOAB

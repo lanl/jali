@@ -23,16 +23,15 @@
 
 namespace Jali {
 
-class State
-{
-public:
+class State {
+ public:
   
   //! Constructor
   
-  State(Jali::Mesh const * const mesh) : mymesh_(mesh) {}
-
+  State(Jali::Mesh * const mesh) : mymesh_(mesh) {}
+  
   // Copy constructor (disabled)
-       
+  
   State(const State &) = delete;
            
   // Assignment operator (disabled)
@@ -251,8 +250,8 @@ public:
 
   };
 
-  //! \brief Add state vector 
-  
+
+
   //! Add a new state vector to the state manager based on data from
   //! the input state vector. Meta data is copied from one vector to
   //! another and A DEEP COPY IS MADE of the input vector data
@@ -302,10 +301,23 @@ public:
 
   };
 
+
+  //! \brief Import field data from mesh
+  //! Initialize state vectors in the statemanager from mesh field data
+  
+  void init_from_mesh();
+
+
+  //! \brief Export field data to mesh
+  //! Export data from state vectors to mesh fields
+
+  void export_to_mesh();
+
+
  private:
- 
-  //! Pointer to the mesh associated with this state 
-  Jali::Mesh const * const mymesh_;
+  
+  //! Constant pointer to the mesh associated with this state 
+  Jali::Mesh * const mymesh_;
 
   //! All the state vectors
   std::vector<std::shared_ptr<BaseStateVector>> state_vectors_;

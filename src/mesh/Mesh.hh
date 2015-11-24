@@ -10,6 +10,7 @@
 #include <vector>
 #include <array>
 #include <cassert>
+#include <typeinfo>
 
 #include "mpi.h"
 
@@ -821,6 +822,23 @@ class Mesh
 
 
 
+  //! \brief Export to Exodus II file
+  //! Export mesh to Exodus II file. If with_fields is true, the fields in
+  //! JaliState are also exported out.
+
+  virtual
+  void write_to_exodus_file(const std::string exodusfilename,
+                            const bool with_fields=true) const {}
+
+  //! \brief Export to GMV file
+  //! Export mesh to GMV file. If with_fields is true, the fields in
+  //! JaliState are also exported out.
+
+  virtual
+  void write_to_gmv_file(const std::string gmvfilename,
+                         const bool with_fields=true) const {}
+
+
  protected:
 
   int compute_cell_geometric_quantities() const;
@@ -872,6 +890,67 @@ class Mesh
   void cell_2D_get_edges_and_dirs_internal (const Entity_ID cellid,
                                             Entity_ID_List *edgeids,
                                             std::vector<int> *edge_dirs) const = 0;
+
+
+  //! \brief Get info about mesh fields on a particular type of entity
+
+  //! Get info about the number of fields, their names and their types
+  //! on a particular type of entity on the mesh - DESIGNED TO BE
+  //! CALLED ONLY BY THE JALI STATE MANAGER FOR INITIALIZATION OF MESH
+  //! STATE FROM THE MESH FILE
+  
+  virtual
+  void get_field_info(Entity_kind on_what, int *num,
+                      std::vector<std::string> *varnames,
+                      std::vector<std::string> *vartypes) const {*num=0;};
+
+  //! \brief Retrieve a field on the mesh - cannot template virtual funcs
+
+  //! Retrieve a field on the mesh. If the return value is false, it
+  //! could be that (1) the field does not exist (2) it exists but is
+  //! associated with a different type of entity (3) the variable type
+  //! sent in was the wrong type (int instead of double or double
+  //! instead of std::array<double,2> or std::array<double,2> instead
+  //! of std::array<double,3> etc - DESIGNED TO BE CALLED ONLY BY THE
+  //! JALI STATE MANAGER FOR INITIALIZATION OF MESH STATE FROM THE
+  //! MESH FILE
+
+  virtual
+  bool get_field(std::string field_name, Entity_kind on_what, int *data) const
+  {return false;}
+  virtual
+  bool get_field(std::string field_name, Entity_kind on_what, double *data) const {return false;}
+  virtual
+  bool get_field(std::string field_name, Entity_kind on_what, std::array<double,(std::size_t)2> *data) const {return false;}
+  virtual
+  bool get_field(std::string field_name, Entity_kind on_what, std::array<double,(std::size_t)3> *data) const {return false;}
+  virtual
+  bool get_field(std::string field_name, Entity_kind on_what, std::array<double,(std::size_t)6> *data) const {return false;}
+
+  //! \brief Store a field on the mesh - cannot template as its virtual
+
+  //! Store a field on the mesh. If the return value is false, it
+  //! means that the mesh already has a field of that name but its of
+  //! a different type or its on a different type of entity - DESIGNED
+  //! TO BE CALLED ONLY BY THE JALI STATE MANAGER FOR INITIALIZATION
+  //! OF MESH STATE FROM THE MESH FILE
+
+  virtual
+  bool store_field(std::string field_name, Entity_kind on_what, int *data) 
+  {return false;}
+  virtual
+  bool store_field(std::string field_name, Entity_kind on_what, double *data)
+  {return false;}
+  virtual
+  bool store_field(std::string field_name, Entity_kind on_what, 
+                   std::array<double,(std::size_t)2> *data) {return false;}
+  virtual
+  bool store_field(std::string field_name, Entity_kind on_what, 
+                   std::array<double,(std::size_t)3> *data) {return false;}
+  virtual
+  bool store_field(std::string field_name, Entity_kind on_what, 
+                   std::array<double,(std::size_t)6> *data) {return false;}
+
 
 
 
@@ -977,6 +1056,12 @@ class Mesh
     corner_geometry_precomputed;
 
   JaliGeometry::GeometricModelPtr geometric_model_;
+
+
+  //! Make the State class a friend so that it can access protected 
+  //! methods for retrieving and storing mesh fields
+
+  friend class State;
 
 }; // End class Mesh
 
