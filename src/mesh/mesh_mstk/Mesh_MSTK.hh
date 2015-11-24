@@ -4,6 +4,7 @@
 #include <memory>
 #include <vector>
 #include <sstream>
+#include <typeinfo>
 
 #include <MSTK.h>
 
@@ -316,102 +317,131 @@ public:
 			 std::vector<Entity_ID> *entids) const; 
 
 
-  //
-  // Export mesh
-  //
+  //! \brief Export to Exodus II file
+  //! Export mesh to Exodus II file. If with_fields is true, the fields in
+  //! JaliState are also exported out.
 
-  void write_to_gmv_file(const std::string gmvfilename) const;
+  void write_to_exodus_file(const std::string exodusfilename,
+                            bool with_fields=true) const {
+    if (with_fields)
+      MESH_ExportToFile(mesh,exodusfilename.c_str(),"exodusii",0,NULL,NULL,mpicomm);
+    else
+      MESH_ExportToFile(mesh,exodusfilename.c_str(),"exodusii",-1,NULL,NULL,mpicomm);
+  }
 
-  void write_to_exodus_file(const std::string exodusfilename) const;
+
+  //! \brief Export to GMV file
+  //! Export mesh to GMV file. If with_fields is true, the fields in
+  //! JaliState are also exported out.
+
+  void write_to_gmv_file(const std::string gmvfilename,
+                         bool with_fields=true) const {
+    if (with_fields)
+      MESH_ExportToFile(mesh,gmvfilename.c_str(),"gmv",0,NULL,NULL,mpicomm);
+    else
+      MESH_ExportToFile(mesh,gmvfilename.c_str(),"gmv",-1,NULL,NULL,mpicomm);
+  }
+
+ protected:
+
+  //! Get the number of fields on entities of a particular type along
+  //! with their names and variable types - DESIGNED TO BE CALLED ONLY
+  //! BY THE JALI STATE MANAGER FOR INITIALIZATION OF MESH STATE FROM
+  //! THE MESH FILE
   
-
-
-private:
-
-  MPI_Comm mpicomm;
-  int myprocid, numprocs;
-
-  Mesh_ptr mesh;
-
-  int serial_run;
+  void get_field_info(Entity_kind on_what, int *num, 
+                      std::vector<std::string> *varnames,
+                      std::vector<std::string> *vartypes) const;
   
+  //! Retrieve an integer field on the mesh. If the return value is
+  //! false, it could be that (1) the field does not exist (2) it
+  //! exists but is associated with a different type of entity (3) the
+  //! variable type sent in was the wrong type (int instead of double
+  //! or double instead of std::array<double,2> or
+  //! std::array<double,2> instead of std::array<double,3> etc -
+  //! DESIGNED TO BE CALLED ONLY BY THE JALI STATE MANAGER FOR
+  //! INITIALIZATION OF MESH STATE FROM THE MESH FILE
 
-  // Local handles to entity lists (Vertices, "Faces", "Cells")
-  
-  // For a surface mesh, "Faces" refers to mesh edges and "Cells"
-  // refers to mesh faces
-  //
-  // For a solid mesh, "Faces" refers to mesh faces and "Cells"
-  // refers to mesh regions
-  
-  
-  // These are MSTK's definitions of types of parallel mesh entities
-  // These definitions are slightly different from what Jali has defined
-  //
-  // There are 2 types of entities relevant to this code - Owned and Ghost
-  //
-  // 1. OWNED - owned by this processor
-  //
-  // 2. GHOST - not owned by this processor
-  
-  // ALL = OWNED + GHOST in parallel, ALL = OWNED in serial
-  
+  bool get_field(std::string field_name, Entity_kind on_what, int *data) const;
 
-  MSet_ptr OwnedVerts, NotOwnedVerts;
-  
-  mutable MSet_ptr OwnedEdges, NotOwnedEdges;
+  //! Retrieve an integer field on the mesh. If the return value is
+  //! false, it could be that (1) the field does not exist (2) it
+  //! exists but is associated with a different type of entity (3) the
+  //! variable type sent in was the wrong type (int instead of double
+  //! or double instead of std::array<double,2> or
+  //! std::array<double,2> instead of std::array<double,3> etc -
+  //! DESIGNED TO BE CALLED ONLY BY THE JALI STATE MANAGER FOR
+  //! INITIALIZATION OF MESH STATE FROM THE MESH FILE
 
-  mutable MSet_ptr OwnedFaces, NotOwnedFaces;
-  
-  MSet_ptr OwnedCells, GhostCells;
+  bool get_field(std::string field_name, Entity_kind on_what, double *data) const;
 
-  // Flags to indicate if face and edge info is initialized
+  //! Retrieve an array field on the mesh. If the return value is
+  //! false, it could be that (1) the field does not exist (2) it
+  //! exists but is associated with a different type of entity (3) the
+  //! variable type sent in was the wrong type (int instead of double
+  //! or double instead of std::array<double,2> or
+  //! std::array<double,2> instead of std::array<double,3> etc -
+  //! DESIGNED TO BE CALLED ONLY BY THE JALI STATE MANAGER FOR
+  //! INITIALIZATION OF MESH STATE FROM THE MESH FILE
 
-  mutable bool faces_initialized, edges_initialized;
+  //! HAVE TO DO THIS WONKY THING BECAUSE COMPILER COMPLAINS THAT IT
+  //! CANNOT FIND A get_field IMPLEMENTATION WITH std::array<double,2ul>
 
-  // Marker to indicate if an entity is not owned
+  template<std::size_t N>
+  bool get_field_internal(std::string field_name, Entity_kind on_what, 
+                          std::array<double,N> *data) const;
+  bool get_field(std::string field_name, Entity_kind on_what, 
+                 std::array<double,2> *data) const {
+    return get_field_internal(field_name,on_what,data);
+  }
+  bool get_field(std::string field_name, Entity_kind on_what, 
+                 std::array<double,3> *data) const {
+    return get_field_internal(field_name,on_what,data);
+  }
+  bool get_field(std::string field_name, Entity_kind on_what, 
+                 std::array<double,6> *data) const {
+    return get_field_internal(field_name,on_what,data);
+  }
 
-  int notwownedmark;
+  //! Store an integer field on the mesh. If the return value is false, it
+  //! means that the mesh already has a field of that name but its of
+  //! a different type or its on a different type of entity - DESIGNED
+  //! TO BE CALLED ONLY BY THE JALI STATE MANAGER FOR INITIALIZATION
+  //! OF MESH STATE FROM THE MESH FILE
 
-  // Deleted entity lists if some pre-processing had to be done
-  // to the mesh to eliminate degenerate entities
+  bool store_field(std::string field_name, Entity_kind on_what, int *data);
 
-  bool entities_deleted;
-  List_ptr deleted_vertices, deleted_edges, deleted_faces, deleted_regions;
+  //! Store an real field on the mesh. If the return value is false, it
+  //! means that the mesh already has a field of that name but its of
+  //! a different type or its on a different type of entity - DESIGNED
+  //! TO BE CALLED ONLY BY THE JALI STATE MANAGER FOR INITIALIZATION
+  //! OF MESH STATE FROM THE MESH FILE
 
-  // Local ID to MSTK handle map
+  bool store_field(std::string field_name, Entity_kind on_what, double *data);
 
-  std::vector<MEntity_ptr> vtx_id_to_handle;
-  mutable std::vector<MEntity_ptr> edge_id_to_handle;
-  mutable std::vector<MEntity_ptr> face_id_to_handle;
-  std::vector<MEntity_ptr> cell_id_to_handle;
+  // Store a vector or tensor field data with the mesh
+
+  //! HAVE TO DO THIS WONKY THING BECAUSE COMPILER COMPLAINS THAT IT
+  //! CANNOT FIND A get_field IMPLEMENTATION WITH std::array<double,2ul>
+
+  template<std::size_t N>
+  bool store_field_internal(std::string field_name, Entity_kind on_what, 
+                            std::array<double,N> *data);
+  bool store_field(std::string field_name, Entity_kind on_what, 
+                   std::array<double,2> *data) {
+    return store_field_internal(field_name,on_what,data);
+  }
+  bool store_field(std::string field_name, Entity_kind on_what, 
+                   std::array<double,3> *data) {
+    return store_field_internal(field_name,on_what,data);
+  }
+  bool store_field(std::string field_name, Entity_kind on_what, 
+                   std::array<double,6> *data) {
+    return store_field_internal(field_name,on_what,data);
+  }
 
 
-  // flag whether to flip a face dir or not when returning nodes of a
-  // face (relevant only on partition boundaries)
-  
-  mutable bool *faceflip;
-
-  // flag whether to flip an edge dir or not when returning nodes of an edge
-  // (relevant only on partition boundaries)
-
-  mutable bool *edgeflip;
-
-  // Attribute to precompute and store celltype
-
-  MAttrib_ptr celltype_att;
-
-  // Parent entity attribute - populated if the mesh is derived from
-  // another mesh
-
-  MAttrib_ptr rparentatt, fparentatt, eparentatt, vparentatt;
-
-  const Mesh_MSTK *parent_mesh;
-
-  // variables needed for mesh deformation
-
-  double *meshxyz;
-  double *target_cell_volumes, *min_cell_volumes, *target_weights;
+ private:
 
   // Private methods
   // ----------------------------
@@ -556,15 +586,104 @@ private:
     
     return kind2mtype[cell_dimension()][(int)kind];
   }
+
+
+  // Private data
+
+  MPI_Comm mpicomm;
+  int myprocid, numprocs;
+
+  Mesh_ptr mesh;
+
+  int serial_run;
+  
+
+  // Local handles to entity lists (Vertices, "Faces", "Cells")
+  
+  // For a surface mesh, "Faces" refers to mesh edges and "Cells"
+  // refers to mesh faces
+  //
+  // For a solid mesh, "Faces" refers to mesh faces and "Cells"
+  // refers to mesh regions
+  
+  
+  // These are MSTK's definitions of types of parallel mesh entities
+  // These definitions are slightly different from what Jali has defined
+  //
+  // There are 2 types of entities relevant to this code - Owned and Ghost
+  //
+  // 1. OWNED - owned by this processor
+  //
+  // 2. GHOST - not owned by this processor
+  
+  // ALL = OWNED + GHOST in parallel, ALL = OWNED in serial
+  
+
+  MSet_ptr OwnedVerts, NotOwnedVerts;
+  
+  mutable MSet_ptr OwnedEdges, NotOwnedEdges;
+
+  mutable MSet_ptr OwnedFaces, NotOwnedFaces;
+  
+  MSet_ptr OwnedCells, GhostCells;
+
+  // Flags to indicate if face and edge info is initialized
+
+  mutable bool faces_initialized, edges_initialized;
+
+  // Marker to indicate if an entity is not owned
+
+  int notwownedmark;
+
+  // Deleted entity lists if some pre-processing had to be done
+  // to the mesh to eliminate degenerate entities
+
+  bool entities_deleted;
+  List_ptr deleted_vertices, deleted_edges, deleted_faces, deleted_regions;
+
+  // Local ID to MSTK handle map
+
+  std::vector<MEntity_ptr> vtx_id_to_handle;
+  mutable std::vector<MEntity_ptr> edge_id_to_handle;
+  mutable std::vector<MEntity_ptr> face_id_to_handle;
+  std::vector<MEntity_ptr> cell_id_to_handle;
+
+
+  // flag whether to flip a face dir or not when returning nodes of a
+  // face (relevant only on partition boundaries)
+  
+  mutable bool *faceflip;
+
+  // flag whether to flip an edge dir or not when returning nodes of an edge
+  // (relevant only on partition boundaries)
+
+  mutable bool *edgeflip;
+
+  // Attribute to precompute and store celltype
+
+  MAttrib_ptr celltype_att;
+
+  // Parent entity attribute - populated if the mesh is derived from
+  // another mesh
+
+  MAttrib_ptr rparentatt, fparentatt, eparentatt, vparentatt;
+
+  const Mesh_MSTK *parent_mesh;
+
+  // variables needed for mesh deformation
+
+  double *meshxyz;
+  double *target_cell_volumes, *min_cell_volumes, *target_weights;
+
     
 };
 
 
     
-  inline Parallel_type Mesh_MSTK::entity_get_ptype(const Entity_kind kind, const Entity_ID entid) const {
-    MEntity_ptr ment;
-      
-    switch(kind) {
+inline Parallel_type Mesh_MSTK::entity_get_ptype(const Entity_kind kind, const Entity_ID entid) const {
+  MEntity_ptr ment;
+  
+  switch(kind) {
     case CELL:
       ment = (MEntity_ptr) cell_id_to_handle[entid];
       break;
@@ -574,13 +693,137 @@ private:
     case NODE:
       ment = (MEntity_ptr) vtx_id_to_handle[entid];
       break;
-    }
-      
-    if (MEnt_PType(ment) == PGHOST)
-      return GHOST;
-    else
-      return OWNED;
   }
+  
+  if (MEnt_PType(ment) == PGHOST)
+    return GHOST;
+  else
+    return OWNED;
+}
+
+
+// Retrieve field data from the mesh - special implementation for
+// std::array<double,N>. Other implementations are in .cc file
+template<std::size_t N>
+inline
+bool Mesh_MSTK::get_field_internal(std::string field_name, Entity_kind on_what, 
+                                   std::array<double,N> *data) const {
+  MAttrib_ptr mattrib = MESH_AttribByName(mesh,field_name.c_str());
+  if (!mattrib) return false;
+
+  if (entity_kind_to_mtype(on_what) != (int) MAttrib_Get_EntDim(mattrib))
+    return false;
+
+  MAttType atttype = MAttrib_Get_Type(mattrib);
+  if (atttype != VECTOR && atttype != TENSOR)
+    return false;
+
+  MType enttype = MAttrib_Get_EntDim(mattrib);
+  int ncomp = MAttrib_Get_NumComps(mattrib);
+  
+  if (ncomp != N) return false;
+
+  int nent;      
+  switch (enttype) {
+    case MVERTEX: nent = MESH_Num_Vertices(mesh); break;
+    case MEDGE: nent = MESH_Num_Edges(mesh); break;
+    case MFACE: nent = MESH_Num_Faces(mesh); break;
+    case MREGION: nent = MESH_Num_Regions(mesh); break;
+    default: nent = 0; break;
+  }
+  
+  MEntity_ptr ment;
+  for (int i = 0; i < nent; i++) {
+    switch (enttype) {
+      case MVERTEX: ment = MESH_Vertex(mesh,i); break;
+      case MEDGE: ment = MESH_Edge(mesh,i); break;
+      case MFACE: ment = MESH_Face(mesh,i); break;
+      case MREGION: ment = MESH_Region(mesh,i); break;
+      default: ment = NULL; break;
+    }
+    if (ment == NULL) continue; // not needed since nent=0 but here anyway
+    
+    int ival;
+    double rval;
+    void *pval;
+    MEnt_Get_AttVal(ment,mattrib,&ival,&rval,&pval);
+    
+    for (int j = 0; j < N; j++)
+      data[i][j] = ((double *)pval)[j];
+
+  } // for (int i...);                
+
+  return true;
+} // Mesh_MSTK::get_mesh_field
+
+
+
+
+// Store field data with the mesh - special implementation for
+// std::array<double,N>. Other implementations are in .cc file
+
+template<std::size_t N>
+inline
+bool Mesh_MSTK::store_field_internal(std::string field_name, Entity_kind on_what, 
+                                     std::array<double,N> *data) {
+  MType mtype = entity_kind_to_mtype(on_what);
+  MAttType atttype;
+
+  MAttrib_ptr mattrib = MESH_AttribByName(mesh,field_name.c_str());
+  if (mattrib) {
+    if (mtype != (int) MAttrib_Get_EntDim(mattrib))
+      return false;
+
+    atttype = MAttrib_Get_Type(mattrib);
+    if (atttype != VECTOR || atttype != TENSOR) {
+      std::cerr << "Mesh_MSTK::store_field -" << 
+          " found attribute with same name but different type" << std::endl;
+      return false;
+    }
+    int ncomp = MAttrib_Get_NumComps(mattrib);
+    if (ncomp != N) {
+      std::cerr << "Mesh_MSTK::store_field - found vector/tensor attribute " <<
+          "but with different number of components" << std::endl;
+      return false;
+    }
+  }
+  else {    
+    if (N != 2 && N != 3 && N != 6) return false;
+    atttype =  (N == 2 || (N == 3 && Mesh::space_dimension() == 3)) ? VECTOR : 
+        TENSOR;
+    mattrib = MAttrib_New(mesh,field_name.c_str(),atttype,mtype,N);
+  }
+  
+  int nent;      
+  switch (mtype) {
+    case MVERTEX: nent = MESH_Num_Vertices(mesh); break;
+    case MEDGE: nent = MESH_Num_Edges(mesh); break;
+    case MFACE: nent = MESH_Num_Faces(mesh); break;
+    case MREGION: nent = MESH_Num_Regions(mesh); break;
+    default: nent = 0; break;
+  }
+  
+  MEntity_ptr ment;
+  for (int i = 0; i < nent; i++) {
+    switch (mtype) {
+      case MVERTEX: ment = MESH_Vertex(mesh,i); break;
+      case MEDGE: ment = MESH_Edge(mesh,i); break;
+      case MFACE: ment = MESH_Face(mesh,i); break;
+      case MREGION: ment = MESH_Region(mesh,i); break;
+      default: ment = NULL; break;
+    }
+    if (ment == NULL) continue; // not needed since nent=0 but here anyway
+    
+    void *pval;
+    double *vec = new double[N];
+    std::copy(&(data[i][0]),&(data[i][0])+N,vec);
+    pval = vec;
+    
+    MEnt_Set_AttVal(ment,mattrib,0,0.0,pval);
+  } // for
+  
+  return true;
+} // Mesh_MSTK::store_mesh_field
 
 } // End namespace Jali
 

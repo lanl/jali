@@ -5002,20 +5002,225 @@ void Mesh_MSTK::inherit_labeled_sets(MAttrib_ptr copyatt) {
 } // inherit_labeled_sets
 
 
-// Write mesh out to exodus file
 
-void
-Mesh_MSTK::write_to_exodus_file(const std::string filename) const {
-  MESH_ExportToFile(mesh,filename.c_str(),"exodusii",-1,NULL,NULL,mpicomm);
+// Get the number of fields on entities of a particular type
+// along with their names and variable types
+
+inline
+void Mesh_MSTK::get_field_info(Entity_kind on_what, int *num, 
+                               std::vector<std::string> *varnames,
+                               std::vector<std::string> *vartypes) const {
+  MAttrib_ptr mattrib;
+  char attname[256];
+
+  varnames->clear();
+  vartypes->clear();
+
+  int idx = 0;  
+  while ((mattrib = MESH_Next_Attrib(mesh,&idx))) {
+    if (entity_kind_to_mtype(on_what) != MAttrib_Get_EntDim(mattrib))
+      continue;
+
+    MAttrib_Get_Name(mattrib,attname);
+    varnames->push_back(attname);
+
+    MAttType atttype = MAttrib_Get_Type(mattrib);
+    switch (atttype) {
+      case INT: vartypes->push_back("INT"); break;
+      case DOUBLE: vartypes->push_back("DOUBLE"); break;
+      case VECTOR: vartypes->push_back("VECTOR"); break;
+      case TENSOR: vartypes->push_back("TENSOR"); break;
+      case POINTER: vartypes->push_back("POINTER"); break;
+      default: vartypes->push_back("UNKNOWN_VARTYPE"); break;
+    }    
+  }
+
+  *num = varnames->size();
+
 }
 
-// Write mesh out to exodus file
+// Retrieve integer field data from the mesh
 
-void
-Mesh_MSTK::write_to_gmv_file(const std::string filename) const {
-  MESH_ExportToFile(mesh,filename.c_str(),"gmv",-1,NULL,NULL,mpicomm);
-}
+bool Mesh_MSTK::get_field(std::string field_name, Entity_kind on_what, 
+                          int *data) const {
+  MAttrib_ptr mattrib = MESH_AttribByName(mesh,field_name.c_str());
+  if (!mattrib) return false;
 
+  if (entity_kind_to_mtype(on_what) != (int) MAttrib_Get_EntDim(mattrib))
+    return false;
+
+  if (MAttrib_Get_Type(mattrib) != INT) return false;
+
+  MType enttype = MAttrib_Get_EntDim(mattrib);
+
+  int nent;      
+  switch (enttype) {
+    case MVERTEX: nent = MESH_Num_Vertices(mesh); break;
+    case MEDGE: nent = MESH_Num_Edges(mesh); break;
+    case MFACE: nent = MESH_Num_Faces(mesh); break;
+    case MREGION: nent = MESH_Num_Regions(mesh); break;
+    default: nent = 0; break;
+  }
+  
+  MEntity_ptr ment;
+  for (int i = 0; i < nent; i++) {
+    switch (enttype) {
+      case MVERTEX: ment = MESH_Vertex(mesh,i); break;
+      case MEDGE: ment = MESH_Edge(mesh,i); break;
+      case MFACE: ment = MESH_Face(mesh,i); break;
+      case MREGION: ment = MESH_Region(mesh,i); break;
+      default: ment = NULL; break;
+    }
+    if (ment == NULL) continue; // not needed since nent=0 but here anyway
+    
+    int ival;
+    double rval;
+    void *pval;
+    MEnt_Get_AttVal(ment,mattrib,&(data[i]),&rval,&pval);
+  } // for
+
+  return true;
+} // Mesh_MSTK::get_mesh_field
+
+
+
+// Retrieve real field data from the mesh
+
+bool Mesh_MSTK::get_field(std::string field_name, Entity_kind on_what, 
+                          double *data) const {
+  MAttrib_ptr mattrib = MESH_AttribByName(mesh,field_name.c_str());
+  if (!mattrib) return false;
+
+  if (entity_kind_to_mtype(on_what) != (int) MAttrib_Get_EntDim(mattrib))
+    return false;
+
+  if (MAttrib_Get_Type(mattrib) != DOUBLE) return false;
+
+  MType enttype = MAttrib_Get_EntDim(mattrib);
+
+  int nent;      
+  switch (enttype) {
+    case MVERTEX: nent = MESH_Num_Vertices(mesh); break;
+    case MEDGE: nent = MESH_Num_Edges(mesh); break;
+    case MFACE: nent = MESH_Num_Faces(mesh); break;
+    case MREGION: nent = MESH_Num_Regions(mesh); break;
+    default: nent = 0; break;
+  }
+  
+  MEntity_ptr ment;
+  for (int i = 0; i < nent; i++) {
+    switch (enttype) {
+      case MVERTEX: ment = MESH_Vertex(mesh,i); break;
+      case MEDGE: ment = MESH_Edge(mesh,i); break;
+      case MFACE: ment = MESH_Face(mesh,i); break;
+      case MREGION: ment = MESH_Region(mesh,i); break;
+      default: ment = NULL; break;
+    }
+    if (ment == NULL) continue; // not needed since nent=0 but here anyway
+    
+    int ival;
+    double rval;
+    void *pval;
+    MEnt_Get_AttVal(ment,mattrib,&ival,&(data[i]),&pval);
+  } // for
+
+  return true;
+} // Mesh_MSTK::get_mesh_field
+
+
+// Store integer field data with the mesh
+
+bool Mesh_MSTK::store_field(std::string field_name, Entity_kind on_what, 
+                            int *data) {
+  MType mtype = entity_kind_to_mtype(on_what);
+
+  MAttrib_ptr mattrib = MESH_AttribByName(mesh,field_name.c_str());
+  if (mattrib) {
+    if (mtype != (int) MAttrib_Get_EntDim(mattrib))
+      return false;
+
+    if (MAttrib_Get_Type(mattrib) != INT) {
+      std::cerr << "Mesh_MSTK::store_field -" << 
+          " found attribute with same name but different type" << std::endl;
+      return false;
+    }
+  }
+  else
+    mattrib = MAttrib_New(mesh,field_name.c_str(),INT,mtype);
+  
+  int nent;      
+  switch (mtype) {
+    case MVERTEX: nent = MESH_Num_Vertices(mesh); break;
+    case MEDGE: nent = MESH_Num_Edges(mesh); break;
+    case MFACE: nent = MESH_Num_Faces(mesh); break;
+    case MREGION: nent = MESH_Num_Regions(mesh); break;
+    default: nent = 0; break;
+  }
+  
+  MEntity_ptr ment;
+  for (int i = 0; i < nent; i++) {
+    switch (mtype) {
+      case MVERTEX: ment = MESH_Vertex(mesh,i); break;
+      case MEDGE: ment = MESH_Edge(mesh,i); break;
+      case MFACE: ment = MESH_Face(mesh,i); break;
+      case MREGION: ment = MESH_Region(mesh,i); break;
+      default: ment = NULL; break;
+    }
+    if (ment == NULL) continue; // not needed since nent=0 but here anyway
+    
+    MEnt_Set_AttVal(ment,mattrib,data[i],0.0,NULL);
+
+  } // for (int i...);                
+
+  return true;
+} // Mesh_MSTK::store_mesh_field
+
+
+// Store real field data with the mesh 
+
+bool Mesh_MSTK::store_field(std::string field_name, Entity_kind on_what, 
+                            double *data) {
+  MType mtype = entity_kind_to_mtype(on_what);
+
+  MAttrib_ptr mattrib = MESH_AttribByName(mesh,field_name.c_str());
+  if (mattrib) {
+    if (mtype != (int) MAttrib_Get_EntDim(mattrib))
+      return false;
+
+    if (MAttrib_Get_Type(mattrib) != DOUBLE) {
+      std::cerr << "Mesh_MSTK::store_field -" << 
+          " found attribute with same name but different type" << std::endl;
+      return false;
+    }
+  }
+  else
+    mattrib = MAttrib_New(mesh,field_name.c_str(),DOUBLE,mtype);
+  
+  int nent;      
+  switch (mtype) {
+    case MVERTEX: nent = MESH_Num_Vertices(mesh); break;
+    case MEDGE: nent = MESH_Num_Edges(mesh); break;
+    case MFACE: nent = MESH_Num_Faces(mesh); break;
+    case MREGION: nent = MESH_Num_Regions(mesh); break;
+    default: nent = 0; break;
+  }
+  
+  MEntity_ptr ment;
+  for (int i = 0; i < nent; i++) {
+    switch (mtype) {
+      case MVERTEX: ment = MESH_Vertex(mesh,i); break;
+      case MEDGE: ment = MESH_Edge(mesh,i); break;
+      case MFACE: ment = MESH_Face(mesh,i); break;
+      case MREGION: ment = MESH_Region(mesh,i); break;
+      default: ment = NULL; break;
+    }
+    if (ment == NULL) continue; // not needed since nent=0 but here anyway
+    
+    MEnt_Set_AttVal(ment,mattrib,0.0,data[i],NULL);
+  } // for (int i...);                  
+
+  return true;
+} // Mesh_MSTK::store_mesh_field
 
 
 } // close namespace Jali
