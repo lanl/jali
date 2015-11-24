@@ -30,8 +30,8 @@
 #                   MSTK            2.25rc1
 #                   Trilinos        11.6.1
 #                   Seacas          11.6.1 
-#   1.0.2       - Boost updated to 1.58
-#   1.0.3       - MSTK updated to 2.25rc1
+#   1.0.1       - Boost updated to 1.58
+#   1.0.2       - MSTK updated to 2.25rc1
 
 include(CMakeParseArguments)
 
