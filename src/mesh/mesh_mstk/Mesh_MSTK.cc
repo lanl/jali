@@ -2286,7 +2286,7 @@ void Mesh_MSTK::cell_get_face_adj_cells(const Entity_ID cellid,
 
   ASSERT(fadj_cellids != NULL);
 
-  fadj_cellids->clear();
+   fadj_cellids->clear();
 
   if (cell_dimension() == 3) {
 
@@ -2308,7 +2308,7 @@ void Mesh_MSTK::cell_get_face_adj_cells(const Entity_ID cellid,
 	    }
 	  }
 	  else {
-	    if (ptype == GHOST || ptype == ALL) {
+	    if (ptype == OWNED || ptype == ALL) {
 	      lid = MEnt_ID(mr2);
 	      fadj_cellids->push_back(lid-1);
 	    }
@@ -2341,7 +2341,7 @@ void Mesh_MSTK::cell_get_face_adj_cells(const Entity_ID cellid,
 	    }
 	  }
 	  else {
-	    if (ptype == GHOST || ptype == ALL) {
+	    if (ptype == OWNED || ptype == ALL) {
 	      lid = MEnt_ID(mf2);
 	      fadj_cellids->push_back(lid-1);
 	    }
@@ -2400,7 +2400,7 @@ void Mesh_MSTK::cell_get_node_adj_cells(const Entity_ID cellid,
 	    }
 	  }
 	  else {
-	    if (ptype == GHOST || ptype == ALL) {
+	    if (ptype == OWNED || ptype == ALL) {
 	      lid = MEnt_ID(mr2);
 	      nadj_cellids->push_back(lid-1);
 	    }
@@ -2435,7 +2435,7 @@ void Mesh_MSTK::cell_get_node_adj_cells(const Entity_ID cellid,
 	    }
 	  }
 	  else {
-	    if (ptype == GHOST || ptype == ALL) {
+	    if (ptype == OWNED || ptype == ALL) {
 	      lid = MEnt_ID(mf2);
 	      nadj_cellids->push_back(lid-1);
 	    }
