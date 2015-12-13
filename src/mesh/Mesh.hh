@@ -957,8 +957,8 @@ class Mesh
   mutable std::vector<int> nodeids, edgeids, faceids, cellids;
 
 
- private:
-
+ protected:
+ 
   // The following methods are declared const since they do not modify the
   // mesh but just modify cached variables declared as mutable
 
