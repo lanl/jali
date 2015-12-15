@@ -3407,6 +3407,8 @@ void Mesh_MSTK::post_create_steps_(const bool request_faces,
   if (Mesh::geometric_model() != NULL)
     init_set_info();
 
+  cache_extra_variables();
+
 }
 
 

@@ -838,6 +838,10 @@ class Mesh
   void write_to_gmv_file(const std::string gmvfilename,
                          const bool with_fields=true) const {}
 
+  //! \brief Precompute and cache corners, wedges, edges, cells
+
+  virtual
+  void cache_extra_variables();
 
  protected:
 
@@ -950,8 +954,6 @@ class Mesh
   virtual
   bool store_field(std::string field_name, Entity_kind on_what, 
                    std::array<double,(std::size_t)6> *data) {return false;}
-
-
 
 
   mutable std::vector<int> nodeids, edgeids, faceids, cellids;
