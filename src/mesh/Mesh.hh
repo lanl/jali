@@ -838,6 +838,10 @@ class Mesh
   void write_to_gmv_file(const std::string gmvfilename,
                          const bool with_fields=true) const {}
 
+  //! \brief Precompute and cache corners, wedges, edges, cells
+
+  virtual
+  void cache_extra_variables();
 
  protected:
 
@@ -952,13 +956,11 @@ class Mesh
                    std::array<double,(std::size_t)6> *data) {return false;}
 
 
-
-
   mutable std::vector<int> nodeids, edgeids, faceids, cellids;
 
 
- private:
-
+ protected:
+ 
   // The following methods are declared const since they do not modify the
   // mesh but just modify cached variables declared as mutable
 

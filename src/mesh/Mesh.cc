@@ -123,6 +123,8 @@ void Mesh::cache_cell2edge_info() const {
 // Gather and cache wedge information
 
 void Mesh::cache_wedge_info() const {
+
+  if (wedge_info_cached) return;
   
   int ncells = num_entities(CELL,ALL);
   cell_wedge_ids.resize(ncells);
@@ -256,6 +258,8 @@ void Mesh::cache_wedge_info() const {
 
 void Mesh::cache_corner_info() const {
 
+  if (corner_info_cached) return;
+
   if (!wedge_info_cached)
     cache_wedge_info();
 
@@ -314,6 +318,33 @@ void Mesh::cache_corner_info() const {
 
   corner_info_cached = true;
 } // cache_corner_info
+
+
+void Mesh::cache_extra_variables()
+{
+  if (faces_requested)
+  {
+    cache_cell2face_info();
+    cache_face2cell_info();
+  }
+
+ if (edges_requested)
+  {
+    cache_face2edge_info();
+    cache_cell2edge_info();
+  }
+
+  if (wedges_requested) cache_wedge_info();
+  if (corners_requested) cache_corner_info();
+
+  if (faces_requested) compute_face_geometric_quantities();
+  if (edges_requested) compute_edge_geometric_quantities();
+  compute_cell_geometric_quantities();
+  if (corners_requested) compute_corner_geometric_quantities();
+  if (wedges_requested) compute_wedge_geometric_quantities();
+
+}
+
 
 
 Entity_ID Mesh::entity_get_parent(const Entity_kind kind, const Entity_ID entid) const {

@@ -400,6 +400,13 @@ Mesh_MSTK::Mesh_MSTK(const double x0, const double y0,
   
   post_create_steps_(request_faces, request_edges);
 
+  if (request_wedges)
+  {
+    cache_corner_info();
+    cache_wedge_info();
+    compute_face_geometric_quantities();
+    compute_cell_geometric_quantities();
+  }
 }
 
 
@@ -3399,6 +3406,8 @@ void Mesh_MSTK::post_create_steps_(const bool request_faces,
 
   if (Mesh::geometric_model() != NULL)
     init_set_info();
+
+  cache_extra_variables();
 
 }
 
