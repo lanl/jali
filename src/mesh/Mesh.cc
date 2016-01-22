@@ -1854,6 +1854,8 @@ Mesh::corner_get_coordinates (const Entity_ID cornerid,
         point_entity_list.push_back(std::pair<Entity_ID,Entity_kind>(e,EDGE));
         pointcoords->push_back(edge_centroid(e));
       }
+
+      ++itw;
     }
   }
 
