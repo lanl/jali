@@ -3102,7 +3102,7 @@ void Mesh_MSTK::get_set_entities (const std::string setname,
           (kind == FACE && entity_type != "FACE") ||
           (kind == NODE && entity_type != "NODE"))
         {
-          std::cerr << "Found labeled set region named " << setname << " but it contains entities of type " << entity_type << ", not the requested type";
+          std::cerr << "Found labeled set region named " << setname << " but it contains entities of type " << entity_type << ", not the requested type of " << kind_to_string[kind];
         } 
       else {
         mset1 = MESH_MSetByName(mesh,internal_name.c_str());

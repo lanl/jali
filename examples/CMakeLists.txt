@@ -12,4 +12,6 @@ add_subdirectory(QueryTopology)
 
 add_subdirectory(QueryState)
 
+add_subdirectory(QuerySets)
+
 add_subdirectory(ToyNumerics)
