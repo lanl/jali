@@ -226,7 +226,7 @@ set(MSTK_VERSION_PATCH )
 set(MSTK_VERSION ${MSTK_VERSION_MAJOR}.${MSTK_VERSION_MINOR}${MSTK_VERSION_PATCH})
 set(MSTK_URL_STRING     "http://software.lanl.gov/ascem/tpls")
 set(MSTK_ARCHIVE_FILE   mstk-${MSTK_VERSION}.tgz)
-set(MSTK_MD5_SUM        fd51190c266cc609c86c44776b26eec1)
+set(MSTK_MD5_SUM        4195d0f190a456f7fbb6db36d25cd269)
 
 #
 # TPL: MOAB
