@@ -40,7 +40,7 @@ class BaseStateVector
 
   //! Virtual methods
 
-  virtual void print(std::ostream & os) const = 0;
+  virtual std::ostream & print(std::ostream & os) const = 0;
   virtual void* get_data() = 0;
   virtual int size() const = 0;
   virtual const std::type_info& get_type() = 0;
@@ -137,8 +137,8 @@ class StateVector : public BaseStateVector
   
   iterator begin() { return mydata_->begin(); };
   iterator end() { return mydata_->end(); };
-  const_iterator cbegin() const { return mydata_->begin(); }
-  const_iterator cend() const { return mydata_->end(); }
+  const_iterator cbegin() const { return mydata_->cbegin(); }
+  const_iterator cend() const { return mydata_->cend(); }
   
   typedef T& reference;
   typedef T const& const_reference;
@@ -152,16 +152,17 @@ class StateVector : public BaseStateVector
 
   //! Output the data
 
-  void print(std::ostream & os) const {
+  std::ostream & print(std::ostream & os) const {
 
-    int size = mydata_->size();
-    os << std::endl;
-    os << "Vector \"" << myname_ << "\" on entity kind " << on_what_ << " : " << std::endl;
-    os << size << " elements " << std::endl;
+    os << "\n";
+    os << "Vector \"" << myname_ << "\" on entity kind " << on_what_ << " :\n";
+    os << size() << " elements\n";
 
-    for (const_iterator it = mydata_->begin(); it != mydata_->end(); it++)
-      os << (*it) << std::endl;
-    os << std::endl;
+    for (const_iterator it = cbegin(); it != cend(); it++)
+      os << (*it) << "\n";
+    os << std::endl; // flush the output
+
+    return os;
   }
 
  protected:
@@ -174,7 +175,7 @@ class StateVector : public BaseStateVector
 
 template <class T>
 std::ostream & operator<<(std::ostream & os, Jali::StateVector<T> const & sv) {
-  sv.print(os);
+  return sv.print(os);
 }
 
 

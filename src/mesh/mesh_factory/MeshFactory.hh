@@ -37,7 +37,7 @@ class MeshFactory {
  protected:
 
   /// The parallel environment
-  const MPI_Comm& my_comm;
+  const MPI_Comm my_comm;
 
   /// A list of preferred mesh frameworks to consider
   FrameworkPreference my_preference;
