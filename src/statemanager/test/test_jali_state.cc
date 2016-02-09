@@ -36,29 +36,29 @@ struct Vec2d
 TEST(Jali_State_Define) {
 
   Jali::MeshFactory mf(MPI_COMM_WORLD);
-  Jali::Mesh *mesh1 = mf(0.0,0.0,1.0,1.0,2,2);
+  std::unique_ptr<Jali::Mesh> mesh1 = mf(0.0,0.0,1.0,1.0,2,2);
 
   CHECK(mesh1 != NULL);
 
   // Define two state vectors
 
   std::vector<double> data1 = {1.0,3.0,2.5,4.5}; 
-  Jali::StateVector<double> myvec1("cellvars",Jali::CELL,mesh1,&(data1[0]));
+  Jali::StateVector<double> myvec1("cellvars",Jali::CELL,mesh1.get(),&(data1[0]));
 
   std::vector<double> data2 = {0.0,1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0};
-  Jali::StateVector<double> myvec2("nodevars",Jali::NODE,mesh1,&(data2[0]));
+  Jali::StateVector<double> myvec2("nodevars",Jali::NODE,mesh1.get(),&(data2[0]));
 
   // Define another mesh and another statevector on that mesh
 
-  Jali::Mesh *mesh2 = mf(0.0,0.0,1.0,1.0,3,3);
+  std::unique_ptr<Jali::Mesh> mesh2 = mf(0.0,0.0,1.0,1.0,3,3);
   
   std::vector<double> data3 = {1.0,3.0,2.5,4.5,1.0,2.0}; 
-  Jali::StateVector<double> myvec3("cellvars2",Jali::CELL,mesh2,&(data3[0]));
+  Jali::StateVector<double> myvec3("cellvars2",Jali::CELL,mesh2.get(),&(data3[0]));
     
 
   // Create a state object and add the first two vectors to it
 
-  Jali::State mystate(mesh1);
+  Jali::State mystate(mesh1.get());
 
   int add_status;
   Jali::StateVector<double> &addvec1 = mystate.add(myvec1);
@@ -190,8 +190,8 @@ TEST(Jali_State_Define) {
 
   Jali::MeshFactory factory(MPI_COMM_WORLD);
 
-  Jali::Mesh* dataMesh = factory(0.0, 0.0, 1.0, 1.0, 2, 2);
-  Jali::State dstate(dataMesh);
+  std::unique_ptr<Jali::Mesh> dataMesh = factory(0.0, 0.0, 1.0, 1.0, 2, 2);
+  Jali::State dstate(dataMesh.get());
 
   dstate.add("f1", Jali::CELL, ftest);
   dstate.add("i1", Jali::NODE, itest);
@@ -226,11 +226,6 @@ TEST(Jali_State_Define) {
     else                                         CHECK_EQUAL(0, 1);        // This else should never be reached in this test
     testCnt++;
   }
-
-  delete mesh1;
-  delete mesh2;
-  delete dataMesh;
-
 }
 
 
@@ -239,13 +234,13 @@ TEST(State_Write_Read_With_Mesh) {
   // Define mesh with 4 cells and 9 nodes 
 
   Jali::MeshFactory mf(MPI_COMM_WORLD);
-  Jali::Mesh *mesh1 = mf(0.0,0.0,1.0,1.0,2,2);
+  std::unique_ptr<Jali::Mesh> mesh1 = mf(0.0,0.0,1.0,1.0,2,2);
 
   CHECK(mesh1 != NULL);
 
   // Create a state object associated with this mesh
 
-  Jali::State mystate1(mesh1);
+  Jali::State mystate1(mesh1.get());
 
   // Add a state vector of scalars on cells
 
@@ -277,11 +272,11 @@ TEST(State_Write_Read_With_Mesh) {
   // Now read the mesh back in - No need of wedges, corners, faces, etc 
   // so just the filename is needed
 
-  Jali::Mesh *mesh2 = mf("temp.exo");
+  std::unique_ptr<Jali::Mesh> mesh2 = mf("temp.exo");
   
   // Create a state object associated with this mesh
 
-  Jali::State mystate2(mesh2);
+  Jali::State mystate2(mesh2.get());
 
   // Initialize the state object from the mesh
 
@@ -308,11 +303,4 @@ TEST(State_Write_Read_With_Mesh) {
   for (int i = 0; i < outvec2.size(); i++)
     for (int j = 0; j < 2; j++)
       CHECK_EQUAL(outvec2[i][j],invec2[i][j]);
-  
-  delete mesh1;
-  delete mesh2;
 }
-  
-
-  
-

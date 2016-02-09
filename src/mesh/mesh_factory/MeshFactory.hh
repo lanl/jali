@@ -63,7 +63,7 @@ class MeshFactory {
   void preference(const FrameworkPreference& pref);
 
   /// Create a mesh by reading the specified file (or set of files)
-  Mesh *create(const std::string& filename, 
+  std::unique_ptr<Mesh> create(const std::string& filename, 
                const JaliGeometry::GeometricModelPtr &gm = 
                (JaliGeometry::GeometricModelPtr) NULL,
                const bool request_faces = true,
@@ -73,7 +73,7 @@ class MeshFactory {
 
 
   /// Create a hexahedral mesh of the specified dimensions
-  Mesh *create(double x0, double y0, double z0,
+  std::unique_ptr<Mesh> create(double x0, double y0, double z0,
                double x1, double y1, double z1,
                int nx, int ny, int nz, 
                const JaliGeometry::GeometricModelPtr &gm = 
@@ -85,7 +85,7 @@ class MeshFactory {
 
     
   /// Create a quadrilateral mesh of the specified dimensions
-  Mesh *create(double x0, double y0,
+  std::unique_ptr<Mesh> create(double x0, double y0,
                double x1, double y1,
                int nx, int ny,
                const JaliGeometry::GeometricModelPtr &gm = 
@@ -97,7 +97,7 @@ class MeshFactory {
 
     
   /// Create a mesh by extract subsets of entities from an existing mesh
-  Mesh *create(const Mesh *inmesh,
+  std::unique_ptr<Mesh> create(const Mesh *inmesh,
                const std::vector<std::string> setnames,
                const Entity_kind setkind,
                const bool flatten = false,
@@ -109,7 +109,7 @@ class MeshFactory {
 
 
   /// Create a mesh by reading the specified file (or set of files) -- operator
-  Mesh *operator() (const std::string& filename, 
+  std::unique_ptr<Mesh> operator() (const std::string& filename, 
                     const JaliGeometry::GeometricModelPtr &gm = 
                     (JaliGeometry::GeometricModelPtr) NULL,
                     const bool request_faces = true,
@@ -122,7 +122,7 @@ class MeshFactory {
   }
   
   /// Create a hexahedral mesh of the specified dimensions -- operator
-  Mesh *operator() (double x0, double y0, double z0,
+  std::unique_ptr<Mesh> operator() (double x0, double y0, double z0,
                     double x1, double y1, double z1,
                     int nx, int ny, int nz, 
                     const JaliGeometry::GeometricModelPtr &gm = 
@@ -137,7 +137,7 @@ class MeshFactory {
   }
 
   /// Create a quadrilateral mesh of the specified dimensions -- operator
-  Mesh *operator() (double x0, double y0,
+  std::unique_ptr<Mesh> operator() (double x0, double y0,
                     double x1, double y1,
                     int nx, int ny,
                     const JaliGeometry::GeometricModelPtr &gm = 
@@ -152,7 +152,7 @@ class MeshFactory {
   }
 
   /// Create a mesh by extract subsets of entities from an existing mesh
-  Mesh *operator() (const Mesh *inmesh,
+  std::unique_ptr<Mesh> operator() (const Mesh *inmesh,
                     const std::vector<std::string> setnames,
                     const Entity_kind setkind,
                     const bool flatten = false,

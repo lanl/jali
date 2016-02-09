@@ -54,7 +54,7 @@ TEST(ENTITY_ITERATORS)
     // Create the mesh
 
     Jali::MeshFactory factory(MPI_COMM_WORLD);
-    Jali::Mesh *mesh;
+    std::unique_ptr<Jali::Mesh> mesh;
 
     int ierr = 0;
     int aerr = 0;

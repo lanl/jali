@@ -56,7 +56,7 @@ int main(int argc, char *argv[]) {
   FrameworkPreference pref;
   pref.push_back(MSTK);
 
-  Mesh *mymesh;  // Pointer to a mesh object
+  std::unique_ptr<Mesh> mymesh;  // Pointer to a mesh object
   if (framework_available(MSTK)) {  // check if framework is available
     mesh_factory.preference(pref);  
   
@@ -84,7 +84,7 @@ int main(int argc, char *argv[]) {
 
   // Create a state manager for handling data associated with mesh entities
 
-  State mystate(mymesh);
+  State mystate(mymesh.get());
 
 
   // Initialize the state manager with some data - see routine at end
@@ -223,8 +223,6 @@ int main(int argc, char *argv[]) {
 
 
   // Wrap up
-
-  delete mymesh;
 
   MPI_Finalize();
 }

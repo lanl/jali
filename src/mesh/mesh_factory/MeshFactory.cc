@@ -82,7 +82,7 @@ MeshFactory::preference(const FrameworkPreference& pref)
  * 
  * @return mesh instance
  */
-Mesh *
+std::unique_ptr<Mesh>
 MeshFactory::create(const std::string& filename, 
                     const JaliGeometry::GeometricModelPtr &gm,
                     const bool request_faces, 
@@ -120,7 +120,7 @@ MeshFactory::create(const std::string& filename,
           Errors::Message mesg("Geometric model and mesh dimension do not match");
           Exceptions::Jali_throw(mesg);
         }
-        return result;
+        return std::unique_ptr<Mesh>(result);
       } catch (const Message& msg) {
         ierr[0] += 1;
         e.add_data(msg.what());
@@ -158,7 +158,7 @@ MeshFactory::create(const std::string& filename,
  * 
  * @return mesh instance
  */
-Mesh * 
+std::unique_ptr<Mesh>
 MeshFactory::create(double x0, double y0, double z0,
                     double x1, double y1, double z1,
                     int nx, int ny, int nz, 
@@ -210,7 +210,7 @@ MeshFactory::create(double x0, double y0, double z0,
                                     gm, 
                                     request_faces, request_edges,
                                     request_wedges, request_corners);
-        return result;
+        return std::unique_ptr<Mesh>(result);
       } catch (const Message& msg) {
         ierr[0] += 1;
         e.add_data(msg.what());
@@ -245,7 +245,7 @@ MeshFactory::create(double x0, double y0, double z0,
  * @return mesh instance
  */
 
-Mesh * 
+std::unique_ptr<Mesh>
 MeshFactory::create(double x0, double y0,
                     double x1, double y1,
                     int nx, int ny,
@@ -298,7 +298,7 @@ MeshFactory::create(double x0, double y0,
                                     gm,
                                     request_faces, request_edges,
                                     request_wedges, request_corners);
-        return result;
+        return std::unique_ptr<Mesh>(result);
       } catch (const Message& msg) {
         ierr[0] += 1;
         e.add_data(msg.what());
@@ -329,7 +329,7 @@ MeshFactory::create(double x0, double y0,
  * 
  * @return 
  */
-Mesh * 
+std::unique_ptr<Mesh>
 MeshFactory::create(const Mesh *inmesh, 
                     const std::vector<std::string> setnames,
                     const Entity_kind setkind,
@@ -357,7 +357,7 @@ MeshFactory::create(const Mesh *inmesh,
                                    flatten, extrude,
                                    request_faces, request_edges,
                                    request_wedges, request_corners);
-        return result;
+        return std::unique_ptr<Mesh>(result);
       } catch (const Message& msg) {
         ierr[0] += 1;
         e.add_data(msg.what());
