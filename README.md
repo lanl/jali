@@ -53,7 +53,7 @@ Execute the following from the Jali root directory:
     cd build-jali
     cmake \
       -C $TPL_INSTALL_PREFIX/share/cmake/Jali-tpl-config.cmake \
-      -D CMAKE_BUILD_TYPE=Debug \
+      -D CMAKE_BUILD_TYPE=Release \
       -D CMAKE_CXX_FLAGS='-std=c++11' \
       -D CMAKE_INSTALL_PREFIX:FILEPATH=$JALI_INSTALL_PREFIX \
       -D HDF5_NO_SYSTEM_PATHS:BOOL=TRUE \
@@ -91,7 +91,7 @@ Execute the following from the Jali root directory:
     cd build-jali
     cmake \
       -C $TPL_INSTALL_PREFIX/share/cmake/Jali-tpl-config.cmake \
-      -D CMAKE_BUILD_TYPE=Debug \
+      -D CMAKE_BUILD_TYPE=Release \
       -D CMAKE_CXX_FLAGS='-std=c++11' \
       -D CMAKE_INSTALL_PREFIX:FILEPATH=$JALI_INSTALL_PREFIX \
       -D HDF5_NO_SYSTEM_PATHS:BOOL=TRUE \
@@ -131,7 +131,7 @@ Execute the following from the Jali root directory:
     cd build-jali
     cmake \
       -C $TPL_INSTALL_PREFIX/share/cmake/Jali-tpl-config.cmake \
-      -D CMAKE_BUILD_TYPE=Debug \
+      -D CMAKE_BUILD_TYPE=Release \
       -D CMAKE_CXX_FLAGS='-std=c++11' \
       -D CMAKE_INSTALL_PREFIX:FILEPATH=$JALI_INSTALL_PREFIX \
       -D HDF5_NO_SYSTEM_PATHS:BOOL=TRUE \
