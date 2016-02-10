@@ -32,7 +32,7 @@ int main(int argc, char *argv[]) {
   FrameworkPreference pref;
   pref.push_back(MSTK);
 
-  Mesh *mymesh;  // Pointer to a mesh object
+  std::unique_ptr<Mesh> mymesh;  // Pointer to a mesh object
   if (framework_available(MSTK)) {  // check if framework is available
     mesh_factory.preference(pref);  
   
@@ -63,8 +63,6 @@ int main(int argc, char *argv[]) {
 
   // Clean up and exit
 
-  delete mymesh;
-  
   MPI_Finalize();
 
 }

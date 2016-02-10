@@ -68,7 +68,7 @@ int main(int argc, char *argv[]) {
   FrameworkPreference pref;
   pref.push_back(MSTK);
 
-  Mesh *mymesh;  // Pointer to a mesh object
+  std::unique_ptr<Mesh> mymesh;  // Pointer to a mesh object
   if (framework_available(MSTK)) {  // check if framework is available
     mesh_factory.preference(pref);  
   
@@ -96,7 +96,7 @@ int main(int argc, char *argv[]) {
 
   // Create a Jali State Manager
 
-  Jali::State mystate(mymesh);
+  Jali::State mystate(mymesh.get());
 
 
   // Create some CELL-based data
@@ -203,15 +203,13 @@ int main(int argc, char *argv[]) {
                                      {24.0,25.0,26.0}};
 
 
-  Jali::StateVector<std::array<double,3>> pntvec("vec3",Jali::NODE,mymesh,&(arrdata[0]));
+  Jali::StateVector<std::array<double,3>> pntvec("vec3",Jali::NODE,mymesh.get(),&(arrdata[0]));
 
   std::cerr << pntvec << std::endl;
 
 
   // Clean up and exit
 
-  delete mymesh;
-  
   MPI_Finalize();
 
 }
