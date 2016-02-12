@@ -50,6 +50,21 @@ Mesh_simple::Mesh_simple (double x0, double y0,
 }
   
 
+// Have to define this dummy routine because we are not able to
+// eliminate the need in FrameworkTraits.cc which uses boost
+// functionality extensively
+
+Mesh_simple::Mesh_simple (std::vector<double> x,
+                          const MPI_Comm& comm,
+                          const JaliGeometry::GeometricModelPtr &gm,
+                          const bool request_faces,
+                          const bool request_edges,
+                          const bool request_wedges,
+                          const bool request_corners) 
+{
+  Exceptions::Jali_throw(Errors::Message("Simple mesh cannot generate 1D meshes"));
+}
+  
 
 //--------------------------------------
 // Constructor - Construct a new mesh from a subset of an existing mesh

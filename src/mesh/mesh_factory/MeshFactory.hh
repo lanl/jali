@@ -80,6 +80,14 @@ class MeshFactory {
                const bool request_wedges=false,
                const bool request_corners=false);
 
+  /// Create a 1d mesh
+  Mesh *create(std::vector<double> x,
+               const JaliGeometry::GeometricModelPtr &gm = 
+               (JaliGeometry::GeometricModelPtr) NULL,
+               const bool request_faces = true,
+               const bool request_edges = false,
+               const bool request_wedges=false,
+               const bool request_corners=false);
     
   /// Create a mesh by extract subsets of entities from an existing mesh
   Mesh *create(const Mesh *inmesh,
@@ -147,6 +155,42 @@ class MeshFactory {
                     const bool request_corners=false)  {
  
     return std::unique_ptr<Mesh>(create(x0, y0, x1, y1, nx, ny, gm, request_faces, request_edges,
+                  request_wedges, request_corners));
+  }
+
+  /// Create a 1d mesh -- operator
+  std::unique_ptr<Mesh> operator() (std::vector<double> x,
+                    const JaliGeometry::GeometricModelPtr &gm = 
+                    (JaliGeometry::GeometricModelPtr) NULL,
+                    const bool request_faces = true,
+                    const bool request_edges = false,
+                    const bool request_wedges=false,
+                    const bool request_corners=false)  {
+ 
+    return std::unique_ptr<Mesh>(create(x, gm, request_faces, request_edges,
+                  request_wedges, request_corners));
+  }
+
+  /// Create a 1d mesh -- operator
+  std::unique_ptr<Mesh> operator() (double x0, double x1,
+                    int nx,
+                    const JaliGeometry::GeometricModelPtr &gm = 
+                    (JaliGeometry::GeometricModelPtr) NULL,
+                    const bool request_faces = true,
+                    const bool request_edges = false,
+                    const bool request_wedges=false,
+                    const bool request_corners=false)  {
+
+    double dX = (x1-x0)/((double)nx);
+    double myX = x0;
+    
+    std::vector<double> x(nx);
+    for(auto it = x.begin(); it != x.end(); it++) {
+      *it = myX;
+      myX += dX;
+    }
+ 
+    return std::unique_ptr<Mesh>(create(x, gm, request_faces, request_edges,
                   request_wedges, request_corners));
   }
 

@@ -478,7 +478,7 @@ struct FrameworkTraits {
     struct serial :
       mpl::eval_if<
       mpl::bool_< M == Simple >
-      , mpl::bool_< DIM == 3 >
+      , mpl::bool_< DIM == 3 || DIM == 1 >
       , mpl::eval_if< 
           mpl::bool_< M == STKMESH >
           , mpl::bool_< DIM == 3 >
@@ -531,7 +531,44 @@ struct FrameworkTraits {
                                               request_wedges, request_corners));
     return result;
   }
+
+  /// Generate a 1d mesh from explicit arguments
+  static Mesh *
+  generate(const std::vector<double> x,
+           const MPI_Comm& comm,
+           const JaliGeometry::GeometricModelPtr& gm,
+           const bool request_faces, 
+           const bool request_edges,
+           const bool request_wedges,
+           const bool request_corners)
+  {
+    Mesh *
+      result(new typename generate_mesh::type(x, comm,
+                                              gm,
+                                              request_faces, request_edges,
+                                              request_wedges, request_corners));
+    return result;
+  }
   
+  /// Generate a 1d mesh from explicit arguments
+  // static Mesh *
+  // generate(const double& x0, const double& x1, 
+  //          const unsigned int& nx,
+  //          const MPI_Comm& comm,
+  //          const JaliGeometry::GeometricModelPtr& gm,
+  //          const bool request_faces, 
+  //          const bool request_edges,
+  //          const bool request_wedges,
+  //          const bool request_corners)
+  // {
+  //   Mesh *
+  //     result(new typename generate_mesh::type(x0, x1, nx, comm,
+  //                                             gm,
+  //                                             request_faces, request_edges,
+  //                                             request_wedges, request_corners));
+  //   return result;
+  // }
+
   // -------------------------------------------------------------
   // FrameworkTraits<M>::canextract
   // -------------------------------------------------------------
@@ -792,6 +829,9 @@ framework_generates(const bool& parallel, const unsigned int& dimension)
   typedef FrameworkTraits<F> traits;
   bool result = false;
   switch (dimension) {
+  case 1:
+    result =  parallel_test< typename traits::template cangenerate<1> >(parallel);
+    break;
   case 2:
     result = parallel_test< typename traits::template cangenerate<2> >(parallel);
     break;
@@ -943,6 +983,60 @@ framework_generate(const MPI_Comm& comm, const Framework& f,
                                              gm,
                                              request_faces, request_edges,
                                              request_wedges, request_corners);
+    break;
+  default:
+    {
+      std::string msg = 
+        boost::str(boost::format("unknown mesh framework: %d") % static_cast<int>(f));
+      Exceptions::Jali_throw(Errors::Message(msg.c_str()));
+    }
+  }
+  return result;
+}
+
+
+// -------------------------------------------------------------
+// framework_generate
+// -------------------------------------------------------------
+Mesh *
+framework_generate(const MPI_Comm& comm, const Framework& f, 
+                   const std::vector<double> x,
+                   const JaliGeometry::GeometricModelPtr& gm,
+                   const bool request_faces, const bool request_edges,
+                   const bool request_wedges, const bool request_corners)
+{
+  Mesh *result;
+  int myPID;
+  MPI_Comm_rank(comm,&myPID);
+  switch (f) {
+  case Simple:
+    if (myPID == 0)
+      std::cout << "Using SimpleMesh framework to generate mesh" << std::endl;
+    result = FrameworkTraits<Simple>::generate(x, comm,
+                                               gm,
+                                               request_faces, request_edges,
+                                               request_wedges, request_corners);
+    break;
+  case STKMESH:
+    if (myPID == 0) {
+      std::string msg = 
+        boost::str(boost::format("1d STKMESH mesh not supported"));
+      Exceptions::Jali_throw(Errors::Message(msg.c_str()));
+    }
+    break;
+  case MOAB:
+    if (myPID == 0) {
+      std::string msg = 
+        boost::str(boost::format("1d MOAB mesh not supported"));
+      Exceptions::Jali_throw(Errors::Message(msg.c_str()));
+    }
+    break;
+  case MSTK:
+    if (myPID == 0) {
+      std::string msg = 
+        boost::str(boost::format("1d MSTK mesh not supported"));
+      Exceptions::Jali_throw(Errors::Message(msg.c_str()));
+    }
     break;
   default:
     {
