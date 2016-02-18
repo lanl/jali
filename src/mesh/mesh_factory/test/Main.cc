@@ -5,8 +5,10 @@ int main(int argc, char *argv[])
 {
   MPI_Init(&argc, &argv);
 
-  return UnitTest::RunAllTests ();
+  int status = UnitTest::RunAllTests ();
 
   MPI_Finalize();
+
+  return status;
 }
 
