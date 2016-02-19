@@ -96,8 +96,6 @@ public:
   
   virtual ~Mesh_simple ();
   
-  void update ();
-
 
   // Get parallel type of entity
     
@@ -295,8 +293,10 @@ public:
 
 
 private:
-  void update_internals_();
-  void clear_internals_();
+  void update_internals_3d_();
+  void update_internals_1d_();
+  void clear_internals_3d_();
+  void clear_internals_1d_();
 
   std::vector<double> coordinates_;
 
@@ -309,6 +309,11 @@ private:
   int nx_, ny_, nz_;  // number of cells in the three coordinate directions
   double x0_, x1_, y0_, y1_, z0_, z1_;  // coordinates of lower left front and upper right back of brick
 
+  int nodes_per_face_;
+  int faces_per_cell_;
+  int nodes_per_cell_;
+  int faces_per_node_aug_;  // augmented for num faces
+  int cells_per_node_aug_;  // augmented for num cells
 
   int num_cells_;
   int num_nodes_;

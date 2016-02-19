@@ -22,13 +22,16 @@ Mesh_simple::Mesh_simple (double x0, double y0, double z0,
     x0_(x0), x1_(x1),
     y0_(y0), y1_(y1),
     z0_(z0), z1_(z1),
-  Mesh(request_faces,request_edges,request_wedges,request_corners)
+    nodes_per_face_(4), faces_per_cell_(6), nodes_per_cell_(8),
+    faces_per_node_aug_(13), cells_per_node_aug_(9),
+    Mesh(request_faces,request_edges,request_wedges,request_corners)
 {
   Mesh::set_mesh_type(RECTANGULAR);
   if (gm != (JaliGeometry::GeometricModelPtr) NULL) 
     Mesh::set_geometric_model(gm);
- 
-  update();
+
+  clear_internals_3d_();
+  update_internals_3d_();
 }
 
 
@@ -50,9 +53,9 @@ Mesh_simple::Mesh_simple (double x0, double y0,
 }
   
 
-// Have to define this dummy routine because we are not able to
-// eliminate the need in FrameworkTraits.cc which uses boost
-// functionality extensively
+// x is the node coordinates in 1d.
+// keeping faces_per_node_aug and cells_per_node_aug to reuse 3d SimpleMesh
+// logic
 
 Mesh_simple::Mesh_simple (std::vector<double> x,
                           const MPI_Comm& comm,
@@ -60,9 +63,17 @@ Mesh_simple::Mesh_simple (std::vector<double> x,
                           const bool request_faces,
                           const bool request_edges,
                           const bool request_wedges,
-                          const bool request_corners) 
+                          const bool request_corners) :
+    nx_(x.size()-1), ny_(-3), nz_(-3),
+    coordinates_(x),
+    nodes_per_face_(1), faces_per_cell_(2), nodes_per_cell_(2),
+    faces_per_node_aug_(2), cells_per_node_aug_(3),
+    Mesh(request_faces,request_edges,request_wedges,request_corners)
 {
-  Exceptions::Jali_throw(Errors::Message("Simple mesh cannot generate 1D meshes"));
+
+  clear_internals_1d_();
+  update_internals_1d_();
+  Exceptions::Jali_throw(Errors::Message("Simple mesh cannot generate 1D meshes"));  
 }
   
 
@@ -92,7 +103,7 @@ Mesh_simple::Mesh_simple (const Mesh& inmesh,
                           const bool request_faces,
                           const bool request_edges,
                           const bool request_wedges,
-                          const bool request_corners)
+                         const bool request_corners)
 {  
   Errors::Message mesg("Construction of new mesh from an existing mesh not yet implemented in the Simple mesh framework\n");
   Exceptions::Jali_throw(mesg);
@@ -117,13 +128,7 @@ Mesh_simple::~Mesh_simple()
 {
 }
 
-void Mesh_simple::update ()
-{
-  clear_internals_ ();
-  update_internals_ ();
-}
-
-void Mesh_simple::clear_internals_ ()
+void Mesh_simple::clear_internals_3d_ ()
 {
 
   coordinates_.resize(0);
@@ -136,8 +141,35 @@ void Mesh_simple::clear_internals_ ()
 
 }
 
+void Mesh_simple::clear_internals_1d_ ()
+{
 
-void Mesh_simple::update_internals_()
+  cell_to_face_.resize(0);
+  cell_to_node_.resize(0);
+  face_to_node_.resize(0);
+
+  side_sets_.resize(0);
+
+}
+
+void Mesh_simple::update_internals_1d_ () {
+  num_cells_ = nx_;
+  num_nodes_ = nx_+1;
+  num_faces_ = num_nodes_;
+
+  cell_to_face_.resize(6*num_cells_);
+  cell_to_face_dirs_.resize(6*num_cells_);
+  cell_to_node_.resize(8*num_cells_);
+  face_to_node_.resize(4*num_faces_);
+  node_to_face_.resize(13*num_nodes_); // 1 extra for num faces
+  node_to_cell_.resize(9*num_nodes_); // 1 extra for num cells
+  face_to_cell_.resize(2*num_faces_); 
+  face_to_cell_.assign(2*num_faces_,-1); 
+  
+}
+
+
+void Mesh_simple::update_internals_3d_ ()
 {
 
   num_cells_ = nx_ * ny_ * nz_;
@@ -495,11 +527,11 @@ void Mesh_simple::cell_get_nodes (Jali::Entity_ID cell,
 void Mesh_simple::face_get_nodes (Jali::Entity_ID face, 
 				  Jali::Entity_ID_List *nodeids) const
 {
-  unsigned int offset = (unsigned int) 4*face;
+  unsigned int offset = (unsigned int) nodes_per_face_*face;
 
   nodeids->clear();
 
-  for (int i = 0; i < 4; i++) {
+  for (int i = 0; i < nodes_per_face_; i++) {
     nodeids->push_back(*(face_to_node_.begin()+offset));
     offset++;
   }
@@ -523,7 +555,7 @@ void Mesh_simple::node_get_coordinates (const Jali::Entity_ID local_node_id,
 void Mesh_simple::face_get_coordinates (Jali::Entity_ID local_face_id, 
 					std::vector<JaliGeometry::Point> *fcoords) const
 {
-  Entity_ID_List node_indices(4);
+  Entity_ID_List node_indices(nodes_per_face_);
 
   face_get_nodes (local_face_id, &node_indices);
 
@@ -639,12 +671,12 @@ void Mesh_simple::node_get_cell_faces (const Jali::Entity_ID nodeid,
   for (int i = 0; i < 6; i++) {
     Entity_ID cellfaceid = cell_to_face_[offset+i];
 
-    unsigned int offset2 = (unsigned int) 4*cellfaceid;
+    unsigned int offset2 = (unsigned int) nodes_per_face_*cellfaceid;
 
     Jali::Entity_ID_List fnodes;
     face_get_nodes(cellfaceid,&fnodes);
  
-    for (int j = 0; j < 4; j++) {
+    for (int j = 0; j < nodes_per_face_; j++) {
 
       if (face_to_node_[offset2+j] == nodeid) {
 	faceids->push_back(cellfaceid);
@@ -843,15 +875,15 @@ void Mesh_simple::get_set_entities (const std::string setname,
                     if (rgn->type() == JaliGeometry::BOX)
                       {
                         JaliGeometry::Point cenpnt(Mesh::space_dimension());
-                        for (int j = 0; j < 4; j++)
+                        for (int j = 0; j < nodes_per_face_; j++)
                           cenpnt += fxyz[j];
-                        cenpnt /= 4.0;
+                        cenpnt /= static_cast<double>(nodes_per_face_);
 
                         if (!rgn->inside(cenpnt)) inbox = false;
                       }
                     else
                       {
-                        for (int j = 0; j < 4; j++)
+                        for (int j = 0; j < nodes_per_face_; j++)
                           {
                             if (!rgn->inside(fxyz[j]))
                               {
@@ -871,15 +903,15 @@ void Mesh_simple::get_set_entities (const std::string setname,
                     if (rgn->type() == JaliGeometry::BOX)
                       {
                         JaliGeometry::Point cenpnt(Mesh::space_dimension());
-                        for (int j = 0; j < 4; j++)
+                        for (int j = 0; j < nodes_per_face_; j++)
                           cenpnt += fxyz[j];
-                        cenpnt /= 4.0;
+                        cenpnt /= static_cast<double>(nodes_per_face_);
 
                         if (!rgn->inside(cenpnt)) inbox = false;
                       }
                     else
                       {
-                        for (int j = 0; j < 4; j++)
+                        for (int j = 0; j < nodes_per_face_; j++)
                           {
                             if (!rgn->inside(fxyz[j]))
                               {
@@ -908,9 +940,9 @@ void Mesh_simple::get_set_entities (const std::string setname,
                     if (rgn->type() == JaliGeometry::BOX)
                       {
                         JaliGeometry::Point cenpnt(Mesh::space_dimension());
-                        for (int j = 0; j < 4; j++)
+                        for (int j = 0; j < nodes_per_face_; j++)
                           cenpnt += fxyz[j];
-                        cenpnt /= 4.0;
+                        cenpnt /= static_cast<double>(nodes_per_face_);
 
                         if (!rgn->inside(cenpnt)) inbox = false;
                       }
@@ -936,15 +968,15 @@ void Mesh_simple::get_set_entities (const std::string setname,
                     if (rgn->type() == JaliGeometry::BOX)
                       {
                         JaliGeometry::Point cenpnt(Mesh::space_dimension());
-                        for (int j = 0; j < 4; j++)
+                        for (int j = 0; j < nodes_per_face_; j++)
                           cenpnt += fxyz[j];
-                        cenpnt /= 4.0;
+                        cenpnt /= static_cast<double>(nodes_per_face_);
 
                         if (!rgn->inside(cenpnt)) inbox = false;
                       }
                     else
                       {
-                        for (int j = 0; j < 4; j++)
+                        for (int j = 0; j < nodes_per_face_; j++)
                           {
                             if (!rgn->inside(fxyz[j]))
                               {
@@ -972,15 +1004,15 @@ void Mesh_simple::get_set_entities (const std::string setname,
                     if (rgn->type() == JaliGeometry::BOX)
                       {
                         JaliGeometry::Point cenpnt(Mesh::space_dimension());
-                        for (int j = 0; j < 4; j++)
+                        for (int j = 0; j < nodes_per_face_; j++)
                           cenpnt += fxyz[j];
-                        cenpnt /= 4.0;
+                        cenpnt /= static_cast<double>(nodes_per_face_);
 
                         if (!rgn->inside(cenpnt)) inbox = false;
                       }
                     else
                       {
-                        for (int j = 0; j < 4; j++)
+                        for (int j = 0; j < nodes_per_face_; j++)
                           {
                             if (!rgn->inside(fxyz[j]))
                               {
@@ -1000,15 +1032,15 @@ void Mesh_simple::get_set_entities (const std::string setname,
                     if (rgn->type() == JaliGeometry::BOX)
                       {
                         JaliGeometry::Point cenpnt(Mesh::space_dimension());
-                        for (int j = 0; j < 4; j++)
+                        for (int j = 0; j < nodes_per_face_; j++)
                           cenpnt += fxyz[j];
-                        cenpnt /= 4.0;
+                        cenpnt /= static_cast<double>(nodes_per_face_);
 
                         if (!rgn->inside(cenpnt)) inbox = false;
                       }
                     else
                       {
-                        for (int j = 0; j < 4; j++)
+                        for (int j = 0; j < nodes_per_face_; j++)
                           {
                             if (!rgn->inside(fxyz[j]))
                               {
