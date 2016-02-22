@@ -157,15 +157,102 @@ void Mesh_simple::update_internals_1d_ () {
   num_nodes_ = nx_+1;
   num_faces_ = num_nodes_;
 
-  cell_to_face_.resize(6*num_cells_);
-  cell_to_face_dirs_.resize(6*num_cells_);
-  cell_to_node_.resize(8*num_cells_);
-  face_to_node_.resize(4*num_faces_);
-  node_to_face_.resize(13*num_nodes_); // 1 extra for num faces
-  node_to_cell_.resize(9*num_nodes_); // 1 extra for num cells
-  face_to_cell_.resize(2*num_faces_); 
-  face_to_cell_.assign(2*num_faces_,-1); 
-  
+  cell_to_face_.resize(faces_per_cell_*num_cells_);
+  cell_to_face_dirs_.resize(faces_per_cell_*num_cells_);
+  cell_to_node_.resize(nodes_per_cell_*num_cells_);
+  face_to_node_.resize(nodes_per_face_*num_faces_);
+  node_to_face_.resize(faces_per_node_aug_*num_nodes_); // 1 extra for num faces
+  node_to_cell_.resize(cells_per_node_aug_*num_nodes_); // 1 extra for num cells
+  face_to_cell_.resize(2*num_faces_);
+  face_to_cell_.assign(2*num_faces_,-1);
+
+  // loop over cells and initialize cell_to_node_
+  for (int ix=0; ix<nx_; ix++)
+  {
+    int jstart=0;
+    int istart = nodes_per_cell_ * cell_index_(ix);
+    int ncell=0;
+
+    cell_to_node_[istart]   = node_index_(ix);
+    cell_to_node_[istart+1] = node_index_(ix+1);
+
+    // +1 because of num cells in node_to_cell_
+    jstart = cells_per_node_aug_ * node_index_(ix);
+    ncell = node_to_cell_[jstart];
+    node_to_cell_[jstart+1+ncell] = cell_index_(ix);
+    (node_to_cell_[jstart])++;
+
+    jstart = cells_per_node_aug_ * node_index_(ix+1);
+    ncell = node_to_cell_[jstart];
+    node_to_cell_[jstart+1+ncell] = cell_index_(ix);
+    (node_to_cell_[jstart])++;
+  }
+
+  // loop over cells and initialize cell_to_face_
+  for (int ix=0; ix<nx_; ix++)
+  {
+    int istart = faces_per_cell_ * cell_index_(ix);
+    int jstart = 0;
+
+    cell_to_face_[istart]  = yzface_index_(ix+1);
+    cell_to_face_[istart+1]  = yzface_index_(ix);
+
+    cell_to_face_dirs_[istart] = 1;
+    cell_to_face_dirs_[istart+1] = -1;
+
+    jstart = 2*yzface_index_(ix+1);
+    face_to_cell_[jstart+1] = cell_index_(ix);
+
+    jstart = 2*yzface_index_(ix);
+    face_to_cell_[jstart] = cell_index_(ix);
+  }
+
+  // loop over faces and initialize face_to_node_
+  // the yz faces
+  for (int ix=0; ix<=nx_; ix++)
+  {
+    int istart = nodes_per_face_ * yzface_index_(ix);
+    int jstart = 0;
+    int nfaces = 0;
+
+    face_to_node_[istart]   = node_index_(ix);
+
+    // +1 because of num faces in node_to_face_
+    jstart = faces_per_node_aug_*node_index_(ix);
+    nfaces = node_to_face_[jstart];
+    node_to_face_[jstart+1+nfaces] = xyface_index_(ix);
+    (node_to_face_[jstart])++;
+  }
+
+  // populate entity ids arrays in the base class so that iterators work
+
+  int lid;
+  std::vector<int>::iterator it;
+
+  Mesh::nodeids.resize(num_nodes_);
+  lid = 0;
+  it = Mesh::nodeids.begin();
+  while (it != Mesh::nodeids.end()) {
+    *it = lid++;
+    ++it;
+  }
+
+  Mesh::faceids.resize(num_faces_);
+  lid = 0;
+  it = Mesh::faceids.begin();
+  while (it != Mesh::faceids.end()) {
+    *it = lid++;
+    ++it;
+  }
+
+  Mesh::cellids.resize(num_cells_);
+  lid = 0;
+  it = Mesh::cellids.begin();
+  while (it != Mesh::cellids.end()) {
+    *it = lid++;
+    ++it;
+  }
+
 }
 
 
@@ -193,12 +280,12 @@ void Mesh_simple::update_internals_3d_ ()
         coordinates_[ istart + 2 ] = z0_ + iz*hz;
       }
 
-  cell_to_face_.resize(6*num_cells_);
-  cell_to_face_dirs_.resize(6*num_cells_);
-  cell_to_node_.resize(8*num_cells_);
-  face_to_node_.resize(4*num_faces_);
-  node_to_face_.resize(13*num_nodes_); // 1 extra for num faces
-  node_to_cell_.resize(9*num_nodes_); // 1 extra for num cells
+  cell_to_face_.resize(faces_per_cell_*num_cells_);
+  cell_to_face_dirs_.resize(faces_per_cell_*num_cells_);
+  cell_to_node_.resize(nodes_per_cell_*num_cells_);
+  face_to_node_.resize(nodes_per_face_*num_faces_);
+  node_to_face_.resize(faces_per_node_aug_*num_nodes_); // 1 extra for num faces
+  node_to_cell_.resize(cells_per_node_aug_*num_nodes_); // 1 extra for num cells
   face_to_cell_.resize(2*num_faces_); 
   face_to_cell_.assign(2*num_faces_,-1); 
                                           
@@ -209,7 +296,7 @@ void Mesh_simple::update_internals_3d_ ()
       for (int ix=0; ix<nx_; ix++)
       {
         int jstart=0;
-        int istart = 8 * cell_index_(ix,iy,iz);
+        int istart = nodes_per_cell_ * cell_index_(ix,iy,iz);
         int ncell=0;
 
         cell_to_node_[istart]   = node_index_(ix,iy,iz);
@@ -221,42 +308,45 @@ void Mesh_simple::update_internals_3d_ ()
         cell_to_node_[istart+6] = node_index_(ix+1,iy+1,iz+1);
         cell_to_node_[istart+7] = node_index_(ix,iy+1,iz+1);
 
-        jstart = 9 * node_index_(ix,iy,iz);
+        jstart = cells_per_node_aug_ * node_index_(ix,iy,iz);
         ncell = node_to_cell_[jstart];
         node_to_cell_[jstart+1+ncell] = cell_index_(ix,iy,iz);
         (node_to_cell_[jstart])++;
 
-        jstart = 9 * node_index_(ix+1,iy,iz); 
+        jstart = cells_per_node_aug_ * node_index_(ix+1,iy,iz); 
         ncell = node_to_cell_[jstart];
         node_to_cell_[jstart+1+ncell] = cell_index_(ix,iy,iz);
         (node_to_cell_[jstart])++;
 
-        jstart = 9 * node_index_(ix+1,iy+1,iz); 
+        jstart = cells_per_node_aug_ * node_index_(ix+1,iy+1,iz); 
         ncell = node_to_cell_[jstart];
         node_to_cell_[jstart+1+ncell] = cell_index_(ix,iy,iz);
         (node_to_cell_[jstart])++;
 
-        jstart = 9 * node_index_(ix,iy+1,iz); 
+        jstart = cells_per_node_aug_ * node_index_(ix,iy+1,iz); 
         ncell = node_to_cell_[jstart];
         node_to_cell_[jstart+1+ncell] = cell_index_(ix,iy,iz);
         (node_to_cell_[jstart])++;
 
-        jstart = 9 * node_index_(ix,iy,iz+1);
+        jstart = cells_per_node_aug_ * node_index_(ix,iy,iz+1);
         ncell = node_to_cell_[jstart];
         node_to_cell_[jstart+1+ncell] = cell_index_(ix,iy,iz);
         node_to_cell_[jstart]++;
 
-        jstart = 9 * node_index_(ix+1,iy,iz+1); // 1 extra for num cells
+        // 1 extra for num cells
+        jstart = cells_per_node_aug_ * node_index_(ix+1,iy,iz+1);
         ncell = node_to_cell_[jstart];
         node_to_cell_[jstart+1+ncell] = cell_index_(ix,iy,iz);
         (node_to_cell_[jstart])++;
 
-        jstart = 9 * node_index_(ix+1,iy+1,iz+1); // 1 extra for num cells
+         // 1 extra for num cells
+        jstart = cells_per_node_aug_ * node_index_(ix+1,iy+1,iz+1);
         ncell = node_to_cell_[jstart];
         node_to_cell_[jstart+1+ncell] = cell_index_(ix,iy,iz);
         (node_to_cell_[jstart])++;
 
-        jstart = 9 * node_index_(ix,iy+1,iz+1); // 1 extra for num cells
+         // 1 extra for num cells
+        jstart = cells_per_node_aug_ * node_index_(ix,iy+1,iz+1);
         ncell = node_to_cell_[jstart];
         node_to_cell_[jstart+1+ncell] = cell_index_(ix,iy,iz);
         (node_to_cell_[jstart])++;
@@ -269,7 +359,7 @@ void Mesh_simple::update_internals_3d_ ()
     for (int iy=0; iy<ny_; iy++)
       for (int ix=0; ix<nx_; ix++)
       {
-        int istart = 6 * cell_index_(ix,iy,iz);
+        int istart = faces_per_cell_ * cell_index_(ix,iy,iz);
         int jstart = 0;
 
         cell_to_face_[istart]    = xzface_index_(ix,iy,iz);
@@ -312,7 +402,7 @@ void Mesh_simple::update_internals_3d_ ()
     for (int iy=0; iy<ny_; iy++)
       for (int ix=0; ix<nx_; ix++)  
       {
-        int istart = 4 * xyface_index_(ix,iy,iz);
+        int istart = nodes_per_face_ * xyface_index_(ix,iy,iz);
         int jstart = 0;
         int nfaces = 0;
 
@@ -321,22 +411,22 @@ void Mesh_simple::update_internals_3d_ ()
         face_to_node_[istart+2] = node_index_(ix+1,iy+1,iz);
         face_to_node_[istart+3] = node_index_(ix,iy+1,iz);
 
-        jstart = 13*node_index_(ix,iy,iz);
+        jstart = faces_per_node_aug_*node_index_(ix,iy,iz);
         nfaces = node_to_face_[jstart];
         node_to_face_[jstart+1+nfaces] = xyface_index_(ix,iy,iz);
         (node_to_face_[jstart])++;
 
-        jstart = 13*node_index_(ix+1,iy,iz);
+        jstart = faces_per_node_aug_*node_index_(ix+1,iy,iz);
         nfaces = node_to_face_[jstart];
         node_to_face_[jstart+1+nfaces] = xyface_index_(ix,iy,iz);
         (node_to_face_[jstart])++;
 
-        jstart = 13*node_index_(ix+1,iy+1,iz);
+        jstart = faces_per_node_aug_*node_index_(ix+1,iy+1,iz);
         nfaces = node_to_face_[jstart];
         node_to_face_[jstart+1+nfaces] = xyface_index_(ix,iy,iz);
         (node_to_face_[jstart])++;
 
-        jstart = 13*node_index_(ix,iy+1,iz);
+        jstart = faces_per_node_aug_*node_index_(ix,iy+1,iz);
         nfaces = node_to_face_[jstart];
         node_to_face_[jstart+1+nfaces] = xyface_index_(ix,iy,iz);
         (node_to_face_[jstart])++;
@@ -347,7 +437,7 @@ void Mesh_simple::update_internals_3d_ ()
     for (int iy=0; iy<=ny_; iy++)
       for (int ix=0; ix<nx_; ix++)  
       {
-        int istart = 4 * xzface_index_(ix,iy,iz);
+        int istart = nodes_per_face_ * xzface_index_(ix,iy,iz);
         int jstart = 0;
         int nfaces = 0;
 
@@ -356,22 +446,22 @@ void Mesh_simple::update_internals_3d_ ()
         face_to_node_[istart+2] = node_index_(ix+1,iy,iz+1);
         face_to_node_[istart+3] = node_index_(ix,iy,iz+1);
 
-        jstart = 13*node_index_(ix,iy,iz);
+        jstart = faces_per_node_aug_*node_index_(ix,iy,iz);
         nfaces = node_to_face_[jstart];
         node_to_face_[jstart+1+nfaces] = xyface_index_(ix,iy,iz);
         (node_to_face_[jstart])++;
 
-        jstart = 13*node_index_(ix+1,iy,iz);
+        jstart = faces_per_node_aug_*node_index_(ix+1,iy,iz);
         nfaces = node_to_face_[jstart];
         node_to_face_[jstart+1+nfaces] = xyface_index_(ix,iy,iz);
         (node_to_face_[jstart])++;
 
-        jstart = 13*node_index_(ix+1,iy,iz+1);
+        jstart = faces_per_node_aug_*node_index_(ix+1,iy,iz+1);
         nfaces = node_to_face_[jstart];
         node_to_face_[jstart+1+nfaces] = xyface_index_(ix,iy,iz);
         (node_to_face_[jstart])++;
 
-        jstart = 13*node_index_(ix,iy,iz+1);
+        jstart = faces_per_node_aug_*node_index_(ix,iy,iz+1);
         nfaces = node_to_face_[jstart];
         node_to_face_[jstart+1+nfaces] = xyface_index_(ix,iy,iz);
         (node_to_face_[jstart])++;
@@ -382,7 +472,7 @@ void Mesh_simple::update_internals_3d_ ()
     for (int iy=0; iy<ny_; iy++)
       for (int ix=0; ix<=nx_; ix++)  
       {
-        int istart = 4 * yzface_index_(ix,iy,iz);
+        int istart = nodes_per_face_ * yzface_index_(ix,iy,iz);
         int jstart = 0;
         int nfaces = 0;
 
@@ -391,22 +481,22 @@ void Mesh_simple::update_internals_3d_ ()
         face_to_node_[istart+2] = node_index_(ix,iy+1,iz+1);
         face_to_node_[istart+3] = node_index_(ix,iy,iz+1);
 
-        jstart = 13*node_index_(ix,iy,iz);
+        jstart = faces_per_node_aug_*node_index_(ix,iy,iz);
         nfaces = node_to_face_[jstart];
         node_to_face_[jstart+1+nfaces] = xyface_index_(ix,iy,iz);
         (node_to_face_[jstart])++;
 
-        jstart = 13*node_index_(ix,iy+1,iz);
+        jstart = faces_per_node_aug_*node_index_(ix,iy+1,iz);
         nfaces = node_to_face_[jstart];
         node_to_face_[jstart+1+nfaces] = xyface_index_(ix,iy,iz);
         (node_to_face_[jstart])++;
 
-        jstart = 13*node_index_(ix,iy+1,iz+1);
+        jstart = faces_per_node_aug_*node_index_(ix,iy+1,iz+1);
         nfaces = node_to_face_[jstart];
         node_to_face_[jstart+1+nfaces] = xyface_index_(ix,iy,iz);
         (node_to_face_[jstart])++;
 
-        jstart = 13*node_index_(ix,iy,iz+1);
+        jstart = faces_per_node_aug_*node_index_(ix,iy,iz+1);
         nfaces = node_to_face_[jstart];
         node_to_face_[jstart+1+nfaces] = xyface_index_(ix,iy,iz);
         (node_to_face_[jstart])++;
@@ -495,12 +585,12 @@ void Mesh_simple::cell_get_faces_and_dirs_internal (const Jali::Entity_ID cellid
                                            std::vector<int> *cfacedirs,
                                            const bool ordered) const
 {
-  unsigned int offset = (unsigned int) 6*cellid;
+  unsigned int offset = (unsigned int) faces_per_cell_*cellid;
 
   faceids->clear();
   if (cfacedirs) cfacedirs->clear();
 
-  for (int i = 0; i < 6; i++) {
+  for (int i = 0; i < faces_per_cell_; i++) {
     faceids->push_back(*(cell_to_face_.begin()+offset));
     if (cfacedirs)
       cfacedirs->push_back(*(cell_to_face_dirs_.begin()+offset));
@@ -513,11 +603,11 @@ void Mesh_simple::cell_get_faces_and_dirs_internal (const Jali::Entity_ID cellid
 void Mesh_simple::cell_get_nodes (Jali::Entity_ID cell, 
 				  Jali::Entity_ID_List *nodeids) const
 {
-  unsigned int offset = (unsigned int) 8*cell;
+  unsigned int offset = (unsigned int) nodes_per_cell_*cell;
 
   nodeids->clear();
 
-  for (int i = 0; i < 8; i++) {
+  for (int i = 0; i < nodes_per_cell_; i++) {
     nodeids->push_back(*(cell_to_node_.begin()+offset));
     offset++;
   }
@@ -544,11 +634,9 @@ void Mesh_simple::face_get_nodes (Jali::Entity_ID face,
 void Mesh_simple::node_get_coordinates (const Jali::Entity_ID local_node_id, 
 					JaliGeometry::Point *ncoords) const
 {
-  unsigned int offset = (unsigned int) 3*local_node_id;
+  unsigned int offset = (unsigned int) Mesh::space_dimension()*local_node_id;
 
-  //  ncoords->init(3);
-
-  ncoords->set( 3, &(coordinates_[offset]) );
+  ncoords->set( Mesh::space_dimension(), &(coordinates_[offset]) );
 }
 
 
@@ -561,12 +649,12 @@ void Mesh_simple::face_get_coordinates (Jali::Entity_ID local_face_id,
 
   fcoords->clear();
 
-  JaliGeometry::Point xyz(3);
+  JaliGeometry::Point node_coords(Mesh::space_dimension());
   for (std::vector<Entity_ID>::iterator it = node_indices.begin(); 
        it != node_indices.end(); ++it)
   {
-    node_get_coordinates ( *it, &xyz);
-    fcoords->push_back(xyz);
+    node_get_coordinates ( *it, &node_coords);
+    fcoords->push_back(node_coords);
   }
 
 }
@@ -574,18 +662,18 @@ void Mesh_simple::face_get_coordinates (Jali::Entity_ID local_face_id,
 void Mesh_simple::cell_get_coordinates (Jali::Entity_ID local_cell_id, 
 					std::vector<JaliGeometry::Point> *ccoords) const
 {  
-  std::vector<Entity_ID> node_indices(8);
+  std::vector<Entity_ID> node_indices(nodes_per_cell_);
 
   cell_get_nodes (local_cell_id, &node_indices);
 
   ccoords->clear();
 
-  JaliGeometry::Point xyz(3);
+  JaliGeometry::Point node_coords(Mesh::space_dimension());
   for (std::vector<Entity_ID>::iterator it = node_indices.begin(); 
        it != node_indices.end(); ++it)
   {      
-    node_get_coordinates ( *it, &xyz);
-    ccoords->push_back(xyz);
+    node_get_coordinates ( *it, &node_coords);
+    ccoords->push_back(node_coords);
   }
 }
 
@@ -593,8 +681,9 @@ void Mesh_simple::cell_get_coordinates (Jali::Entity_ID local_cell_id,
 void Mesh_simple::node_set_coordinates(const Jali::Entity_ID local_node_id, 
                                       const double *ncoord)
 {
-  unsigned int offset = (unsigned int) 3*local_node_id;
   int spdim = Mesh::space_dimension();
+  unsigned int offset = (unsigned int) spdim*local_node_id;
+
 
   ASSERT(ncoord != NULL);
   
@@ -608,14 +697,10 @@ void Mesh_simple::node_set_coordinates(const Jali::Entity_ID local_node_id,
 void Mesh_simple::node_set_coordinates(const Jali::Entity_ID local_node_id, 
                                        const JaliGeometry::Point ncoord)
 {
-  unsigned int offset = (unsigned int) 3*local_node_id;
+  int spdim = Mesh::space_dimension();
+  unsigned int offset = (unsigned int) spdim*local_node_id;
 
   std::vector<double>::iterator destination_begin = coordinates_.begin() + offset;
-  double coordarray[3] = {0.0,0.0,0.0};
-  int spdim = Mesh::space_dimension();
-  for (int i = 0; i < spdim; i++)
-    coordarray[i] = ncoord[i];
-
   for (int i = 0; i < spdim; i++) {
     *destination_begin = ncoord[i];
     destination_begin++;
@@ -628,7 +713,7 @@ void Mesh_simple::node_get_cells (const Jali::Entity_ID nodeid,
                                   const Jali::Parallel_type ptype,
                                   Jali::Entity_ID_List *cellids) const 
 {
-  unsigned int offset = (unsigned int) 9*nodeid;
+  unsigned int offset = (unsigned int) cells_per_node_aug_*nodeid;
   unsigned int ncells = node_to_cell_[offset];
 
   cellids->clear();
@@ -645,7 +730,7 @@ void Mesh_simple::node_get_faces (const Jali::Entity_ID nodeid,
                                   const Jali::Parallel_type ptype,
                                   Jali::Entity_ID_List *faceids) const
 {
-  unsigned int offset = (unsigned int) 13*nodeid;
+  unsigned int offset = (unsigned int) faces_per_node_aug_*nodeid;
   unsigned int nfaces = node_to_face_[offset];
 
   faceids->clear();
@@ -664,11 +749,11 @@ void Mesh_simple::node_get_cell_faces (const Jali::Entity_ID nodeid,
                                        const Jali::Parallel_type ptype,
                                        Jali::Entity_ID_List *faceids) const
 {
-  unsigned int offset = (unsigned int) 6*cellid;
+  unsigned int offset = (unsigned int) faces_per_cell_*cellid;
 
   faceids->clear();
 
-  for (int i = 0; i < 6; i++) {
+  for (int i = 0; i < faces_per_cell_; i++) {
     Entity_ID cellfaceid = cell_to_face_[offset+i];
 
     unsigned int offset2 = (unsigned int) nodes_per_face_*cellfaceid;
@@ -719,11 +804,11 @@ void Mesh_simple::cell_get_face_adj_cells(const Jali::Entity_ID cellid,
                                           const Jali::Parallel_type ptype,
                                           Jali::Entity_ID_List *fadj_cellids) const
 {
-  unsigned int offset = (unsigned int) 6*cellid;
+  unsigned int offset = (unsigned int) faces_per_cell_*cellid;
 
   fadj_cellids->clear();
 
-  for (int i = 0; i < 6; i++) {    
+  for (int i = 0; i < faces_per_cell_; i++) {    
     Entity_ID faceid = cell_to_face_[offset];
 
     unsigned int foffset = (unsigned int) 2*faceid;
@@ -749,17 +834,17 @@ void Mesh_simple::cell_get_node_adj_cells(const Jali::Entity_ID cellid,
                                           const Jali::Parallel_type ptype,
                                           Jali::Entity_ID_List *nadj_cellids) const
 {
-  unsigned int offset = (unsigned int) 8*cellid;
+  unsigned int offset = (unsigned int) nodes_per_cell_*cellid;
 
   nadj_cellids->clear();
   
-  for (int i = 0; i < 8; i++) {
+  for (int i = 0; i < nodes_per_cell_; i++) {
     Entity_ID nodeid = cell_to_node_[offset+i];
 
-    unsigned int offset2 = (unsigned int) 9*nodeid;
+    unsigned int offset2 = (unsigned int) cells_per_node_aug_*nodeid;
     unsigned int ncell = node_to_cell_[offset2];
 
-    for (int j = 0; j < 8; j++) {
+    for (int j = 0; j < nodes_per_cell_; j++) {
       Entity_ID nodecell = node_to_cell_[offset2+j];
       
       unsigned int found = 0;
@@ -1111,9 +1196,9 @@ void Mesh_simple::get_set_entities (const std::string setname,
 
                       JaliGeometry::Point cenpnt(Mesh::space_dimension());
 
-                      for (int j = 0; j < 8; j++)
+                      for (int j = 0; j < nodes_per_cell_; j++)
                         cenpnt += cxyz[j];
-                      cenpnt /= 8.0;
+                      cenpnt /= static_cast<double>(nodes_per_cell_);
 
                       if (rgn->inside(cenpnt))
                         cs.push_back(cell);

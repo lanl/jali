@@ -305,6 +305,12 @@ private:
   inline unsigned int yzface_index_(int i, int j, int k) const;
   inline unsigned int xzface_index_(int i, int j, int k) const;
   inline unsigned int cell_index_(int i, int j, int k) const;
+  // 1d variants
+  inline unsigned int node_index_(int i) const;
+  inline unsigned int xyface_index_(int i) const;
+  inline unsigned int yzface_index_(int i) const;
+  inline unsigned int xzface_index_(int i) const;
+  inline unsigned int cell_index_(int i) const;
 
   int nx_, ny_, nz_;  // number of cells in the three coordinate directions
   double x0_, x1_, y0_, y1_, z0_, z1_;  // coordinates of lower left front and upper right back of brick
@@ -433,6 +439,33 @@ private:
   unsigned int Mesh_simple::yzface_index_(int i, int j, int k) const
   {
     return i + j*(nx_+1) + k*(nx_+1)*ny_ + xzface_index_(0,0,nz_);
+  }
+
+  // 1d variants
+
+  unsigned int Mesh_simple::node_index_(int i) const
+  {
+    return i;
+  }
+
+  unsigned int Mesh_simple::cell_index_(int i) const
+  {
+    return i;
+  }
+
+  unsigned int Mesh_simple::xyface_index_(int i) const
+  {
+    return i;
+  }
+
+  unsigned int Mesh_simple::xzface_index_(int i) const
+  {
+    return i;
+  }
+
+  unsigned int Mesh_simple::yzface_index_(int i) const
+  {
+    return i;
   }
 
 } // close namespace Jali
