@@ -148,6 +148,20 @@ class Mesh
     return comm;
   }
 
+  //! Set the geometric type for the mesh - Geom_type in MeshDefs.hh
+  //! CARTESIAN, CYLINDRICAL, or SPHERICAL
+  inline
+  void set_geom_type(const Geom_type geom) {
+    geomtype = geom;
+  }
+
+  // Geometric type for the mesh - CARTESIAN, CYLINDRICAL, or SPHERICAL
+  inline
+  Geom_type geom_type() const
+  {
+    return geomtype;
+  }
+
   //! Set the spatial dimension of points in the mesh - typically
   //! invoked by the constructor of a derived mesh class
 
@@ -996,6 +1010,7 @@ class Mesh
   // Data 
 
   unsigned int celldim, spacedim;
+  Geom_type geomtype = CARTESIAN;
 
   MPI_Comm comm;
 

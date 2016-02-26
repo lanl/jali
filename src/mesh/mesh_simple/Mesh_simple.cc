@@ -70,10 +70,12 @@ Mesh_simple::Mesh_simple (std::vector<double> x,
     faces_per_node_aug_(2), cells_per_node_aug_(3),
     Mesh(request_faces,request_edges,request_wedges,request_corners)
 {
+  set_space_dimension(1);
+  set_cell_dimension(1);
 
   clear_internals_1d_();
   update_internals_1d_();
-  Exceptions::Jali_throw(Errors::Message("Simple mesh cannot generate 1D meshes"));  
+  //  Exceptions::Jali_throw(Errors::Message("Simple mesh cannot generate 1D meshes"));  
 }
   
 
@@ -1139,6 +1141,68 @@ void Mesh_simple::get_set_entities (const std::string setname,
                       ss.push_back(face);
                   }
 
+              if (Mesh::space_dimension() == 1) {
+                  int face;
+                  std::vector<JaliGeometry::Point> fx;
+                  bool inbox;
+
+                  face = yzface_index_(0);
+                  face_get_coordinates(face,&fx);
+
+                  inbox = true;
+                  if (rgn->type() == JaliGeometry::BOX)
+                  {
+                    JaliGeometry::Point cenpnt(Mesh::space_dimension());
+                    for (int j = 0; j < nodes_per_face_; j++)
+                      cenpnt += fx[j];
+                    cenpnt /= static_cast<double>(nodes_per_face_);
+
+                    if (!rgn->inside(cenpnt)) inbox = false;
+                  }
+                  else
+                  {
+                    for (int j = 0; j < nodes_per_face_; j++)
+                    {
+                      if (!rgn->inside(fx[j]))
+                      {
+                        inbox = false;
+                        break;
+                      }
+                    }                    
+                  }
+                      
+                  if (inbox)
+                    ss.push_back(face);
+
+                  face = yzface_index_(nx_);
+                  face_get_coordinates(face,&fx);
+
+                  inbox = true;
+                  if (rgn->type() == JaliGeometry::BOX)
+                  {
+                    JaliGeometry::Point cenpnt(Mesh::space_dimension());
+                    for (int j = 0; j < nodes_per_face_; j++)
+                      cenpnt += fx[j];
+                    cenpnt /= static_cast<double>(nodes_per_face_);
+
+                    if (!rgn->inside(cenpnt)) inbox = false;
+                  }
+                  else
+                  {
+                    for (int j = 0; j < nodes_per_face_; j++)
+                    {
+                      if (!rgn->inside(fx[j]))
+                      {
+                        inbox = false;
+                        break;
+                      }
+                    }                    
+                  }
+                      
+                  if (inbox)
+                    ss.push_back(face);
+              }
+
               side_sets_.push_back(ss);
               side_set_regions_.push_back(rgn);
             }
@@ -1204,6 +1268,25 @@ void Mesh_simple::get_set_entities (const std::string setname,
                         cs.push_back(cell);
                     }
 
+              if (Mesh::space_dimension() == 1) {
+                for (int ix=0; ix<nx_; ix++)
+                {
+                  int cell = cell_index_(ix);
+                  std::vector<JaliGeometry::Point> cx;
+                  cell_get_coordinates(cell,&cx);
+
+                  JaliGeometry::Point cenpnt(Mesh::space_dimension());
+
+                  for (int j = 0; j < nodes_per_cell_; j++)
+                    cenpnt += cx[j];
+                  cenpnt /= static_cast<double>(nodes_per_cell_);
+
+                  if (rgn->inside(cenpnt))
+                    cs.push_back(cell);
+                }
+                
+              }
+
               element_blocks_.push_back(cs);
               element_block_regions_.push_back(rgn);
             }
@@ -1260,6 +1343,24 @@ void Mesh_simple::get_set_entities (const std::string setname,
                       done = true;
                   }                   
                 }
+
+          if (Mesh::space_dimension() == 1) {
+            bool done=false;
+            for (int ix=0; ix<nx_+1 && !done; ix++)
+            {
+              int node = node_index_(ix);
+              JaliGeometry::Point nx;
+              node_get_coordinates(node,&nx);
+
+              if (rgn->inside(nx)) {
+                ns.push_back(node);
+
+                if (rgn->type() == JaliGeometry::POINT)
+                  done = true;
+              }
+            }
+            
+          }
               
           node_sets_.push_back(ns);
           node_set_regions_.push_back(rgn);

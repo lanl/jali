@@ -390,7 +390,6 @@ void Mesh::cell_get_faces_and_dirs(const Entity_ID cellid,
   //
   // Cached version - turn off for profiling or to save memory
   //
-
   if (!cell2face_info_cached) cache_cell2face_info();
 
   if (ordered)
@@ -807,6 +806,8 @@ int Mesh::compute_face_geometric_quantities() const {
 
 int Mesh::compute_edge_geometric_quantities() const {
 
+  ASSERT(spacedim > 1);
+  
   int nedges = num_entities(EDGE,ALL);
 
   edge_vectors.resize(nedges);
@@ -830,6 +831,8 @@ int Mesh::compute_edge_geometric_quantities() const {
 
 
 int Mesh::compute_wedge_geometric_quantities() const {
+
+  ASSERT(spacedim > 1);
 
   wedge_volumes.resize(num_wedges);
 
@@ -860,6 +863,8 @@ int Mesh::compute_wedge_geometric_quantities() const {
 }
 
 int Mesh::compute_corner_geometric_quantities() const {
+  ASSERT(spacedim > 1);
+  
   corner_volumes.resize(num_corners);
   for (int c = 0; c < num_corners; c++)
     compute_corner_geometry(c, &(corner_volumes[c]));    
@@ -926,6 +931,16 @@ int Mesh::compute_cell_geometry(const Entity_ID cellid, double *volume,
     JaliGeometry::polygon_get_area_centroid_normal(ccoords,volume,centroid,
 						     &normal);
 
+    return 1;
+  }
+  else if (celldim == 1) {
+
+    std::vector<JaliGeometry::Point> ccoords;
+
+    cell_get_coordinates(cellid,&ccoords);
+
+    JaliGeometry::segment_get_vol_centroid(ccoords, geomtype,
+                                           volume, centroid);
     return 1;
   }
 
@@ -1076,6 +1091,42 @@ int Mesh::compute_face_geometry(const Entity_ID faceid, double *area,
 
       return 1;
     }
+
+  } else if (celldim == 1) {
+    face_get_coordinates(faceid,&fcoords);
+
+    JaliGeometry::face1d_get_area(fcoords, geomtype, area);
+    JaliGeometry::Point normal(spacedim);
+    normal.set(*area);
+
+    Entity_ID_List cellids;
+    face_get_cells(faceid, ALL, &cellids);
+
+    for (int i = 0; i < cellids.size(); i++) {
+      Entity_ID_List cellfaceids;
+      std::vector<int> cellfacedirs;
+      int dir = 1;
+
+      cell_get_faces_and_dirs(cellids[i], &cellfaceids, &cellfacedirs);
+
+      bool found = false;
+      for (int j = 0; j < cellfaceids.size(); j++) {
+        if (cellfaceids[j] == faceid) {
+          found = true;
+          dir = cellfacedirs[j];
+          break;
+        }
+      }
+
+      ASSERT(found);
+
+      if (dir == 1)
+        *normal0 = normal;
+      else
+        *normal1 = -normal;
+    }
+
+    return 1;
 
   }
 
@@ -1453,11 +1504,11 @@ JaliGeometry::Point Mesh::face_normal (const Entity_ID faceid,
 
     if (orientation) *orientation = dir;
     if (dir == 1) {
-      ASSERT(L22(normal0) != 0.0);
+      // ASSERT(L22(normal0) != 0.0);
       return normal0;              // Copy to output
     }
     else {
-      ASSERT(L22(normal1) != 0.0);
+      // ASSERT(L22(normal1) != 0.0);
       return normal1;              // Copy to output
     }
   }
