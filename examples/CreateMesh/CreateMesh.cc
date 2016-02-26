@@ -30,10 +30,10 @@ int main(int argc, char *argv[]) {
   // compiled only with MSTK support
 
   FrameworkPreference pref;
-  pref.push_back(Simple);
+  pref.push_back(MSTK);
 
   std::unique_ptr<Mesh> mymesh;  // Pointer to a mesh object
-  if (framework_available(Simple)) {  // check if framework is available
+  if (framework_available(MSTK)) {  // check if framework is available
     mesh_factory.preference(pref);  
   
     // Create a 3D mesh from (0.0,0.0,0.0) to (1.0,1.0,1.0)
@@ -44,8 +44,6 @@ int main(int argc, char *argv[]) {
 
     mymesh = mesh_factory(0.0,0.0,0.0,1.0,1.0,1.0,3,3,3,NULL,
                           true,true,true,true);
-
-    mymesh = mesh_factory(0.0, 1.0, 10, NULL, true, true, true, true);
   }
 
 
