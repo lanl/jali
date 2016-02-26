@@ -7,6 +7,8 @@
 
 #include "Point.hh"
 
+#include "MeshDefs.hh"
+
 
 namespace JaliGeometry
 {
@@ -72,7 +74,17 @@ namespace JaliGeometry
 
   bool point_in_polygon(const Point testpnt,
                         const std::vector<Point> coords);
-  
+
+  // Compute volume and centroid of 1d segment, accounting for geometry
+  void segment_get_vol_centroid(const std::vector<Point> ccoords,
+                                Jali::Geom_type my_geom_type,
+                                double *volume, Point* centroid);
+
+  // Compute the face area in a 1d mesh
+  void face1d_get_area(const std::vector<Point> fcoords,
+                       Jali::Geom_type my_geom_type,
+                       double *area);
+
 
 } // end namespace JaliGeometry
 

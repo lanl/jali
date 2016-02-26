@@ -1,3 +1,5 @@
+#include <math.h>
+
 #include "Geometry.hh"
 
 using namespace std;
@@ -415,7 +417,29 @@ using namespace std;
     }
 
 
+  void segment_get_vol_centroid(const std::vector<Point> ccoords,
+                                Jali::Geom_type my_geom_type,
+                                double *volume, Point* centroid) {
+    if (my_geom_type == Jali::CARTESIAN) {
+      *volume = norm(ccoords[1]-ccoords[0]);
+      *centroid = 0.5*(ccoords[0]+ccoords[0]);
+    } else if (my_geom_type == Jali::SPHERICAL) {
+      *volume = 4.0*M_PI*(pow(ccoords[1].x(), 3) -
+                          pow(ccoords[0].x(), 3)) / 3.0;
+      *centroid = 0.5*(ccoords[0]+ccoords[0]);
+    }
+  }
 
+  void face1d_get_area(const std::vector<Point> fcoords,
+                       Jali::Geom_type my_geom_type,
+                       double *area) {
+    if (my_geom_type == Jali::CARTESIAN) {
+      *area = 1.0;
+    } else if (my_geom_type == Jali::SPHERICAL) {
+      *area = 4.0*M_PI*pow(fcoords[0].x(), 2);
+    }
+
+  }
 
   } // end namespace JaliGeometry
 

@@ -33,7 +33,7 @@ class Point {
   }
   explicit Point(const int N) {
     d = N;
-    xyz[0] = xyz[1] = xyz[2] = 0.0;    
+    xyz[0] = xyz[1] = xyz[2] = 0.0;
   }
   Point(const double& x, const double& y) {
     d = 2;
@@ -89,15 +89,15 @@ class Point {
     xyz[2] = z;
   }
 
-  int is_valid() { return (d == 2 || d == 3) ? 1 : 0; }
+  int is_valid() { return (d == 1 || d == 2 || d == 3) ? 1 : 0; }
 
   // access members
   double& operator[] (const int i) { return xyz[i]; }
   const double& operator[] (const int i) const { return xyz[i]; }
 
   double x() const { return xyz[0]; }
-  double y() const { return xyz[1]; }
-  double z() const { return (d == 3) ? xyz[2] : 0.0; }
+  double y() const { return (d > 1) ? xyz[1] : 0.0; }
+  double z() const { return (d > 2) ? xyz[2] : 0.0; }
 
   int dim() const { return d; }
 
@@ -126,7 +126,15 @@ class Point {
   }
 
   friend Point operator*(const double& r, const Point& p) {
-    return (p.d == 2) ? Point(r*p[0], r*p[1]) : Point(r*p[0], r*p[1], r*p[2]);
+    if (p.d == 1) {
+      Point newp = Point(p.d);
+      newp.set(r*p[0]);
+      return newp;
+    }
+    else if (p.d == 2)
+      return Point(r*p[0], r*p[1]);
+    else
+      return Point(r*p[0], r*p[1], r*p[2]);
   }
   friend Point operator*(const Point& p, const double& r) { return r*p; }
   friend double operator*(const Point& p, const Point& q) {
@@ -138,13 +146,37 @@ class Point {
   friend Point operator/(const Point& p, const double& r) { return p * (1.0/r); }
 
   friend Point operator+(const Point& p, const Point& q) {
-    return (p.d == 2) ? Point(p[0]+q[0], p[1]+q[1]) : Point(p[0]+q[0], p[1]+q[1], p[2]+q[2]);
+    if (p.d == 1) {
+      Point newp = Point(p.d);
+      newp.set(p[0]+q[0]);
+      return newp;
+    }
+    else if (p.d == 2)
+      return Point(p[0]+q[0], p[1]+q[1]);
+    else
+      return Point(p[0]+q[0], p[1]+q[1], p[2]+q[2]);
   }
   friend Point operator-(const Point& p, const Point& q) {
-    return (p.d == 2) ? Point(p[0]-q[0], p[1]-q[1]) : Point(p[0]-q[0], p[1]-q[1], p[2]-q[2]);
+    if (p.d == 1) {
+      Point newp = Point(p.d);
+      newp.set(p[0]-q[0]);
+      return newp;
+    }
+    else if (p.d == 2)
+      return Point(p[0]-q[0], p[1]-q[1]);
+    else
+      return Point(p[0]-q[0], p[1]-q[1], p[2]-q[2]);
   }
   friend Point operator-(const Point& p) {
-    return (p.d == 2) ? Point(-p[0], -p[1]) : Point(-p[0], -p[1], -p[2]);
+    if (p.d == 1) {
+      Point newp = Point(p.d);
+      newp.set(-p[0]);
+      return newp;
+    }
+    else if (p.d == 2)
+      return Point(-p[0], -p[1]);
+    else
+      return Point(-p[0], -p[1], -p[2]);
   }
 
   friend Point operator^(const Point& p, const Point& q) {
@@ -160,8 +192,9 @@ class Point {
   }
 
   friend std::ostream& operator<<(std::ostream& os, const Point& p) {
-    os << p.x() << " " << p.y();
-    if (p.d == 3) os << " " << p.z();
+    os << p.x();
+    if (p.d > 1) os << " " << p.y();
+    if (p.d > 2) os << " " << p.z();
     return os;
   }
 
