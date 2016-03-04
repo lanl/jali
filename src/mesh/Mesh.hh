@@ -674,7 +674,11 @@ class Mesh
                                 std::vector<JaliGeometry::Point> *pointcoords,
                                 std::vector< std::array<Entity_ID,2> > *facetpoints) const;
 
+// "facets" (points - node and cell center) describing a corner in 1D :)
 
+  void corner_get_facetization (const Entity_ID cornerid,
+                                std::vector<JaliGeometry::Point> *pointcoords,
+                                std::vector< std::array<Entity_ID,1> > *facetpoints) const; 
   // Mesh entity geometry
   //--------------
   //

@@ -1,3 +1,5 @@
+#include <math.h>
+#include <cmath>
 
 #include "Geometry.hh"
 #include "dbc.hh"
@@ -18,7 +20,7 @@ namespace Jali
 //
 // Method is declared constant because it is not modifying the mesh
 // itself; rather it is modifying mutable data structures - see
-// declaration of Mesh calss for further explanation
+// declaration of Mesh class for further explanation
 
 void Mesh::cache_cell2face_info() const {
 
@@ -39,7 +41,7 @@ void Mesh::cache_cell2face_info() const {
 //
 // Method is declared constant because it is not modifying the mesh
 // itself; rather it is modifying mutable data structures - see
-// declaration of Mesh calss for further explanation
+// declaration of Mesh class for further explanation
 
 void Mesh::cache_face2cell_info() const {
 
@@ -105,7 +107,7 @@ void Mesh::cache_cell2edge_info() const {
 
   int ncells = num_entities(CELL,ALL);
   cell_edge_ids.resize(ncells);
-  
+
   if (spacedim == 2) {
     cell_2D_edge_dirs.resize(ncells);
     for (int c = 0; c < ncells; c++)
@@ -132,28 +134,35 @@ void Mesh::cache_wedge_info() const {
   node_wedge_ids.resize(nnodes);
   
   num_wedges = 0;
-  
-  for (int c = 0; c < ncells; c++) {
-    std::vector<Entity_ID> cfaces;
-    cell_get_faces(c,&cfaces);
-    
-    int numwedges_in_cell = 0;
-    Entity_ID_List::iterator itf = cfaces.begin();
-    while (itf != cfaces.end()) {
-      Entity_ID f = *itf;
 
-      std::vector<Entity_ID> fedges;	
-      std::vector<int> fedirs;
-      face_get_edges_and_dirs(f,&fedges,&fedirs);
-      num_wedges += 2*fedges.size(); // In 2D there will be only 1 edge per face
-      numwedges_in_cell += 2*fedges.size();
+  if (spacedim == 1) {
+    // in 1D there are always 2 wedges per cell
+    num_wedges = 2*ncells;
+    for (int c = 0; c < ncells; c++)
+      cell_wedge_ids[c].reserve(2);
+  } else {
+    for (int c = 0; c < ncells; c++) {
+      std::vector<Entity_ID> cfaces;
+      cell_get_faces(c,&cfaces);
 
-      ++itf;
+      int numwedges_in_cell = 0;
+      Entity_ID_List::iterator itf = cfaces.begin();
+      while (itf != cfaces.end()) {
+        Entity_ID f = *itf;
+
+        std::vector<Entity_ID> fedges;
+        std::vector<int> fedirs;
+        face_get_edges_and_dirs(f,&fedges,&fedirs);
+        num_wedges += 2*fedges.size(); // In 2D there will be only 1 edge per face
+        numwedges_in_cell += 2*fedges.size();
+
+        ++itf;
+      }
+
+      cell_wedge_ids[c].reserve(numwedges_in_cell);
     }
-
-    cell_wedge_ids[c].reserve(numwedges_in_cell);
   }
-  
+
   wedge_node_id.resize(num_wedges,-1);
   wedge_edge_id.resize(num_wedges,-1);
   wedge_face_id.resize(num_wedges,-1);
@@ -163,95 +172,134 @@ void Mesh::cache_wedge_info() const {
   wedge_adj_wedge_id.resize(num_wedges,-1);
   wedge_opp_wedge_id.resize(num_wedges,-1);
   wedge_posvol_flag.resize(num_wedges,true);
-  
-  int wedgeid = 0;
-  for (int c = 0; c < ncells; c++) {
-    std::vector<Entity_ID> cfaces;
-    std::vector<int> cfdirs;
-    cell_get_faces_and_dirs(c,&cfaces,&cfdirs);
 
-    Entity_ID_List::iterator itf = cfaces.begin();
-    std::vector<int>::iterator itfd = cfdirs.begin();
-    while (itf != cfaces.end()) {
-      Entity_ID f = *itf;
-      int fdir = *itfd;
+  if (spacedim == 1) {
+    for (int c = 0; c < ncells; c++) {
+      // always 2 wedges per cell
+      int wedgeid = 2*c;
 
-      Entity_ID_List fedges;	
-      std::vector<int> fedirs;
-      face_get_edges_and_dirs(f,&fedges,&fedirs);
+      Entity_ID_List nodeids;
+      cell_get_nodes(c, &nodeids);
 
-      Entity_ID_List::iterator ite = fedges.begin();
-      std::vector<int>::iterator ited = fedirs.begin();
-      while (ite != fedges.end()) {
-        Entity_ID e = *ite;
-        int edir = *ited;
+      cell_wedge_ids[c].push_back(wedgeid);
+      node_wedge_ids[nodeids[0]].push_back(wedgeid);
+      node_wedge_ids[nodeids[1]].push_back(wedgeid+1);
 
-        int dir = fdir*edir;
-        Entity_ID enode[2], ewedge[2];
-        edge_get_nodes(e,&(enode[0]),&(enode[1]));
-        for (int i = 0; i < 2; i++) {
-          Entity_ID n = enode[i];
-          wedge_node_id[wedgeid] = n;
-          wedge_edge_id[wedgeid] = e;
-          wedge_face_id[wedgeid] = f;
-          wedge_cell_id[wedgeid] = c;
-          wedge_parallel_type[wedgeid] = entity_get_ptype(CELL,c);
-          cell_wedge_ids[c].push_back(wedgeid);
-          node_wedge_ids[n].push_back(wedgeid);
+      wedge_node_id[wedgeid  ] = nodeids[0];
+      wedge_node_id[wedgeid+1] = nodeids[1];
+      // edges are the same as cells
+      wedge_edge_id[wedgeid  ] = c;
+      wedge_edge_id[wedgeid+1] = c;
+      // nodes are the same as faces
+      wedge_face_id[wedgeid  ] = nodeids[0];
+      wedge_face_id[wedgeid+1] = nodeids[1];
+      wedge_cell_id[wedgeid  ] = c;
+      wedge_cell_id[wedgeid+1] = c;
+      // wedges and corners are the same
+      wedge_corner_id[wedgeid  ] = wedgeid;
+      wedge_corner_id[wedgeid+1] = wedgeid+1;
+      wedge_parallel_type[wedgeid  ] = entity_get_ptype(CELL,c);
+      wedge_parallel_type[wedgeid+1] = entity_get_ptype(CELL,c);
+      // within the same 'side'
+      wedge_adj_wedge_id[wedgeid  ] = wedgeid+1;
+      wedge_adj_wedge_id[wedgeid+1] = wedgeid;
+      // across face boundaries
+      wedge_opp_wedge_id[wedgeid  ] = wedgeid-1 < 0 ? -1 : wedgeid-1;
+      wedge_opp_wedge_id[wedgeid+1] = wedgeid+2 < num_wedges ? wedgeid+2 : -1;
+      // wedge_get_coordinates always returns node then cell
+      // left wedge of cell then has positive volume; right has negative
+      wedge_posvol_flag[wedgeid  ] = true;
+      wedge_posvol_flag[wedgeid+1] = false;
+    }
+  } else {
+    int wedgeid = 0;
+    for (int c = 0; c < ncells; c++) {
+      std::vector<Entity_ID> cfaces;
+      std::vector<int> cfdirs;
+      cell_get_faces_and_dirs(c,&cfaces,&cfdirs);
 
-          // Whethter the fixed ordering of coordinates (n,e,f,c)
-          // gives a +ve or -ve volume depends also on cell dimension
-          // (2D or 3D). If all dirs (cell-to-face) and (face-to-edge)
-          // are +ve, the triangle formed by n,e,c where n is node
-          // point 0 of edge, will give a +ve area. On the other hand, the tet
-          // formed by n,e,f,c will give a -ve area because triangle
-          // n,e,f will point out of the cell.  Here n is node point
-          // 0 of the edge, e is the edge center, f is the face center
-          // and c is the cell center
+      Entity_ID_List::iterator itf = cfaces.begin();
+      std::vector<int>::iterator itfd = cfdirs.begin();
+      while (itf != cfaces.end()) {
+        Entity_ID f = *itf;
+        int fdir = *itfd;
 
-          if (cell_dimension() == 2)
-            wedge_posvol_flag[wedgeid] = !((i == 0)^(dir == 1));
-          else if (cell_dimension() == 3)
-            wedge_posvol_flag[wedgeid] = !((i == 0)^(dir == -1));
+        Entity_ID_List fedges;	
+        std::vector<int> fedirs;
+        face_get_edges_and_dirs(f,&fedges,&fedirs);
 
-          ewedge[i] = wedgeid;
+        Entity_ID_List::iterator ite = fedges.begin();
+        std::vector<int>::iterator ited = fedirs.begin();
+        while (ite != fedges.end()) {
+          Entity_ID e = *ite;
+          int edir = *ited;
 
-          // See if any of the other wedges attached to the node
-          // shares the same edge, face and node but is in the
-          // adjacent cell. This is called the opposite wedge
+          int dir = fdir*edir;
+          Entity_ID enode[2], ewedge[2];
+          edge_get_nodes(e,&(enode[0]),&(enode[1]));
+          for (int i = 0; i < 2; i++) {
+            Entity_ID n = enode[i];
+            wedge_node_id[wedgeid] = n;
+            wedge_edge_id[wedgeid] = e;
+            wedge_face_id[wedgeid] = f;
+            wedge_cell_id[wedgeid] = c;
+            wedge_parallel_type[wedgeid] = entity_get_ptype(CELL,c);
+            cell_wedge_ids[c].push_back(wedgeid);
+            node_wedge_ids[n].push_back(wedgeid);
 
-          Entity_ID_List::iterator itw = node_wedge_ids[n].begin();
-          bool found = false;
-          while (!found && itw != node_wedge_ids[n].end()) {
-            Entity_ID w2 = *itw;
-            if (w2 != wedgeid &&
-                wedge_node_id[w2] == n && wedge_edge_id[w2] == e &&
-                wedge_face_id[w2] == f && wedge_cell_id[w2] != c) {
-              found = true;
-              wedge_opp_wedge_id[wedgeid] = w2;
-              wedge_opp_wedge_id[w2] = wedgeid;
+            // Whether the fixed ordering of coordinates (n,e,f,c)
+            // gives a +ve or -ve volume depends also on cell dimension
+            // (2D or 3D). If all dirs (cell-to-face) and (face-to-edge)
+            // are +ve, the triangle formed by n,e,c where n is node
+            // point 0 of edge, will give a +ve area. On the other hand, the tet
+            // formed by n,e,f,c will give a -ve area because triangle
+            // n,e,f will point out of the cell.  Here n is node point
+            // 0 of the edge, e is the edge center, f is the face center
+            // and c is the cell center
+
+            if (cell_dimension() == 2)
+              wedge_posvol_flag[wedgeid] = !((i == 0)^(dir == 1));
+            else if (cell_dimension() == 3)
+              wedge_posvol_flag[wedgeid] = !((i == 0)^(dir == -1));
+
+            ewedge[i] = wedgeid;
+
+            // See if any of the other wedges attached to the node
+            // shares the same edge, face and node but is in the
+            // adjacent cell. This is called the opposite wedge
+
+            Entity_ID_List::iterator itw = node_wedge_ids[n].begin();
+            bool found = false;
+            while (!found && itw != node_wedge_ids[n].end()) {
+              Entity_ID w2 = *itw;
+              if (w2 != wedgeid &&
+                  wedge_node_id[w2] == n && wedge_edge_id[w2] == e &&
+                  wedge_face_id[w2] == f && wedge_cell_id[w2] != c) {
+                found = true;
+                wedge_opp_wedge_id[wedgeid] = w2;
+                wedge_opp_wedge_id[w2] = wedgeid;
+              }
+              ++itw;
             }
-            ++itw;
+
+            wedgeid++;
           }
 
-          wedgeid++;
-        }
+          // The two wedges associated with this edge, face and cell
+          // are called adjacent wedges
 
-        // The two wedges associated with this edge, face and cell
-        // are called adjacent wedges
+          wedge_adj_wedge_id[ewedge[0]] = ewedge[1];
+          wedge_adj_wedge_id[ewedge[1]] = ewedge[0];
 
-        wedge_adj_wedge_id[ewedge[0]] = ewedge[1];
-        wedge_adj_wedge_id[ewedge[1]] = ewedge[0];
+          ++ite;
+          ++ited;
+        } // while (ite != fedges.end())
 
-        ++ite;
-        ++ited;
-      } // while (ite != fedges.end())
-
-      ++itf;
-      ++itfd;
-    } // while (itf != cfaces.end())
-  } // for (int c = 0;....)
-
+        ++itf;
+        ++itfd;
+      } // while (itf != cfaces.end())
+    } // for (int c = 0;....)
+  }  // if (spacedim)
   wedge_info_cached = true;
 } // cache_wedge_info
 
@@ -806,8 +854,6 @@ int Mesh::compute_face_geometric_quantities() const {
 
 int Mesh::compute_edge_geometric_quantities() const {
 
-  ASSERT(spacedim > 1);
-  
   int nedges = num_entities(EDGE,ALL);
 
   edge_vectors.resize(nedges);
@@ -831,8 +877,6 @@ int Mesh::compute_edge_geometric_quantities() const {
 
 
 int Mesh::compute_wedge_geometric_quantities() const {
-
-  ASSERT(spacedim > 1);
 
   wedge_volumes.resize(num_wedges);
 
@@ -863,7 +907,6 @@ int Mesh::compute_wedge_geometric_quantities() const {
 }
 
 int Mesh::compute_corner_geometric_quantities() const {
-  ASSERT(spacedim > 1);
   
   corner_volumes.resize(num_corners);
   for (int c = 0; c < num_corners; c++)
@@ -1166,9 +1209,9 @@ void Mesh::compute_wedge_geometry(Entity_ID const wedgeid,
                                  JaliGeometry::Point *facet_normal1) const {
 
   // First record the flag which indicates if the default ordering
-  // gives us positive volumes for the wedges if we assume n,e,c for
-  // 2D and n,e,f,c for 3D (n - node point, e - edge center, f - face
-  // center, c - cell center. This flag was recorded during the
+  // gives us positive volumes for the wedges if we assume n,c for 1D,
+  // n,e,c for 2D and n,e,f,c for 3D (n - node point, e - edge center,
+  // f - face center, c - cell center). This flag was recorded during the
   // construction of wedges using purely topological info and so is robust
 
   bool posvol = wedge_posvol_flag[wedgeid];
@@ -1249,7 +1292,39 @@ void Mesh::compute_wedge_geometry(Entity_ID const wedgeid,
     *facet_normal1 = posvol ? normal : -normal;
   }
   else if (celldim == 1) {
-    // unclear what the definitions of these normals are    
+    // unclear what the definitions of these normals are
+
+    std::vector<JaliGeometry::Point> wcoords;
+
+    // Get vertex coordinates of wedge
+    //
+    // These are always - node coordinate and cell center
+
+    wedge_get_coordinates(wedgeid,&wcoords);
+
+    // vector from node to cell center
+    JaliGeometry::Point vec0 = wcoords[0]-wcoords[1];
+
+    if (geomtype == SPHERICAL) {
+      *wedge_volume = (4.0/3.0) * M_PI * fabs(pow(wcoords[1][0],3) -
+                                              pow(wcoords[0][0],3));
+
+      // should point out of zone and have area of face
+      *facet_normal0 = -vec0/JaliGeometry::norm(vec0) *
+          4.0 * M_PI * pow(wcoords[0][0],2);
+      // should point to other wedge in side and have the area of cell center
+      *facet_normal1 = vec0/JaliGeometry::norm(vec0) *
+          4.0 * M_PI * pow(wcoords[1][0],2);
+
+    } else if (geomtype == CARTESIAN) {
+      *wedge_volume = JaliGeometry::norm(vec0);
+
+      // should point out of zone and have area of face
+      *facet_normal0 = -vec0/JaliGeometry::norm(vec0);
+      // should point to other wedge in side and have the area of cell center
+      *facet_normal1 = vec0/JaliGeometry::norm(vec0);
+    }
+
   }
 
 } // Compute wedge geometry
@@ -1615,16 +1690,27 @@ void Mesh::wedge_get_coordinates (const Entity_ID wedgeid,
     Entity_ID c = wedge_get_cell(wedgeid);
     (*wcoords)[2] = cell_centroid(c);
   }
+  else if (celldim == 1) {
+    wcoords->resize(2); // wedges are segments in 1D cells
+    Entity_ID n = wedge_get_node(wedgeid);
+    node_get_coordinates(n,&((*wcoords)[0]));
+
+    Entity_ID c = wedge_get_cell(wedgeid);
+    (*wcoords)[1] = cell_centroid(c);
+  }
 
   // If caller has requested that coordinates be ordered such that
-  // they will give a +ve volume AND the wedge has been flag as not
+  // they will give a +ve volume AND the wedge has been flagged as not
   // giving a +ve volume with its natural coordinate order (node
   // point, edge center, face center, cell center), then swap the edge
   // and face centers (in 3D) or face and cell centers (in 2D)
 
-  if (posvol_order && !wedge_posvol_flag[wedgeid])
-    std::swap((*wcoords)[1],(*wcoords)[2]);
-
+  if (posvol_order && !wedge_posvol_flag[wedgeid]) {
+    if (celldim == 1)
+      std::swap((*wcoords)[0],(*wcoords)[1]);
+    else
+      std::swap((*wcoords)[1],(*wcoords)[2]);
+  }
 } // wedge_get_coordinates
 
 
@@ -1732,6 +1818,7 @@ Mesh::corner_get_facetization (const Entity_ID cornerid,
 
     // Now record the facet 0 coords but only after checking that it is
     // pointing out of the wedge and corner
+    // Note, idxf is the index for the edge; idxe is the index for the face
         
     JaliGeometry::Point vec1 = (*pointcoords)[idxf]-(*pointcoords)[0];
     JaliGeometry::Point vec2 = (*pointcoords)[idxe]-(*pointcoords)[0];
@@ -1814,24 +1901,48 @@ Mesh::corner_get_facetization (const Entity_ID cornerid,
   facetpoints->push_back({{2,3}});
   facetpoints->push_back({{2,4}});
 
-} // corner get facetization for 3D
+} // corner get facetization for 2D
 
 
+// "facets" (points - node and cell center) describing a corner in 1D :)
+
+void
+Mesh::corner_get_facetization (const Entity_ID cornerid,
+                               std::vector<JaliGeometry::Point> *pointcoords,
+                               std::vector< std::array<Entity_ID,1> > *facetpoints) const {
+  // corner and wedge are the same in 1d
+  Entity_ID_List cwedges;
+  corner_get_wedges(cornerid,&cwedges);
+  wedge_get_coordinates(cwedges[0],pointcoords);
+  // ordering is because wedge_get_coordinates comes back in (node, cell) order
+  // and node is the facet external to the zone and cell is the facet between
+  // the wedges of the side, which is consistent with 2/3D.
+  facetpoints->push_back({{0}});
+  facetpoints->push_back({{1}});
+}
 
 // list of points describing a Corner in 2D in ccw direction and in no
 // particular order in 3D
 
-void 
+void
 Mesh::corner_get_coordinates (const Entity_ID cornerid,
                               std::vector<JaliGeometry::Point> *pointcoords) const {
 
-  
   Entity_ID_List cwedges;
   corner_get_wedges(cornerid,&cwedges);
 
   pointcoords->clear();
 
-  if (celldim == 2) {
+  if (celldim == 1) {
+    pointcoords->reserve(2);
+
+    // 1D wedge coordinates are - node point and zone center; we always want the
+    // positive volume order, hence the 'true' in the call
+    // wedges are the same as corners
+
+    wedge_get_coordinates(cwedges[0],pointcoords,true);
+  }
+  else if (celldim == 2) {
     pointcoords->reserve(4);
     
     // 2D wedge coordinates are - node point, edge center, zone center
@@ -2026,6 +2137,11 @@ bool Mesh::point_in_cell(const JaliGeometry::Point &p, const Entity_ID cellid) c
 
     return JaliGeometry::point_in_polygon(p,ccoords);
 
+  }
+  else if (celldim == 1) {
+    cell_get_coordinates(cellid,&ccoords);
+    if (p[0]-ccoords[0][0] >= 0.0 &&
+        ccoords[1][0] - p[0] >= 0.0) return true;
   }
 
   return false;

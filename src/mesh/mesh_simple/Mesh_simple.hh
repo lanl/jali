@@ -164,8 +164,16 @@ public:
 
   void edge_get_nodes (const Entity_ID edgeid, Entity_ID *nodeid0,
 		       Entity_ID *nodeid1) const {
-    Errors::Message mesg("Edges not implemented in this framework. Use MSTK");
-    Exceptions::Jali_throw(mesg);
+    if (spacedim == 1) {
+      std::vector<Entity_ID> cell_nodes;
+      // edgeid and cellid are the same in 1d
+      cell_get_nodes(edgeid, &cell_nodes);
+      *nodeid0 = cell_nodes[0];
+      *nodeid1 = cell_nodes[1];
+    } else {
+      Errors::Message mesg("Edges not implemented in this framework. Use MSTK");
+      Exceptions::Jali_throw(mesg);
+    }
   }
 
   // Upward adjacencies
@@ -380,9 +388,15 @@ private:
 
   void cell_get_edges_internal (const Entity_ID cellid,
                                 Entity_ID_List *edgeids) const 
-  { 
-    Errors::Message mesg("Edges not implemented in this framework. Use MSTK");
-    Exceptions::Jali_throw(mesg);
+  {
+    if (spacedim == 1) {
+      edgeids->clear();
+      // edgeid and cellid are the same in 1d
+      edgeids->push_back(cellid);
+    } else {
+      Errors::Message mesg("Edges not implemented in this framework. Use MSTK");
+      Exceptions::Jali_throw(mesg);
+    }
   }
 
   // edges and directions of a 2D cell 
@@ -404,8 +418,13 @@ private:
 					 std::vector<int> *edgedirs,
 					 bool ordered=true) const
   {
-    Errors::Message mesg("Edges not implemented in this framework. Use MSTK");
-    Exceptions::Jali_throw(mesg);
+    if (spacedim == 1) {
+      edgeids->clear();
+      edgedirs->clear();
+    } else {
+      Errors::Message mesg("Edges not implemented in this framework. Use MSTK");
+      Exceptions::Jali_throw(mesg);
+    }
   };
 
     

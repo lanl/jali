@@ -575,6 +575,17 @@ unsigned int Mesh_simple::num_entities (Jali::Entity_kind kind,
     case Jali::CELL:
       return (ptype != Jali::GHOST) ? num_cells_ : 0;
       break;
+    case Jali::EDGE:
+      if (spacedim == 1) {
+        return (ptype != Jali::GHOST) ? num_cells_ : 0;
+        break;
+      }
+    case Jali::WEDGE:
+    case Jali::CORNER:
+      if (spacedim == 1) {
+        return (ptype != Jali::GHOST) ? num_cells_*2 : 0;
+        break;
+      }
     default:
       throw std::exception();
       break;
