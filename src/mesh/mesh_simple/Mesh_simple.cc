@@ -63,7 +63,8 @@ Mesh_simple::Mesh_simple (std::vector<double> x,
                           const bool request_faces,
                           const bool request_edges,
                           const bool request_wedges,
-                          const bool request_corners) :
+                          const bool request_corners,
+                          const Jali::Geom_type geom_type) :
     nx_(x.size()-1), ny_(-3), nz_(-3),
     coordinates_(x),
     nodes_per_face_(1), faces_per_cell_(2), nodes_per_cell_(2),
@@ -72,9 +73,12 @@ Mesh_simple::Mesh_simple (std::vector<double> x,
 {
   set_space_dimension(1);
   set_cell_dimension(1);
+  set_geom_type(geom_type);
 
   clear_internals_1d_();
   update_internals_1d_();
+
+  cache_extra_variables();
   //  Exceptions::Jali_throw(Errors::Message("Simple mesh cannot generate 1D meshes"));  
 }
   

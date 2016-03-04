@@ -43,8 +43,8 @@ int main(int argc, char *argv[]) {
     // true)
     // mymesh = mesh_factory(0.0, 1.0, 11, NULL, true, true, true, true);
     std::vector<double> node_coords = {0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 1.0};
-    mymesh = mesh_factory(node_coords, NULL, true, true, true, true);
-    mymesh->set_geom_type(SPHERICAL);
+    mymesh = mesh_factory(node_coords, NULL, true, true, true, true, SPHERICAL);
+    //    mymesh->set_geom_type(SPHERICAL);
   }
 
 
@@ -64,8 +64,8 @@ int main(int argc, char *argv[]) {
             << std::endl;
   std::cerr << "Number of mesh edges: " << mymesh->num_entities(EDGE,ALL)
             << std::endl;
-  std::cerr << "Number of mesh wedges: " << mymesh->num_entities(WEDGE,ALL)
-            << std::endl;
+  Entity_ID numwedges = mymesh->num_entities(WEDGE,ALL);
+  std::cerr << "Number of mesh wedges: " << numwedges << std::endl;
   std::cerr << "Number of mesh corners: " << mymesh->num_entities(CORNER,ALL)
             << std::endl;
   std::cerr << "Number of mesh faces: " << mymesh->num_entities(FACE,ALL)
@@ -83,6 +83,12 @@ int main(int argc, char *argv[]) {
                 << mymesh->face_normal(f, false, i)
                 << std::endl;
     }
+  }
+
+  for (Entity_ID i = 0; i < numwedges; i++) {
+    std::cout << "Wedge " << i << std::endl;
+    std::cout << " volume: " << mymesh->wedge_volume(i)
+              << std::endl;
   }
 
   // Clean up and exit

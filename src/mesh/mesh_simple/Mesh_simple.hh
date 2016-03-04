@@ -56,7 +56,8 @@ public:
 	       const bool request_faces = true,
 	       const bool request_edges = false,
                const bool request_wedges = false,
-               const bool request_corners = false);
+               const bool request_corners = false,
+               const Jali::Geom_type geom_type = Jali::CARTESIAN);
   
   // Construct a mesh by extracting a subset of entities from another
   // mesh. In some cases like extracting a surface mesh from a volume

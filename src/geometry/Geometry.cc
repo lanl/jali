@@ -422,11 +422,11 @@ using namespace std;
                                 double *volume, Point* centroid) {
     if (my_geom_type == Jali::CARTESIAN) {
       *volume = norm(ccoords[1]-ccoords[0]);
-      *centroid = 0.5*(ccoords[0]+ccoords[0]);
+      *centroid = 0.5*(ccoords[1]+ccoords[0]);
     } else if (my_geom_type == Jali::SPHERICAL) {
       *volume = 4.0*M_PI*(pow(ccoords[1].x(), 3) -
                           pow(ccoords[0].x(), 3)) / 3.0;
-      *centroid = 0.5*(ccoords[0]+ccoords[0]);
+      *centroid = 0.5*(ccoords[1]+ccoords[0]);
     }
   }
 

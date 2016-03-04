@@ -82,12 +82,13 @@ class MeshFactory {
 
   /// Create a 1d mesh
   Mesh *create(std::vector<double> x,
-               const JaliGeometry::GeometricModelPtr &gm = 
+               const JaliGeometry::GeometricModelPtr &gm =
                (JaliGeometry::GeometricModelPtr) NULL,
                const bool request_faces = true,
                const bool request_edges = false,
                const bool request_wedges=false,
-               const bool request_corners=false);
+               const bool request_corners=false,
+               const Jali::Geom_type geom_type=Jali::CARTESIAN);
     
   /// Create a mesh by extract subsets of entities from an existing mesh
   Mesh *create(const Mesh *inmesh,
@@ -165,10 +166,12 @@ class MeshFactory {
                     const bool request_faces = true,
                     const bool request_edges = false,
                     const bool request_wedges=false,
-                    const bool request_corners=false)  {
+                    const bool request_corners=false,
+                    const Jali::Geom_type geom_type=Jali::CARTESIAN)  {
  
     return std::unique_ptr<Mesh>(create(x, gm, request_faces, request_edges,
-                  request_wedges, request_corners));
+                                        request_wedges, request_corners,
+                                        geom_type));
   }
 
   /// Create a 1d mesh -- operator
@@ -179,19 +182,21 @@ class MeshFactory {
                     const bool request_faces = true,
                     const bool request_edges = false,
                     const bool request_wedges=false,
-                    const bool request_corners=false)  {
+                    const bool request_corners=false,
+                    const Jali::Geom_type geom_type=Jali::CARTESIAN) {
 
     double dX = (x1-x0)/((double)nx);
     double myX = x0;
-    
+
     std::vector<double> x(nx);
     for(auto it = x.begin(); it != x.end(); it++) {
       *it = myX;
       myX += dX;
     }
- 
+
     return std::unique_ptr<Mesh>(create(x, gm, request_faces, request_edges,
-                  request_wedges, request_corners));
+                                        request_wedges, request_corners,
+                                        geom_type));
   }
 
   /// Create a mesh by extract subsets of entities from an existing mesh

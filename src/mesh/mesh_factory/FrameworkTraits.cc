@@ -540,13 +540,15 @@ struct FrameworkTraits {
            const bool request_faces, 
            const bool request_edges,
            const bool request_wedges,
-           const bool request_corners)
+           const bool request_corners,
+           const Jali::Geom_type geom_type)
   {
     Mesh *
       result(new typename generate_mesh::type(x, comm,
                                               gm,
                                               request_faces, request_edges,
-                                              request_wedges, request_corners));
+                                              request_wedges, request_corners,
+                                              geom_type));
     return result;
   }
   
@@ -1003,7 +1005,8 @@ framework_generate(const MPI_Comm& comm, const Framework& f,
                    const std::vector<double> x,
                    const JaliGeometry::GeometricModelPtr& gm,
                    const bool request_faces, const bool request_edges,
-                   const bool request_wedges, const bool request_corners)
+                   const bool request_wedges, const bool request_corners,
+                   const Jali::Geom_type geom_type)
 {
   Mesh *result;
   int myPID;
@@ -1015,7 +1018,8 @@ framework_generate(const MPI_Comm& comm, const Framework& f,
     result = FrameworkTraits<Simple>::generate(x, comm,
                                                gm,
                                                request_faces, request_edges,
-                                               request_wedges, request_corners);
+                                               request_wedges, request_corners,
+                                               geom_type);
     break;
   case STKMESH:
     if (myPID == 0) {

@@ -127,7 +127,6 @@ void Mesh::cache_cell2edge_info() const {
 void Mesh::cache_wedge_info() const {
 
   if (wedge_info_cached) return;
-  
   int ncells = num_entities(CELL,ALL);
   cell_wedge_ids.resize(ncells);
   int nnodes = num_entities(NODE,ALL);
@@ -894,7 +893,6 @@ int Mesh::compute_wedge_geometric_quantities() const {
 
   for (int w = 0; w < num_wedges; w++) {
     JaliGeometry::Point facet_normal0(spacedim), facet_normal1(spacedim);
-
     compute_wedge_geometry(w, &(wedge_volumes[w]), 
                            &(facet_normal0), &(facet_normal1));
     wedge_facet_normals0.push_back(facet_normal0);
@@ -1304,7 +1302,6 @@ void Mesh::compute_wedge_geometry(Entity_ID const wedgeid,
 
     // vector from node to cell center
     JaliGeometry::Point vec0 = wcoords[0]-wcoords[1];
-
     if (geomtype == SPHERICAL) {
       *wedge_volume = (4.0/3.0) * M_PI * fabs(pow(wcoords[1][0],3) -
                                               pow(wcoords[0][0],3));
