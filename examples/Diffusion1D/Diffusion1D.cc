@@ -34,8 +34,8 @@ int main(int argc, char *argv[]) {
 
   std::unique_ptr<Mesh> mymesh;  // Pointer to a mesh object
   if (framework_available(Simple)) {  // check if framework is available
-    mesh_factory.preference(pref);  
-  
+    mesh_factory.preference(pref);
+
     // Create a 1D mesh from 0.0 to 1.0
     // with 10 elements in the X direction. Specify
     // that we did not instantiate a geometric model (NULL). Also,
@@ -50,8 +50,9 @@ int main(int argc, char *argv[]) {
 
   // Print out the topological dimension of cells in the mesh
 
-  std::cerr << "Cells are of dimension: " << mymesh->cell_dimension() << std::endl;
-  
+  std::cerr << "Cells are of dimension: " << mymesh->cell_dimension()
+            << std::endl;
+
   // Print out the number of cells in the mesh
 
   Entity_ID numcells = mymesh->num_entities(CELL,ALL);
@@ -59,7 +60,16 @@ int main(int argc, char *argv[]) {
 
   // Print out the number of nodes in the mesh
 
-  std::cerr << "Number of mesh nodes: " << mymesh->num_entities(NODE,ALL) << std::endl;
+  std::cerr << "Number of mesh nodes: " << mymesh->num_entities(NODE,ALL)
+            << std::endl;
+  std::cerr << "Number of mesh edges: " << mymesh->num_entities(EDGE,ALL)
+            << std::endl;
+  std::cerr << "Number of mesh wedges: " << mymesh->num_entities(WEDGE,ALL)
+            << std::endl;
+  std::cerr << "Number of mesh corners: " << mymesh->num_entities(CORNER,ALL)
+            << std::endl;
+  std::cerr << "Number of mesh faces: " << mymesh->num_entities(FACE,ALL)
+            << std::endl;
 
   for (Entity_ID i = 0; i < numcells; i++) {
     std::cout << "Cell " << i << std::endl;
