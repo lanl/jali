@@ -2,6 +2,8 @@
 
 #include <algorithm>
 
+#include "mpi.h"   // only for MPI_COMM_WORLD in Mesh constructor
+
 #include "Mesh_simple.hh"
 #include "dbc.hh"
 #include "errors.hh"
@@ -69,11 +71,11 @@ Mesh_simple::Mesh_simple (std::vector<double> x,
     coordinates_(x),
     nodes_per_face_(1), faces_per_cell_(2), nodes_per_cell_(2),
     faces_per_node_aug_(2), cells_per_node_aug_(3),
-    Mesh(request_faces,request_edges,request_wedges,request_corners)
+    Mesh(request_faces,request_edges,request_wedges,request_corners,
+         MPI_COMM_WORLD,geom_type)
 {
   set_space_dimension(1);
   set_cell_dimension(1);
-  set_geom_type(geom_type);
 
   clear_internals_1d_();
   update_internals_1d_();

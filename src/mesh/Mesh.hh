@@ -112,7 +112,8 @@ class Mesh
        const bool request_edges=false,
        const bool request_wedges=false,
        const bool request_corners=false,
-       const MPI_Comm incomm=MPI_COMM_WORLD) :
+       const MPI_Comm incomm=MPI_COMM_WORLD,
+       const Jali::Geom_type geom_type=Jali::CARTESIAN) :
       spacedim(3), celldim(3), mesh_type_(GENERAL), 
       cell_geometry_precomputed(false), face_geometry_precomputed(false),
       edge_geometry_precomputed(false), wedge_geometry_precomputed(false),
@@ -122,7 +123,8 @@ class Mesh
       cell2face_info_cached(false), face2cell_info_cached(false), 
       cell2edge_info_cached(false), face2edge_info_cached(false), 
       wedge_info_cached(false), corner_info_cached(false),
-      geometric_model_(NULL), comm(incomm)
+      geometric_model_(NULL), comm(incomm),
+      geomtype(geom_type)
   {
     num_wedges = 0;
     num_corners = 0;
@@ -146,13 +148,6 @@ class Mesh
   inline
   MPI_Comm get_comm() const {
     return comm;
-  }
-
-  //! Set the geometric type for the mesh - Geom_type in MeshDefs.hh
-  //! CARTESIAN, CYLINDRICAL, or SPHERICAL
-  inline
-  void set_geom_type(const Geom_type geom) {
-    geomtype = geom;
   }
 
   // Geometric type for the mesh - CARTESIAN, CYLINDRICAL, or SPHERICAL
