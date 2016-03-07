@@ -6,11 +6,11 @@
 
 SUITE (MeshSimple) {
 TEST(MAPS) {
-  
+
   using namespace std;
 
 
-  Jali::Mesh_simple Mm(0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1, 1, 1, MPI_COMM_WORLD); 
+  Jali::Mesh_simple Mm(0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1, 1, 1, MPI_COMM_WORLD);
 
   double xc[] = { 2.0, 2.0, 2.0 };
   Mm.node_set_coordinates(7,xc);
@@ -39,7 +39,7 @@ TEST(MAPS) {
   vector<JaliGeometry::Point> x(8);
   vector<Jali::Entity_ID> nodes(8);
   vector<Jali::Entity_ID> faces(6);
-  
+
   for (Jali::Entity_ID i=0; i<Mm.num_entities(Jali::CELL,Jali::OWNED); i++)
     {
 
@@ -47,7 +47,7 @@ TEST(MAPS) {
 
       CHECK_EQUAL(8,nodes.size());
       CHECK_ARRAY_EQUAL(expcellnodes,nodes,8);
-      
+
       for (int j=0; j<8; j++) {
 	Mm.node_get_coordinates(nodes[j],&(x[j]));
         CHECK_ARRAY_EQUAL(expnodecoords[expcellnodes[j]],x[j],3);
@@ -62,7 +62,7 @@ TEST(MAPS) {
         CHECK_ARRAY_EQUAL(expfacenodes[faces[j]],fnodes,4);
 
 	Mm.face_get_coordinates(faces[j],&x);
-	        
+	
 	for (int k=0; k<4; k++) {
           CHECK_ARRAY_EQUAL(expnodecoords[expfacenodes[faces[j]][k]],x[k],3);
         }
