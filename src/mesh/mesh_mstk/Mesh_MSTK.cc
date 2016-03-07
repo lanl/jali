@@ -5,7 +5,8 @@
 
 // Mesh class based on MSTK framework
 
-#include "mpi.h"
+#include <mpi.h>
+
 #include "dbc.hh"
 #include "errors.hh"
 #include "Mesh_MSTK.hh"
@@ -13,7 +14,8 @@
 
 namespace Jali {
 
-char kind_to_string[4][256] = {"NODE", "EDGE", "FACE", "Entity_kind::CELL"};
+char kind_to_string[4][256] = {"Entity_kind::NODE", "Entity_kind::EDGE",
+                               "Entity_kind::FACE", "Entity_kind::CELL"};
 
 //--------------------------------------
 // Constructor - load up mesh from file
@@ -60,8 +62,7 @@ Mesh_MSTK::Mesh_MSTK(const char *filename, const MPI_Comm& incomm,
 
     if (numprocs == 1) {
       ok = MESH_ImportFromExodusII(mesh, filename, NULL, mpicomm);
-    }
-    else {
+    } else {
       int opts[5] = {0, 0, 0, 0, 0};
 
       opts[0] = 1;   // Partition the input mesh
@@ -71,17 +72,15 @@ Mesh_MSTK::Mesh_MSTK(const char *filename, const MPI_Comm& incomm,
 
       ok = MESH_ImportFromExodusII(mesh, filename, opts, mpicomm);
     }
-  }
-  else if (len > 4 && strncmp(&(filename[len-4]), ".par", 4) == 0) { // Nemesis file
+  } else if (len > 4 &&
+             strncmp(&(filename[len-4]), ".par", 4) == 0) { // Nemesis file
     int opts[5] = {0, 0, 0, 0, 0};
 
     opts[0] = 1;     // Parallel weave distributed meshes
     opts[1] = 1;     // Number of ghost layers
 
     ok = MESH_ImportFromNemesisI(mesh, filename, opts, mpicomm);
-
-  }
-  else {
+  } else {
     std::stringstream mesg_stream;
     mesg_stream << "Cannot identify file type from extension of input file " <<
         filename << " on processor " << myprocid << std::endl;
@@ -188,8 +187,7 @@ Mesh_MSTK::Mesh_MSTK(const char *filename, const MPI_Comm& incomm,
 
     if (numprocs == 1) {
       ok = MESH_ImportFromExodusII(mesh, filename, NULL, mpicomm);
-    }
-    else {
+    } else {
       int opts[5] = {0, 0, 0, 0, 0};
 
       opts[0] = 1;   // Partition the input mesh
@@ -199,7 +197,6 @@ Mesh_MSTK::Mesh_MSTK(const char *filename, const MPI_Comm& incomm,
 
       ok = MESH_ImportFromExodusII(mesh, filename, opts, mpicomm);
     }
-
   }
   else if (len > 4 &&
            strncmp(&(filename[len-4]), ".par", 4) == 0) {  // Nemesis file
@@ -274,7 +271,7 @@ Mesh_MSTK::Mesh_MSTK(const double x0, const double y0, const double z0,
   pre_create_steps_(space_dimension, mpicomm, gm);
 
 // Discretizations can use this info if they want
-  Mesh::set_mesh_type(RECTANGULAR);
+  Mesh::set_mesh_type(Mesh_type::RECTANGULAR);
 
 
   if (serial_run) {
@@ -364,7 +361,7 @@ Mesh_MSTK::Mesh_MSTK(const double x0, const double y0,
 
 
   // Discretizations can use this info if they want
-  Mesh::set_mesh_type(RECTANGULAR);
+  Mesh::set_mesh_type(Mesh_type::RECTANGULAR);
 
 
   int topo_dim = space_dim;  // What is the topological dimension of the mesh
@@ -462,7 +459,7 @@ Mesh_MSTK::Mesh_MSTK(const Mesh *inmesh,
     int setsize =
         (reinterpret_cast<const Mesh_MSTK *>(inmesh))->get_set_size(setnames[i],
                                                                     setkind,
-                                                                    OWNED);
+                                                                    Parallel_type::OWNED);
 
     // Now retrieve the entities in the set from MSTK
 
@@ -474,7 +471,7 @@ Mesh_MSTK::Mesh_MSTK(const Mesh *inmesh,
       int idx = 0;
       MEntity_ptr ment;
       while ((ment = (MEntity_ptr) MSet_Next_Entry(mset, &idx))) {
-        if (!MEnt_IsMarked(ment, mkid) && MEnt_PType(ment) != PGHOST) {
+        if (!MEnt_IsMarked(ment, mkid) && MEnt_PType(ment) != PParallel_type::GHOST) {
           List_Add(src_ents, ment);
           MEnt_Mark(ment, mkid);
         }
@@ -521,7 +518,7 @@ Mesh_MSTK::Mesh_MSTK(const Mesh& inmesh,
     // if it already does not exist
 
     int setsize = ((Mesh_MSTK &) inmesh).get_set_size(setnames[i],
-                                                      setkind, OWNED);
+                                                      setkind, Parallel_type::OWNED);
 
     //  Now retrieve the entities in the set from MSTK
 
@@ -533,7 +530,7 @@ Mesh_MSTK::Mesh_MSTK(const Mesh& inmesh,
       int idx = 0;
       MEntity_ptr ment;
       while ((ment = (MEntity_ptr) MSet_Next_Entry(mset, &idx))) {
-        if (!MEnt_IsMarked(ment, mkid) && MEnt_PType(ment) != PGHOST) {
+        if (!MEnt_IsMarked(ment, mkid) && MEnt_PType(ment) != PParallel_type::GHOST) {
           List_Add(src_ents, ment);
           MEnt_Mark(ment, mkid);
         }
@@ -607,23 +604,22 @@ Mesh_MSTK::internal_name_of_set(const JaliGeometry::RegionPtr r,
       dynamic_cast<JaliGeometry::LabeledSetRegionPtr> (r);
     std::string label = lsrgn->label();
 
-    if (entity_kind == CELL)
+    if (entity_kind == Entity_kind::CELL)
       internal_name = "matset_" + label;
-    else if (entity_kind == FACE)
+    else if (entity_kind == Entity_kind::FACE)
       internal_name = "sideset_" + label;
-    else if (entity_kind == EDGE)
+    else if (entity_kind == Entity_kind::EDGE)
       internal_name = "edgeset_not_supported";
-    else if (entity_kind == NODE)
+    else if (entity_kind == Entity_kind::NODE)
       internal_name = "nodeset_" + label;
-  }
-  else {
-    if (entity_kind == CELL)
-      internal_name = "CELLSET_" + r->name();
-    else if (entity_kind == FACE)
+  } else {
+    if (entity_kind == Entity_kind::CELL)
+      internal_name = "Entity_kind::CELLSET_" + r->name();
+    else if (entity_kind == Entity_kind::FACE)
       internal_name = "FACESET_" + r->name();
-    else if (entity_kind == EDGE)
+    else if (entity_kind == Entity_kind::EDGE)
       internal_name = "EDGESET_not_supported";
-    else if (entity_kind == NODE)
+    else if (entity_kind == Entity_kind::NODE)
       internal_name = "NODESET_" + r->name();
   }
 
@@ -639,7 +635,7 @@ Mesh_MSTK::other_internal_name_of_set(const JaliGeometry::RegionPtr r,
 
   std::string internal_name;
 
-  if (r->type() == JaliGeometry::LABELEDSET && entity_kind == CELL) {
+  if (r->type() == JaliGeometry::LABELEDSET && entity_kind == Entity_kind::CELL) {
 
     JaliGeometry::LabeledSetRegionPtr lsrgn =
       dynamic_cast<JaliGeometry::LabeledSetRegionPtr> (r);
@@ -717,14 +713,14 @@ void Mesh_MSTK::extract_mstk_mesh(const Mesh_MSTK& inmesh,
     if (extrude) {
       Errors::Message mesg("Cannot extrude 3D cells");
       Exceptions::Jali_throw(mesg);
-    }
-    else
+    } else {
       set_cell_dimension(3);  // extract regions/cells from mesh
+    }
     break;
 
   case MFACE:
     if (extrude)
-      set_cell_dimension(3);  // extract faces and extrude them into regions/cells
+      set_cell_dimension(3);  // extract faces & extrude them into regions/cells
     else
       set_cell_dimension(2);  // extract faces from mesh
     break;
@@ -738,7 +734,7 @@ void Mesh_MSTK::extract_mstk_mesh(const Mesh_MSTK& inmesh,
     }
     break;
 
-  case NODE: {
+  case MVERTEX: {
     Errors::Message mesg("Vertex list passed into extract mesh. Cannot extract a point mesh");
     Exceptions::Jali_throw(mesg);
     break;
@@ -782,17 +778,16 @@ void Mesh_MSTK::extract_mstk_mesh(const Mesh_MSTK& inmesh,
         if (pval) {
           rfaces_new[i] = pval;
           rfdirs_new[i] = MR_FaceDir_i(mr, i);
-        }
-        else {
+        } else {
           List_ptr fverts = MF_Vertices(mf, 1, 0);
           int nfv = List_Num_Entries(fverts);
           MVertex_ptr fverts_new[MAXPV2];
           for (int j = 0; j < nfv; ++j) {
             MVertex_ptr mv = List_Entry(fverts, j);
             MEnt_Get_AttVal(mv, copyatt, &ival, &rval, &pval);
-            if (pval)
+            if (pval) {
               fverts_new[j] = pval;
-            else {
+            } else {
               fverts_new[j] = MV_New(mesh);
               MV_Coords(mv, xyz);
               MV_Set_Coords(fverts_new[j], xyz);
@@ -839,18 +834,18 @@ void Mesh_MSTK::extract_mstk_mesh(const Mesh_MSTK& inmesh,
       for (int j = 0; j < nfe; ++j) {
         MEdge_ptr me = List_Entry(fedges, j);
         MEnt_Get_AttVal(me, copyatt, &ival, &rval, &pval);
-        if (pval)
+        if (pval) {
           fedges_new[j] = pval;
-        else {
+        } else {
           fedges_new[j] = ME_New(mesh);
 
           for (int k = 0; k < 2; ++k) {
             MVertex_ptr mv = ME_Vertex(me, k);
             MVertex_ptr mv_new;
             MEnt_Get_AttVal(mv, copyatt, &ival, &rval, &pval);
-            if (pval)
+            if (pval) {
               mv_new = pval;
-            else {
+            } else {
               MV_Coords(mv, xyz);
               if (flatten) xyz[2] = 0.0;
               mv_new = MV_New(mesh);
@@ -897,9 +892,9 @@ void Mesh_MSTK::extract_mstk_mesh(const Mesh_MSTK& inmesh,
         MVertex_ptr mv_new;
 
         MEnt_Get_AttVal(mv, copyatt, &ival, &rval, &pval);
-        if (pval)
+        if (pval) {
           mv_new = pval;
-        else {
+        } else {
           MV_Coords(mv, xyz);
           if (flatten) {
             xyz[1] = 0.0;
@@ -1246,8 +1241,7 @@ void Mesh_MSTK::cell_get_faces_and_dirs_ordered(const Entity_ID cellid,
       if (celltype == TET || celltype == HEX) {
         face0 = List_Entry(rfaces, 0);
         fdir0 = MR_FaceDir_i((MRegion_ptr)cell, 0);
-      }
-      else if (celltype == PRISM) {  // Find the first triangular face
+      } else if (celltype == PRISM) {  // Find the first triangular face
         for (int i = 0; i < 5; ++i) {
           MFace_ptr face = List_Entry(rfaces, i);
           if (MF_Num_Edges(face) == 3) {
@@ -1256,8 +1250,7 @@ void Mesh_MSTK::cell_get_faces_and_dirs_ordered(const Entity_ID cellid,
             break;
           }
         }
-      }
-      else if (celltype == PYRAMID) {  // Find the quad face
+      } else if (celltype == PYRAMID) {  // Find the quad face
         for (int i = 0; i < 5; ++i) {
           MFace_ptr face = List_Entry(rfaces, i);
           if (MF_Num_Edges(face) == 4) {
@@ -1349,13 +1342,12 @@ void Mesh_MSTK::cell_get_faces_and_dirs_ordered(const Entity_ID cellid,
       MSTK_FreeMarker(mkid);
 
       List_Delete(rfaces);
-    }
-    else
+    } else {
       cell_get_faces_and_dirs_unordered(cellid, faceids, face_dirs);
-  }
-  else
+    }
+  } else {
     cell_get_faces_and_dirs_unordered(cellid, faceids, face_dirs);
-
+  }
 }
 
 
@@ -1412,8 +1404,7 @@ void Mesh_MSTK::cell_get_faces_and_dirs_unordered(const Entity_ID cellid,
         ++itd;
       }
     }
-  }
-  else {  // cell_dimension() = 2; surface or 2D mesh
+  } else {  // cell_dimension() = 2; surface or 2D mesh
     int nfe;
 
     List_ptr fedges;
@@ -1514,8 +1505,7 @@ void Mesh_MSTK::cell_get_edges_internal(const Entity_ID cellid,
       ++it;
     }
     */
-  }
-  else {  // cell_dimension() = 2; surface or 2D mesh
+  } else {  // cell_dimension() = 2; surface or 2D mesh
     int nfe;
 
     List_ptr fedges;
@@ -1616,7 +1606,7 @@ void Mesh_MSTK::cell_2D_get_edges_and_dirs_internal(const Entity_ID cellid,
 // On a distributed mesh, all nodes (OWNED or GHOST) of the cell
 // are returned
 // Nodes are returned in a standard order (Exodus II convention)
-// STANDARD CONVENTION WORKS ONLY FOR STANDARD CELL TYPES in 3D
+// STANDARD CONVENTION WORKS ONLY FOR STANDARD Entity_kind::CELL TYPES in 3D
 // For a general polyhedron this will return the nodes in
 // arbitrary order
 // In 2D, the nodes of the polygon will be returned in ccw order
@@ -1660,8 +1650,7 @@ void Mesh_MSTK::cell_get_nodes(const Entity_ID cellid,
     }
 
     List_Delete(rverts);
-  }
-  else {                                 // Surface mesh
+  } else {                                 // Surface mesh
     List_ptr fverts = MF_Vertices(cell, 1, 0);
 
     nn = List_Num_Entries(fverts);
@@ -1736,8 +1725,7 @@ void Mesh_MSTK::face_get_edges_and_dirs_internal(const Entity_ID faceid,
         ++itd;
       }
     }
-  }
-  else {  // cell_dimension() = 2; surface or 2D mesh
+  } else {  // cell_dimension() = 2; surface or 2D mesh
 
     // face is same dimension as edge; just return the edge with a
     // direction of 1
@@ -1800,15 +1788,13 @@ void Mesh_MSTK::face_get_nodes(const Entity_ID faceid,
     }
 
     List_Delete(fverts);
-  }
-  else {                // Surface mesh or 2D mesh
+  } else {                // Surface mesh or 2D mesh
     nodeids->resize(2);
 
     if (faceflip[faceid]) {
       (*nodeids)[0] = MEnt_ID(ME_Vertex(genface, 1))-1;
       (*nodeids)[1] = MEnt_ID(ME_Vertex(genface, 0))-1;
-    }
-    else {
+    } else {
       (*nodeids)[0] = MEnt_ID(ME_Vertex(genface, 0))-1;
       (*nodeids)[1] = MEnt_ID(ME_Vertex(genface, 1))-1;
     }
@@ -1827,8 +1813,7 @@ void Mesh_MSTK::edge_get_nodes(const Entity_ID edgeid,
   if (edgeflip[edgeid]) {
     *nodeid0 = MEnt_ID(ME_Vertex(edge, 1))-1;
     *nodeid1 = MEnt_ID(ME_Vertex(edge, 0))-1;
-  }
-  else {
+  } else {
     *nodeid0 = MEnt_ID(ME_Vertex(edge, 0))-1;
     *nodeid1 = MEnt_ID(ME_Vertex(edge, 1))-1;
   }
@@ -1851,7 +1836,7 @@ void Mesh_MSTK::node_get_cells(const Entity_ID nodeid,
   MVertex_ptr mv = (MVertex_ptr) vtx_id_to_handle[nodeid];
 
   /* Reserved for next major release of MSTK
-  if (MV_PType(mv) == PINTERIOR && ptype != GHOST) {
+  if (MV_PType(mv) == PINTERIOR && ptype != Parallel_type::GHOST) {
 
     if (cell_dimension() == 3) {
       int nvr, regionids[200];
@@ -1895,16 +1880,15 @@ void Mesh_MSTK::node_get_cells(const Entity_ID nodeid,
     int n = 0;
     idx = 0;
     while ((ment = List_Next_Entry(cell_list, &idx))) {
-      if (MEnt_PType(ment) == PGHOST) {
-        if (ptype == GHOST || ptype == ALL) {
+      if (MEnt_PType(ment) == PParallel_type::GHOST) {
+        if (ptype == Parallel_type::GHOST || ptype == Parallel_type::ALL) {
           lid = MEnt_ID(ment);
           *it = lid-1;  // assign to next spot by dereferencing iterator
           ++it;
           ++n;
         }
-      }
-      else {
-        if (ptype == OWNED || ptype == ALL) {
+      } else {
+        if (ptype == Parallel_type::OWNED || ptype == Parallel_type::ALL) {
           lid = MEnt_ID(ment);
           *it = lid-1;  // assign to next spot by dereferencing iterator
           ++it;
@@ -1941,7 +1925,7 @@ void Mesh_MSTK::node_get_faces(const Entity_ID nodeid,
   MVertex_ptr mv = (MVertex_ptr) vtx_id_to_handle[nodeid];
 
   /* Reserved for next major release of MSTK
-  if (MV_PType(mv) == PINTERIOR && ptype != GHOST) {
+  if (MV_PType(mv) == PINTERIOR && ptype != Parallel_type::GHOST) {
     if (cell_dimension() == 3) {
       int nvf, vfaceids[200];
 
@@ -1982,16 +1966,15 @@ void Mesh_MSTK::node_get_faces(const Entity_ID nodeid,
     Entity_ID_List::iterator it = faceids->begin();
     idx = 0; n = 0;
     while ((ment = List_Next_Entry(face_list, &idx))) {
-      if (MEnt_PType(ment) == PGHOST) {
-        if (ptype == GHOST || ptype == ALL) {
+      if (MEnt_PType(ment) == PParallel_type::GHOST) {
+        if (ptype == Parallel_type::GHOST || ptype == Parallel_type::ALL) {
           lid = MEnt_ID(ment);
           *it = lid-1;  // assign to next spot by dereferencing iterator
           ++it;
           ++n;
         }
-      }
-      else {
-        if (ptype == OWNED || ptype == ALL) {
+      } else {
+        if (ptype == Parallel_type::OWNED || ptype == Parallel_type::ALL) {
           lid = MEnt_ID(ment);
           *it = lid-1;  // assign to next spot by dereferencing iterator
           ++it;
@@ -2019,8 +2002,7 @@ void Mesh_MSTK::node_get_faces(const Entity_ID nodeid,
 void Mesh_MSTK::node_get_cell_faces(const Entity_ID nodeid,
                                     const Entity_ID cellid,
                                     const Parallel_type ptype,
-                                    std::vector<Entity_ID> *faceids) const
-{
+                                    std::vector<Entity_ID> *faceids) const {
   int idx, lid, n;
   List_ptr cell_list;
   MEntity_ptr ment;
@@ -2044,16 +2026,15 @@ void Mesh_MSTK::node_get_cell_faces(const Entity_ID nodeid,
     while ((mf = List_Next_Entry(rfaces, &idx))) {
       if (!MF_UsesEntity(mf, mv, MVERTEX)) continue;
 
-      if (MEnt_PType(mf) == PGHOST) {
-        if (ptype == GHOST || ptype == ALL) {
+      if (MEnt_PType(mf) == PParallel_type::GHOST) {
+        if (ptype == Parallel_type::GHOST || ptype == Parallel_type::ALL) {
           lid = MEnt_ID(mf);
           *it = lid-1;  // assign to next spot by dereferencing iterator
           ++it;
           ++n;
         }
-      }
-      else {
-        if (ptype == OWNED || ptype == ALL) {
+      } else {
+        if (ptype == Parallel_type::OWNED || ptype == Parallel_type::ALL) {
           lid = MEnt_ID(mf);
           *it = lid-1;  // assign to next spot by dereferencing iterator
           ++it;
@@ -2063,8 +2044,7 @@ void Mesh_MSTK::node_get_cell_faces(const Entity_ID nodeid,
     }
     faceids->resize(n);  // resize to the actual number of faces being returned
     List_Delete(rfaces);
-  }
-  else {
+  } else {
     mf = (MFace_ptr) cell_id_to_handle[cellid];
     List_ptr fedges = MF_Edges(mf, 1, 0);
 
@@ -2075,16 +2055,15 @@ void Mesh_MSTK::node_get_cell_faces(const Entity_ID nodeid,
     while ((me = List_Next_Entry(fedges, &idx))) {
       if (!ME_UsesEntity(me, mv, MVERTEX)) continue;
 
-      if (MEnt_PType(me) == PGHOST) {
-        if (ptype == GHOST || ptype == ALL) {
+      if (MEnt_PType(me) == PParallel_type::GHOST) {
+        if (ptype == Parallel_type::GHOST || ptype == Parallel_type::ALL) {
           lid = MEnt_ID(me);
           *it = lid-1;  // assign to next spot by dereferencing iterator
           ++it;
           ++n;
         }
-      }
-      else {
-        if (ptype == OWNED || ptype == ALL) {
+      } else {
+        if (ptype == Parallel_type::OWNED || ptype == Parallel_type::ALL) {
           lid = MEnt_ID(me);
           *it = lid-1;  // assign to next spot by dereferencing iterator
           ++it;
@@ -2118,25 +2097,23 @@ void Mesh_MSTK::face_get_cells_internal(const Entity_ID faceid,
 
     List_ptr fregs = MF_Regions(mf);
     MRegion_ptr mr;
-    if (ptype == ALL) {
+    if (ptype == Parallel_type::ALL) {
       int idx = 0;
       while ((mr = List_Next_Entry(fregs, &idx))) {
         *it = MR_ID(mr)-1;  // assign to next spot by dereferencing iterator
         ++it;
         ++n;
       }
-    }
-    else {
+    } else {
       int idx = 0;
       while ((mr = List_Next_Entry(fregs, &idx))) {
-        if (MEnt_PType(mr) == PGHOST) {
-          if (ptype == GHOST) {
+        if (MEnt_PType(mr) == PParallel_type::GHOST) {
+          if (ptype == Parallel_type::GHOST) {
             *it = MR_ID(mr)-1;  // assign to next spot by dereferencing iterator
             ++it;
             ++n;
           }
-        }
-        else {
+        } else {
           *it = MR_ID(mr)-1;  // assign to next spot by dereferencing iterator
           ++it;
           ++n;
@@ -2145,32 +2122,29 @@ void Mesh_MSTK::face_get_cells_internal(const Entity_ID faceid,
     }
     List_Delete(fregs);
 
-  }
-  else {
+  } else {
     MEdge_ptr me = (MEdge_ptr) face_id_to_handle[faceid];
 
     List_ptr efaces = ME_Faces(me);
     MFace_ptr mf;
-    if (ptype == ALL) {
+    if (ptype == Parallel_type::ALL) {
       int idx = 0;
       while ((mf = List_Next_Entry(efaces, &idx))) {
         *it = MF_ID(mf)-1;  // assign to next spot by dereferencing iterator
         ++it;
         ++n;
       }
-    }
-    else {
+    } else {
       int idx = 0;
       while ((mf = List_Next_Entry(efaces, &idx))) {
-        if (MEnt_PType(mf) == PGHOST) {
-          if (ptype == GHOST) {
+        if (MEnt_PType(mf) == PParallel_type::GHOST) {
+          if (ptype == Parallel_type::GHOST) {
             *it = MF_ID(mf)-1;  // assign to next spot by dereferencing iterator
             ++it;
             ++n;
           }
-        }
-        else {
-          if (ptype == OWNED) {
+        } else {
+          if (ptype == Parallel_type::OWNED) {
             *it = MF_ID(mf)-1;  // assign to next spot by dereferencing iterator
             ++it;
             ++n;
@@ -2220,14 +2194,13 @@ void Mesh_MSTK::cell_get_face_adj_cells(const Entity_ID cellid,
       MRegion_ptr mr2;
       while ((mr2 = List_Next_Entry(fregs, &idx2))) {
         if (mr2 != mr) {
-          if (MEnt_PType(mr2) == PGHOST) {
-            if (ptype == GHOST || ptype == ALL) {
+          if (MEnt_PType(mr2) == PParallel_type::GHOST) {
+            if (ptype == Parallel_type::GHOST || ptype == Parallel_type::ALL) {
               lid = MEnt_ID(mr2);
               fadj_cellids->push_back(lid-1);
             }
-          }
-          else {
-            if (ptype == OWNED || ptype == ALL) {
+          } else {
+            if (ptype == Parallel_type::OWNED || ptype == Parallel_type::ALL) {
               lid = MEnt_ID(mr2);
               fadj_cellids->push_back(lid-1);
             }
@@ -2239,8 +2212,7 @@ void Mesh_MSTK::cell_get_face_adj_cells(const Entity_ID cellid,
 
     List_Delete(rfaces);
 
-  }
-  else if (cell_dimension() == 2) {
+  } else if (cell_dimension() == 2) {
 
     MFace_ptr mf = (MFace_ptr) cell_id_to_handle[cellid];
 
@@ -2253,14 +2225,13 @@ void Mesh_MSTK::cell_get_face_adj_cells(const Entity_ID cellid,
       MFace_ptr mf2;
       while ((mf2 = List_Next_Entry(efaces, &idx2))) {
         if (mf2 != mf) {
-          if (MEnt_PType(mf2) == PGHOST) {
-            if (ptype == GHOST || ptype == ALL) {
+          if (MEnt_PType(mf2) == PParallel_type::GHOST) {
+            if (ptype == Parallel_type::GHOST || ptype == Parallel_type::ALL) {
               lid = MEnt_ID(mf2);
               fadj_cellids->push_back(lid-1);
             }
-          }
-          else {
-            if (ptype == OWNED || ptype == ALL) {
+          } else {
+            if (ptype == Parallel_type::OWNED || ptype == Parallel_type::ALL) {
               lid = MEnt_ID(mf2);
               fadj_cellids->push_back(lid-1);
             }
@@ -2313,14 +2284,13 @@ void Mesh_MSTK::cell_get_node_adj_cells(const Entity_ID cellid,
         if (mr2 != mr && !MEnt_IsMarked(mr2, mkid)) {
           MEnt_Mark(mr2, mkid);
           List_Add(cell_list, mr2);
-          if (MEnt_PType(mr2) == PGHOST) {
-            if (ptype == GHOST || ptype == ALL) {
+          if (MEnt_PType(mr2) == PParallel_type::GHOST) {
+            if (ptype == Parallel_type::GHOST || ptype == Parallel_type::ALL) {
               lid = MEnt_ID(mr2);
               nadj_cellids->push_back(lid-1);
             }
-          }
-          else {
-            if (ptype == OWNED || ptype == ALL) {
+          } else {
+            if (ptype == Parallel_type::OWNED || ptype == Parallel_type::ALL) {
               lid = MEnt_ID(mr2);
               nadj_cellids->push_back(lid-1);
             }
@@ -2332,8 +2302,7 @@ void Mesh_MSTK::cell_get_node_adj_cells(const Entity_ID cellid,
 
     List_Delete(rvertices);
 
-  }
-  else if (cell_dimension() == 2) {
+  } else if (cell_dimension() == 2) {
 
     MFace_ptr mf = (MFace_ptr) cell_id_to_handle[cellid];
 
@@ -2348,14 +2317,13 @@ void Mesh_MSTK::cell_get_node_adj_cells(const Entity_ID cellid,
         if (mf2 != mf && !MEnt_IsMarked(mf2, mkid)) {
           MEnt_Mark(mf2, mkid);
           List_Add(cell_list, mf2);
-          if (MEnt_PType(mf2) == PGHOST) {
-            if (ptype == GHOST || ptype == ALL) {
+          if (MEnt_PType(mf2) == PParallel_type::GHOST) {
+            if (ptype == Parallel_type::GHOST || ptype == Parallel_type::ALL) {
               lid = MEnt_ID(mf2);
               nadj_cellids->push_back(lid-1);
             }
-          }
-          else {
-            if (ptype == OWNED || ptype == ALL) {
+          } else {
+            if (ptype == Parallel_type::OWNED || ptype == Parallel_type::ALL) {
               lid = MEnt_ID(mf2);
               nadj_cellids->push_back(lid-1);
             }
@@ -2395,14 +2363,14 @@ void Mesh_MSTK::node_get_coordinates(const Entity_ID nodeid,
 
 
 // Coordinates of cells in standard order (Exodus II convention)
-// STANDARD CONVENTION WORKS ONLY FOR STANDARD CELL TYPES IN 3D
+// STANDARD CONVENTION WORKS ONLY FOR STANDARD Entity_kind::CELL TYPES IN 3D
 // For a general polyhedron this will return the node coordinates in
 // arbitrary order
 // Number of nodes is vector size divided by number of spatial dimensions
 
 void Mesh_MSTK::cell_get_coordinates(const Entity_ID cellid,
                                      std::vector<JaliGeometry::Point> *ccoords)
- const {
+    const {
   MEntity_ptr cell;
   double coords[3];
   int nn, result;
@@ -2427,8 +2395,7 @@ void Mesh_MSTK::cell_get_coordinates(const Entity_ID cellid,
     }
 
     List_Delete(rverts);
-  }
-  else if (celldim == 2) {
+  } else if (celldim == 2) {
     List_ptr fverts = MF_Vertices(cell, 1, 0);
 
     nn = List_Num_Entries(fverts);
@@ -2455,7 +2422,7 @@ void Mesh_MSTK::cell_get_coordinates(const Entity_ID cellid,
 
 void Mesh_MSTK::face_get_coordinates(const Entity_ID faceid,
                                      std::vector<JaliGeometry::Point> *fcoords)
- const {
+    const {
   MEntity_ptr genface;
   double coords[3];
   int spdim = space_dimension(), celldim = cell_dimension();
@@ -2481,14 +2448,12 @@ void Mesh_MSTK::face_get_coordinates(const Entity_ID faceid,
     }
 
     List_Delete(fverts);
-  }
-  else {  // Planar mesh or Surface mesh embedded in 3D
+  } else {  // Planar mesh or Surface mesh embedded in 3D
     MVertex_ptr ev[2];
     if (!faceflip[faceid]) {
       ev[0] = ME_Vertex((MEdge_ptr)genface, 0);
       ev[1] = ME_Vertex((MEdge_ptr)genface, 1);
-    }
-    else {
+    } else {
       ev[1] = ME_Vertex((MEdge_ptr)genface, 0);
       ev[0] = ME_Vertex((MEdge_ptr)genface, 1);
     }
@@ -2511,7 +2476,7 @@ void Mesh_MSTK::face_get_coordinates(const Entity_ID faceid,
 void Mesh_MSTK::node_set_coordinates(const Jali::Entity_ID nodeid,
                                       const double *coords) {
   MVertex_ptr v = vtx_id_to_handle[nodeid];
-  MV_Set_Coords(v, (double *)coords);
+  MV_Set_Coords(v, (double *) coords);
 }
 
 void Mesh_MSTK::node_set_coordinates(const Jali::Entity_ID nodeid,
@@ -2522,7 +2487,7 @@ void Mesh_MSTK::node_set_coordinates(const Jali::Entity_ID nodeid,
   for (int i = 0; i < Mesh::space_dimension(); i++)
     coordarray[i] = coords[i];
 
-  MV_Set_Coords(v, (double *)coordarray);
+  MV_Set_Coords(v, (double *) coordarray);
 }
 
 
@@ -2542,7 +2507,7 @@ MSet_ptr Mesh_MSTK::build_set(const JaliGeometry::RegionPtr region,
   MSet_ptr mset;
   MType enttype;
   switch (kind) {
-  case CELL:    // cellsets
+  case Entity_kind::CELL:    // cellsets
 
     enttype = (celldim == 3) ? MREGION : MFACE;
     mset = MSet_New(mesh, internal_name.c_str(), enttype);
@@ -2550,20 +2515,19 @@ MSet_ptr Mesh_MSTK::build_set(const JaliGeometry::RegionPtr region,
     if (region->type() == JaliGeometry::BOX ||
         region->type() == JaliGeometry::COLORFUNCTION) {
 
-      int ncell = Mesh::num_entities(CELL, ALL);
+      int ncell = Mesh::num_entities(Entity_kind::CELL, Parallel_type::ALL);
 
       for (int icell = 0; icell < ncell; icell++)
         if (region->inside(cell_centroid(icell)))
           MSet_Add(mset, cell_id_to_handle[icell]);
 
-    }
-    else if (region->type() == JaliGeometry::POINT) {
+    } else if (region->type() == JaliGeometry::POINT) {
       JaliGeometry::Point vpnt(spacedim);
       JaliGeometry::Point rgnpnt(spacedim);
 
       rgnpnt = ((JaliGeometry::PointRegionPtr)region)->point();
 
-      int nnode = Mesh::num_entities(NODE, ALL);
+      int nnode = Mesh::num_entities(Entity_kind::NODE, Parallel_type::ALL);
       double mindist2 = 1.e+16;
       int minnode = -1;
 
@@ -2583,7 +2547,7 @@ MSet_ptr Mesh_MSTK::build_set(const JaliGeometry::RegionPtr region,
 
       Entity_ID_List cells, cells1;
 
-      node_get_cells(minnode, ALL, &cells);
+      node_get_cells(minnode, Parallel_type::ALL, &cells);
 
       int ncells = cells.size();
       for (int ic = 0; ic < ncells; ic++) {
@@ -2594,12 +2558,11 @@ MSet_ptr Mesh_MSTK::build_set(const JaliGeometry::RegionPtr region,
           MSet_Add(mset, cell_id_to_handle[icell]);
       }
 
-    }
-    else if (region->type() == JaliGeometry::PLANE) {
+    } else if (region->type() == JaliGeometry::PLANE) {
 
       if (celldim == 2) {
 
-        int ncells = Mesh::num_entities(CELL, ALL);
+        int ncells = Mesh::num_entities(Entity_kind::CELL, Parallel_type::ALL);
         for (int ic = 0; ic < ncells; ic++) {
 
           std::vector<JaliGeometry::Point> ccoords(spacedim);
@@ -2619,11 +2582,9 @@ MSet_ptr Mesh_MSTK::build_set(const JaliGeometry::RegionPtr region,
         }
       }
 
-    }
-    else if (region->type() == JaliGeometry::LOGICAL) {
+    } else if (region->type() == JaliGeometry::LOGICAL) {
       // will process later in this subroutine
-    }
-    else if (region->type() == JaliGeometry::LABELEDSET) {
+    } else if (region->type() == JaliGeometry::LABELEDSET) {
       // Just retrieve and return the set
 
       JaliGeometry::LabeledSetRegionPtr lsrgn =
@@ -2631,14 +2592,15 @@ MSet_ptr Mesh_MSTK::build_set(const JaliGeometry::RegionPtr region,
       std::string label = lsrgn->label();
       std::string entity_type = lsrgn->entity_str();
 
-      if (entity_type != "CELL") {
+      if (entity_type != "Entity_kind::CELL") {
         Errors::Message mesg("Entity type of labeled set region and build_set request do not match");
         Exceptions::Jali_throw(mesg);
       }
 
       mset = MESH_MSetByName(mesh, internal_name.c_str());
 
-      std::string other_internal_name = other_internal_name_of_set(region, kind);
+      std::string other_internal_name =
+          other_internal_name_of_set(region, kind);
       MSet_ptr mset2 = MESH_MSetByName(mesh, other_internal_name.c_str());
 
       if (mset) {
@@ -2648,34 +2610,35 @@ MSet_ptr Mesh_MSTK::build_set(const JaliGeometry::RegionPtr region,
           Errors::Message mesg(mesg_stream.str());
           Exceptions::Jali_throw(mesg);
         }
-      }
-      else {
+      } else {
         if (mset2)
           mset = mset2;
         else {
           std::stringstream mesg_stream;
-          mesg_stream << "Exodus II file has no labeled cell set with ID " << label;
+          mesg_stream << "Exodus II file has no labeled cell set with ID " <<
+              label;
           Errors::Message mesg(mesg_stream.str());
           Exceptions::Jali_throw(mesg);
         }
       }
-    }
-    else {
+    } else {
       Errors::Message mesg("Region type not applicable/supported for cell sets");
       Exceptions::Jali_throw(mesg);
     }
 
     break;
 
-  case FACE:  // sidesets
+  case Entity_kind::FACE:  // sidesets
 
     //
     // Commented out so that we can ask for a face set in a 3D box
     //
     //          if (region->dimension() != celldim-1)
     //            {
-    //              std::cerr << "No region of dimension " << celldim-1 << " defined in geometric model" << std::endl;
-    //              std::cerr << "Cannot construct cell set from region " << setname << std::endl;
+    //              std::cerr << "No region of dimension " << celldim-1 <<
+    //              " defined in geometric model" << std::endl;
+    //              std::cerr << "Cannot construct cell set from region " <<
+    //                  setname << std::endl;
     //            }
 
     enttype = (celldim == 3) ? MFACE : MEDGE;
@@ -2683,18 +2646,17 @@ MSet_ptr Mesh_MSTK::build_set(const JaliGeometry::RegionPtr region,
 
     if (region->type() == JaliGeometry::BOX)  {
 
-      int nface = Mesh::num_entities(FACE, ALL);
+      int nface = Mesh::num_entities(Entity_kind::FACE, Parallel_type::ALL);
 
       for (int iface = 0; iface < nface; iface++) {
         if (region->inside(face_centroid(iface)))
           MSet_Add(mset, face_id_to_handle[iface]);
 
       }
-    }
-    else if (region->type() == JaliGeometry::PLANE ||
-             region->type() == JaliGeometry::POLYGON) {
+    } else if (region->type() == JaliGeometry::PLANE ||
+               region->type() == JaliGeometry::POLYGON) {
 
-      int nface = Mesh::num_entities(FACE, ALL);
+      int nface = Mesh::num_entities(Entity_kind::FACE, Parallel_type::ALL);
 
       for (int iface = 0; iface < nface; iface++) {
         std::vector<JaliGeometry::Point> fcoords(spacedim);
@@ -2713,8 +2675,7 @@ MSet_ptr Mesh_MSTK::build_set(const JaliGeometry::RegionPtr region,
           MSet_Add(mset, face_id_to_handle[iface]);
       }
 
-    }
-    else if (region->type() == JaliGeometry::LABELEDSET) {
+    } else if (region->type() == JaliGeometry::LABELEDSET) {
       // Just retrieve and return the set
 
       JaliGeometry::LabeledSetRegionPtr lsrgn =
@@ -2722,23 +2683,21 @@ MSet_ptr Mesh_MSTK::build_set(const JaliGeometry::RegionPtr region,
       std::string label = lsrgn->label();
       std::string entity_type = lsrgn->entity_str();
 
-      if (entity_type != "FACE") {
+      if (entity_type != "Entity_kind::FACE") {
         Errors::Message mesg("Entity type of labeled set region and build_set request do not match");
         Exceptions::Jali_throw(mesg);
       }
 
       mset = MESH_MSetByName(mesh, internal_name.c_str());
-    }
-    else if (region->type() == JaliGeometry::LOGICAL) {
+    } else if (region->type() == JaliGeometry::LOGICAL) {
       // Will handle it later in the routine
-    }
-    else {
+    } else {
       Errors::Message mesg("Region type not applicable/supported for face sets");
       Exceptions::Jali_throw(mesg);
     }
     break;
 
-  case NODE:  // Nodesets
+  case Entity_kind::NODE:  // Nodesets
 
     enttype = MVERTEX;
     mset = MSet_New(mesh, internal_name.c_str(), enttype);
@@ -2748,7 +2707,7 @@ MSet_ptr Mesh_MSTK::build_set(const JaliGeometry::RegionPtr region,
         region->type() == JaliGeometry::POLYGON ||
         region->type() == JaliGeometry::POINT) {
 
-      int nnode = Mesh::num_entities(NODE, ALL);
+      int nnode = Mesh::num_entities(Entity_kind::NODE, Parallel_type::ALL);
 
       for (int inode = 0; inode < nnode; inode++) {
 
@@ -2763,8 +2722,7 @@ MSet_ptr Mesh_MSTK::build_set(const JaliGeometry::RegionPtr region,
             break;
         }
       }
-    }
-    else if (region->type() == JaliGeometry::LABELEDSET) {
+    } else if (region->type() == JaliGeometry::LABELEDSET) {
       // Just retrieve and return the set
 
       JaliGeometry::LabeledSetRegionPtr lsrgn =
@@ -2772,17 +2730,15 @@ MSet_ptr Mesh_MSTK::build_set(const JaliGeometry::RegionPtr region,
       std::string label = lsrgn->label();
       std::string entity_type = lsrgn->entity_str();
 
-      if (entity_type != "FACE") {
+      if (entity_type != "Entity_kind::FACE") {
         Errors::Message mesg("Entity type of labeled set region and build_set request do not match");
         Exceptions::Jali_throw(mesg);
       }
 
       mset = MESH_MSetByName(mesh, internal_name.c_str());
-    }
-    else if (region->type() == JaliGeometry::LOGICAL) {
+    } else if (region->type() == JaliGeometry::LOGICAL) {
       // We will handle it later in the routine
-    }
-    else {
+    } else {
       Errors::Message mesg("Region type not applicable/supported for node sets");
       Exceptions::Jali_throw(mesg);
     }
@@ -2868,8 +2824,7 @@ MSet_ptr Mesh_MSTK::build_set(const JaliGeometry::RegionPtr region,
       for (int ms = 0; ms < msets.size(); ms++)
         MSet_Unmark(msets[ms], mkid);
 
-    }
-    else if (boolregion->operation() == JaliGeometry::UNION) {
+    } else if (boolregion->operation() == JaliGeometry::UNION) {
 
       for (int ms = 0; ms < msets.size(); ms++) {
         MEntity_ptr ment;
@@ -2882,8 +2837,7 @@ MSet_ptr Mesh_MSTK::build_set(const JaliGeometry::RegionPtr region,
       }
       MSet_Unmark(mset, mkid);
 
-    }
-    else if (boolregion->operation() == JaliGeometry::SUBTRACT) {
+    } else if (boolregion->operation() == JaliGeometry::SUBTRACT) {
 
       /* Mark entities in all sets except the first */
 
@@ -2903,8 +2857,7 @@ MSet_ptr Mesh_MSTK::build_set(const JaliGeometry::RegionPtr region,
       for (int ms = 1; ms < msets.size(); ms++)
         MSet_Unmark(msets[ms], mkid);
 
-    }
-    else if (boolregion->operation() == JaliGeometry::INTERSECT) {
+    } else if (boolregion->operation() == JaliGeometry::INTERSECT) {
 
       /* Can't do this using markers alone - need attributes */
 
@@ -3009,15 +2962,14 @@ void Mesh_MSTK::get_set_entities(const std::string setname,
     std::string label = lsrgn->label();
     std::string entity_type = lsrgn->entity_str();
     
-    if ((kind == CELL && entity_type != "CELL") ||
-        (kind == FACE && entity_type != "FACE") ||
-        (kind == NODE && entity_type != "NODE")) {
+    if ((kind == Entity_kind::CELL && entity_type != "CELL") ||
+        (kind == Entity_kind::FACE && entity_type != "FACE") ||
+        (kind == Entity_kind::NODE && entity_type != "NODE")) {
       std::cerr << "Found labeled set region named " << setname << " but it contains entities of type " << entity_type << ", not the requested type of " << kind_to_string[kind];
-    }
-    else {
+    } else {
       mset1 = MESH_MSetByName(mesh, internal_name.c_str());
       
-      if (!mset1 && kind == CELL) {
+      if (!mset1 && kind == Entity_kind::CELL) {
         // Since both element blocks and cell sets are referenced
         // with the region type 'Labeled Set' and Entity kind 'Cell'
         // we have to account for both possibilities. NOTE: THIS
@@ -3043,8 +2995,7 @@ void Mesh_MSTK::get_set_entities(const std::string setname,
         }
       }
     }
-  }
-  else {
+  } else {
     // Modify region/set name by prefixing it with the type of
     // entity requested
     
@@ -3055,19 +3006,19 @@ void Mesh_MSTK::get_set_entities(const std::string setname,
     MType entdim;
     
     switch (kind) {
-      case CELL:
+      case Entity_kind::CELL:
         if (celldim == 3)
           entdim = MREGION;
         else if (celldim == 2)
           entdim = MFACE;
         break;
-      case FACE:
+      case Entity_kind::FACE:
         if (celldim == 3)
           entdim = MFACE;
         else if (celldim == 2)
           entdim = MEDGE;
         break;
-      case NODE:
+      case Entity_kind::NODE:
         entdim = MVERTEX;
     }
     
@@ -3117,27 +3068,27 @@ void Mesh_MSTK::get_set_entities(const std::string setname,
     nent_loc = 0;  // reset and count to get the real number
 
     switch (ptype) {
-    case OWNED:
+    case Parallel_type::OWNED:
       idx = 0;
       while ((ment = MSet_Next_Entry(mset1, &idx))) {
-        if (MEnt_PType(ment) != PGHOST) {
+        if (MEnt_PType(ment) != PParallel_type::GHOST) {
           *it = MEnt_ID(ment) - 1;  // assign to next spot by dereferencing iterator
           ++it;
           ++nent_loc;
         }
       }
       break;
-    case GHOST:
+    case Parallel_type::GHOST:
       idx = 0;
       while ((ment = MSet_Next_Entry(mset1, &idx))) {
-        if (MEnt_PType(ment) == PGHOST) {
+        if (MEnt_PType(ment) == PParallel_type::GHOST) {
           *it = MEnt_ID(ment) - 1;  // assign to next spot by dereferencing iterator
           ++it;
           ++nent_loc;
         }
       }
       break;
-    case ALL:
+    case Parallel_type::ALL:
       idx = 0;
       while ((ment = MSet_Next_Entry(mset1, &idx))) {
         *it = MEnt_ID(ment)-1;  // assign to next spot by dereferencing iterator
@@ -3158,7 +3109,8 @@ void Mesh_MSTK::get_set_entities(const std::string setname,
 
   if (nent_glob == 0) {
     std::stringstream mesg_stream;
-    mesg_stream << "Could not retrieve any mesh entities of type " << setkind << " for set " << setname << std::endl;
+    mesg_stream << "Could not retrieve any mesh entities of type " <<
+        setkind << " for set " << setname << std::endl;
     Errors::Message mesg(mesg_stream.str());
     Exceptions::Jali_throw(mesg);
   }
@@ -3200,8 +3152,8 @@ unsigned int Mesh_MSTK::get_set_size(const std::string setname,
 
 // Parent entity in the source mesh if mesh was derived from another mesh
 
-Entity_ID Mesh_MSTK::entity_get_parent (const Entity_kind kind,
-                                        const Entity_ID entid) const {
+Entity_ID Mesh_MSTK::entity_get_parent(const Entity_kind kind,
+                                       const Entity_ID entid) const {
   int ival;
   double rval;
   void *pval;
@@ -3209,19 +3161,19 @@ Entity_ID Mesh_MSTK::entity_get_parent (const Entity_kind kind,
   MAttrib_ptr att;
 
   switch (kind) {
-    case CELL:
+    case Entity_kind::CELL:
       att = (cell_dimension() == 3) ? rparentatt : fparentatt;
       ment = (MEntity_ptr) cell_id_to_handle[entid];
       break;
-    case FACE:
+    case Entity_kind::FACE:
       att = (cell_dimension() == 3) ? fparentatt : eparentatt;
       ment = (MEntity_ptr) face_id_to_handle[entid];
       break;
-    case EDGE:
+    case Entity_kind::EDGE:
       att = eparentatt;
       ment = (MEntity_ptr) edge_id_to_handle[entid];
       break;
-    case NODE:
+    case Entity_kind::NODE:
       if (!vparentatt) return 0;
       att = vparentatt;
       ment = (MEntity_ptr) vtx_id_to_handle[entid];
@@ -3247,19 +3199,19 @@ Entity_ID Mesh_MSTK::GID(const Entity_ID lid, const Entity_kind kind) const {
   unsigned int gid;
 
   switch (kind) {
-  case NODE:
+  case Entity_kind::NODE:
     ent = vtx_id_to_handle[lid];
     break;
 
-  case EDGE:
+  case Entity_kind::EDGE:
     ent = edge_id_to_handle[lid];
     break;
 
-  case FACE:
+  case Entity_kind::FACE:
     ent = face_id_to_handle[lid];
     break;
 
-  case CELL:
+  case Entity_kind::CELL:
     ent = cell_id_to_handle[lid];
     break;
   default:
@@ -3638,7 +3590,7 @@ void Mesh_MSTK::init_pvert_lists() {
 
   idx = 0;
   while ((vtx = MESH_Next_Vertex(mesh, &idx))) {
-    if (MV_PType(vtx) == PGHOST)
+    if (MV_PType(vtx) == PParallel_type::GHOST)
       MSet_Add(NotOwnedVerts, vtx);
     else
       MSet_Add(OwnedVerts, vtx);
@@ -3660,7 +3612,7 @@ void Mesh_MSTK::init_pedge_lists() {
 
   idx = 0;
   while ((edge = MESH_Next_Edge(mesh, &idx))) {
-    if (ME_PType(edge) == PGHOST)
+    if (ME_PType(edge) == PParallel_type::GHOST)
       MSet_Add(NotOwnedEdges, edge);
     else
       MSet_Add(OwnedEdges, edge);
@@ -3685,8 +3637,7 @@ void Mesh_MSTK::init_pedge_dirs() {
   if (serial_run) {
     edgeflip = new bool[ne];
     for (int i = 0; i < ne; ++i) edgeflip[i] = false;
-  }
-  else {
+  } else {
     // Do some additional processing to see if ghost edges and their masters
     // are oriented the same way; if not, turn on flag to flip the directions
     // when returning to the application code
@@ -3730,14 +3681,15 @@ void Mesh_MSTK::init_pedge_dirs() {
           remote_vertexid0 == local_vertexid1) {
         int lid = MEnt_ID(edge);
         edgeflip[lid-1] = true;
-      }
-      else { // Sanity Check
+      } else { // Sanity Check
 
         if (remote_vertexid1 != local_vertexid1 &&
             remote_vertexid0 != local_vertexid0) {
 
           std::stringstream mesg_stream;
-          mesg_stream << "Edge vertices mismatch between master and ghost (processor " << myprocid << ")";
+          mesg_stream <<
+              "Edge vertices mismatch between master and ghost (processor " <<
+              myprocid << ")";
           Errors::Message mesg(mesg_stream.str());
           Jali_throw(mesg);
         }
@@ -3763,13 +3715,12 @@ void Mesh_MSTK::init_pface_lists() {
 
     idx = 0;
     while ((face = MESH_Next_Face(mesh, &idx))) {
-      if (MF_PType(face) == PGHOST)
+      if (MF_PType(face) == PParallel_type::GHOST)
         MSet_Add(NotOwnedFaces, face);
       else
         MSet_Add(OwnedFaces, face);
     }
-  }
-  else if (cell_dimension() == 2) {
+  } else if (cell_dimension() == 2) {
 
     MEdge_ptr edge;
 
@@ -3778,13 +3729,12 @@ void Mesh_MSTK::init_pface_lists() {
 
     idx = 0;
     while ((edge = MESH_Next_Edge(mesh, &idx))) {
-      if (ME_PType(edge) == PGHOST)
+      if (ME_PType(edge) == PParallel_type::GHOST)
         MSet_Add(NotOwnedFaces, edge);
       else
         MSet_Add(OwnedFaces, edge);
     }
-  }
-  else {
+  } else {
     std::cerr << "Not implemented for face dimension" << std::endl;
   }
 
@@ -3809,8 +3759,7 @@ void Mesh_MSTK::init_pface_dirs() {
   if (serial_run) {
     faceflip = new bool[nf];
     for (int i = 0; i < nf; ++i) faceflip[i] = false;
-  }
-  else {
+  } else {
     // Do some additional processing to see if ghost faces and their masters
     // are oriented the same way; if not, turn on flag to flip the directions
     // when returning to the application code
@@ -3818,8 +3767,7 @@ void Mesh_MSTK::init_pface_dirs() {
     if (cell_dimension() == 3) {
       attfc0 = MAttrib_New(mesh, "TMP_FC0_ATT", INT, MFACE);
       attfc1 = MAttrib_New(mesh, "TMP_FC1_ATT", INT, MFACE);
-    }
-    else if (cell_dimension() == 2) {
+    } else if (cell_dimension() == 2) {
       attfc0 = MAttrib_New(mesh, "TMP_FC0_ATT", INT, MEDGE);
       attfc1 = MAttrib_New(mesh, "TMP_FC1_ATT", INT, MEDGE);
     }
@@ -3839,8 +3787,7 @@ void Mesh_MSTK::init_pface_dirs() {
         }
       }
 
-    }
-    else if (cell_dimension() == 2) {
+    } else if (cell_dimension() == 2) {
 
       idx = 0;
       while ((edge = MESH_Next_Edge(mesh, &idx))) {
@@ -3857,10 +3804,10 @@ void Mesh_MSTK::init_pface_dirs() {
               if (MF_EdgeDir(face0, edge) == 1)     // Sanity check
                 MEnt_Set_AttVal(edge, attfc0, MEnt_GlobalID(face0), 0.0, NULL);
               else
-                std::cerr << "Two faces using edge in same direction in 2D mesh" << std::endl;
+                std::cerr <<
+                    "Two faces using edge in same direction in 2D mesh\n";
             }
-          }
-          else {
+          } else {
             MEnt_Set_AttVal(edge, attfc0, MEnt_GlobalID(face0), 0.0, NULL);
             face1 = List_Entry(efaces, 1);
             if (face1)
@@ -3900,21 +3847,21 @@ void Mesh_MSTK::init_pface_dirs() {
             remote_regid0 == local_regid1) {
           int lid = MEnt_ID(face);
           faceflip[lid-1] = true;
-        }
-        else {  // Sanity Check
+        } else {  // Sanity Check
 
           if (remote_regid1 != local_regid1 &&
               remote_regid0 != local_regid0) {
 
             std::stringstream mesg_stream;
-            mesg_stream << "Face cells mismatch between master and ghost (processor " << myprocid << ")";
+            mesg_stream <<
+                "Face cells mismatch between master and ghost (processor " <<
+                myprocid << ")";
             Errors::Message mesg(mesg_stream.str());
             Jali_throw(mesg);
           }
         }
       }
-    }
-    else if (cell_dimension() == 2) {
+    } else if (cell_dimension() == 2) {
       double rval;
       void *pval;
 
@@ -3938,14 +3885,15 @@ void Mesh_MSTK::init_pface_dirs() {
             remote_faceid0 == local_faceid1) {
           int lid = MEnt_ID(edge);
           faceflip[lid-1] = true;
-        }
-        else { // Sanity Check
+        } else { // Sanity Check
 
           if (remote_faceid1 != local_faceid1 &&
               remote_faceid0 != local_faceid0) {
 
             std::stringstream mesg_stream;
-            mesg_stream << "Face cells mismatch between master and ghost (processor " << myprocid << ")";
+            mesg_stream <<
+                "Face cells mismatch between master and ghost (processor " <<
+                myprocid << ")";
             Errors::Message mesg(mesg_stream.str());
             Jali_throw(mesg);
           }
@@ -3971,13 +3919,12 @@ void Mesh_MSTK::init_pcell_lists() {
 
     idx = 0;
     while ((region = MESH_Next_Region(mesh, &idx))) {
-      if (MR_PType(region) == PGHOST)
+      if (MR_PType(region) == PParallel_type::GHOST)
         MSet_Add(GhostCells, region);
       else
         MSet_Add(OwnedCells, region);
     }
-  }
-  else if (cell_dimension() == 2) {
+  } else if (cell_dimension() == 2) {
     MFace_ptr face;
 
     OwnedCells = MSet_New(mesh, "OwnedCells", MFACE);
@@ -3985,13 +3932,12 @@ void Mesh_MSTK::init_pcell_lists() {
 
     idx = 0;
     while ((face = MESH_Next_Face(mesh, &idx))) {
-      if (MF_PType(face) == PGHOST)
+      if (MF_PType(face) == PParallel_type::GHOST)
         MSet_Add(GhostCells, face);
       else
         MSet_Add(OwnedCells, face);
     }
-  }
-  else {
+  } else {
     Errors::Message mesg("Implemented only for 2D and 3D");
     Jali_throw(mesg);
   }
@@ -4030,12 +3976,12 @@ void Mesh_MSTK::init_set_info() {
       std::string label = lsrgn->label();
       std::string entity_type_str = lsrgn->entity_str();
 
-      if (entity_type_str == "CELL")
-        internal_name = internal_name_of_set(rgn, CELL);
-      else if (entity_type_str == "FACE")
-        internal_name = internal_name_of_set(rgn, FACE);
-      else if (entity_type_str == "NODE")
-        internal_name = internal_name_of_set(rgn, NODE);
+      if (entity_type_str == "Entity_kind::CELL")
+        internal_name = internal_name_of_set(rgn, Entity_kind::CELL);
+      else if (entity_type_str == "Entity_kind::FACE")
+        internal_name = internal_name_of_set(rgn, Entity_kind::FACE);
+      else if (entity_type_str == "Entity_kind::NODE")
+        internal_name = internal_name_of_set(rgn, Entity_kind::NODE);
 
       mset = MESH_MSetByName(mesh, internal_name.c_str());
 
@@ -4049,18 +3995,18 @@ void Mesh_MSTK::init_set_info() {
       entdim = MSet_EntDim(mset);
       if (Mesh::cell_dimension() == 3) {
 
-        if ((entity_type_str == "CELL" && entdim != MREGION) ||
-            (entity_type_str == "FACE" && entdim != MFACE) ||
-            (entity_type_str == "NODE" && entdim != MVERTEX)) {
+        if ((entity_type_str == "Entity_kind::CELL" && entdim != MREGION) ||
+            (entity_type_str == "Entity_kind::FACE" && entdim != MFACE) ||
+            (entity_type_str == "Entity_kind::NODE" && entdim != MVERTEX)) {
           Errors::Message mesg("Mismatch of entity type in labeled set region and mesh set");
           Jali_throw(mesg);
         }
-      }
-      else if (Mesh::cell_dimension() == 2) {
-        if ((entity_type_str == "CELL" && entdim != MFACE) ||
-            (entity_type_str == "FACE" && entdim != MEDGE) ||
-            (entity_type_str == "NODE" && entdim != MVERTEX)) {
-          std::cerr << "Mismatch of entity type in labeled set region and mesh set" << std::endl;
+      } else if (Mesh::cell_dimension() == 2) {
+        if ((entity_type_str == "Entity_kind::CELL" && entdim != MFACE) ||
+            (entity_type_str == "Entity_kind::FACE" && entdim != MEDGE) ||
+            (entity_type_str == "Entity_kind::NODE" && entdim != MVERTEX)) {
+          std::cerr <<
+              "Mismatch of entity type in labeled set region and mesh set\n";
           throw std::exception();
         }
       }
@@ -4093,11 +4039,11 @@ void Mesh_MSTK::init_set_info() {
           }
         }
       }
-    }
-    else { /* General region - we have to account for all kinds of
+    } else { /* General region - we have to account for all kinds of
               entities being queried in a set defined by this
               region */
-      Entity_kind int_to_kind[4] = {NODE, EDGE, FACE, Entity_kind::CELL};
+      Entity_kind int_to_kind[4] = {Entity_kind::NODE, Entity_kind::EDGE,
+                                    Entity_kind::FACE, Entity_kind::CELL};
 
       for (int k = 0; k < 4; ++k) {
         Entity_kind kind = int_to_kind[k];
@@ -4135,9 +4081,7 @@ void Mesh_MSTK::init_set_info() {
           }
         }
       }
-
     }
-
   }
 
 
@@ -4195,8 +4139,7 @@ void Mesh_MSTK::collapse_degen_edges() {
         vkeep = ev0;
         vdel = ev1;
         vdelid = MV_ID(vdel);
-      }
-      else {
+      } else {
         vkeep = ev1;
         vdel = ev0;
         vdelid = MV_ID(vdel);
@@ -4237,9 +4180,7 @@ void Mesh_MSTK::collapse_degen_edges() {
         }
       }
       List_Delete(deleted_ents);
-
     }
-
   }
 
 } /* end Mesh_MSTK::collapse_degen_edges */
@@ -4333,26 +4274,19 @@ void Mesh_MSTK::label_celltype() {
     celltype_att = MAttrib_New(mesh, "Cell_type", INT, MREGION);
 
   if (cell_dimension() == 2) {
-
     idx = 0;
     while ((face = MESH_Next_Face(mesh, &idx))) {
       ctype = MFace_Celltype(face);
       MEnt_Set_AttVal(face, celltype_att, ctype, 0.0, NULL);
     }
-
-  }
-  else if (cell_dimension() == 3) {
-
+  } else if (cell_dimension() == 3) {
     idx = 0;
     while ((region = MESH_Next_Region(mesh, &idx))) {
       ctype = MRegion_Celltype(region);
       MEnt_Set_AttVal(region, celltype_att, ctype, 0.0, NULL);
-
     }
-
   }
-
-} /* Mesh_MSTK::label_celltypes */
+}  /* Mesh_MSTK::label_celltypes */
 
 
 int Mesh_MSTK::generate_regular_mesh(Mesh_ptr mesh, double x0, double y0,
@@ -4372,7 +4306,7 @@ int Mesh_MSTK::generate_regular_mesh(Mesh_ptr mesh, double x0, double y0,
 
 
          MODEL                   MODEL                  MODEL
-         VERTICES                EDGES                  FACES
+         VERTICES                Entity_kind::EDGES                  Entity_kind::FACES
 
      7 ____________ 8          ______7_____           ____________
       /|          /|          /|          /|         /|      2   /|
@@ -4404,8 +4338,8 @@ int Mesh_MSTK::generate_regular_mesh(Mesh_ptr mesh, double x0, double y0,
   MEdge_ptr me;
   MFace_ptr mf;
   MRegion_ptr mr;
-  int vgid_tmpl[3][3][3] = {{{1, 4, 5}, {9, 6, 12}, {3, 8, 7}}, 
-                            {{1, 1, 3}, {3, 1, 4}, {5, 2, 7}}, 
+  int vgid_tmpl[3][3][3] = {{{1, 4, 5}, {9, 6, 12}, {3, 8, 7}},
+                            {{1, 1, 3}, {3, 1, 4}, {5, 2, 7}},
                             {{2, 2, 6}, {10, 5, 11}, {4, 6, 8}}};
   int vgdim_tmpl[3][3][3]= {{{0, 1, 0}, {1, 2, 1}, {0, 1, 0}},
                             {{1, 2, 1}, {2, 3, 2}, {1, 2, 1}},
@@ -4645,40 +4579,32 @@ int Mesh_MSTK::generate_regular_mesh(Mesh_ptr mesh, double x0, double y0,
         if (j == 0) {
           MV_Set_GEntDim(mv, 0);
           MV_Set_GEntID(mv, 1);
-        }
-        else if (j == ny) {
+        } else if (j == ny) {
           MV_Set_GEntDim(mv, 0);
           MV_Set_GEntID(mv, 4);
-        }
-        else {
+        } else {
           MV_Set_GEntDim(mv, 1);
           MV_Set_GEntID(mv, 4);
         }
-      }
-      else if (i == nx) {
+      } else if (i == nx) {
         if (j == 0) {
           MV_Set_GEntDim(mv, 0);
           MV_Set_GEntID(mv, 2);
-        }
-        else if (j == ny) {
+        } else if (j == ny) {
           MV_Set_GEntDim(mv, 0);
           MV_Set_GEntID(mv, 3);
-        }
-        else {
+        } else {
           MV_Set_GEntDim(mv, 1);
           MV_Set_GEntID(mv, 2);
         }
-      }
-      else {
+      } else {
         if (j == 0) {
           MV_Set_GEntDim(mv, 1);
           MV_Set_GEntID(mv, 1);
-        }
-        else if (j == ny) {
+        } else if (j == ny) {
           MV_Set_GEntDim(mv, 1);
           MV_Set_GEntID(mv, 3);
-        }
-        else {
+        } else {
           MV_Set_GEntDim(mv, 2);
           MV_Set_GEntID(mv, 1);
         }
@@ -4708,8 +4634,7 @@ int Mesh_MSTK::generate_regular_mesh(Mesh_ptr mesh, double x0, double y0,
         if (j == 0) {
           ME_Set_GEntDim(me, 1);
           ME_Set_GEntID(me, 1);
-        }
-        else {
+        } else {
           ME_Set_GEntDim(me, 2);
           ME_Set_GEntID(me, 1);
         }
@@ -4760,8 +4685,7 @@ int Mesh_MSTK::generate_regular_mesh(Mesh_ptr mesh, double x0, double y0,
         if (j+1 == nx) {
           ME_Set_GEntDim(me, 1);
           ME_Set_GEntID(me, 3);
-        }
-        else {
+        } else {
           ME_Set_GEntDim(me, 2);
           ME_Set_GEntID(me, 1);
         }
@@ -4878,12 +4802,12 @@ void Mesh_MSTK::inherit_labeled_sets(MAttrib_ptr copyatt) {
       std::string internal_name;
       std::string label = lsrgn->label();
 
-      if (lsrgn->entity_str() == "CELL")
-        internal_name = internal_name_of_set(rgn, CELL);
-      else if (lsrgn->entity_str() == "FACE")
-        internal_name = internal_name_of_set(rgn, FACE);
-      else if (lsrgn->entity_str() == "NODE")
-        internal_name = internal_name_of_set(rgn, NODE);
+      if (lsrgn->entity_str() == "Entity_kind::CELL")
+        internal_name = internal_name_of_set(rgn, Entity_kind::CELL);
+      else if (lsrgn->entity_str() == "Entity_kind::FACE")
+        internal_name = internal_name_of_set(rgn, Entity_kind::FACE);
+      else if (lsrgn->entity_str() == "Entity_kind::NODE")
+        internal_name = internal_name_of_set(rgn, Entity_kind::NODE);
 
 
       MSet_ptr mset_parent = MESH_MSetByName(parent_mstk_mesh,
@@ -4920,8 +4844,7 @@ void Mesh_MSTK::inherit_labeled_sets(MAttrib_ptr copyatt) {
           if (!copyent) continue;
 
           MSet_Add(mset, copyent);
-        }
-        else {
+        } else {
           if (entdim == MREGION) {
             MFace_ptr rf;
             List_ptr rfaces = MR_Faces((MRegion_ptr)ent);
@@ -4936,8 +4859,7 @@ void Mesh_MSTK::inherit_labeled_sets(MAttrib_ptr copyatt) {
               }
             }
             List_Delete(rfaces);
-          }
-          else if (entdim == MFACE) {
+          } else if (entdim == MFACE) {
             MEdge_ptr fe;
             List_ptr fedges = MF_Edges((MFace_ptr)ent, 1, 0);
             idx2 = 0;
@@ -5107,8 +5029,7 @@ bool Mesh_MSTK::store_field(std::string field_name, Entity_kind on_what,
           " found attribute with same name but different type" << std::endl;
       return false;
     }
-  }
-  else
+  } else
     mattrib = MAttrib_New(mesh, field_name.c_str(), INT, mtype);
 
   int nent;
@@ -5155,8 +5076,7 @@ bool Mesh_MSTK::store_field(std::string field_name, Entity_kind on_what,
           " found attribute with same name but different type" << std::endl;
       return false;
     }
-  }
-  else
+  } else
     mattrib = MAttrib_New(mesh, field_name.c_str(), DOUBLE, mtype);
 
   int nent;
