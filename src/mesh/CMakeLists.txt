@@ -28,7 +28,7 @@ include_directories(${Boost_INCLUDE_DIRS})
 #
 # Library: mesh
 #
-add_Jali_library(mesh SOURCE Mesh.cc LINK_LIBS geometry)
+add_Jali_library(mesh SOURCE Mesh.cc MeshTile.cc LINK_LIBS geometry)
 
 #
 # Library: mesh_audit
@@ -63,6 +63,20 @@ add_subdirectory(mesh_simple)
 if (ENABLE_MSTK_Mesh)
     add_subdirectory(mesh_mstk)
 endif(ENABLE_MSTK_Mesh)    
+
+
+# Check which partitioners are enabled and set some variables that
+# can be checked in the code with an ifdef statement
+
+if (Jali_TPL_METIS_ENABLED)
+  add_definitions(-DHAVE_METIS)
+endif ()
+
+if (Jali_TPL_Zoltan_ENABLED)
+  add_definitions(-DHAVE_ZOLTAN)
+endif ()
+
+
 
 
 # Factory class
@@ -133,5 +147,24 @@ if (BUILD_TESTS)
                   KIND unit
 		  SOURCE test/Main.cc test/test_corners.cc
                   LINK_LIBS ${test_link_libs})
+
+    # Test mesh tiles
+
+    add_Jali_test(tile_tests test_one_tile
+                  KIND unit
+		  SOURCE test/Main.cc test/test_one_tile.cc
+		  LINK_LIBS ${test_link_libs})
+
+    add_Jali_test(mesh_tile_tests_serial test_meshtiles_serial
+                  KIND unit
+		  SOURCE test/Main.cc test/test_meshtiles.cc
+		  LINK_LIBS ${test_link_libs})
+
+    add_Jali_test(mesh_tile_tests_parallel test_meshtiles_parallel
+                  KIND unit
+		  NPROCS 4
+		  SOURCE test/Main.cc test/test_meshtiles.cc
+		  LINK_LIBS ${test_link_libs})
+
 endif()
   
