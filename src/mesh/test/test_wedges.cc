@@ -1,5 +1,8 @@
-// -------------------------------------------------------------
-/**
+//
+// Copyright Los Alamos National Security, LLC 2009-2015
+// All rights reserved. See Copyright notice in main directory
+//
+/*!
  * @file   test_wedges.cc
  * @author Rao V. Garimella
  * @date   Mon Oct 5, 2015
@@ -36,8 +39,8 @@ TEST(MESH_WEDGES_2D) {
     the_framework = frameworks[fr];
     if (!Jali::framework_available(the_framework)) continue;
 
-    std::cerr << "Testing wedge operators with " << framework_names[fr] << std::endl;
-
+    std::cerr << "Testing wedge operators with " << framework_names[fr] <<
+        std::endl;
 
     // Create the mesh
 
@@ -267,7 +270,8 @@ TEST(MESH_WEDGES_3D) {
     the_framework = frameworks[fr];
     if (!Jali::framework_available(the_framework)) continue;
 
-    std::cerr << "Testing wedge operators with " << framework_names[fr] << std::endl;
+    std::cerr << "Testing wedge operators with " << framework_names[fr] <<
+        std::endl;
 
     // Create the mesh
 
@@ -283,7 +287,8 @@ TEST(MESH_WEDGES_3D) {
 
       factory.preference(prefs);
 
-      mesh = factory(0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 2, 2, 2, NULL, true, true, true, false);
+      mesh = factory(0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 2, 2, 2, NULL, true, true,
+                     true, false);
 
     } catch (const Jali::Message& e) {
       std::cerr << ": mesh error: " << e.what() << std::endl;

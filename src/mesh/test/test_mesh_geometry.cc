@@ -37,7 +37,8 @@ TEST(MESH_GEOMETRY_PLANAR)
     the_framework = frameworks[i];
     if (!Jali::framework_available(the_framework)) continue;
 
-    std::cerr << "Testing geometry operators with " << framework_names[i] << "\n";
+    std::cerr << "Testing geometry operators with " << framework_names[i] <<
+        "\n";
 
     // Create the mesh
 
@@ -81,9 +82,9 @@ TEST(MESH_GEOMETRY_PLANAR)
                                        {1.0, 0.25}, {0.75, 0.5},
                                        {1.0, 0.75}, {0.75, 1.0}};
 
-    int ncells = mesh->num_cells<Jali::OWNED>();
-    int nfaces = mesh->num_faces<Jali::ALL>();
-    int nnodes = mesh->num_nodes<Jali::ALL>();
+    int ncells = mesh->num_cells<Jali::Parallel_type::OWNED>();
+    int nfaces = mesh->num_faces<Jali::Parallel_type::ALL>();
+    int nnodes = mesh->num_nodes<Jali::Parallel_type::ALL>();
 
     int spacedim = 2;
 
@@ -143,7 +144,7 @@ TEST(MESH_GEOMETRY_PLANAR)
           // Check the normal with respect to each connected cell
 
           Jali::Entity_ID_List cellids;
-          mesh->face_get_cells(i, Jali::ALL, &cellids);
+          mesh->face_get_cells(i, Jali::Parallel_type::ALL, &cellids);
 
           for (auto const & fc : cellids) {
             int dir;
@@ -152,7 +153,8 @@ TEST(MESH_GEOMETRY_PLANAR)
 
             //            Jali::Entity_ID_List cellfaces;
             //            std::vector<int> cellfacedirs;
-            //            mesh->cell_get_faces_and_dirs(cellids[k],&cellfaces,&cellfacedirs);
+            //            mesh->cell_get_faces_and_dirs(cellids[k], &cellfaces,
+            //                                          &cellfacedirs);
             //
             //            bool found2 = false;
             //            int dir = 1;
@@ -191,14 +193,12 @@ TEST(MESH_GEOMETRY_PLANAR)
 
       CHECK_EQUAL(found, true);
     }
-
   } // for each framework i
 
 }
 
 
-TEST(MESH_GEOMETRY_SURFACE)
-{
+TEST(MESH_GEOMETRY_SURFACE) {
 
 // DISABLED FOR NOW
 
@@ -218,7 +218,8 @@ TEST(MESH_GEOMETRY_SURFACE)
     the_framework = frameworks[i];
     if (!Jali::framework_available(the_framework)) continue;
 
-    std::cerr << "Testing geometry operators with " << framework_names[i] << "\n";
+    std::cerr << "Testing geometry operators with " << framework_names[i] <<
+        "\n";
 
     // Create the mesh
 
@@ -262,9 +263,9 @@ TEST(MESH_GEOMETRY_SURFACE)
                                        {0.5, 0.25, 0.5}, {0.5, 0.5, 0.25},
                                        {0.5, 0.75, 0.5}, {0.5, 1.0, 0.25}};
 
-    int ncells = mesh->num_cells<Jali::OWNED>();
-    int nfaces = mesh->num_faces<Jali::ALL>();
-    int nnodes = mesh->num_nodes<Jali::ALL>();
+    int ncells = mesh->num_cells<Jali::Parallel_type::OWNED>();
+    int nfaces = mesh->num_faces<Jali::Parallel_type::ALL>();
+    int nnodes = mesh->num_nodes<Jali::Parallel_type::ALL>();
 
     int spacedim = 3;
 
@@ -309,7 +310,7 @@ TEST(MESH_GEOMETRY_SURFACE)
           // Check the normal with respect to each connected cell
 
           Jali::Entity_ID_List cellids;
-          mesh->face_get_cells(i, Jali::ALL, &cellids);
+          mesh->face_get_cells(i, Jali::Parallel_type::ALL, &cellids);
 
 
           JaliGeometry::Point facecentroid = mesh->face_centroid(i);
@@ -321,7 +322,8 @@ TEST(MESH_GEOMETRY_SURFACE)
 
             //            Jali::Entity_ID_List cellfaces;
             //            std::vector<int> cellfacedirs;
-            //            mesh->cell_get_faces_and_dirs(cellids[k],&cellfaces,&cellfacedirs);
+            //            mesh->cell_get_faces_and_dirs(cellids[k], &cellfaces,
+            //                                          &cellfacedirs);
 
             //            bool found2 = false;
             //            int dir = 1;
@@ -369,8 +371,7 @@ TEST(MESH_GEOMETRY_SURFACE)
 
       CHECK(found);
     }
-
-  } // for each framework i
+  }  // for each framework i
 
 }
 
@@ -383,30 +384,15 @@ TEST(MESH_GEOMETRY_SOLID) {
   MPI_Comm_size(MPI_COMM_WORLD, &nproc);
   MPI_Comm_rank(MPI_COMM_WORLD, &me);
 
-  const Jali::Framework frameworks[] = {
-    Jali::MSTK,
-    Jali::Simple
-  };
-  const char *framework_names[] = {
-    "MSTK",
-    "Simple"
-  };
-
+  const Jali::Framework frameworks[] = {Jali::MSTK, Jali::Simple};
+  const char *framework_names[] = {"MSTK", "Simple"};
   const int numframeworks = sizeof(frameworks)/sizeof(Jali::Framework);
-
-
   Jali::Framework the_framework;
   for (int i = 0; i < numframeworks; i++) {
-
-
-    // Set the framework
-
     the_framework = frameworks[i];
-
     if (!Jali::framework_available(the_framework)) continue;
-
-    std::cerr << "Testing geometry operators with " << framework_names[i] << std::endl;
-
+    std::cerr << "Testing geometry operators with " << framework_names[i] <<
+        std::endl;
 
     // Create the mesh
 
@@ -419,7 +405,6 @@ TEST(MESH_GEOMETRY_SOLID) {
       Jali::FrameworkPreference prefs(factory.preference());
       prefs.clear();
       prefs.push_back(the_framework);
-
       factory.preference(prefs);
 
       mesh = factory(0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 2, 2, 2);
@@ -434,7 +419,6 @@ TEST(MESH_GEOMETRY_SOLID) {
 
     MPI_Allreduce(&ierr, &aerr, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
     CHECK_EQUAL(aerr, 0);
-
 
     double exp_cell_volume[8] = {0.125, 0.125, 0.125, 0.125,
                                  0.125, 0.125, 0.125, 0.125};
@@ -502,9 +486,9 @@ TEST(MESH_GEOMETRY_SOLID) {
     };
 
 
-    int ncells = mesh->num_cells<Jali::OWNED>();
-    int nfaces = mesh->num_cells<Jali::ALL>();
-    int nnodes = mesh->num_cells<Jali::ALL>();
+    int ncells = mesh->num_cells<Jali::Parallel_type::OWNED>();
+    int nfaces = mesh->num_cells<Jali::Parallel_type::ALL>();
+    int nnodes = mesh->num_cells<Jali::Parallel_type::ALL>();
 
     int spacedim = 3;
 
@@ -568,7 +552,7 @@ TEST(MESH_GEOMETRY_SOLID) {
           // Check the normal with respect to each connected cell
 
           Jali::Entity_ID_List cellids;
-          mesh->face_get_cells(i, Jali::ALL, &cellids);
+          mesh->face_get_cells(i, Jali::Parallel_type::ALL, &cellids);
 
           for (auto const & fc : cellids) {
             int dir;
@@ -577,7 +561,8 @@ TEST(MESH_GEOMETRY_SOLID) {
 
             // Jali::Entity_ID_List cellfaces;
             // std::vector<int> cellfacedirs;
-            // mesh->cell_get_faces_and_dirs(cellids[k], &cellfaces, &cellfacedirs);
+            // mesh->cell_get_faces_and_dirs(cellids[k], &cellfaces,
+            //                               &cellfacedirs);
 
             // bool found2 = false;
             // int dir = 1;
@@ -621,7 +606,7 @@ TEST(MESH_GEOMETRY_SOLID) {
     // outward normals of all faces of cell is still zero
 
     JaliGeometry::Point ccoords(3);
-    mesh->node_get_coordinates(13, &ccoords); // central node
+    mesh->node_get_coordinates(13, &ccoords);  // central node
 
     // Lets be sure this is the central node
     CHECK_EQUAL(ccoords[0], 0.5);
@@ -635,7 +620,6 @@ TEST(MESH_GEOMETRY_SOLID) {
     // Now check the normals
 
     for (auto const & i : mesh->cells()) {
-
       Jali::Entity_ID_List cfaces;
       JaliGeometry::Point normal_sum(3),  normal(3);
 
@@ -649,10 +633,8 @@ TEST(MESH_GEOMETRY_SOLID) {
 
       double val = L22(normal_sum);
       CHECK_CLOSE(val, 0.0, 1.0e-20);
-
     }
-
-  } // for each framework i
+  }  // for each framework i
 
 }
 

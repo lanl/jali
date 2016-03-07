@@ -1,21 +1,12 @@
-// -------------------------------------------------------------
-// file: MeshDefs.hh
-// -------------------------------------------------------------
-/**
+//
+// Copyright Los Alamos National Security, LLC 2009-2015
+// All rights reserved. See Copyright notice in main directory
+//
+/*!
  * @file   MeshDefs.hh
- * @author William A. Perkins
- * @date Mon May  2 13:03:23 2011
- *
  * @brief  Various definitions needed by Mesh
- *
- *
+ * @author Originally by Bill Perkins (PNNL), Enhanced by Rao Garimella (LANL)
  */
-// -------------------------------------------------------------
-// Created May  2, 2011 by William A. Perkins
-// Last Change: Mon May  2 13:03:23 2011 by William A. Perkins <d3g096@PE10900.pnl.gov>
-// -------------------------------------------------------------
-
-// SCCS ID: $Id$ Battelle PNL
 
 #ifndef _MeshDefs_hh_
 #define _MeshDefs_hh_
@@ -35,14 +26,14 @@ typedef std::vector<Set_ID> Set_ID_List;
 
 // Mesh Type
 
-enum Mesh_type {
+enum class Mesh_type {
   RECTANGULAR,   // Equivalent of structured but can't use i,j,k notation
   GENERAL        // general unstructured
 };
 
 // Mesh Geometry Type
 
-enum Geom_type {
+enum class Geom_type {
   CARTESIAN,
   CYLINDRICAL,
   SPHERICAL
@@ -51,7 +42,7 @@ enum Geom_type {
 // Cells (aka zones/elements) are the highest dimension entities in a mesh
 // Nodes (aka vertices) are lowest dimension entities in a mesh
 // Faces in a 3D mesh are 2D entities, in a 2D mesh are 1D entities
-// BOUNDARY_FACE is a special type of entity that is need so that process
+// BOUNDARY_Entity_kind::FACE is a special type of entity that is need so that process
 // kernels can define composite vectors (see src/data_structures) on
 // exterior boundary faces of the mesh only
 //
@@ -76,13 +67,10 @@ enum Geom_type {
 //
 
 
-enum Entity_kind {
+enum class Entity_kind {
   ALL_KIND = -3,
   ANY_KIND = -2,
   UNKNOWN_KIND = -1,
-  NODE = 0,
-  EDGE,
-  FACE,
   CELL,
   WEDGE,
   CORNER,
@@ -96,28 +84,28 @@ const int NUM_ENTITY_KINDS = 8;
 // Check if Entity_kind is valid
 inline
 bool entity_valid_kind(const Entity_kind kind) {
-  return (kind >= NODE && kind <= CELL);
+  return (kind >= Entity_kind::NODE && kind <= Entity_kind::CELL);
 }
 
 // Parallel status of entity
 
-enum Parallel_type {
+enum class Parallel_type {
   PTYPE_UNKNOWN = 0, // Initializer
   OWNED = 1,         // Owned by this processor
   GHOST = 2,         // Owned by another processor
-  ALL  = 3           // OWNED + Parall_type::GHOST
+  ALL  = 3           // Parallel_type::OWNED + Parall_type::Parallel_type::GHOST
 };
 
 // Check if Parallel_type is valid
 
 inline
 bool entity_valid_ptype(const Parallel_type ptype) {
-  return (ptype >= OWNED && ptype <= ALL);
+  return (ptype >= Parallel_type::OWNED && ptype <= Parallel_type::ALL);
 }
 
 // Standard element types and catchall (POLYGON/POLYHED)
 
-enum Cell_type {
+enum class Cell_type {
   CELLTYPE_UNKNOWN = 0,
   TRI = 1,
   QUAD,
@@ -132,7 +120,7 @@ enum Cell_type {
 // Check if Cell_type is valid
 inline
 bool cell_valid_type(const Cell_type type) {
-  return (type >= TRI && type <= POLYHED);
+  return (type >= Cell_type::TRI && type <= Cell_type::POLYHED);
 }
 
 } // close namespace Jali

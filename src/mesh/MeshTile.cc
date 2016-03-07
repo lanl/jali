@@ -44,16 +44,15 @@ MeshTile::MeshTile(Mesh const & parent_mesh,
 
   ncells = 0; nowned = 0; nghost = 0;
   for (auto const & c : meshcells) {
-    Parallel_type ptype = mesh_.entity_get_ptype(CELL, c);
-    if (ptype == OWNED) {
+    Parallel_type ptype = mesh_.entity_get_ptype(Entity_kind::CELL, c);
+    if (ptype == Parallel_type::OWNED) {
       cellids_owned_[nowned++] = c;
-    }
-    else if (ptype == GHOST) {
+    } else if (ptype == Parallel_type::GHOST) {
       cellids_ghost_[nghost++] = c;
-    }
-    else 
+    } else {
       std::cerr << "Invalid parallel type for mesh entity " << ptype <<
           std::endl;
+    }
     cellids_all_[ncells++] = c;
   }
   cellids_owned_.resize(nowned);
@@ -66,12 +65,12 @@ MeshTile::MeshTile(Mesh const & parent_mesh,
     std::vector<int> cnodes;
     mesh_.cell_get_nodes(c, &cnodes);
     for (auto n : cnodes) {
-      if (mesh_.entity_get_ptype(NODE, n) == OWNED) {
+      if (mesh_.entity_get_ptype(Entity_kind::NODE, n) ==
+          Parallel_type::OWNED) {
         if (std::find(nodeids_owned_.begin(), nodeids_owned_.end(), n) ==
             nodeids_owned_.end())
           nodeids_owned_.emplace_back(n);
-      }
-      else {
+      } else {
         if (std::find(nodeids_ghost_.begin(), nodeids_ghost_.end(), n) ==
             nodeids_ghost_.end())
           nodeids_ghost_.emplace_back(n);
@@ -84,17 +83,17 @@ MeshTile::MeshTile(Mesh const & parent_mesh,
 
   // Make a list of faces, edges, wedges and corners similarly if requested
 
-  if (request_faces) {    
+  if (request_faces) {
     for (auto c : meshcells) {
       std::vector<int> cfaces;
       mesh_.cell_get_faces(c, &cfaces);
       for (auto f : cfaces) {
-        if (mesh_.entity_get_ptype(FACE, f) == OWNED) {
+        if (mesh_.entity_get_ptype(Entity_kind::FACE, f) ==
+            Parallel_type::OWNED) {
           if (std::find(faceids_owned_.begin(), faceids_owned_.end(), f) ==
               faceids_owned_.end())
             faceids_owned_.emplace_back(f);
-        }
-        else {
+        } else {
           if (std::find(faceids_ghost_.begin(), faceids_ghost_.end(), f) ==
               faceids_ghost_.end())
             faceids_ghost_.emplace_back(f);
@@ -111,12 +110,12 @@ MeshTile::MeshTile(Mesh const & parent_mesh,
       std::vector<int> cedges;
       mesh_.cell_get_edges(c, &cedges);
       for (auto e : cedges) {
-        if (mesh_.entity_get_ptype(EDGE, e) == OWNED) {
+        if (mesh_.entity_get_ptype(Entity_kind::EDGE, e) ==
+            Parallel_type::OWNED) {
           if (std::find(edgeids_owned_.begin(), edgeids_owned_.end(), e) ==
               edgeids_owned_.end())
             edgeids_owned_.emplace_back(e);
-        }
-        else {
+        } else {
           if (std::find(edgeids_ghost_.begin(), edgeids_ghost_.end(), e) ==
               edgeids_ghost_.end())
             edgeids_ghost_.emplace_back(e);
@@ -133,12 +132,12 @@ MeshTile::MeshTile(Mesh const & parent_mesh,
       std::vector<int> cwedges;
       mesh_.cell_get_wedges(c, &cwedges);
       for (auto w : cwedges) {
-        if (mesh_.entity_get_ptype(WEDGE, w) == OWNED) {
+        if (mesh_.entity_get_ptype(Entity_kind::WEDGE, w) ==
+            Parallel_type::OWNED) {
           if (std::find(wedgeids_owned_.begin(), wedgeids_owned_.end(), w) ==
               wedgeids_owned_.end())
             wedgeids_owned_.emplace_back(w);
-        }
-        else {
+        } else {
           if (std::find(wedgeids_ghost_.begin(), wedgeids_ghost_.end(), w) ==
               wedgeids_ghost_.end())
             wedgeids_ghost_.emplace_back(w);
@@ -155,12 +154,12 @@ MeshTile::MeshTile(Mesh const & parent_mesh,
       std::vector<int> ccorners;
       mesh_.cell_get_corners(c, &ccorners);
       for (auto cn : ccorners) {
-        if (mesh_.entity_get_ptype(CORNER, cn) == OWNED) {
+        if (mesh_.entity_get_ptype(Entity_kind::CORNER, cn) ==
+            Parallel_type::OWNED) {
           if (std::find(cornerids_owned_.begin(), cornerids_owned_.end(), cn) ==
               cornerids_owned_.end())
             cornerids_owned_.emplace_back(cn);
-        }
-        else {
+        } else {
           if (std::find(cornerids_ghost_.begin(), cornerids_ghost_.end(), cn) ==
               cornerids_ghost_.end())
             cornerids_ghost_.emplace_back(cn);
@@ -188,7 +187,5 @@ std::shared_ptr<MeshTile> make_meshtile(Mesh const & parent_mesh,
                                     request_wedges, request_corners);
 }
 
-
-
-} // end namespace Jali
+}  // end namespace Jali
 

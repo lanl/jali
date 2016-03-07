@@ -21,7 +21,7 @@
 #include "FrameworkTraits.hh"
 #include "Geometry.hh"
 
-TEST(MESH_CORNERS_2D) {
+TEST(MESH_Entity_kind::CORNERS_2D) {
 
   int nproc, me;
   MPI_Comm_size(MPI_COMM_WORLD, &nproc);
@@ -29,15 +29,11 @@ TEST(MESH_CORNERS_2D) {
 
   const Jali::Framework frameworks[] = {Jali::MSTK};
   const char *framework_names[] = {"MSTK"};
-
   const int numframeworks = sizeof(frameworks)/sizeof(Jali::Framework);
-
-
   Jali::Framework the_framework;
   for (int i = 0; i < numframeworks; i++) {
     the_framework = frameworks[i];
     if (!Jali::framework_available(the_framework)) continue;
-
     std::cerr << "Testing wedge operators with " << framework_names[i] << "\n";
 
     // Create the mesh
@@ -66,7 +62,7 @@ TEST(MESH_CORNERS_2D) {
     MPI_Allreduce(&ierr, &aerr, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
     CHECK_EQUAL(aerr, 0);
 
-    double totalvol = 0.0; // total volume of domain
+    double totalvol = 0.0;  // total volume of domain
 
     for (auto const & c : mesh->cells()) {
       std::vector<Jali::Entity_ID> ccorners;
@@ -196,7 +192,7 @@ TEST(MESH_CORNERS_2D) {
 
     for (auto const & n : mesh->nodes()) {
       Jali::Entity_ID_List corners;
-      mesh->node_get_corners(n, Jali::ALL, &corners);
+      mesh->node_get_corners(n, Jali::Parallel_type::ALL, &corners);
 
       for (auto const & cn : corners)
         totalvol2 += mesh->corner_volume(cn);
@@ -209,7 +205,7 @@ TEST(MESH_CORNERS_2D) {
 
 
 
-TEST(MESH_CORNERS_3D) {
+TEST(MESH_Entity_kind::CORNERS_3D) {
 
   int nproc, me;
   MPI_Comm_size(MPI_COMM_WORLD, &nproc);
@@ -222,9 +218,8 @@ TEST(MESH_CORNERS_3D) {
   for (int i = 0; i < numframeworks; i++) {
     the_framework = frameworks[i];
     if (!Jali::framework_available(the_framework)) continue;
-
-    std::cerr << "Testing wedge operators with " << framework_names[i] << std::endl;
-
+    std::cerr << "Testing wedge operators with " << framework_names[i] <<
+        std::endl;
 
     // Create the mesh
 
@@ -240,7 +235,8 @@ TEST(MESH_CORNERS_3D) {
 
       factory.preference(prefs);
 
-      mesh = factory(0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 2, 2, 2, NULL, true, true, true, true);
+      mesh = factory(0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 2, 2, 2, NULL, true, true,
+                     true, true);
 
     } catch (const Jali::Message& e) {
       std::cerr << ": mesh error: " << e.what() << std::endl;
@@ -253,7 +249,7 @@ TEST(MESH_CORNERS_3D) {
     MPI_Allreduce(&ierr, &aerr, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
     CHECK_EQUAL(aerr, 0);
 
-    double totalvol = 0.0; // total volume of domain
+    double totalvol = 0.0;  // total volume of domain
 
     for (auto const & c : mesh->cells()) {
       std::vector<Jali::Entity_ID> ccorners;
@@ -288,7 +284,8 @@ TEST(MESH_CORNERS_3D) {
         Jali::Entity_ID_List cnwedges;
 
         mesh->corner_get_wedges(cn, &cnwedges);
-        CHECK_EQUAL(6, cnwedges.size());   // 6 wedges in corner at trivalent node of 3D cell
+        CHECK_EQUAL(6, cnwedges.size());   // 6 wedges in corner at trivalent
+        //                                 // node of 3D cell
 
         double volwedges = 0;
 
@@ -320,7 +317,7 @@ TEST(MESH_CORNERS_3D) {
 
         mesh->corner_get_facetization(cn, &cncoords, &facets);
 
-        CHECK_EQUAL(8, cncoords.size()); // 8 nodes in the corner
+        CHECK_EQUAL(8, cncoords.size());  // 8 nodes in the corner
         CHECK_EQUAL(12, facets.size());  // 6 "faces" with 2 facets each
 
         // Find geometric center of corner
@@ -340,10 +337,12 @@ TEST(MESH_CORNERS_3D) {
         std::vector< std::array<int, 3> >::iterator itf = facets.begin();
         while (itf != facets.end()) {
           std::array<int, 3> fctpnts = *itf;
-          JaliGeometry::Point vec0 = cncoords[fctpnts[1]] - cncoords[fctpnts[0]];
-          JaliGeometry::Point vec1 = cncoords[fctpnts[2]] - cncoords[fctpnts[0]];
+          JaliGeometry::Point vec0 =
+              cncoords[fctpnts[1]] - cncoords[fctpnts[0]];
+          JaliGeometry::Point vec1 =
+              cncoords[fctpnts[2]] - cncoords[fctpnts[0]];
           JaliGeometry::Point vec2 = cncen - cncoords[fctpnts[0]];
-          JaliGeometry::Point cpvec = vec0^vec1; // outward facing normal
+          JaliGeometry::Point cpvec = vec0^vec1;  // outward facing normal
           double tetvol = -(cpvec*vec2)/6.0;
           cnvolume2 += tetvol;
           ++itf;
@@ -367,7 +366,7 @@ TEST(MESH_CORNERS_3D) {
 
       CHECK_CLOSE(cellvol, cellvol2, 1.0e-06);
 
-    } // for c = 0, ncells
+    }  // for c = 0, ncells
 
 
     // Now get corners of nodes, add up their volumes and make sure
@@ -377,7 +376,7 @@ TEST(MESH_CORNERS_3D) {
 
     for (auto const & n : mesh->nodes()) {
       Jali::Entity_ID_List corners;
-      mesh->node_get_corners(n, Jali::ALL, &corners);
+      mesh->node_get_corners(n, Jali::Parallel_type::ALL, &corners);
 
       for (auto const & cn : corners)
         totalvol2 += mesh->corner_volume(cn);
@@ -386,5 +385,5 @@ TEST(MESH_CORNERS_3D) {
     CHECK_CLOSE(totalvol, totalvol2, 1.0e-06);
   }
 
-} // MESH_CORNERS_3D
+}  // MESH_CORNERS_3D
 

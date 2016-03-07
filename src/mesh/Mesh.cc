@@ -35,7 +35,7 @@ std::shared_ptr<MeshTile> make_meshtile(Mesh const & parent_mesh,
 
 void Mesh::cache_cell2face_info() const {
 
-  int ncells = num_cells<ALL>();
+  int ncells = num_cells<Parallel_type::ALL>();
   cell_face_ids.resize(ncells);
   cell_face_dirs.resize(ncells);
 
@@ -56,14 +56,14 @@ void Mesh::cache_cell2face_info() const {
 
 void Mesh::cache_face2cell_info() const {
 
-  int nfaces = num_faces<ALL>();
+  int nfaces = num_faces<Parallel_type::ALL>();
   face_cell_ids.resize(nfaces);
   face_cell_ptype.resize(nfaces);
 
   std::vector<Entity_ID> fcells;
 
   for (int f = 0; f < nfaces; f++) {
-    face_get_cells_internal(f, ALL, &fcells);
+    face_get_cells_internal(f, Parallel_type::ALL, &fcells);
 
     face_cell_ids[f].resize(2);
     face_cell_ptype[f].resize(2);
@@ -71,11 +71,11 @@ void Mesh::cache_face2cell_info() const {
     for (int i = 0; i < fcells.size(); i++) {
       int c = fcells[i];
       face_cell_ids[f][i] = c;
-      face_cell_ptype[f][i] = entity_get_ptype(CELL, c);
+      face_cell_ptype[f][i] = entity_get_ptype(Entity_kind::CELL, c);
     }
     for (int i = fcells.size(); i < 2; i++) {
       face_cell_ids[f][i] = -1;
-      face_cell_ptype[f][i] = PTYPE_UNKNOWN;
+      face_cell_ptype[f][i] = Parallel_type::PTYPE_UNKNOWN;
     }
   }
 
@@ -91,7 +91,7 @@ void Mesh::cache_face2cell_info() const {
 
 void Mesh::cache_face2edge_info() const {
 
-  int nfaces = num_faces<ALL>();
+  int nfaces = num_faces<Parallel_type::ALL>();
   face_edge_ids.resize(nfaces);
   face_edge_dirs.resize(nfaces);
 
@@ -116,7 +116,7 @@ void Mesh::cache_face2edge_info() const {
 
 void Mesh::cache_cell2edge_info() const {
 
-  int ncells = num_cells<ALL>();
+  int ncells = num_cells<Parallel_type::ALL>();
   cell_edge_ids.resize(ncells);
 
   if (spacedim == 2) {
@@ -139,14 +139,14 @@ void Mesh::cache_wedge_info() const {
 
   if (wedge_info_cached) return;
 
-  int ncells_owned = num_cells<OWNED>();
-  int ncells_ghost = num_cells<GHOST>();
+  int ncells_owned = num_cells<Parallel_type::OWNED>();
+  int ncells_ghost = num_cells<Parallel_type::GHOST>();
   int ncells = ncells_owned + ncells_ghost;
 
   cell_wedge_ids.resize(ncells);
 
-  int nnodes_owned = num_nodes<OWNED>();
-  int nnodes_ghost = num_nodes<GHOST>();
+  int nnodes_owned = num_nodes<Parallel_type::OWNED>();
+  int nnodes_ghost = num_nodes<Parallel_type::GHOST>();
   int nnodes = nnodes_owned + nnodes_ghost;
 
   node_wedge_ids.resize(nnodes);
@@ -156,7 +156,7 @@ void Mesh::cache_wedge_info() const {
   int num_wedges_ghost = 0;
 
   for (auto const & c : cells()) {
-    Parallel_type ptype = entity_get_ptype(CELL,c);
+    Parallel_type ptype = entity_get_ptype(Entity_kind::CELL,c);
 
     std::vector<Entity_ID> cfaces;
     cell_get_faces(c, &cfaces);
@@ -170,7 +170,7 @@ void Mesh::cache_wedge_info() const {
       num_wedges_all += 2*fedges.size();  // In 2D there will be 1 edge per face
       numwedges_in_cell += 2*fedges.size();
 
-      if (ptype == OWNED) 
+      if (ptype == Parallel_type::OWNED) 
         num_wedges_owned += 2*fedges.size();
       else
         num_wedges_ghost += 2*fedges.size();
@@ -187,7 +187,7 @@ void Mesh::cache_wedge_info() const {
   wedge_face_id.resize(num_wedges_all, -1);
   wedge_cell_id.resize(num_wedges_all, -1);
   wedge_corner_id.resize(num_wedges_all, -1);  // filled when building corners
-  wedge_parallel_type.resize(num_wedges_all, OWNED);
+  wedge_parallel_type.resize(num_wedges_all, Parallel_type::OWNED);
   wedge_adj_wedge_id.resize(num_wedges_all, -1);
   wedge_opp_wedge_id.resize(num_wedges_all, -1);
   wedge_posvol_flag.resize(num_wedges_all, true);
@@ -224,12 +224,12 @@ void Mesh::cache_wedge_info() const {
           wedge_edge_id[wedgeid] = e;
           wedge_face_id[wedgeid] = f;
           wedge_cell_id[wedgeid] = c;
-          wedge_parallel_type[wedgeid] = entity_get_ptype(CELL, c);
+          wedge_parallel_type[wedgeid] = entity_get_ptype(Entity_kind::CELL, c);
           cell_wedge_ids[c].push_back(wedgeid);
           node_wedge_ids[n].push_back(wedgeid);
 
           wedgeids_all_[iall++] = wedgeid;
-          if (wedge_parallel_type[wedgeid] == OWNED)
+          if (wedge_parallel_type[wedgeid] == Parallel_type::OWNED)
             wedgeids_owned_[iown++] = wedgeid;
           else
             wedgeids_ghost_[ighost++] = wedgeid;
@@ -298,12 +298,12 @@ void Mesh::cache_corner_info() const {
   if (!wedge_info_cached)
     cache_wedge_info();
 
-  int ncells_owned = num_cells<OWNED>();
-  int ncells_ghost = num_cells<GHOST>();
+  int ncells_owned = num_cells<Parallel_type::OWNED>();
+  int ncells_ghost = num_cells<Parallel_type::GHOST>();
   int ncells = ncells_owned + ncells_ghost;
 
-  int nnodes_owned = num_nodes<OWNED>();
-  int nnodes_ghost = num_nodes<GHOST>();
+  int nnodes_owned = num_nodes<Parallel_type::OWNED>();
+  int nnodes_ghost = num_nodes<Parallel_type::GHOST>();
   int nnodes = nnodes_owned + nnodes_ghost;
   
   cell_corner_ids.resize(ncells);
@@ -319,8 +319,8 @@ void Mesh::cache_corner_info() const {
     cell_corner_ids[c].reserve(cnodes.size());
 
     num_corners_all += cnodes.size();  // as many corners as there are nodes in cell
-    Parallel_type ptype = entity_get_ptype(CELL, c);
-    if (ptype == OWNED)
+    Parallel_type ptype = entity_get_ptype(Entity_kind::CELL, c);
+    if (ptype == Parallel_type::OWNED)
       num_corners_owned += cnodes.size();
     else
       num_corners_ghost += cnodes.size();
@@ -332,7 +332,7 @@ void Mesh::cache_corner_info() const {
   corner_wedge_ids.resize(num_corners_all);
   corner_node_id.resize(num_corners_all, -1);
   corner_cell_id.resize(num_corners_all, -1);
-  corner_parallel_type.resize(num_corners_all, ALL);
+  corner_parallel_type.resize(num_corners_all, Parallel_type::ALL);
 
   int cornerid = 0;
   int iall = 0, iown = 0, ighost = 0;
@@ -348,16 +348,16 @@ void Mesh::cache_corner_info() const {
       node_corner_ids[n].push_back(cornerid);
       corner_node_id[cornerid] = n;
       corner_cell_id[cornerid] = c;
-      corner_parallel_type[cornerid] = entity_get_ptype(CELL, c);
+      corner_parallel_type[cornerid] = entity_get_ptype(Entity_kind::CELL, c);
 
       cornerids_all_[iall++] = cornerid;
-      if (corner_parallel_type[cornerid] == OWNED)
+      if (corner_parallel_type[cornerid] == Parallel_type::OWNED)
         cornerids_owned_[iown++] = cornerid;
       else
         cornerids_ghost_[ighost++] = cornerid;
 
       std::vector<Entity_ID> nwedges;
-      node_get_wedges(n, ALL, &nwedges);
+      node_get_wedges(n, Parallel_type::ALL, &nwedges);
       Entity_ID_List::iterator itw = nwedges.begin();
       while (itw != nwedges.end()) {
         Entity_ID w = *itw;
@@ -416,7 +416,7 @@ void Mesh::build_tiles() {
   std::cerr << "No partitioner defined - " <<
       "subdividing cell index space into equal parts\n";
   
-  int ncells = num_cells<OWNED>();
+  int ncells = num_cells<Parallel_type::OWNED>();
   int ncells_per_tile =
       static_cast<int> (static_cast<double>(ncells)/num_tiles_ + 0.5);
   int index = 0;
@@ -492,9 +492,9 @@ void Mesh::cell_get_faces_and_dirs(const Entity_ID cellid,
 
   if (!cell2face_info_cached) cache_cell2face_info();
 
-  if (ordered)
+  if (ordered) {
     cell_get_faces_and_dirs_internal(cellid, faceids, face_dirs, ordered);
-  else {
+  } else {
     Entity_ID_List &cfaceids = cell_face_ids[cellid];
 
     *faceids = cfaceids;  // copy operation
@@ -536,19 +536,19 @@ void Mesh::face_get_cells(const Entity_ID faceid, const Parallel_type ptype,
   cellids->clear();
 
   switch (ptype) {
-  case ALL:
+  case Parallel_type::ALL:
     for (int i = 0; i < 2; i++)
-      if (face_cell_ptype[faceid][i] != PTYPE_UNKNOWN)
+      if (face_cell_ptype[faceid][i] != Parallel_type::PTYPE_UNKNOWN)
         cellids->push_back(face_cell_ids[faceid][i]);
     break;
-  case OWNED:
+  case Parallel_type::OWNED:
     for (int i = 0; i < 2; i++)
-      if (face_cell_ptype[faceid][i] == OWNED)
+      if (face_cell_ptype[faceid][i] == Parallel_type::OWNED)
         cellids->push_back(face_cell_ids[faceid][i]);
     break;
-  case GHOST:
+  case Parallel_type::GHOST:
     for (int i = 0; i < 2; i++)
-      if (face_cell_ptype[faceid][i] == GHOST)
+      if (face_cell_ptype[faceid][i] == Parallel_type::GHOST)
         cellids->push_back(face_cell_ids[faceid][i]);
     break;
   }
@@ -561,24 +561,27 @@ void Mesh::face_get_cells(const Entity_ID faceid, const Parallel_type ptype,
 
   Entity_ID_List fcells;
 
-  face_get_cells_internal(faceid, ALL, &fcells);
+  face_get_cells_internal(faceid, Parallel_type::ALL, &fcells);
 
   cellids->clear();
 
   switch (ptype) {
-  case ALL:
+  case Parallel_type::ALL:
     for (int i = 0; i < fcells.size(); i++)
-      if (entity_get_ptype(CELL, fcells[i]) != PTYPE_UNKNOWN)
+      if (entity_get_ptype(Entity_kind::CELL, fcells[i]) !=
+          Parallel_type::PTYPE_UNKNOWN)
         cellids->push_back(fcells[i]);
     break;
-  case OWNED:
+  case Parallel_type::OWNED:
     for (int i = 0; i < fcells.size(); i++)
-      if (entity_get_ptype(CELL, fcells[i]) == OWNED)
+      if (entity_get_ptype(Entity_kind::CELL, fcells[i]) ==
+          Parallel_type::OWNED)
         cellids->push_back(fcells[i]);
     break;
-  case GHOST:
+  case Parallel_type::GHOST:
     for (int i = 0; i < fcells.size(); i++)
-      if (entity_get_ptype(CELL, fcells[i]) == GHOST)
+      if (entity_get_ptype(Entity_kind::CELL, fcells[i]) ==
+          Parallel_type::GHOST)
         cellids->push_back(fcells[i]);
     break;
   }
@@ -654,7 +657,7 @@ void Mesh::face_to_cell_edge_map(const Entity_ID faceid,
   Entity_ID_List fedgeids, cedgeids;
   std::vector<int> fedgedirs;
 
-  face_get_edges_and_dirs(faceid, &fedgeids, &fedgedirs, true);
+  face_get_edges_and_dirs(faceid,&fedgeids,&fedgedirs,true);
   cell_get_edges(cellid, &cedgeids);
 
   map->resize(fedgeids.size(), -1);
@@ -791,7 +794,7 @@ void Mesh::node_get_wedges(const Entity_ID nodeid, Parallel_type ptype,
   if (!wedge_info_cached) cache_wedge_info();
 
   switch (ptype) {
-    case ALL:
+    case Parallel_type::ALL:
       wedgeids->resize(node_wedge_ids[nodeid].size());
       std::copy(node_wedge_ids[nodeid].begin(), node_wedge_ids[nodeid].end(),
                 wedgeids->begin());
@@ -818,7 +821,7 @@ void Mesh::node_get_corners(const Entity_ID nodeid, Parallel_type ptype,
   if (!corner_info_cached) cache_corner_info();
 
   switch (ptype) {
-    case ALL:
+    case Parallel_type::ALL:
       cornerids->resize(node_corner_ids[nodeid].size());
       std::copy(node_corner_ids[nodeid].begin(), node_corner_ids[nodeid].end(),
                 cornerids->begin());
@@ -840,7 +843,7 @@ void Mesh::node_get_corners(const Entity_ID nodeid, Parallel_type ptype,
 
 int Mesh::compute_cell_geometric_quantities() const {
 
-  int ncells = num_cells<ALL>();
+  int ncells = num_cells<Parallel_type::ALL>();
 
   cell_volumes.resize(ncells);
   cell_centroids.resize(ncells);
@@ -871,7 +874,7 @@ int Mesh::compute_face_geometric_quantities() const {
       compute_cell_geometric_quantities();
   }
 
-  int nfaces = num_faces<ALL>();
+  int nfaces = num_faces<Parallel_type::ALL>();
 
   face_areas.resize(nfaces);
   face_centroids.resize(nfaces);
@@ -906,7 +909,7 @@ int Mesh::compute_face_geometric_quantities() const {
 
 int Mesh::compute_edge_geometric_quantities() const {
 
-  int nedges = num_edges<ALL>();
+  int nedges = num_edges<Parallel_type::ALL>();
 
   edge_vectors.resize(nedges);
   edge_lengths.resize(nedges);
@@ -1000,8 +1003,7 @@ int Mesh::compute_cell_geometry(const Entity_ID cellid, double *volume,
       if (fdirs[j] == 1) {
         for (int k = 0; k < nfnodes[j]; k++)
           cfcoords.push_back(fcoords[k]);
-      }
-      else {
+      } else {
         for (int k = nfnodes[j]-1; k >=0; k--)
           cfcoords.push_back(fcoords[k]);
       }
@@ -1012,8 +1014,8 @@ int Mesh::compute_cell_geometry(const Entity_ID cellid, double *volume,
     JaliGeometry::polyhed_get_vol_centroid(ccoords, nf, nfnodes,
             cfcoords, volume, centroid);
     return 1;
-  }
-  else if (celldim == 2) {
+
+  } else if (celldim == 2) {
 
     std::vector<JaliGeometry::Point> ccoords;
 
@@ -1054,7 +1056,7 @@ int Mesh::compute_face_geometry(const Entity_ID faceid, double *area,
                                                    &normal);
 
     Entity_ID_List cellids;
-    face_get_cells(faceid, ALL, &cellids);
+    face_get_cells(faceid, Parallel_type::ALL, &cellids);
 
     for (int i = 0; i < cellids.size(); i++) {
       Entity_ID_List cellfaceids;
@@ -1081,8 +1083,8 @@ int Mesh::compute_face_geometry(const Entity_ID faceid, double *area,
     }
 
     return 1;
-  }
-  else if (celldim == 2) {
+
+  } else if (celldim == 2) {
 
     if (spacedim == 2) {   // 2D mesh
 
@@ -1096,7 +1098,7 @@ int Mesh::compute_face_geometry(const Entity_ID faceid, double *area,
       JaliGeometry::Point normal(evec[1], -evec[0]);
 
       Entity_ID_List cellids;
-      face_get_cells(faceid, ALL, &cellids);
+      face_get_cells(faceid, Parallel_type::ALL, &cellids);
 
       for (int i = 0; i < cellids.size(); i++) {
         Entity_ID_List cellfaceids;
@@ -1123,8 +1125,8 @@ int Mesh::compute_face_geometry(const Entity_ID faceid, double *area,
       }
 
       return 1;
-    }
-    else {  // Surface mesh - cells are 2D, coordinates are 3D
+
+    } else {  // Surface mesh - cells are 2D, coordinates are 3D
 
       // edge normals are ambiguous for surface mesh
       // So we won't compute them
@@ -1137,7 +1139,7 @@ int Mesh::compute_face_geometry(const Entity_ID faceid, double *area,
       *centroid = 0.5*(fcoords[0]+fcoords[1]);
 
       Entity_ID_List cellids;
-      face_get_cells(faceid, ALL, &cellids);
+      face_get_cells(faceid, Parallel_type::ALL, &cellids);
 
       for (int i = 0; i < cellids.size(); i++) {
         Entity_ID_List cellfaceids;
@@ -1256,8 +1258,7 @@ void Mesh::compute_wedge_geometry(Entity_ID const wedgeid,
 
     *facet_normal1 = posvol ? 0.5*(vec1^vec2) : -0.5*(vec1^vec2);
 
-  }
-  else if (celldim == 2) {
+  } else if (celldim == 2) {
 
     std::vector<JaliGeometry::Point> wcoords;
 
@@ -1294,8 +1295,7 @@ void Mesh::compute_wedge_geometry(Entity_ID const wedgeid,
     // from the node.
 
     *facet_normal1 = posvol ? normal : -normal;
-  }
-  else if (celldim == 1) {
+  } else if (celldim == 1) {
     // unclear what the definitions of these normals are
   }
 
@@ -1323,8 +1323,7 @@ double Mesh::cell_volume(const Entity_ID cellid, const bool recompute) const {
   if (!cell_geometry_precomputed) {
     compute_cell_geometric_quantities();
     return cell_volumes[cellid];
-  }
-  else {
+  } else {
     if (recompute) {
       double volume;
       JaliGeometry::Point centroid(spacedim);
@@ -1345,8 +1344,7 @@ double Mesh::face_area(const Entity_ID faceid, const bool recompute) const {
   if (!face_geometry_precomputed) {
     compute_face_geometric_quantities();
     return face_areas[faceid];
-  }
-  else {
+  } else {
     if (recompute) {
       double area;
       JaliGeometry::Point centroid(spacedim);
@@ -1368,8 +1366,7 @@ double Mesh::edge_length(const Entity_ID edgeid, const bool recompute) const {
   if (!edge_geometry_precomputed) {
     compute_edge_geometric_quantities();
     return edge_lengths[edgeid];
-  }
-  else {
+  } else {
     if (recompute) {
       double length;
       JaliGeometry::Point vector(spacedim), centroid(spacedim);
@@ -1388,8 +1385,7 @@ double Mesh::wedge_volume(const Entity_ID wedgeid, const bool recompute) const {
   if (!wedge_geometry_precomputed) {
     compute_wedge_geometric_quantities();
     return wedge_volumes[wedgeid];
-  }
-  else {
+  } else {
     if (recompute) {
       double volume;
       JaliGeometry::Point facet_normal0, facet_normal1;
@@ -1409,8 +1405,7 @@ double Mesh::corner_volume(const Entity_ID cornerid, const bool recompute) const
   if (!corner_geometry_precomputed) {
     compute_corner_geometric_quantities();
     return corner_volumes[cornerid];
-  }
-  else {
+  } else {
     if (recompute) {
       double volume;
       compute_corner_geometry(cornerid, &volume);
@@ -1429,8 +1424,7 @@ JaliGeometry::Point Mesh::cell_centroid(const Entity_ID cellid,
   if (!cell_geometry_precomputed) {
     compute_cell_geometric_quantities();
     return cell_centroids[cellid];
-  }
-  else {
+  } else {
     if (recompute) {
       double volume;
       JaliGeometry::Point centroid(spacedim);
@@ -1453,8 +1447,7 @@ JaliGeometry::Point Mesh::face_centroid(const Entity_ID faceid,
   if (!face_geometry_precomputed) {
     compute_face_geometric_quantities();
     return face_centroids[faceid];
-  }
-  else {
+  } else {
     if (recompute) {
       double area;
       JaliGeometry::Point centroid(spacedim);
@@ -1502,15 +1495,13 @@ JaliGeometry::Point Mesh::face_normal (const Entity_ID faceid,
 
     normal0 = face_normal0[faceid];
     normal1 = face_normal1[faceid];
-  }
-  else {
+  } else {
     if (recompute) {
       double area;
       JaliGeometry::Point centroid(spacedim);
 
       compute_face_geometry(faceid, &area, &centroid, &normal0, &normal1);
-    }
-    else {
+    } else {
       normal0 = face_normal0[faceid];
       normal1 = face_normal1[faceid];
     }
@@ -1525,14 +1516,13 @@ JaliGeometry::Point Mesh::face_normal (const Entity_ID faceid,
     if (orientation)
       *orientation = 1;
 
-    if (L22(normal0) != 0.0)
+    if (L22(normal0) != 0.0) {
       return normal0;
-    else {
+    } else {
       ASSERT(L22(normal1) != 0.0);
       return -normal1;
     }
-  }
-  else {
+  } else {
     Entity_ID_List faceids;
     std::vector<int> face_dirs;
 
@@ -1554,8 +1544,7 @@ JaliGeometry::Point Mesh::face_normal (const Entity_ID faceid,
     if (dir == 1) {
       ASSERT(L22(normal0) != 0.0);
       return normal0;              // Copy to output
-    }
-    else {
+    } else {
       ASSERT(L22(normal1) != 0.0);
       return normal1;              // Copy to output
     }
@@ -1590,15 +1579,15 @@ JaliGeometry::Point Mesh::edge_vector (const Entity_ID edgeid,
 
   if (orientation) *orientation = 1;
 
-  if (pointid == -1)
+  if (pointid == -1) {
     return evector_ref;
-  else {
+  } else {
     Entity_ID p0, p1;
     edge_get_nodes(edgeid, &p0, &p1);
 
-    if (pointid == p0)
+    if (pointid == p0) {
       return evector_ref;
-    else {
+    } else {
       if (orientation) *orientation=-1;
       return -evector_ref;
     }
@@ -1651,8 +1640,7 @@ void Mesh::wedge_get_coordinates(const Entity_ID wedgeid,
 
     Entity_ID c = wedge_get_cell(wedgeid);
     (*wcoords)[3] = cell_centroid(c);
-  }
-  else if (celldim == 2) {
+  } else if (celldim == 2) {
     wcoords->resize(3);  // wedges are tris in 2D cells
     Entity_ID n = wedge_get_node(wedgeid);
     node_get_coordinates(n, &((*wcoords)[0]));
@@ -1699,8 +1687,7 @@ JaliGeometry::Point Mesh::wedge_facet_normal(const int wedgeid,
 
     return which_facet ?
         wedge_facet_normals1[wedgeid] : wedge_facet_normals0[wedgeid];
-  }
-  else {
+  } else {
     if (recompute) {
       double volume;
       JaliGeometry::Point facet_normal0(spacedim), facet_normal1(spacedim);
@@ -1740,12 +1727,12 @@ Mesh::corner_get_facetization(const Entity_ID cornerid,
   int n = corner_get_node(cornerid);
   node_get_coordinates(n, &p);
   pointcoords->push_back(p);        // emplace_back when we switch to C++11
-  point_entity_list.push_back(std::pair<Entity_ID, Entity_kind>(n, NODE));
+  point_entity_list.push_back(std::pair<Entity_ID, Entity_kind>(n, Entity_kind::NODE));
 
   int c = corner_get_cell(cornerid);
   JaliGeometry::Point ccen = cell_centroid(c);
   pointcoords->push_back(ccen);
-  point_entity_list.push_back(std::pair<Entity_ID, Entity_kind>(c, CELL));
+  point_entity_list.push_back(std::pair<Entity_ID, Entity_kind>(c, Entity_kind::CELL));
   JaliGeometry::Point vec0 = ccen-p;
 
   Entity_ID_List::iterator itw = cwedges.begin();
@@ -1756,13 +1743,13 @@ Mesh::corner_get_facetization(const Entity_ID cornerid,
     int idxe = 0;
     bool found = false;
     while (!found && idxe < point_entity_list.size()) {
-      if (point_entity_list[idxe] == std::pair<Entity_ID, Entity_kind>(f, FACE))
+      if (point_entity_list[idxe] == std::pair<Entity_ID, Entity_kind>(f, Entity_kind::FACE))
         found = true;
       else
         idxe++;
     }
     if (!found) {
-      point_entity_list.push_back(std::pair<Entity_ID, Entity_kind>(f, FACE));
+      point_entity_list.push_back(std::pair<Entity_ID, Entity_kind>(f, Entity_kind::FACE));
       pointcoords->push_back(face_centroid(f));
     }
 
@@ -1770,13 +1757,13 @@ Mesh::corner_get_facetization(const Entity_ID cornerid,
     int idxf = 0;
     found = false;
     while (!found && idxf < point_entity_list.size()) {
-      if (point_entity_list[idxf] == std::pair<Entity_ID, Entity_kind>(e, EDGE))
+      if (point_entity_list[idxf] == std::pair<Entity_ID, Entity_kind>(e, Entity_kind::EDGE))
         found = true;
       else
         idxf++;
     }
     if (!found) {
-      point_entity_list.push_back(std::pair<Entity_ID, Entity_kind>(e, EDGE));
+      point_entity_list.push_back(std::pair<Entity_ID, Entity_kind>(e, Entity_kind::EDGE));
       pointcoords->push_back(edge_centroid(e));
     }
 
@@ -1791,8 +1778,7 @@ Mesh::corner_get_facetization(const Entity_ID cornerid,
     if (volume > 0) {
       std::array<Entity_ID, 3> pointlist = {0, idxe, idxf};
       facetpoints->push_back(pointlist);
-    }
-    else {
+    } else {
       std::array<Entity_ID, 3> pointlist = {0, idxf, idxe};
       facetpoints->push_back(pointlist);
     }
@@ -1802,8 +1788,7 @@ Mesh::corner_get_facetization(const Entity_ID cornerid,
     if (volume > 0) {
       std::array<Entity_ID, 3> pointlist = {1, idxf, idxe};
       facetpoints->push_back(pointlist);
-    }
-    else {
+    } else {
       std::array<Entity_ID, 3> pointlist = {1, idxe, idxf};
       facetpoints->push_back(pointlist);
     }
@@ -1852,8 +1837,7 @@ Mesh::corner_get_facetization (const Entity_ID cornerid,
     pointcoords->push_back(fcen0);
     pointcoords->push_back(ccen);
     pointcoords->push_back(fcen1);
-  }
-  else {
+  } else {
     pointcoords->push_back(fcen1);
     pointcoords->push_back(ccen);
     pointcoords->push_back(fcen0);
@@ -1907,8 +1891,7 @@ Mesh::corner_get_coordinates(const Entity_ID cornerid,
       // reverse the order of the points
       std::swap((*pointcoords)[1], (*pointcoords)[3]);
     }
-  }
-  else if (celldim == 3) {
+  } else if (celldim == 3) {
 
     pointcoords->reserve(4*(cwedges.size()));  // upper limit
 
@@ -1919,7 +1902,7 @@ Mesh::corner_get_coordinates(const Entity_ID cornerid,
     int n = corner_get_node(cornerid);
     node_get_coordinates(n, &p);
     pointcoords->push_back(p);        // emplace_back when we switch to C++11
-    point_entity_list.push_back(std::pair<Entity_ID, Entity_kind>(n, NODE));
+    point_entity_list.push_back(std::pair<Entity_ID, Entity_kind>(n, Entity_kind::NODE));
 
     int c = corner_get_cell(cornerid);
     JaliGeometry::Point ccen = cell_centroid(c);
@@ -1934,13 +1917,13 @@ Mesh::corner_get_coordinates(const Entity_ID cornerid,
       bool found = false;
       while (!found && idxe < point_entity_list.size()) {
         if (point_entity_list[idxe] ==
-            std::pair<Entity_ID, Entity_kind>(f, FACE))
+            std::pair<Entity_ID, Entity_kind>(f, Entity_kind::FACE))
           found = true;
         else
           idxe++;
       }
       if (!found) {
-        point_entity_list.push_back(std::pair<Entity_ID, Entity_kind>(f, FACE));
+        point_entity_list.push_back(std::pair<Entity_ID, Entity_kind>(f, Entity_kind::FACE));
         pointcoords->push_back(face_centroid(f));
       }
 
@@ -1949,13 +1932,13 @@ Mesh::corner_get_coordinates(const Entity_ID cornerid,
       found = false;
       while (!found && idxf < point_entity_list.size()) {
         if (point_entity_list[idxf] ==
-            std::pair<Entity_ID, Entity_kind>(e, EDGE))
+            std::pair<Entity_ID, Entity_kind>(e, Entity_kind::EDGE))
           found = true;
         else
           idxf++;
       }
       if (!found) {
-        point_entity_list.push_back(std::pair<Entity_ID, Entity_kind>(e, EDGE));
+        point_entity_list.push_back(std::pair<Entity_ID, Entity_kind>(e, Entity_kind::EDGE));
         pointcoords->push_back(edge_centroid(e));
       }
 
@@ -1999,10 +1982,10 @@ bool Mesh::valid_set_name(std::string name, Entity_kind kind) const
             dynamic_cast<JaliGeometry::LabeledSetRegionPtr> (rgn);
         std::string entity_type = lsrgn->entity_str();
 
-        if ((kind == CELL && entity_type == "CELL") ||
-            (kind == FACE && entity_type == "FACE") ||
-            (kind == EDGE && entity_type == "EDGE") ||
-            (kind == NODE && entity_type == "NODE"))
+        if ((kind == Entity_kind::CELL && entity_type == "CELL") ||
+            (kind == Entity_kind::FACE && entity_type == "FACE") ||
+            (kind == Entity_kind::EDGE && entity_type == "EDGE") ||
+            (kind == Entity_kind::NODE && entity_type == "NODE"))
           return true;
         else
           return false;
@@ -2012,17 +1995,17 @@ bool Mesh::valid_set_name(std::string name, Entity_kind kind) const
       // of the same topological dimension as the cells or it
       // has to be a point region
 
-      if (kind == CELL && (rdim >= celldim || rdim == 0)) return true;
+      if (kind == Entity_kind::CELL && (rdim >= celldim || rdim == 0)) return true;
 
       // If we are looking for a side set, the region has to be
       // one topological dimension less than the cells
 
-      if (kind == FACE && rdim >= celldim-1) return true;
+      if (kind == Entity_kind::FACE && rdim >= celldim-1) return true;
 
       // If we are looking for a node set, the region can be of any
       // dimension upto the spatial dimension of the domain
 
-      if (kind == NODE) return true;
+      if (kind == Entity_kind::NODE) return true;
 
     }
   }
@@ -2063,8 +2046,7 @@ bool Mesh::point_in_cell(const JaliGeometry::Point &p, const Entity_ID cellid)
       if (fdirs[j] == 1) {
         for (int k = 0; k < nfnodes[j]; k++)
           cfcoords.push_back(fcoords[k]);
-      }
-      else {
+      } else {
         for (int k = nfnodes[j]-1; k >=0; k--)
           cfcoords.push_back(fcoords[k]);
       }
@@ -2074,8 +2056,7 @@ bool Mesh::point_in_cell(const JaliGeometry::Point &p, const Entity_ID cellid)
 
     return JaliGeometry::point_in_polyhed(p, ccoords, nf, nfnodes, cfcoords);
 
-  }
-  else if (celldim == 2) {
+  } else if (celldim == 2) {
 
     cell_get_coordinates(cellid, &ccoords);
 

@@ -161,10 +161,10 @@ TEST(ONE_MESH_TILE) {
 
     if (wedges_requested) {
       // Check wedges of the tile (should have 27*48 = 1296)
-      
+
       nent = tile->num_wedges();
       CHECK_EQUAL(1296, nent);
-      
+
       // Check that the wedge centroids lie inside the box used to
       // filter the cells
 
@@ -178,16 +178,16 @@ TEST(ONE_MESH_TILE) {
               wcen[2] > 0.2 && wcen[2] < 0.8);
       }
     }
-     
+
     if (corners_requested) {
       // Check corners of the tile (should have 27*8 = 216)
-      
+
       nent = tile->num_corners();
       CHECK_EQUAL(216, nent);
-      
+
       // Check that the corner centroids are inside the box used to
       // filter the cells
-      
+
       for (auto const & cornerid : tile->corners()) {
         std::vector<JaliGeometry::Point> cnpnts;
         mesh->corner_get_coordinates(cornerid, &cnpnts);
@@ -199,7 +199,6 @@ TEST(ONE_MESH_TILE) {
               cncen[2] > 0.2 && cncen[2] < 0.8);
       }
     }
-
   }
 
 }
