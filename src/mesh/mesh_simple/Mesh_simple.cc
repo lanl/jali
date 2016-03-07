@@ -23,7 +23,7 @@ Mesh_simple::Mesh_simple (double x0, double y0, double z0,
     z0_(z0), z1_(z1),
   Mesh(request_faces, request_edges, request_wedges, request_corners, num_tiles)
 {
-  Mesh::set_mesh_type(RECTANGULAR);
+  Mesh::set_mesh_type(Mesh_type::RECTANGULAR);
   if (gm != (JaliGeometry::GeometricModelPtr) NULL)
     Mesh::set_geometric_model(gm);
 
@@ -405,7 +405,7 @@ void Mesh_simple::update_internals_()
 Parallel_type Mesh_simple::entity_get_ptype(const Entity_kind kind,
 					    const Entity_ID entid) const
 {
-  return OWNED; // Its a serial code
+  return Parallel_type::OWNED; // Its a serial code
 }
 
 
@@ -763,7 +763,7 @@ void Mesh_simple::get_set_entities (const std::string setname,
   setents->clear();
 
   switch (kind) {
-    case FACE:
+    case Entity_kind::FACE:
       {
       Entity_ID_List ss;
 
@@ -1005,7 +1005,7 @@ void Mesh_simple::get_set_entities (const std::string setname,
       *setents = ss;
       break;
       }
-    case CELL:
+    case Entity_kind::CELL:
       {
       Entity_ID_List cs; // cell set
 
@@ -1070,7 +1070,7 @@ void Mesh_simple::get_set_entities (const std::string setname,
       *setents = cs;
       break;
       }
-  case NODE:
+  case Entity_kind::NODE:
     {
       Entity_ID_List ns;
 

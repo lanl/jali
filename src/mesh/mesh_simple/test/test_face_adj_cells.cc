@@ -45,16 +45,16 @@ TEST(FACE_ADJ_CELLS) {
 
   Jali::Mesh_simple Mm(0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 3, 3, 3, MPI_COMM_WORLD);
 
-  CHECK_EQUAL(exp_ncell,Mm.num_entities(Jali::CELL,Jali::OWNED));
-  CHECK_EQUAL(exp_nface,Mm.num_entities(Jali::FACE,Jali::OWNED));
-  CHECK_EQUAL(exp_nnode,Mm.num_entities(Jali::NODE,Jali::OWNED));
+  CHECK_EQUAL(exp_ncell,Mm.num_entities(Jali::Entity_kind::CELL,Jali::Parallel_type::OWNED));
+  CHECK_EQUAL(exp_nface,Mm.num_entities(Jali::Entity_kind::FACE,Jali::Parallel_type::OWNED));
+  CHECK_EQUAL(exp_nnode,Mm.num_entities(Jali::Entity_kind::NODE,Jali::Parallel_type::OWNED));
 
 
   for (int i = 0; i < exp_ncell; i++)
     {
       Jali::Entity_ID_List adjcells;
 
-      Mm.cell_get_face_adj_cells(i, Jali::OWNED,&adjcells);
+      Mm.cell_get_face_adj_cells(i, Jali::Parallel_type::OWNED,&adjcells);
 
       unsigned int nadj = adjcells.size();
       CHECK_EQUAL(exp_nadj[i],nadj);

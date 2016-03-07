@@ -141,7 +141,7 @@ public:
   // On a distributed mesh, all nodes (OWNED or GHOST) of the cell
   // are returned
   // Nodes are returned in a standard order (Exodus II convention)
-  // STANDARD CONVENTION WORKS ONLY FOR STANDARD CELL TYPES in 3D
+  // STANDARD CONVENTION WORKS ONLY FOR STANDARD Entity_kind::CELL TYPES in 3D
   // For a general polyhedron this will return the nodes in
   // arbitrary order
   // In 2D, the nodes of the polygon will be returned in ccw order
@@ -236,7 +236,7 @@ public:
 			     std::vector<JaliGeometry::Point> *fcoords) const;
 
   // Coordinates of cells in standard order (Exodus II convention)
-  // STANDARD CONVENTION WORKS ONLY FOR STANDARD CELL TYPES IN 3D
+  // STANDARD CONVENTION WORKS ONLY FOR STANDARD Entity_kind::CELL TYPES IN 3D
   // For a general polyhedron this will return the node coordinates in
   // arbitrary order
   // Number of nodes is vector size divided by number of spatial dimensions

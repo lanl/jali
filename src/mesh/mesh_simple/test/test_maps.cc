@@ -32,15 +32,15 @@ TEST(MAPS) {
                             {1,3,7,5}};
 
 
-  CHECK_EQUAL(1,Mm.num_entities(Jali::CELL,Jali::OWNED));
-  CHECK_EQUAL(6,Mm.num_entities(Jali::FACE,Jali::OWNED));
-  CHECK_EQUAL(8,Mm.num_entities(Jali::NODE,Jali::OWNED));
+  CHECK_EQUAL(1,Mm.num_entities(Jali::Entity_kind::CELL,Jali::Parallel_type::OWNED));
+  CHECK_EQUAL(6,Mm.num_entities(Jali::Entity_kind::FACE,Jali::Parallel_type::OWNED));
+  CHECK_EQUAL(8,Mm.num_entities(Jali::Entity_kind::NODE,Jali::Parallel_type::OWNED));
 
   vector<JaliGeometry::Point> x(8);
   vector<Jali::Entity_ID> nodes(8);
   vector<Jali::Entity_ID> faces(6);
 
-  for (Jali::Entity_ID i=0; i<Mm.num_entities(Jali::CELL,Jali::OWNED); i++)
+  for (Jali::Entity_ID i=0; i<Mm.num_entities(Jali::Entity_kind::CELL,Jali::Parallel_type::OWNED); i++)
     {
 
       Mm.cell_get_nodes(i, &nodes);
