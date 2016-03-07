@@ -113,9 +113,7 @@ int main(int argc, char *argv[]) {
   double *ave_density = new double[nc];
   for (int i = 0; i < nc; ++i) ave_density[i] = 0.0;
 
-  auto itc = mymesh->begin_cells();
-  while (itc != mymesh->end_cells()) {
-    auto c = *itc;
+  for (auto c : mymesh->cells<OWNED>()) {
 
     // Get all (owned or ghost) node connected/adjacent neighbors of a cell 
 
@@ -129,8 +127,6 @@ int main(int argc, char *argv[]) {
       ++itc2;
     }
     ave_density[c] /= nbrs.size();
-
-    ++itc;
   }
 
   // Add the average density data as a new state vector
@@ -154,9 +150,7 @@ int main(int argc, char *argv[]) {
   // Update them to be the average of the centroids of the connected
   // cells weighted by the average cell density
 
-  auto itn = mymesh->begin_nodes();
-  while (itn != mymesh->end_nodes()) {
-    auto n = *itn;
+  for (auto n : mymesh->nodes<OWNED>()) {
 
     // Get the cells using (connected to) this node
 
@@ -166,9 +160,7 @@ int main(int argc, char *argv[]) {
     std::array<double,3> tmpvels;
     for (int i = 0; i < 3; ++i) tmpvels[i] = 0.0;
 
-    auto itc2 = nodecells.begin();
-    while (itc2 != nodecells.end()) {
-      auto c = *itc2;
+    for (auto c : nodecells) {
 
       // Get cell centroid - this is computed once and cached unless the 
       // mesh changes or the routine is explicitly asked to recompute it
@@ -176,11 +168,10 @@ int main(int argc, char *argv[]) {
 
       JaliGeometry::Point ccen = mymesh->cell_centroid(c);
       for (int i = 0; i < 3; ++i) tmpvels[i] += rhobarvec[c]*ccen[i];
-      ++itc2;
+
     }
 
     vels[n] = tmpvels;
-    ++itn;
   }
 
   
@@ -189,16 +180,12 @@ int main(int argc, char *argv[]) {
   
   std::cerr << "Average densities at cell centers:" << std::endl;
 
-  itc = mymesh->begin_cells();
-  while (itc != mymesh->end_cells()) {
-    auto c = *itc;
-
+  for (auto c : mymesh->cells<OWNED>()) {
     JaliGeometry::Point ccen = mymesh->cell_centroid(c);
     
     std::cerr << "Cell " << c << "    Centroid (" <<
         ccen[0] << "," << ccen[1] << "," << ccen[2] <<
         ")    Ave density " << rhobarvec[c] << std::endl;
-    ++itc;
   }
   std::cerr << std::endl << std::endl;
 
@@ -207,10 +194,7 @@ int main(int argc, char *argv[]) {
 
   std::cerr << "Computed velocities at nodes:" << std::endl;
 
-  itn = mymesh->begin_nodes();
-  while (itn != mymesh->end_nodes()) {
-    auto n = *itn;
-
+  for (auto n : mymesh->nodes<OWNED>()) {
     JaliGeometry::Point npnt;
     mymesh->node_get_coordinates(n,&npnt);
 
@@ -218,7 +202,6 @@ int main(int argc, char *argv[]) {
         npnt[0] << "," << npnt[1] << "," << npnt[2] <<
         ")    Velocity (" << vels[n][0] << "," << vels[n][1] <<
         "," << vels[n][2] << ")" << std::endl << std::endl;
-    ++itn;
   }
 
 
@@ -242,12 +225,9 @@ void initialize_data(Mesh & mesh, State & state) {
   // variable called 'rho99' on cells
 
   std::vector<double> density(nc);
-  auto itc = mesh.begin_cells();
-  while (itc != mesh.end_cells()) {
-    auto c = *itc;
+  for (auto c : mesh.cells<OWNED>()) {
     JaliGeometry::Point ccen = mesh.cell_centroid(c);  
     density[c] = ccen[0]+ccen[1]+ccen[2];
-    ++itc;
   }
 
   // Create a state vector of densities on cells using the

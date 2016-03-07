@@ -50,10 +50,7 @@ int main(int argc, char *argv[]) {
   // Iterate through the cells of the mesh and get their node vertices and
   // their volumes+centroids
   
-  Mesh::cell_iterator itc = mymesh->begin_cells();
-  while (itc != mymesh->end_cells()) {
-    Entity_ID c = *itc;
-
+  for (auto c : mymesh->cells<OWNED>()) {
     std::cerr << "Cell " << c << ":" << std::endl;
     
     // Get coordinates of nodes of cell
@@ -80,8 +77,6 @@ int main(int argc, char *argv[]) {
     std::cerr << "  Cell Centroid: " << ccen << std::endl; 
 
     std::cerr << std::endl;
-
-    ++itc;
   }
 
   // Clean up and exit

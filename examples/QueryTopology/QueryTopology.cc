@@ -49,10 +49,8 @@ int main(int argc, char *argv[]) {
 
   
   // Iterate through the cells of the mesh and get the faces and of the cell
-  
-  Mesh::cell_iterator itc = mymesh->begin_cells();
-  while (itc != mymesh->end_cells()) {
-    Entity_ID c = *itc;
+
+  for (auto c : mymesh->cells<OWNED>()) {
     
     Entity_ID_List cfaces;   // Entity_ID_List is just a std::vector<Entity_ID>
     std::vector<int> cfdirs;
@@ -72,9 +70,6 @@ int main(int argc, char *argv[]) {
     std::cerr << std::endl;
 
     std::cerr << std::endl;
-
-
-    ++itc;
   }
 
   // Clean up and exit
