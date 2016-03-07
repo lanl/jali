@@ -23,10 +23,10 @@ TEST(MSTK_QUAD_GEN_3x3)
 
   nv = mesh->num_entities(Jali::NODE,Jali::OWNED);
   CHECK_EQUAL(NV,nv);
-  
+
   nf = mesh->num_entities(Jali::FACE,Jali::OWNED);
   CHECK_EQUAL(NF,nf);
-  
+
   nc = mesh->num_entities(Jali::CELL,Jali::OWNED);
   CHECK_EQUAL(NC,nc);
 

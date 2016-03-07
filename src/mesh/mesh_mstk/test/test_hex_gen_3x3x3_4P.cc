@@ -13,13 +13,13 @@ TEST(MSTK_HEX_GEN_3x3x3_4P)
   std::vector<Jali::Entity_ID> faces(6), nodes(8);
   std::vector<JaliGeometry::Point> ccoords(8), fcoords(4);
 
-			      
+			
   int rank, size;
 
   int initialized;
 
   MPI_Initialized(&initialized);
-  
+
   if (!initialized)
     MPI_Init(NULL,NULL);
 

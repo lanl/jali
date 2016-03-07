@@ -15,7 +15,7 @@ TEST(MSTK_HEX_3x3x3_PAR_READ_4P)
 
   int initialized;
   MPI_Initialized(&initialized);
-  
+
   if (!initialized)
     MPI_Init(NULL,NULL);
 

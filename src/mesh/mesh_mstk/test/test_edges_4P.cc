@@ -13,7 +13,7 @@ TEST(MSTK_EDGES_2D)
 
   int initialized;
   MPI_Initialized(&initialized);
-  
+
   if (!initialized)
     MPI_Init(NULL,NULL);
 
@@ -22,7 +22,7 @@ TEST(MSTK_EDGES_2D)
   CHECK_EQUAL(4,size);
 
   // Generate a 4x4 quad mesh distributed over four processors
-  
+
   bool request_faces = true, request_edges = true;
   Jali::Mesh *mesh(new Jali::Mesh_MSTK(0.0,0.0,2.0,1.0,4,4,
                                                    MPI_COMM_WORLD,
@@ -49,13 +49,13 @@ TEST(MSTK_EDGES_2D)
 
   for (int c = 0; c < nc_owned; ++c) {
     Jali::Entity_ID_List cedges, cfaces, fedges;
-    std::vector<int> cfdirs, fedirs, cedirs;    
+    std::vector<int> cfdirs, fedirs, cedirs;
 
     mesh->cell_get_edges(c,&cedges);
     mesh->cell_get_faces_and_dirs(c,&cfaces,&cfdirs);
 
     for (int e = 0; e < cedges.size(); ++e) {
-      CHECK_EQUAL(mesh->GID(cedges[e],Jali::EDGE), 
+      CHECK_EQUAL(mesh->GID(cedges[e],Jali::EDGE),
 		  mesh->GID(cfaces[e],Jali::FACE));
     }
 
@@ -65,7 +65,7 @@ TEST(MSTK_EDGES_2D)
 
       CHECK_EQUAL(1,fedges.size()); // face is same as edge in 2D
       CHECK_EQUAL(1,fedirs[0]); // direction is always 1
-      
+
       // check the face-edges to cell-edges map
 
       std::vector<int> map;
@@ -77,7 +77,7 @@ TEST(MSTK_EDGES_2D)
     }
   }
 
-  // owing to how we constructed the mesh, the length of horizontal edges 
+  // owing to how we constructed the mesh, the length of horizontal edges
   // should be 0.5 and vertical edges 0.25
 
   for (int e = 0; e < ne_owned; ++e) {
@@ -109,7 +109,7 @@ TEST(MSTK_EDGES_3D)
 
   int initialized;
   MPI_Initialized(&initialized);
-  
+
   if (!initialized)
     MPI_Init(NULL,NULL);
 
@@ -118,7 +118,7 @@ TEST(MSTK_EDGES_3D)
   CHECK_EQUAL(4,size);
 
   // Generate a 4x4x4 quad mesh distributed over four processors
-  
+
   bool request_faces = true, request_edges = true;
   Jali::Mesh *mesh(new Jali::Mesh_MSTK(0.0,0.0,0.0,2.0,1.0,4.0,4,4,4,MPI_COMM_WORLD,NULL,request_faces,request_edges));
 
@@ -130,7 +130,7 @@ TEST(MSTK_EDGES_3D)
   // Check that we got a non-zero number
 
   CHECK(ne_owned != 0);
-  CHECK(ne_all != 0);  
+  CHECK(ne_all != 0);
 
 
   // Go through the cells and retrieve their edges to make sure it
@@ -141,7 +141,7 @@ TEST(MSTK_EDGES_3D)
 
   for (int c = 0; c < nc_owned; ++c) {
     Jali::Entity_ID_List cedges, cfaces, fedges;
-    std::vector<int> cfdirs, fedirs;    
+    std::vector<int> cfdirs, fedirs;
 
     mesh->cell_get_edges(c,&cedges);
     mesh->cell_get_faces_and_dirs(c,&cfaces,&cfdirs);

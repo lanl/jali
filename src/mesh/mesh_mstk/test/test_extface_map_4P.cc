@@ -20,13 +20,13 @@ TEST(MSTK_EXTFACE_MAP_4P)
   std::vector<Jali::JaliGeometry::Point> ccoords(8), fcoords(4);
 
   Teuchos::RCP<Epetra_MpiComm> comm(new Epetra_MpiComm(MPI_COMM_WORLD));
-			      
+			
 
   int rank, size;
 
   int initialized;
   MPI_Initialized(&initialized);
-  
+
   if (!initialized)
     MPI_Init(NULL,NULL);
 
@@ -58,7 +58,7 @@ TEST(MSTK_EXTFACE_MAP_4P)
 
   // Insert the GlobalID of each face offsetted by 3 into the allvec
 
-  for (int f = face_map.MinLID(); f < face_map.MaxLID(); f++) 
+  for (int f = face_map.MinLID(); f < face_map.MaxLID(); f++)
       allvec[f] = face_map.GID(f)+3;
 
   bdryvec.Import(allvec, all_to_extface_importer, Insert);
@@ -67,7 +67,7 @@ TEST(MSTK_EXTFACE_MAP_4P)
   // by checking if the values in the bdryvec minus the offset correspond
   // to the correct global IDs.
 
-  for (int f = extface_map.MinLID(); f < extface_map.MaxLID(); f++) 
+  for (int f = extface_map.MinLID(); f < extface_map.MaxLID(); f++)
     CHECK_EQUAL(extface_map.GID(f),bdryvec[f]-3);
 
 }

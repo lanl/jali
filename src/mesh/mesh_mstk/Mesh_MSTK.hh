@@ -1,26 +1,26 @@
 #ifndef _JALI_MESH_MSTK_H_
 #define _JALI_MESH_MSTK_H_
 
+#include "MSTK.h"
+
 #include <memory>
 #include <vector>
 #include <sstream>
 #include <typeinfo>
 
-#include <MSTK.h>
+#include "Mesh.hh"
+#include "Point.hh"
+#include "GeometricModel.hh"
+#include "LabeledSetRegion.hh"
+#include "PointRegion.hh"
+#include "LogicalRegion.hh"
+#include "dbc.hh"
+#include "errors.hh"
 
-#include <Mesh.hh>
-#include <Point.hh>
-#include <GeometricModel.hh>
-#include <LabeledSetRegion.hh>
-#include <PointRegion.hh>
-#include <LogicalRegion.hh>
-#include <dbc.hh>
-#include <errors.hh>
-
-namespace Jali 
+namespace Jali
 {
 
-// Mesh class based on the MSTK framework. 
+// Mesh class based on the MSTK framework.
 //
 // Instantiating a const version of this class only guarantees that
 // the underlying mesh topology and geometry does not change. For
@@ -32,7 +32,7 @@ namespace Jali
 
 class Mesh_MSTK : public Mesh
 {
-      
+
 public:
 
   // Constructors that read the mesh from a file
@@ -44,52 +44,56 @@ public:
   // of the call and making the pointer argument seem NULL. In C++11,
   // we could "delete" the illegal version of the call effectively
   // blocking the implicit conversion.
+
+
+  Mesh_MSTK(const char *filename, const MPI_Comm& incomm,
+            const JaliGeometry::GeometricModelPtr& gm =
+            (JaliGeometry::GeometricModelPtr) NULL,
+            const bool request_faces = true,
+            const bool request_edges = false,
+            const bool request_wedges = false,
+            const bool request_corners = false,
+            const int num_tiles = 0);
   
-
-  Mesh_MSTK (const char *filename, const MPI_Comm& incomm,
-	     const JaliGeometry::GeometricModelPtr& gm = 
-	     (JaliGeometry::GeometricModelPtr) NULL,
-	     const bool request_faces = true,
-	     const bool request_edges = false,
-             const bool request_wedges = false,
-             const bool request_corners = false);
-
-  Mesh_MSTK (const char *filename, const MPI_Comm& incomm, 
-             int space_dimension,
-	     const JaliGeometry::GeometricModelPtr& gm = 
-	     (JaliGeometry::GeometricModelPtr) NULL,
-	     const bool request_faces = true,
-	     const bool request_edges = false,
-             const bool request_wedges = false,
-             const bool request_corners = false);
+  Mesh_MSTK(const char *filename, const MPI_Comm& incomm,
+            int space_dimension,
+            const JaliGeometry::GeometricModelPtr& gm =
+            (JaliGeometry::GeometricModelPtr) NULL,
+            const bool request_faces = true,
+            const bool request_edges = false,
+            const bool request_wedges = false,
+            const bool request_corners = false,
+            const int num_tiles = 0);
 
   // Constructors that generate a mesh internally (regular hexahedral mesh only)
 
   // 3D
   Mesh_MSTK(const double x0, const double y0, const double z0,
 	    const double x1, const double y1, const double z1,
-	    const unsigned int nx, const unsigned int ny, 
-            const unsigned int nz, 
+	    const unsigned int nx, const unsigned int ny,
+            const unsigned int nz,
             const MPI_Comm& incomm,
-            const JaliGeometry::GeometricModelPtr& gm = 
+            const JaliGeometry::GeometricModelPtr& gm =
             (JaliGeometry::GeometricModelPtr) NULL,
 	    const bool request_faces = true,
 	    const bool request_edges = false,
             const bool request_wedges = false,
-            const bool request_corners = false);
+            const bool request_corners = false,
+            const int num_tiles = 0);
 
 
   // 2D
   Mesh_MSTK(const double x0, const double y0,
 	    const double x1, const double y1,
-	    const int nx, const int ny, 
+	    const int nx, const int ny,
 	    const MPI_Comm& comm,
-	    const JaliGeometry::GeometricModelPtr& gm = 
+	    const JaliGeometry::GeometricModelPtr& gm =
 	    (JaliGeometry::GeometricModelPtr) NULL,
 	    const bool request_faces = true,
 	    const bool request_edges = false,
             const bool request_wedges = false,
-            const bool request_corners = false);
+            const bool request_corners = false,
+            const int num_tiles = 0);
 
   // Construct a mesh by extracting a subset of entities from another
   // mesh. The subset may be specified by a setname or a list of
@@ -106,7 +110,8 @@ public:
 	    const bool request_faces = true,
 	    const bool request_edges = false,
             const bool request_wedges = false,
-            const bool request_corners = false);
+            const bool request_corners = false,
+            const int num_tiles = 0);
 
   Mesh_MSTK(const Mesh& inmesh,
             const std::vector<std::string>& setnames,
@@ -116,7 +121,8 @@ public:
 	    const bool request_faces = true,
 	    const bool request_edges = false,
             const bool request_wedges = false,
-            const bool request_corners = false);
+            const bool request_corners = false,
+            const int num_tiles = 0);
 
   Mesh_MSTK(const Mesh& inmesh,
             const std::vector<int>& entity_list,
@@ -126,106 +132,100 @@ public:
 	    const bool request_faces = true,
 	    const bool request_edges = false,
             const bool request_wedges = false,
-            const bool request_corners = false);
+            const bool request_corners = false,
+            const int num_tiles = 0);
 
 
   ~Mesh_MSTK ();
 
 
   // Get parallel type of entity
-    
-  Parallel_type entity_get_ptype(const Entity_kind kind, 
+
+  Parallel_type entity_get_ptype(const Entity_kind kind,
 				 const Entity_ID entid) const;
 
 
   // Get cell type
-    
+
   Cell_type cell_get_type(const Entity_ID cellid) const;
 
 
   // Parent entity in the source mesh if mesh was derived from another mesh
 
-  Entity_ID entity_get_parent (const Entity_kind kind, const Entity_ID entid) const;
+  Entity_ID entity_get_parent(const Entity_kind kind, const Entity_ID entid) const;
 
 
-        
-   
+
+
   //
   // General mesh information
   // -------------------------
   //
-    
-  // Number of entities of any kind (cell, face, node) and in a
-  // particular category (OWNED, GHOST, USED)
-    
-  unsigned int num_entities (const Entity_kind kind,
-			     const Parallel_type ptype) const;
-    
-    
+
   // Global ID of any entity
-    
+
   Entity_ID GID(const Entity_ID lid, const Entity_kind kind) const;
-    
-    
-    
+
+
+
   //
-  // Mesh Entity Adjacencies 
+  // Mesh Entity Adjacencies
   //-------------------------
-    
-  // Get nodes of cell 
-  // On a distributed mesh, all nodes (OWNED or GHOST) of the cell 
+
+  // Get nodes of cell
+  // On a distributed mesh, all nodes (OWNED or GHOST) of the cell
   // are returned
   // Nodes are returned in a standard order (Exodus II convention)
   // STANDARD CONVENTION WORKS ONLY FOR STANDARD CELL TYPES in 3D
   // For a general polyhedron this will return the nodes in
   // arbitrary order
-  // In 2D, the nodes of the polygon will be returned in ccw order 
+  // In 2D, the nodes of the polygon will be returned in ccw order
   // consistent with the face normal
-    
-  void cell_get_nodes (const Entity_ID cellid, 
-		       Entity_ID_List *nodeids) const;
-    
-    
-  // Get nodes of face 
-  // On a distributed mesh, all nodes (OWNED or GHOST) of the face 
+
+  void cell_get_nodes(const Entity_ID cellid,
+                      Entity_ID_List *nodeids) const;
+
+
+  // Get nodes of face
+  // On a distributed mesh, all nodes (OWNED or GHOST) of the face
   // are returned
   // In 3D, the nodes of the face are returned in ccw order consistent
   // with the face normal
   // In 2D, nfnodes is 2
-    
-  void face_get_nodes (const Entity_ID faceid, 
-		       Entity_ID_List *nodeids) const;
-    
+
+  void face_get_nodes(const Entity_ID faceid,
+                      Entity_ID_List *nodeids) const;
+
 
   // Get nodes of edge On a distributed mesh all nodes (OWNED or
   // GHOST) of the face are returned
 
-  void edge_get_nodes (const Entity_ID edgeid, Entity_ID *point0,
-		       Entity_ID *point1) const;
+  void edge_get_nodes(const Entity_ID edgeid, Entity_ID *point0,
+                      Entity_ID *point1) const;
 
   // Upward adjacencies
   //-------------------
-    
+
   // Cells of type 'ptype' connected to a node
-    
-  void node_get_cells (const Entity_ID nodeid, 
-		       const Parallel_type ptype,
-		       Entity_ID_List *cellids) const;
-    
+
+  void node_get_cells(const Entity_ID nodeid,
+                      const Parallel_type ptype,
+                      Entity_ID_List *cellids) const;
+
   // Faces of type 'ptype' connected to a node
-    
-  void node_get_faces (const Entity_ID nodeid, 
-		       const Parallel_type ptype,
-		       Entity_ID_List *faceids) const;
-    
+
+  void node_get_faces(const Entity_ID nodeid,
+                      const Parallel_type ptype,
+                      Entity_ID_List *faceids) const;
+
   // Get faces of ptype of a particular cell that are connected to the
   // given node
-    
-  void node_get_cell_faces (const Entity_ID nodeid, 
-			    const Entity_ID cellid,
-			    const Parallel_type ptype,
-			    Entity_ID_List *faceids) const;    
-    
+
+  void node_get_cell_faces(const Entity_ID nodeid,
+                           const Entity_ID cellid,
+                           const Parallel_type ptype,
+                           Entity_ID_List *faceids) const;
+
 
   // Same level adjacencies
   //-----------------------
@@ -250,83 +250,85 @@ public:
 			       const Parallel_type ptype,
 			       Entity_ID_List *nadj_cellids) const;
 
-    
+
   //
   // Mesh entity geometry
   //--------------
   //
-    
+
   // Node coordinates - 3 in 3D and 2 in 2D
-    
-  void node_get_coordinates (const Entity_ID nodeid, 
-			     JaliGeometry::Point *ncoord) const;
-    
-    
-  // Face coordinates - conventions same as face_to_nodes call 
+
+  void node_get_coordinates(const Entity_ID nodeid,
+                            JaliGeometry::Point *ncoord) const;
+
+
+  // Face coordinates - conventions same as face_to_nodes call
   // Number of nodes is the vector size divided by number of spatial dimensions
-    
-  void face_get_coordinates (const Entity_ID faceid, 
-			     std::vector<JaliGeometry::Point> *fcoords) const; 
-    
+
+  void face_get_coordinates(const Entity_ID faceid,
+                            std::vector<JaliGeometry::Point> *fcoords) const;
+
   // Coordinates of cells in standard order (Exodus  II convention)
   // STANDARD CONVENTION WORKS ONLY FOR STANDARD CELL TYPES IN 3D
   // For a general polyhedron this will return the node coordinates in
   // arbitrary order
   // Number of nodes is vector size divided by number of spatial dimensions
-    
-  void cell_get_coordinates (const Entity_ID cellid, 
-			     std::vector<JaliGeometry::Point> *ccoords) const;
-    
+
+  void cell_get_coordinates(const Entity_ID cellid,
+                            std::vector<JaliGeometry::Point> *ccoords) const;
+
   // Modify the coordinates of a node
 
-  void node_set_coordinates (const Entity_ID nodeid, 
-                             const JaliGeometry::Point coords);
+  void node_set_coordinates(const Entity_ID nodeid,
+                            const JaliGeometry::Point coords);
 
-  void node_set_coordinates (const Entity_ID nodeid, const double *coords);
+  void node_set_coordinates(const Entity_ID nodeid, const double *coords);
 
-    
-    
+
+
   //
   // Boundary Conditions or Sets
   //----------------------------
   //
-    
+
 
   // Get number of entities of type 'category' in set
 
-  unsigned int get_set_size (const Set_Name setname, 
-			     const Entity_kind kind,
-			     const Parallel_type ptype) const;
+  unsigned int get_set_size(const Set_Name setname,
+                            const Entity_kind kind,
+                            const Parallel_type ptype) const;
 
 
-  unsigned int get_set_size (const char *setname, 
-			     const Entity_kind kind,
-			     const Parallel_type ptype) const;
+  unsigned int get_set_size(const char *setname,
+                            const Entity_kind kind,
+                            const Parallel_type ptype) const;
 
   // Get list of entities of type 'category' in set
 
-  void get_set_entities (const Set_Name setname, 
-			 const Entity_kind kind, 
-			 const Parallel_type ptype, 
-			 std::vector<Entity_ID> *entids) const; 
+  void get_set_entities(const Set_Name setname,
+                        const Entity_kind kind,
+                        const Parallel_type ptype,
+                        std::vector<Entity_ID> *entids) const;
+  
 
-
-  void get_set_entities (const char *setname, 
-			 const Entity_kind kind, 
-			 const Parallel_type ptype, 
-			 std::vector<Entity_ID> *entids) const; 
-
-
+  void get_set_entities(const char *setname,
+                        const Entity_kind kind,
+                        const Parallel_type ptype,
+                        std::vector<Entity_ID> *entids) const;
+  
+  
   //! \brief Export to Exodus II file
   //! Export mesh to Exodus II file. If with_fields is true, the fields in
   //! JaliState are also exported out.
 
   void write_to_exodus_file(const std::string exodusfilename,
-                            bool with_fields=true) const {
+                            bool with_fields = true) const {
     if (with_fields)
-      MESH_ExportToFile(mesh,exodusfilename.c_str(),"exodusii",0,NULL,NULL,mpicomm);
+      MESH_ExportToFile(mesh, exodusfilename.c_str(), "exodusii", 0, NULL,
+                        NULL, mpicomm);
     else
-      MESH_ExportToFile(mesh,exodusfilename.c_str(),"exodusii",-1,NULL,NULL,mpicomm);
+      MESH_ExportToFile(mesh, exodusfilename.c_str(), "exodusii", -1, NULL,
+                        NULL, mpicomm);
   }
 
 
@@ -335,11 +337,13 @@ public:
   //! JaliState are also exported out.
 
   void write_to_gmv_file(const std::string gmvfilename,
-                         bool with_fields=true) const {
+                         bool with_fields = true) const {
     if (with_fields)
-      MESH_ExportToFile(mesh,gmvfilename.c_str(),"gmv",0,NULL,NULL,mpicomm);
+      MESH_ExportToFile(mesh, gmvfilename.c_str(), "gmv", 0, NULL, NULL,
+                        mpicomm);
     else
-      MESH_ExportToFile(mesh,gmvfilename.c_str(),"gmv",-1,NULL,NULL,mpicomm);
+      MESH_ExportToFile(mesh, gmvfilename.c_str(), "gmv", -1, NULL, NULL,
+                        mpicomm);
   }
 
  protected:
@@ -348,11 +352,11 @@ public:
   //! with their names and variable types - DESIGNED TO BE CALLED ONLY
   //! BY THE JALI STATE MANAGER FOR INITIALIZATION OF MESH STATE FROM
   //! THE MESH FILE
-  
-  void get_field_info(Entity_kind on_what, int *num, 
+
+  void get_field_info(Entity_kind on_what, int *num,
                       std::vector<std::string> *varnames,
                       std::vector<std::string> *vartypes) const;
-  
+
   //! Retrieve an integer field on the mesh. If the return value is
   //! false, it could be that (1) the field does not exist (2) it
   //! exists but is associated with a different type of entity (3) the
@@ -388,17 +392,17 @@ public:
   //! CANNOT FIND A get_field IMPLEMENTATION WITH std::array<double,2ul>
 
   template<std::size_t N>
-  bool get_field_internal(std::string field_name, Entity_kind on_what, 
+  bool get_field_internal(std::string field_name, Entity_kind on_what,
                           std::array<double,N> *data) const;
-  bool get_field(std::string field_name, Entity_kind on_what, 
+  bool get_field(std::string field_name, Entity_kind on_what,
                  std::array<double,2> *data) const {
     return get_field_internal(field_name,on_what,data);
   }
-  bool get_field(std::string field_name, Entity_kind on_what, 
+  bool get_field(std::string field_name, Entity_kind on_what,
                  std::array<double,3> *data) const {
     return get_field_internal(field_name,on_what,data);
   }
-  bool get_field(std::string field_name, Entity_kind on_what, 
+  bool get_field(std::string field_name, Entity_kind on_what,
                  std::array<double,6> *data) const {
     return get_field_internal(field_name,on_what,data);
   }
@@ -425,17 +429,17 @@ public:
   //! CANNOT FIND A get_field IMPLEMENTATION WITH std::array<double,2ul>
 
   template<std::size_t N>
-  bool store_field_internal(std::string field_name, Entity_kind on_what, 
+  bool store_field_internal(std::string field_name, Entity_kind on_what,
                             std::array<double,N> *data);
-  bool store_field(std::string field_name, Entity_kind on_what, 
+  bool store_field(std::string field_name, Entity_kind on_what,
                    std::array<double,2> *data) {
     return store_field_internal(field_name,on_what,data);
   }
-  bool store_field(std::string field_name, Entity_kind on_what, 
+  bool store_field(std::string field_name, Entity_kind on_what,
                    std::array<double,3> *data) {
     return store_field_internal(field_name,on_what,data);
   }
-  bool store_field(std::string field_name, Entity_kind on_what, 
+  bool store_field(std::string field_name, Entity_kind on_what,
                    std::array<double,6> *data) {
     return store_field_internal(field_name,on_what,data);
   }
@@ -445,12 +449,12 @@ public:
 
   // Private methods
   // ----------------------------
-  
+
   void clear_internals_();
 
-  void pre_create_steps_(const int space_dimension, const MPI_Comm& incomm, 
+  void pre_create_steps_(const int space_dimension, const MPI_Comm& incomm,
                          const JaliGeometry::GeometricModelPtr& gm);
-  void post_create_steps_(const bool request_faces, const bool request_edges);
+  void post_create_steps_();
 
   void collapse_degen_edges();
   Cell_type MFace_Celltype(MFace_ptr f);
@@ -463,18 +467,18 @@ public:
   void init_pface_lists();
   void init_pface_dirs();
   void init_pcell_lists();
-  
+
   void init_vertex_id2handle_maps();
   void init_edge_id2handle_maps();
   void init_face_id2handle_maps();
   void init_cell_id2handle_maps();
   void init_global_ids();
-  
+
   void init_cell_map();
   void init_face_map();
   void init_edge_map();
   void init_node_map();
-  
+
   void init_nodes();
   void init_edges();
   void init_faces();
@@ -499,7 +503,8 @@ public:
                          const bool flatten = false,
                          const bool extrude = false,
 			 const bool request_faces = true,
-			 const bool request_edges = false);
+			 const bool request_edges = false,
+                         const int num_tiles = 0);
 
   MSet_ptr build_set(const JaliGeometry::RegionPtr region,
                      const Entity_kind kind) const;
@@ -507,8 +512,8 @@ public:
 
   // Downward Adjacencies
   //---------------------
-    
-  // Get faces of a cell and directions in which the cell uses the face 
+
+  // Get faces of a cell and directions in which the cell uses the face
 
   // The Jali coding guidelines regarding function arguments is purposely
   // violated here to allow for a default input argument
@@ -539,8 +544,8 @@ public:
 
 
   // Cells connected to a face
-    
-  void face_get_cells_internal (const Entity_ID faceid, 
+
+  void face_get_cells_internal (const Entity_ID faceid,
                                 const Parallel_type ptype,
                                 Entity_ID_List *cellids) const;
 
@@ -564,26 +569,26 @@ public:
 					 bool ordered=true) const;
 
   // Map from Jali's mesh entity kind to MSTK's mesh type.
-  
+
   MType entity_kind_to_mtype(const Entity_kind kind) const {
-    
+
     // The first index is cell dimension (0,1,2,3) and the second index
     // is the entity kind
     //
-    // map order in each row is NODE, EDGE, FACE, CELL
+    // map order in each row is NODE, EDGE, FACE, Entity_kind::CELL
     //
     // So, for a 1D mesh, nodes are MVERTEX type in MSTK, edges and faces
     // are also MVERTEX type, and cells are MEDGE type
     //
     // For a 2D mesh, nodes are MVERTEX type, edges and faces are MEDGE
     // type, and cells are MFACE type
-    
-    static MType const 
+
+    static MType const
       kind2mtype[4][4] = {{MVERTEX, MVERTEX, MVERTEX, MVERTEX},  // 0d meshes
                           {MVERTEX, MVERTEX, MVERTEX, MEDGE},    // 1d meshes
                           {MVERTEX, MEDGE,   MEDGE,   MFACE},    // 2d meshes
                           {MVERTEX, MEDGE,   MFACE,   MREGION}}; // 3d meshes
-    
+
     return kind2mtype[cell_dimension()][(int)kind];
   }
 
@@ -596,17 +601,17 @@ public:
   Mesh_ptr mesh;
 
   int serial_run;
-  
+
 
   // Local handles to entity lists (Vertices, "Faces", "Cells")
-  
+
   // For a surface mesh, "Faces" refers to mesh edges and "Cells"
   // refers to mesh faces
   //
   // For a solid mesh, "Faces" refers to mesh faces and "Cells"
   // refers to mesh regions
-  
-  
+
+
   // These are MSTK's definitions of types of parallel mesh entities
   // These definitions are slightly different from what Jali has defined
   //
@@ -615,16 +620,16 @@ public:
   // 1. OWNED - owned by this processor
   //
   // 2. GHOST - not owned by this processor
-  
-  // ALL = OWNED + GHOST in parallel, ALL = OWNED in serial
-  
+
+  // ALL = OWNED + Parall_type::GHOST in parallel, ALL = OWNED in serial
+
 
   MSet_ptr OwnedVerts, NotOwnedVerts;
-  
+
   mutable MSet_ptr OwnedEdges, NotOwnedEdges;
 
   mutable MSet_ptr OwnedFaces, NotOwnedFaces;
-  
+
   MSet_ptr OwnedCells, GhostCells;
 
   // Flags to indicate if face and edge info is initialized
@@ -651,7 +656,7 @@ public:
 
   // flag whether to flip a face dir or not when returning nodes of a
   // face (relevant only on partition boundaries)
-  
+
   mutable bool *faceflip;
 
   // flag whether to flip an edge dir or not when returning nodes of an edge
@@ -675,14 +680,14 @@ public:
   double *meshxyz;
   double *target_cell_volumes, *min_cell_volumes, *target_weights;
 
-    
+
 };
 
 
-    
+
 inline Parallel_type Mesh_MSTK::entity_get_ptype(const Entity_kind kind, const Entity_ID entid) const {
   MEntity_ptr ment;
-  
+
   switch(kind) {
     case CELL:
       ment = (MEntity_ptr) cell_id_to_handle[entid];
@@ -694,7 +699,7 @@ inline Parallel_type Mesh_MSTK::entity_get_ptype(const Entity_kind kind, const E
       ment = (MEntity_ptr) vtx_id_to_handle[entid];
       break;
   }
-  
+
   if (MEnt_PType(ment) == PGHOST)
     return GHOST;
   else
@@ -706,7 +711,7 @@ inline Parallel_type Mesh_MSTK::entity_get_ptype(const Entity_kind kind, const E
 // std::array<double,N>. Other implementations are in .cc file
 template<std::size_t N>
 inline
-bool Mesh_MSTK::get_field_internal(std::string field_name, Entity_kind on_what, 
+bool Mesh_MSTK::get_field_internal(std::string field_name, Entity_kind on_what,
                                    std::array<double,N> *data) const {
   MAttrib_ptr mattrib = MESH_AttribByName(mesh,field_name.c_str());
   if (!mattrib) return false;
@@ -720,10 +725,10 @@ bool Mesh_MSTK::get_field_internal(std::string field_name, Entity_kind on_what,
 
   MType enttype = MAttrib_Get_EntDim(mattrib);
   int ncomp = MAttrib_Get_NumComps(mattrib);
-  
+
   if (ncomp != N) return false;
 
-  int nent;      
+  int nent;
   switch (enttype) {
     case MVERTEX: nent = MESH_Num_Vertices(mesh); break;
     case MEDGE: nent = MESH_Num_Edges(mesh); break;
@@ -731,7 +736,7 @@ bool Mesh_MSTK::get_field_internal(std::string field_name, Entity_kind on_what,
     case MREGION: nent = MESH_Num_Regions(mesh); break;
     default: nent = 0; break;
   }
-  
+
   MEntity_ptr ment;
   for (int i = 0; i < nent; i++) {
     switch (enttype) {
@@ -742,16 +747,16 @@ bool Mesh_MSTK::get_field_internal(std::string field_name, Entity_kind on_what,
       default: ment = NULL; break;
     }
     if (ment == NULL) continue; // not needed since nent=0 but here anyway
-    
+
     int ival;
     double rval;
     void *pval;
     MEnt_Get_AttVal(ment,mattrib,&ival,&rval,&pval);
-    
+
     for (int j = 0; j < N; j++)
       data[i][j] = ((double *)pval)[j];
 
-  } // for (int i...);                
+  } // for (int i...);
 
   return true;
 } // Mesh_MSTK::get_mesh_field
@@ -764,7 +769,7 @@ bool Mesh_MSTK::get_field_internal(std::string field_name, Entity_kind on_what,
 
 template<std::size_t N>
 inline
-bool Mesh_MSTK::store_field_internal(std::string field_name, Entity_kind on_what, 
+bool Mesh_MSTK::store_field_internal(std::string field_name, Entity_kind on_what,
                                      std::array<double,N> *data) {
   MType mtype = entity_kind_to_mtype(on_what);
   MAttType atttype;
@@ -776,7 +781,7 @@ bool Mesh_MSTK::store_field_internal(std::string field_name, Entity_kind on_what
 
     atttype = MAttrib_Get_Type(mattrib);
     if (atttype != VECTOR || atttype != TENSOR) {
-      std::cerr << "Mesh_MSTK::store_field -" << 
+      std::cerr << "Mesh_MSTK::store_field -" <<
           " found attribute with same name but different type" << std::endl;
       return false;
     }
@@ -787,14 +792,14 @@ bool Mesh_MSTK::store_field_internal(std::string field_name, Entity_kind on_what
       return false;
     }
   }
-  else {    
+  else {
     if (N != 2 && N != 3 && N != 6) return false;
-    atttype =  (N == 2 || (N == 3 && Mesh::space_dimension() == 3)) ? VECTOR : 
+    atttype =  (N == 2 || (N == 3 && Mesh::space_dimension() == 3)) ? VECTOR :
         TENSOR;
     mattrib = MAttrib_New(mesh,field_name.c_str(),atttype,mtype,N);
   }
-  
-  int nent;      
+
+  int nent;
   switch (mtype) {
     case MVERTEX: nent = MESH_Num_Vertices(mesh); break;
     case MEDGE: nent = MESH_Num_Edges(mesh); break;
@@ -802,7 +807,7 @@ bool Mesh_MSTK::store_field_internal(std::string field_name, Entity_kind on_what
     case MREGION: nent = MESH_Num_Regions(mesh); break;
     default: nent = 0; break;
   }
-  
+
   MEntity_ptr ment;
   for (int i = 0; i < nent; i++) {
     switch (mtype) {
@@ -813,15 +818,15 @@ bool Mesh_MSTK::store_field_internal(std::string field_name, Entity_kind on_what
       default: ment = NULL; break;
     }
     if (ment == NULL) continue; // not needed since nent=0 but here anyway
-    
+
     void *pval;
     double *vec = new double[N];
     std::copy(&(data[i][0]),&(data[i][0])+N,vec);
     pval = vec;
-    
+
     MEnt_Set_AttVal(ment,mattrib,0,0.0,pval);
   } // for
-  
+
   return true;
 } // Mesh_MSTK::store_mesh_field
 
