@@ -11,7 +11,7 @@
 #include "Epetra_Vector.h"
 
 
-TEST(MSTK_EXTFACE_MAP_4P)
+TEST(MSTK_EXTEntity_kind::FACE_MAP_4P)
 {
 
   int i, j, k, err, nc, nf, nv;
@@ -28,13 +28,13 @@ TEST(MSTK_EXTFACE_MAP_4P)
   MPI_Initialized(&initialized);
 
   if (!initialized)
-    MPI_Init(NULL,NULL);
+    MPI_Init(NULL, NULL);
 
-  MPI_Comm_rank(MPI_COMM_WORLD,&rank);
-  MPI_Comm_size(MPI_COMM_WORLD,&size);
-  CHECK_EQUAL(4,size);
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  MPI_Comm_size(MPI_COMM_WORLD, &size);
+  CHECK_EQUAL(4, size);
 
-  Teuchos::RCP<Jali::Jali::Mesh> mesh(new Jali::Jali::Mesh_MSTK("test/hex_3x3x3_sets.exo",comm.get(),3));
+  Teuchos::RCP<Jali::Jali::Mesh> mesh(new Jali::Jali::Mesh_MSTK("test/hex_3x3x3_sets.exo", comm.get(), 3));
 
   Epetra_Map face_map(mesh->face_map(false));
   Epetra_Map extface_map(mesh->exterior_face_map());
@@ -46,11 +46,11 @@ TEST(MSTK_EXTFACE_MAP_4P)
       int gid = extface_map.GID(f);
       int f2 = face_map.LID(gid); // f2 is local face id in face_map
 
-      CHECK_EQUAL(face_map.GID(f2),gid);
+      CHECK_EQUAL(face_map.GID(f2), gid);
 
       Jali::Jali::Entity_ID_List fcells;
-      mesh->face_get_cells(f2, Jali::Jali::OWNED, &fcells);
-      CHECK_EQUAL(1,fcells.size());
+      mesh->face_get_cells(f2, Jali::Jali::Parallel_type::OWNED, &fcells);
+      CHECK_EQUAL(1, fcells.size());
     }
 
   Epetra_Vector allvec(face_map);
@@ -68,7 +68,7 @@ TEST(MSTK_EXTFACE_MAP_4P)
   // to the correct global IDs.
 
   for (int f = extface_map.MinLID(); f < extface_map.MaxLID(); f++)
-    CHECK_EQUAL(extface_map.GID(f),bdryvec[f]-3);
+    CHECK_EQUAL(extface_map.GID(f), bdryvec[f]-3);
 
 }
 
