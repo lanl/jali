@@ -3,10 +3,10 @@
  * @file   MeshFramework.cc
  * @author William A. Perkins
  * @date Tue May 17 11:49:33 2011
- * 
- * @brief  
- * 
- * 
+ *
+ * @brief
+ *
+ *
  */
 // -------------------------------------------------------------
 // -------------------------------------------------------------
@@ -62,7 +62,7 @@ namespace Jali {
     if (framework_available(STKMESH)) result.push_back(STKMESH);
     if (framework_available(MOAB)) result.push_back(MOAB);
     if (framework_available(Simple)) result.push_back(Simple);
-  
+
     return result;
   }
 
@@ -70,14 +70,14 @@ namespace Jali {
   // available_preference
 
   // -------------------------------------------------------------
-  /** 
+  /**
    * This routine removes entries from the request preferences if they
    * are not available.
-   * 
-   * @param request 
-   * 
+   *
+   * @param request
+   *
    * @return new preference list with only available frameworks
-   */  
+   */
   FrameworkPreference
   available_preference(const FrameworkPreference& request)
   {
@@ -92,6 +92,6 @@ namespace Jali {
     }
     return result;
   }
-      
+
 
 } // namespace Jali

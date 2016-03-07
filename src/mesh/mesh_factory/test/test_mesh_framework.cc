@@ -3,10 +3,10 @@
  * @file   test_mesh_framework.cc
  * @author William A. Perkins
  * @date Tue Oct  4 06:15:36 2011
- * 
- * @brief  
- * 
- * 
+ *
+ * @brief
+ *
+ *
  */
 // -------------------------------------------------------------
 // -------------------------------------------------------------
@@ -22,14 +22,14 @@
 #include "../MeshFramework.hh"
 #include "../FrameworkTraits.hh"
 
-SUITE (Framework) 
+SUITE (Framework)
 {
   TEST (DefaultPreference) {
-    
+
     Jali::FrameworkPreference pref(Jali::default_preference());
 
     CHECK(std::find(pref.begin(), pref.end(), Jali::Simple) != pref.end());
-    
+
 #ifdef HAVE_MOAB_MESH
     CHECK(std::find(pref.begin(), pref.end(), Jali::MOAB) != pref.end());
 #else
@@ -50,10 +50,10 @@ SUITE (Framework)
 
   }
 
-  TEST (AvailablePreference) 
+  TEST (AvailablePreference)
   {
     Jali::FrameworkPreference pref;
-    
+
     pref.clear();
     pref.push_back(Jali::MOAB);
     pref = Jali::available_preference(pref);
@@ -62,7 +62,7 @@ SUITE (Framework)
 #else
     CHECK(pref.empty());
 #endif
-    
+
     pref.clear();
     pref.push_back(Jali::STKMESH);
     pref = Jali::available_preference(pref);
@@ -71,7 +71,7 @@ SUITE (Framework)
 #else
     CHECK(pref.empty());
 #endif
-    
+
     pref.clear();
     pref.push_back(Jali::MSTK);
     pref = Jali::available_preference(pref);
@@ -80,7 +80,7 @@ SUITE (Framework)
 #else
     CHECK(pref.empty());
 #endif
-    
+
   }
 
   TEST (Readability)
@@ -88,7 +88,7 @@ SUITE (Framework)
     int nproc;
     MPI_Comm_size(MPI_COMM_WORLD,&nproc);
     bool parallel(nproc > 1);
-    
+
     CHECK(!Jali::framework_reads(Jali::Simple, Jali::ExodusII, parallel));
     CHECK(!Jali::framework_reads(Jali::Simple, Jali::Nemesis, parallel));
     CHECK(!Jali::framework_reads(Jali::Simple, Jali::MOABHDF5, parallel));
@@ -113,13 +113,13 @@ SUITE (Framework)
     int nproc;
     MPI_Comm_size(MPI_COMM_WORLD,&nproc);
     bool parallel(nproc > 1);
-    
+
     CHECK(!Jali::framework_generates(Jali::MOAB, parallel,3));
     CHECK(Jali::framework_generates(Jali::MSTK, parallel,3));
     CHECK(Jali::framework_generates(Jali::STKMESH, parallel,3));
     if (parallel) {
       CHECK(!Jali::framework_generates(Jali::Simple, parallel,3));
-    } 
+    }
 
 
     //    CHECK(!Jali::framework_generates(Jali::MOAB, parallel,2));
@@ -127,7 +127,7 @@ SUITE (Framework)
     //    CHECK(!Jali::framework_generates(Jali::STKMESH, parallel,2));
     //    if (parallel) {
     //      CHECK(!Jali::framework_generates(Jali::Simple, parallel,2));
-    //    } 
+    //    }
 
   }
 

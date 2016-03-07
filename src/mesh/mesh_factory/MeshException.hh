@@ -4,11 +4,11 @@
  * @file   MeshException.hh
  * @author William A. Perkins
  * @date Mon Mar 14 09:02:33 2011
- * 
+ *
  * @brief declaration of several exceptions used by MeshFactory and
  * related code
- * 
- * 
+ *
+ *
  */
 // -------------------------------------------------------------
 // -------------------------------------------------------------
@@ -38,7 +38,7 @@ namespace Jali {
   /**
    * This is only thrown if a specific framework is requested but
    * not available
-   * 
+   *
    */
   class FrameworkMessage : public Message {
   protected:
@@ -50,28 +50,28 @@ namespace Jali {
     }
 
   public:
-    explicit FrameworkMessage(const Framework& fw) : Message(), my_framework(fw) 
+    explicit FrameworkMessage(const Framework& fw) : Message(), my_framework(fw)
     {
       this->initialize();
     }
-    explicit FrameworkMessage(const Framework& fw, const char* message) : 
-      Message(), my_framework(fw) 
-    { 
+    explicit FrameworkMessage(const Framework& fw, const char* message) :
+      Message(), my_framework(fw)
+    {
       this->initialize();
       add_data(": ");
       add_data(message);
     }
     ~FrameworkMessage(void) throw() {};
   };
-    
+
   /// A special exception to identify file problems
   class FileMessage : public Message {
   public:
     explicit FileMessage(void) : Message() {}
     explicit FileMessage(const char* message) : Message(message) {}
     ~FileMessage(void) throw() {};
-  };    
-    
+  };
+
 } // namespace Jali
 
 #endif

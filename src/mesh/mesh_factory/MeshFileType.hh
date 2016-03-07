@@ -21,7 +21,7 @@
 namespace Jali {
 
   /// Identifers for those file formats understood
-  enum Format { 
+  enum Format {
     UnknownFormat = 0,          /**< It's a mystery */
     ExodusII,                   /**< Exodus II format */
     Nemesis,                    /**< Exodus II format partitioned by Nemesis */

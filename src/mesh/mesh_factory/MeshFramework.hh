@@ -4,10 +4,10 @@
  * @file   MeshFramework.hh
  * @author William A. Perkins
  * @date Tue May 17 11:37:06 2011
- * 
+ *
  * @brief  some typedefs to identify mesh frameworks
- * 
- * 
+ *
+ *
  */
 // -------------------------------------------------------------
 // -------------------------------------------------------------
@@ -34,10 +34,10 @@ namespace Jali {
     Simple = 1,
     MSTK,
     MOAB,
-    STKMESH  
+    STKMESH
   };
 
-  /// A type with which an ordered preference list of Framework 
+  /// A type with which an ordered preference list of Framework
   typedef std::vector<Framework> FrameworkPreference;
 
   /// Get a name for a given framework
