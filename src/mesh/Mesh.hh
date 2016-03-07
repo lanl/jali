@@ -19,7 +19,7 @@
 #include "GeometricModel.hh"
 #include "Region.hh"
 
-//! \mainpage Jali 
+//! \mainpage Jali
 //!
 //! Jali is a parallel unstructured mesh infrastructure library for
 //! multiphysics applications. It simplifies the process of importing,
@@ -59,47 +59,44 @@
 //  input files and generate parameter lists
 //  - JaliGeometry::RegionFactory    in file       RegionFactory.hh
 
-namespace Jali
-{
+namespace Jali {
 
-  //! \class Mesh.hh
-  //! \brief Base mesh class 
-  //!
-  //! Use the associated mesh factory to create an instance of a
-  //! derived class based on a particular mesh framework (like MSTK,
-  //! STKmesh etc.)
-  //!
-  //! **** IMPORTANT NOTE ABOUT CONSTANTNESS OF THIS CLASS ****
-  //! Instantiating a const version of this class only guarantees that
-  //! the underlying mesh topology and geometry does not change (the
-  //! public interfaces conforms strictly to this definition). However,
-  //! for purposes of memory savings we use lazy initialization and
-  //! caching of face data, edge data, geometry quantities, columns
-  //! etc., which means that these data may still change. We also
-  //! cannot initialize the cached quantities in the constructor since
-  //! they depend on initialization of data structures in the derived
-  //! class - however, the base class gets constructed before the
-  //! derived class gets constructed so it is not possible without more
-  //! obscure acrobatics. This is why some of the caching data
-  //! declarations are declared with the keyword 'mutable' and routines
-  //! that modify the mutable data are declared with a constant
-  //! qualifier.
-  //!
+// Forward declaration of MeshTile class which the mesh class
+// references - need to do this to avoid circular dependence between
+// Mesh and MeshTile classes
+
+class MeshTile;
 
 
-class Mesh
-{
+//! \class Mesh.hh
+//! \brief Base mesh class
+//!
+//! Use the associated mesh factory to create an instance of a
+//! derived class based on a particular mesh framework (like MSTK,
+//! STKmesh etc.)
+//!
+//! **** IMPORTANT NOTE ABOUT CONSTANTNESS OF THIS CLASS ****
+//! Instantiating a const version of this class only guarantees that
+//! the underlying mesh topology and geometry does not change (the
+//! public interfaces conforms strictly to this definition). However,
+//! for purposes of memory savings we use lazy initialization and
+//! caching of face data, edge data, geometry quantities, columns
+//! etc., which means that these data may still change. We also
+//! cannot initialize the cached quantities in the constructor since
+//! they depend on initialization of data structures in the derived
+//! class - however, the base class gets constructed before the
+//! derived class gets constructed so it is not possible without more
+//! obscure acrobatics. This is why some of the caching data
+//! declarations are declared with the keyword 'mutable' and routines
+//! that modify the mutable data are declared with a constant
+//! qualifier.
+//!
 
+
+class Mesh {
+  
  public:
-
-  //! iterators for different types of entities
-
-  typedef std::vector<int>::iterator node_iterator;
-  typedef std::vector<int>::iterator edge_iterator;
-  typedef std::vector<int>::iterator face_iterator;
-  typedef std::vector<int>::iterator cell_iterator;
-
-
+  
   //! \brief constructor
   //!
   //! constructor - cannot call directly. Code must set mesh framework
@@ -107,30 +104,35 @@ class Mesh
   //! call the mesh_factory to make a mesh. If it is absolutely
   //! necessary, one can call the constructor of one of the available
   //! mesh frameworks directly
-
-  Mesh(const bool request_faces=true,
-       const bool request_edges=false,
-       const bool request_wedges=false,
-       const bool request_corners=false,
-       const MPI_Comm incomm=MPI_COMM_WORLD) :
-      spacedim(3), celldim(3), mesh_type_(GENERAL), 
+  
+  Mesh(const bool request_faces = true,
+       const bool request_edges = false,
+       const bool request_wedges = false,
+       const bool request_corners = false,
+       const int num_tiles = 0,
+       const MPI_Comm incomm = MPI_COMM_WORLD) :
+      spacedim(3), celldim(3), mesh_type_(GENERAL),
       cell_geometry_precomputed(false), face_geometry_precomputed(false),
       edge_geometry_precomputed(false), wedge_geometry_precomputed(false),
       corner_geometry_precomputed(false),
       faces_requested(request_faces), edges_requested(request_edges),
       wedges_requested(request_wedges), corners_requested(request_corners),
-      cell2face_info_cached(false), face2cell_info_cached(false), 
-      cell2edge_info_cached(false), face2edge_info_cached(false), 
+      tiles_requested(num_tiles > 0), num_tiles_(num_tiles),
+      cell2face_info_cached(false), face2cell_info_cached(false),
+      cell2edge_info_cached(false), face2edge_info_cached(false),
       wedge_info_cached(false), corner_info_cached(false),
-      geometric_model_(NULL), comm(incomm)
-  {
-    num_wedges = 0;
-    num_corners = 0;
+      geometric_model_(NULL), comm(incomm) {
+    
     if (corners_requested) // corners are defined in terms of wedges
       wedges_requested = true;
     if (wedges_requested) { // need faces and edges to build wedges
       faces_requested = true;
       edges_requested = true;
+    }
+
+      std::cerr << "Num tiles requested " << num_tiles_ << std::endl;
+    if (tiles_requested) {
+      meshtiles.resize(num_tiles_);
     }
   }
 
@@ -159,12 +161,11 @@ class Mesh
   //! Spatial dimension of points in the mesh
 
   inline
-  unsigned int space_dimension() const
-  {
+  unsigned int space_dimension() const {
     return spacedim;
   }
 
-  //! Set the topological dimension of mesh cells - typically 
+  //! Set the topological dimension of mesh cells - typically
   //! invoked by the constructor of a derived mesh class
 
   inline
@@ -215,7 +216,7 @@ class Mesh
     return mesh_type_;
   }
 
-  //! Get parallel type of entity - OWNED, GHOST, ALL (OWNED+GHOST)
+  //! Get parallel type of entity - OWNED, GHOST
 
   virtual
   Parallel_type entity_get_ptype(const Entity_kind kind,
@@ -228,7 +229,7 @@ class Mesh
   Entity_ID entity_get_parent(const Entity_kind kind, const Entity_ID entid) const;
 
 
-  //! Get cell type - UNKNOWN, TRI, QUAD, POLYGON, TET, PRISM, PYRAMID, HEX, POLYHED 
+  //! Get cell type - UNKNOWN, TRI, QUAD, POLYGON, TET, PRISM, PYRAMID, HEX, POLYHED
   //! See MeshDefs.hh
 
   virtual
@@ -244,11 +245,34 @@ class Mesh
   //
 
   //! Number of entities of any kind (cell, face, node) and in a
-  //! particular category (OWNED, GHOST, ALL)
+  //! particular category (OWNED, GHOST, ALL) 
 
-  virtual
-  unsigned int num_entities (const Entity_kind kind,
-                             const Parallel_type ptype) const = 0;
+  unsigned int num_entities(const Entity_kind kind,
+                            const Parallel_type ptype) const;
+
+  //! Number of nodes of ptype (OWNED, GHOST, ALL)
+
+  template<Parallel_type ptype = ALL> unsigned int num_nodes() const;
+
+  //! Number of edges of ptype (OWNED, GHOST, ALL)
+
+  template<Parallel_type ptype = ALL> unsigned int num_edges() const;
+
+  //! Number of faces of ptype (OWNED, GHOST, ALL)
+
+  template<Parallel_type ptype = ALL> unsigned int num_faces() const;
+
+  //! Number of wedges of ptype (OWNED, GHOST, ALL)
+
+  template<Parallel_type ptype = ALL> unsigned int num_wedges() const;
+
+  //! Number of corners of ptype (OWNED, GHOST, ALL)
+
+  template<Parallel_type ptype = ALL> unsigned int num_corners() const;
+
+  //! Number of cells of ptype (OWNED, GHOST, ALL)
+
+  template<Parallel_type ptype = ALL> unsigned int num_cells() const;
 
 
   //! Global ID of any entity
@@ -256,53 +280,49 @@ class Mesh
   virtual
   Entity_ID GID(const Entity_ID lid, const Entity_kind kind) const = 0;
 
-  
-  // iterators for mesh entities
 
-  node_iterator begin_nodes() {return nodeids.begin();}
-  node_iterator end_nodes() {return nodeids.end();}
-  node_iterator begin_owned_nodes() {return nodeids.begin();}
-  node_iterator end_owned_nodes() {
-    return nodeids.begin()+num_entities(NODE,OWNED);
-  }
-  node_iterator begin_ghost_nodes() { // ghost nodes start after owned nodes
-    return nodeids.begin()+num_entities(NODE,OWNED); 
-  }
-  node_iterator end_ghost_nodes() { return nodeids.end();}
+  //! List of references to mesh tiles (collections of mesh cells)
+  // Don't want to make the vector contain const references to tiles
+  // because the tiles may be asked to add or remove some entities
 
+  const std::vector<std::shared_ptr<MeshTile>> & tiles() {
+    return meshtiles;
+  }
 
-  edge_iterator begin_edges() {return edgeids.begin();}
-  edge_iterator end_edges() {return edgeids.end();}
-  edge_iterator begin_owned_edges() {return edgeids.begin();}
-  edge_iterator end_owned_edges() {
-    return edgeids.begin()+num_entities(EDGE,OWNED);
-  }
-  edge_iterator begin_ghost_edges() { // ghost edges start after owned edges
-    return edgeids.begin()+num_entities(EDGE,OWNED); 
-  }
-  edge_iterator end_ghost_edges() { return edgeids.end();}
+  //! Number of mesh tiles (on a compute node)
 
-  face_iterator begin_faces() {return faceids.begin();}
-  face_iterator end_faces() {return faceids.end();}
-  face_iterator begin_owned_faces() {return faceids.begin();}
-  face_iterator end_owned_faces() {
-    return faceids.begin()+num_entities(FACE,OWNED);
-  }
-  face_iterator begin_ghost_faces() { // ghost faces start after owned faces
-    return faceids.begin()+num_entities(FACE,OWNED); 
-  }
-  face_iterator end_ghost_faces() { return faceids.end();}
+  int num_tiles() {return meshtiles.size();}
 
-  cell_iterator begin_cells() {return cellids.begin();}
-  cell_iterator end_cells() {return cellids.end();}
-  cell_iterator begin_owned_cells() {return cellids.begin();}
-  cell_iterator end_owned_cells() {
-    return cellids.begin()+num_entities(CELL,OWNED);
-  }
-  cell_iterator begin_ghost_cells() { // ghost cells start after owned cells
-    return cellids.begin()+num_entities(CELL,OWNED); 
-  }
-  cell_iterator end_ghost_cells() { return cellids.end();}
+  //! Nodes of mesh (of a particular parallel type OWNED, GHOST or ALL)
+
+  template<Parallel_type ptype = ALL>
+  const std::vector<Entity_ID> & nodes() const;
+
+  //! Edges of mesh (of a particular parallel type OWNED, GHOST or ALL)
+
+  template<Parallel_type ptype = ALL>
+  const std::vector<Entity_ID> & edges() const;
+
+  //! Faces of mesh (of a particular parallel type OWNED, GHOST or ALL)
+
+  template<Parallel_type ptype = ALL>
+  const std::vector<Entity_ID> & faces() const;
+
+  //! Wedges of mesh (of a particular parallel type OWNED, GHOST or ALL)
+
+  template<Parallel_type ptype = ALL>
+  const std::vector<Entity_ID> & wedges() const;
+
+  //! Corners of mesh (of a particular parallel type OWNED, GHOST or ALL)
+
+  template<Parallel_type ptype = ALL>
+  const std::vector<Entity_ID> & corners() const;
+
+  //! Cells of mesh (of a particular parallel type OWNED, GHOST or ALL)
+
+  template<Parallel_type ptype = ALL>
+  const std::vector<Entity_ID> & cells() const;
+
 
   //
   // Mesh Entity Adjacencies
@@ -322,22 +342,22 @@ class Mesh
   //! violated here to allow for a default input argument
   //!
   //! On a distributed mesh, this will return all the faces of the
-  //! cell, OWNED or GHOST. If ordered = true, the faces will be
+  //! cell, OWNED or Parallel_type::GHOST. If ordered = true, the faces will be
   //! returned in a standard order according to Exodus II convention
   //! for standard cells; in all other situations (ordered = false or
   //! non-standard cells), the list of faces will be in arbitrary order
 
-  void cell_get_faces (const Entity_ID cellid,
-                       Entity_ID_List *faceids,
-                       const bool ordered=false) const;
+  void cell_get_faces(const Entity_ID cellid,
+                      Entity_ID_List *faceids,
+                      const bool ordered = false) const;
 
-  //! Get faces of a cell and directions in which the cell uses the face 
+  //! Get faces of a cell and directions in which the cell uses the face
   //!
   //! The Google coding guidelines regarding function arguments is purposely
   //! violated here to allow for a default input argument
   //!
   //! On a distributed mesh, this will return all the faces of the
-  //! cell, OWNED or GHOST. If ordered = true, the faces will be
+  //! cell, OWNED or Parallel_type::GHOST. If ordered = true, the faces will be
   //! returned in a standard order according to Exodus II convention
   //! for standard cells; in all other situations (ordered = false or
   //! non-standard cells), the list of faces will be in arbitrary order
@@ -347,16 +367,16 @@ class Mesh
   //! In 2D, direction is 1 if face/edge is defined in the same
   //! direction as the cell polygon, and -1 otherwise
 
-  void cell_get_faces_and_dirs (const Entity_ID cellid,
-                                Entity_ID_List *faceids,
-                                std::vector<int> *facedirs,
-				const bool ordered=false) const;
-
-
+  void cell_get_faces_and_dirs(const Entity_ID cellid,
+                               Entity_ID_List *faceids,
+                               std::vector<int> *facedirs,
+                               const bool ordered = false) const;
+  
+  
   //! Get edges of a cell (in no particular order)
-
-  void cell_get_edges (const Entity_ID cellid, 
-                       Entity_ID_List *edgeids) const;
+  
+  void cell_get_edges(const Entity_ID cellid,
+                      Entity_ID_List *edgeids) const;
 
   //! Get edges and dirs of a 2D cell. This is to make the code cleaner
   //! for integrating over the cell in 2D where faces and edges are
@@ -364,34 +384,34 @@ class Mesh
   //! is more cumbersome (one would have to take the face normals,
   //! rotate them and then get a consistent edge vector)
 
-  void cell_2D_get_edges_and_dirs (const Entity_ID cellid, 
-                                   Entity_ID_List *edgeids,
-                                   std::vector<int> *edge_dirs) const;
-
+  void cell_2D_get_edges_and_dirs(const Entity_ID cellid,
+                                  Entity_ID_List *edgeids,
+                                  std::vector<int> *edge_dirs) const;
+  
 
   //! Get nodes of a cell (in no particular order)
 
   virtual
-  void cell_get_nodes (const Entity_ID cellid, 
-                       Entity_ID_List *nodeids) const=0;
+  void cell_get_nodes(const Entity_ID cellid,
+                      Entity_ID_List *nodeids) const = 0;
 
 
-  //! Get edges of a face and directions in which the face uses the edges 
+  //! Get edges of a face and directions in which the face uses the edges
   //!
   //! On a distributed mesh, this will return all the edges of the
-  //! face, OWNED or GHOST. If ordered = true, the edges will be
+  //! face, OWNED or Parallel_type::GHOST. If ordered = true, the edges will be
   //! returned in a ccw order around the face as it is naturally defined.
   //!
   //! IMPORTANT NOTE IN 2D CELLS: In meshes where the cells are two
   //! dimensional, faces and edges are identical. For such cells, this
   //! operator will return a single edge and a direction of 1. However,
   //! this direction cannot be relied upon to compute, say, a contour
-  //! integral around the 2D cell. 
+  //! integral around the 2D cell.
 
   void face_get_edges_and_dirs (const Entity_ID faceid,
                                 Entity_ID_List *edgeids,
                                 std::vector<int> *edgedirs,
-				const bool ordered=false) const;
+                                const bool ordered=false) const;
 
 
   //! Get the local index of a face edge in a cell edge list
@@ -402,12 +422,12 @@ class Mesh
   //! face_to_cell_edge_map(face=5,cell=18) --> {10, 8, 9, 5, 6}
 
 
-  void face_to_cell_edge_map(const Entity_ID faceid, 
+  void face_to_cell_edge_map(const Entity_ID faceid,
                              const Entity_ID cellid,
                              std::vector<int> *map) const;
 
   //! Get nodes of face
-  //! On a distributed mesh, all nodes (OWNED or GHOST) of the face
+  //! On a distributed mesh, all nodes (OWNED or Parallel_type::GHOST) of the face
   //! are returned
   //! In 3D, the nodes of the face are returned in ccw order consistent
   //! with the face normal
@@ -419,28 +439,28 @@ class Mesh
 
 
   //! Get nodes of edge
-  
+
   virtual
-  void edge_get_nodes (const Entity_ID edgeid, 
-		       Entity_ID *nodeid0, Entity_ID *nodeid1) const = 0;
+  void edge_get_nodes (const Entity_ID edgeid,
+                       Entity_ID *nodeid0, Entity_ID *nodeid1) const = 0;
 
 
-  
+
   //! Get wedges of cell
 
   void cell_get_wedges (const Entity_ID cellid,
-			Entity_ID_List *wedgeids) const;
+                        Entity_ID_List *wedgeids) const;
 
   //! Get corners of cell
 
   void cell_get_corners (const Entity_ID cellid,
-			 Entity_ID_List *cornerids) const;
+                         Entity_ID_List *cornerids) const;
 
   //! Get corner at cell and node combination
 
   Entity_ID cell_get_corner_at_node(const Entity_ID cellid,
                                     const Entity_ID nodeid) const;
-  
+
   //! Face of a wedge
 
   Entity_ID wedge_get_face (const Entity_ID wedgeid) const;
@@ -461,12 +481,12 @@ class Mesh
   //! Wedges of a corner
 
   void corner_get_wedges (const Entity_ID cornerid,
-                          Entity_ID_List *wedgeids) const; 
+                          Entity_ID_List *wedgeids) const;
 
   //! Face get facets (or should we return a vector of standard pairs
   //! containing the wedge and a facet index?)
 
-  void face_get_facets (const Entity_ID faceid, 
+  void face_get_facets (const Entity_ID faceid,
                         Entity_ID_List *facetids) const;
 
 
@@ -500,7 +520,7 @@ class Mesh
                         const Parallel_type ptype,
                         Entity_ID_List *wedgeids) const;
 
-  //! Corners connected to a node - The corners are returned in no 
+  //! Corners connected to a node - The corners are returned in no
   //! particular order. Also, the order of corners is not guaranteed to
   //! be the same for corresponding nodes on different processors
 
@@ -537,10 +557,10 @@ class Mesh
 
   //! wedges of a facet
 
-  // void wedges_of_a_facet (const Entity_ID facetid, Entity_ID_List *wedgeids) 
+  // void wedges_of_a_facet (const Entity_ID facetid, Entity_ID_List *wedgeids)
   //    const;
 
-  //! Cell of a corner 
+  //! Cell of a corner
 
   Entity_ID corner_get_cell (const Entity_ID cornerid) const;
 
@@ -617,21 +637,21 @@ class Mesh
                              std::vector<JaliGeometry::Point> *ccoords) const = 0;
 
   //! Coordinates of wedge
-  //! 
+  //!
   //! If posvol_order = true, then the coordinates will be returned
-  //! in an order that will result in a positive volume (in 3D this assumes 
-  //! that the computation for volume is done as (V01 x V02).V03 where V0i 
+  //! in an order that will result in a positive volume (in 3D this assumes
+  //! that the computation for volume is done as (V01 x V02).V03 where V0i
   //! is a vector from coordinate 0 to coordinate i of the tet). If posvol_order
-  //! is false, the coordinates will be returned in a fixed order - in 2D, 
+  //! is false, the coordinates will be returned in a fixed order - in 2D,
   //! this is node point, edge/face center, cell center and in 3D, this is
   //! node point, edge center, face center, cell center
   //!
   //! By default the coordinates are returned in fixed order
   //! (posvol_order = false)
-  
+
 
   void wedge_get_coordinates (const Entity_ID wedgeid,
-			      std::vector<JaliGeometry::Point> *wcoords,
+                              std::vector<JaliGeometry::Point> *wcoords,
                               bool posvol_order=false) const;
 
 
@@ -653,7 +673,7 @@ class Mesh
                                 std::vector< std::array<Entity_ID,3> > *facetpoints) const;
 
   //! "facets" (line segments) describing a corner in 2D. The facet points are
-  //! (0,1) (1,2) (2,3) and (3,4) referring to the point coordinates. They are 
+  //! (0,1) (1,2) (2,3) and (3,4) referring to the point coordinates. They are
   //! guaranteed to be in ccw order around the quadrilateral corner
 
   void corner_get_facetization (const Entity_ID cornerid,
@@ -703,7 +723,7 @@ class Mesh
   //!
   //! If recompute is TRUE, then the normal is recalculated using current
   //! face coordinates but not stored. (If the recomputed normal must be
-  //! stored, then call recompute_geometric_quantities). 
+  //! stored, then call recompute_geometric_quantities).
   //!
   //! If cellid is not specified, the normal is the natural normal of
   //! the face. This means that at boundaries, the normal may point in
@@ -720,10 +740,10 @@ class Mesh
   //! pointing out of the cell and -1 pointing in)
 
 
-  JaliGeometry::Point face_normal (const Entity_ID faceid, 
-				     const bool recompute=false, 
-				     const Entity_ID cellid=-1, 
-				     int *orientation=NULL) const;
+  JaliGeometry::Point face_normal (const Entity_ID faceid,
+                                     const bool recompute=false,
+                                     const Entity_ID cellid=-1,
+                                     int *orientation=NULL) const;
 
 
   //! Edge vector - not normalized (or normalized and weighted by length
@@ -731,7 +751,7 @@ class Mesh
   //!
   //! If recompute is TRUE, then the vector is recalculated using current
   //! edge coordinates but not stored. (If the recomputed vector must be
-  //! stored, then call recompute_geometric_quantities). 
+  //! stored, then call recompute_geometric_quantities).
   //!
   //! If pointid is specified, the vector is the natural direction of
   //! the edge (from point0 to point1).  On the other hand, if pointid
@@ -743,14 +763,14 @@ class Mesh
   //! away from the point and -1 is towards)
 
 
-  JaliGeometry::Point edge_vector (const Entity_ID edgeid, 
-				     const bool recompute=false, 
-				     const Entity_ID pointid=-1,
-				     int *orientation=NULL) const;
+  JaliGeometry::Point edge_vector (const Entity_ID edgeid,
+                                     const bool recompute=false,
+                                     const Entity_ID pointid=-1,
+                                     int *orientation=NULL) const;
 
   //! Point in cell?
 
-  bool point_in_cell (const JaliGeometry::Point &p, 
+  bool point_in_cell (const JaliGeometry::Point &p,
                       const Entity_ID cellid) const;
 
 
@@ -759,7 +779,7 @@ class Mesh
   //!
   //! If recompute is TRUE, then the normal is recalculated using current
   //! wedge coordinates but not stored. (If the recomputed normal must be
-  //! stored, then call recompute_geometric_quantities). 
+  //! stored, then call recompute_geometric_quantities).
   //!
 
   JaliGeometry::Point wedge_facet_normal (const Entity_ID wedgeid,
@@ -853,7 +873,7 @@ class Mesh
 
 
   // get faces of a cell and directions in which it is used - this function
-  // is implemented in each mesh framework. The results are cached in 
+  // is implemented in each mesh framework. The results are cached in
   // the base class
 
   virtual
@@ -864,7 +884,7 @@ class Mesh
 
   // Cells connected to a face - this function is implemented in each
   // mesh framework. The results are cached in the base class
-  
+
   virtual
   void face_get_cells_internal (const Entity_ID faceid,
                                 const Parallel_type ptype,
@@ -876,12 +896,12 @@ class Mesh
 
   virtual
   void face_get_edges_and_dirs_internal (const Entity_ID faceid,
-					 Entity_ID_List *edgeids,
-					 std::vector<int> *edge_dirs,
-					 const bool ordered=true) const = 0;
+                                         Entity_ID_List *edgeids,
+                                         std::vector<int> *edge_dirs,
+                                         const bool ordered=true) const = 0;
 
   // edges of a cell - this function is implemented in each mesh
-  // framework. The results are cached in the base class. 
+  // framework. The results are cached in the base class.
 
   virtual
   void cell_get_edges_internal (const Entity_ID cellid,
@@ -902,7 +922,7 @@ class Mesh
   //! on a particular type of entity on the mesh - DESIGNED TO BE
   //! CALLED ONLY BY THE JALI STATE MANAGER FOR INITIALIZATION OF MESH
   //! STATE FROM THE MESH FILE
-  
+
   virtual
   void get_field_info(Entity_kind on_what, int *num,
                       std::vector<std::string> *varnames,
@@ -940,41 +960,38 @@ class Mesh
   //! OF MESH STATE FROM THE MESH FILE
 
   virtual
-  bool store_field(std::string field_name, Entity_kind on_what, int *data) 
+  bool store_field(std::string field_name, Entity_kind on_what, int *data)
   {return false;}
   virtual
   bool store_field(std::string field_name, Entity_kind on_what, double *data)
   {return false;}
   virtual
-  bool store_field(std::string field_name, Entity_kind on_what, 
+  bool store_field(std::string field_name, Entity_kind on_what,
                    std::array<double,(std::size_t)2> *data) {return false;}
   virtual
-  bool store_field(std::string field_name, Entity_kind on_what, 
+  bool store_field(std::string field_name, Entity_kind on_what,
                    std::array<double,(std::size_t)3> *data) {return false;}
   virtual
-  bool store_field(std::string field_name, Entity_kind on_what, 
+  bool store_field(std::string field_name, Entity_kind on_what,
                    std::array<double,(std::size_t)6> *data) {return false;}
 
 
-  mutable std::vector<int> nodeids, edgeids, faceids, cellids;
-
-
  protected:
- 
+
   // The following methods are declared const since they do not modify the
   // mesh but just modify cached variables declared as mutable
 
-  int compute_cell_geometry(const Entity_ID cellid, 
-                            double *volume, 
+  int compute_cell_geometry(const Entity_ID cellid,
+                            double *volume,
                             JaliGeometry::Point *centroid) const;
-  int compute_face_geometry(const Entity_ID faceid, 
-                            double *area, 
-                            JaliGeometry::Point *centroid, 
+  int compute_face_geometry(const Entity_ID faceid,
+                            double *area,
+                            JaliGeometry::Point *centroid,
                             JaliGeometry::Point *normal0,
                             JaliGeometry::Point *normal1) const;
   int compute_edge_geometry(const Entity_ID edgeid,
-			    double *length,
-			    JaliGeometry::Point *edge_vector,
+                            double *length,
+                            JaliGeometry::Point *edge_vector,
                             JaliGeometry::Point *centroid) const;
 
   void compute_wedge_geometry(const Entity_ID wedgeid,
@@ -985,25 +1002,48 @@ class Mesh
   void compute_corner_geometry(const Entity_ID cornerid,
                               double *volume) const;
 
-  void cache_cell2face_info() const; 
+  void cache_cell2face_info() const;
   void cache_face2cell_info() const;
   void cache_cell2edge_info() const;
   void cache_face2edge_info() const;
   void cache_wedge_info() const;
   void cache_corner_info() const;
 
+  void build_tiles();
 
-  // Data 
+  // Data
 
   unsigned int celldim, spacedim;
 
   MPI_Comm comm;
+
+  // List of MeshTiles (A meshtile is a list of cell indices that will be
+  // processed together)
+
+  const bool tiles_requested;
+  const int num_tiles_;
+  std::vector<std::shared_ptr<MeshTile>> meshtiles;
+
+  // Some geometric quantities
 
   mutable std::vector<double> cell_volumes, face_areas, edge_lengths,
     wedge_volumes, corner_volumes;
   mutable std::vector<JaliGeometry::Point> cell_centroids,
     face_centroids, face_normal0, face_normal1, edge_vectors, edge_centroids;
   mutable std::vector<JaliGeometry::Point> wedge_facet_normals0, wedge_facet_normals1;
+
+  // Entity lists
+
+  mutable std::vector<int> nodeids_owned_, nodeids_ghost_, nodeids_all_;
+  mutable std::vector<int> edgeids_owned_, edgeids_ghost_, edgeids_all_;
+  mutable std::vector<int> faceids_owned_, faceids_ghost_, faceids_all_;
+  mutable std::vector<int> wedgeids_owned_, wedgeids_ghost_, wedgeids_all_;
+  mutable std::vector<int> cornerids_owned_, cornerids_ghost_, cornerids_all_;
+  mutable std::vector<int> cellids_owned_, cellids_ghost_, cellids_all_;
+  std::vector<int> dummy_list_;  // for unspecialized cases
+
+  // Some topological relationships
+
   mutable std::vector<Entity_ID_List> cell_face_ids;
   mutable std::vector< std::vector<int> > cell_face_dirs;
   mutable std::vector<Entity_ID_List > face_cell_ids;
@@ -1013,7 +1053,6 @@ class Mesh
   mutable std::vector<Entity_ID_List> face_edge_ids;
   mutable std::vector< std::vector<int> > face_edge_dirs;
 
-  mutable int num_wedges;
   mutable std::vector< std::vector<Entity_ID> > cell_wedge_ids;
   mutable std::vector< std::vector<Entity_ID> > node_wedge_ids;
   mutable std::vector<Entity_ID> wedge_edge_id;
@@ -1034,9 +1073,8 @@ class Mesh
   //! tells us whether we have to the wedge will naturally give us a
   //! positive volume (true) or not (false).
 
-  mutable std::vector<bool> wedge_posvol_flag; 
-  
-  mutable int num_corners;
+  mutable std::vector<bool> wedge_posvol_flag;
+
   mutable std::vector< std::vector<Entity_ID> > cell_corner_ids;
   mutable std::vector< std::vector<Entity_ID> > node_corner_ids;
   mutable std::vector< std::vector<Entity_ID> > corner_wedge_ids;
@@ -1057,15 +1095,285 @@ class Mesh
     edge_geometry_precomputed, wedge_geometry_precomputed,
     corner_geometry_precomputed;
 
+  // Pointer to geometric model that contains descriptions of
+  // geometric regions - These geometric regions are used to define
+  // entity sets for properties, boundary conditions etc.
+
   JaliGeometry::GeometricModelPtr geometric_model_;
 
 
-  //! Make the State class a friend so that it can access protected 
+  //! Make the State class a friend so that it can access protected
   //! methods for retrieving and storing mesh fields
 
   friend class State;
 
 }; // End class Mesh
+
+
+
+// Templated version of num_entities with specializations on enum
+
+template<Parallel_type ptype> inline
+unsigned int Mesh::num_nodes() const {
+  std::cerr << "num_nodes: Not defined for parallel type " << ptype << "\n";
+  return 0;
+}
+template<> inline
+unsigned int Mesh::num_nodes<OWNED>() const {return nodeids_owned_.size();}
+template<> inline
+unsigned int Mesh::num_nodes<GHOST>() const {return nodeids_ghost_.size();}
+template<> inline
+unsigned int Mesh::num_nodes<ALL>() const {
+ return  num_nodes<OWNED>() + num_nodes<GHOST>();
+}
+
+template<Parallel_type ptype> inline
+unsigned int Mesh::num_edges() const {
+  std::cerr << "num_edges: Not defined for parallel type " << ptype << "\n";
+  return 0;
+}
+template<> inline
+unsigned int Mesh::num_edges<OWNED>() const {return edgeids_owned_.size();}
+template<> inline
+unsigned int Mesh::num_edges<GHOST>() const {return edgeids_ghost_.size();}
+template<> inline
+unsigned int Mesh::num_edges<ALL>() const {
+  return num_edges<OWNED>() + num_edges<GHOST>();
+}
+
+template<Parallel_type ptype> inline
+unsigned int Mesh::num_faces() const {
+  std::cerr << "num_faces: Not defined for parallel type " << ptype << "\n";
+  return 0;
+}
+template<> inline
+unsigned int Mesh::num_faces<OWNED>() const {return faceids_owned_.size();}
+template<> inline
+unsigned int Mesh::num_faces<GHOST>() const {return faceids_ghost_.size();}
+template<> inline
+unsigned int Mesh::num_faces<ALL>() const {
+  return num_faces<OWNED>() + num_faces<GHOST>();
+}
+
+template<Parallel_type ptype> inline
+unsigned int Mesh::num_wedges() const {
+  std::cerr << "num_wedges: Not defined for parallel type " << ptype << "\n";
+  return 0;
+}
+template<> inline
+unsigned int Mesh::num_wedges<OWNED>() const {return wedgeids_owned_.size();}
+template<> inline
+unsigned int Mesh::num_wedges<GHOST>() const {return wedgeids_ghost_.size();}
+template<> inline
+unsigned int Mesh::num_wedges<ALL>() const {
+  return num_wedges<OWNED>() + num_wedges<GHOST>();
+}
+
+template<Parallel_type ptype> inline
+unsigned int Mesh::num_corners() const {
+  std::cerr << "num_corners: Not defined for parallel type " << ptype << "\n";
+  return 0;
+}
+template<> inline
+unsigned int Mesh::num_corners<OWNED>() const {return cornerids_owned_.size();}
+template<> inline
+unsigned int Mesh::num_corners<GHOST>() const {return cornerids_ghost_.size();}
+template<> inline
+unsigned int Mesh::num_corners<ALL>() const {
+  return num_corners<OWNED>() + num_corners<GHOST>();
+}
+
+template<Parallel_type ptype> inline
+unsigned int Mesh::num_cells() const {
+  std::cerr << "num_cells: Not defined for parallel type " << ptype << "\n";
+  return 0;
+}
+template<> inline
+unsigned int Mesh::num_cells<OWNED>() const {return cellids_owned_.size();}
+template<> inline
+unsigned int Mesh::num_cells<GHOST>() const {return cellids_ghost_.size();}
+template<> inline
+unsigned int Mesh::num_cells<ALL>() const {
+  return num_cells<OWNED>() + num_cells<GHOST>();
+}
+
+
+inline
+unsigned int Mesh::num_entities(const Entity_kind kind,
+                                const Parallel_type ptype) const {
+  switch (kind) {
+    case NODE:
+      switch (ptype) {
+        case OWNED: return num_nodes<OWNED>();
+        case GHOST: return num_nodes<GHOST>();
+        case ALL: return num_nodes<ALL>();
+        default: return 0;
+      }
+    case EDGE:
+      switch (ptype) {
+        case OWNED: return num_edges<OWNED>();
+        case GHOST: return num_edges<GHOST>();
+        case ALL: return num_edges<ALL>();
+        default: return 0;
+      }
+    case FACE:
+      switch (ptype) {
+        case OWNED: return num_faces<OWNED>();
+        case GHOST: return num_faces<GHOST>();
+        case ALL: return num_faces<ALL>();
+        default: return 0;
+      }
+    case WEDGE:
+      switch (ptype) {
+        case OWNED: return num_wedges<OWNED>();
+        case GHOST: return num_wedges<GHOST>();
+        case ALL: return num_wedges<ALL>();
+        default: return 0;
+      }
+    case CORNER:
+      switch (ptype) {
+        case OWNED: return num_corners<OWNED>();
+        case GHOST: return num_corners<GHOST>();
+        case ALL: return num_corners<ALL>();
+        default: return 0;
+      }
+    case CELL:
+      switch (ptype) {
+        case OWNED: return num_cells<OWNED>();
+        case GHOST: return num_cells<GHOST>();
+        case ALL: return num_cells<ALL>();
+        default: return 0;
+      }
+    default:
+      return 0;
+  }
+}
+
+
+// templated version of functions returning entity lists (default
+// implementation prints error message - meaningful values returned
+// through template specialization)
+
+template<Parallel_type ptype> inline
+const std::vector<Entity_ID> & Mesh::nodes() const {
+  std::cerr << "Mesh::nodes() - " <<
+      "Meaningless to query for list of nodes of parallel type " <<
+      ptype << "\n";
+  return dummy_list_;
+}
+template<> inline
+const std::vector<Entity_ID> & Mesh::nodes<OWNED>() const {
+  return nodeids_owned_;
+}
+template<> inline
+const std::vector<Entity_ID> & Mesh::nodes<GHOST>() const {
+  return nodeids_ghost_;
+}
+template<> inline
+const std::vector<Entity_ID> & Mesh::nodes<ALL>() const {
+  return nodeids_all_;
+}
+
+template<Parallel_type ptype> inline
+const std::vector<Entity_ID> & Mesh::edges() const {
+  std::cerr << "Mesh::edges() - " <<
+      "Meaningless to query for list of edges of parallel type " <<
+      ptype << "\n";
+  return dummy_list_;
+}
+template<> inline
+const std::vector<Entity_ID> & Mesh::edges<OWNED>() const {
+  return edgeids_owned_;
+}
+template<> inline
+const std::vector<Entity_ID> & Mesh::edges<GHOST>() const {
+  return edgeids_ghost_;
+}
+template<> inline
+const std::vector<Entity_ID> & Mesh::edges<ALL>() const {
+  return edgeids_all_;
+}
+
+template<Parallel_type ptype> inline
+const std::vector<Entity_ID> & Mesh::faces() const {
+  std::cerr << "Mesh::faces() - " <<
+      "Meaningless to query for list of faces of parallel type " <<
+      ptype << "\n";
+  return dummy_list_;
+}
+template<> inline
+const std::vector<Entity_ID> & Mesh::faces<OWNED>() const {
+  return faceids_owned_;
+}
+template<> inline
+const std::vector<Entity_ID> & Mesh::faces<GHOST>() const {
+  return faceids_ghost_;
+}
+template<> inline
+const std::vector<Entity_ID> & Mesh::faces<ALL>() const {
+  return faceids_all_;
+}
+
+template<Parallel_type ptype> inline
+const std::vector<Entity_ID> & Mesh::wedges() const {
+  std::cerr << "Mesh::wedges() - " <<
+      "Meaningless to query for list of wedges of parallel type " <<
+      ptype << "\n";
+  return dummy_list_;
+}
+template<> inline
+const std::vector<Entity_ID> & Mesh::wedges<OWNED>() const {
+  return wedgeids_owned_;
+}
+template<> inline
+const std::vector<Entity_ID> & Mesh::wedges<GHOST>() const {
+  return wedgeids_ghost_;
+}
+template<> inline
+const std::vector<Entity_ID> & Mesh::wedges<ALL>() const {
+  return wedgeids_all_;
+}
+
+template<Parallel_type ptype> inline
+const std::vector<Entity_ID> & Mesh::corners() const {
+  std::cerr << "Mesh::corners() - " <<
+      "Meaningless to query for list of corners of parallel type " <<
+      ptype << "\n";
+  return dummy_list_;
+}
+template<> inline
+const std::vector<Entity_ID> & Mesh::corners<OWNED>() const {
+  return cornerids_owned_;
+}
+template<> inline
+const std::vector<Entity_ID> & Mesh::corners<GHOST>() const {
+  return cornerids_ghost_;
+}
+template<> inline
+const std::vector<Entity_ID> & Mesh::corners<ALL>() const {
+  return cornerids_all_;
+}
+
+template<Parallel_type ptype> inline
+const std::vector<Entity_ID> & Mesh::cells() const {
+  std::cerr << "Mesh::cells() - " <<
+      "Meaningless to query for list of cells of parallel type " <<
+      ptype << "\n";
+  return dummy_list_;
+}
+template<> inline
+const std::vector<Entity_ID> & Mesh::cells<OWNED>() const {
+  return cellids_owned_;
+}
+template<> inline
+const std::vector<Entity_ID> & Mesh::cells<GHOST>() const {
+  return cellids_ghost_;
+}
+template<> inline
+const std::vector<Entity_ID> & Mesh::cells<ALL>() const {
+  return cellids_all_;
+}
+
 
 
 // Inline functions of the Mesh class
