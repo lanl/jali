@@ -60,35 +60,34 @@ class bogus_mesh : public Jali::Mesh {
              const bool request_faces, const bool request_edges,
              const bool request_wedges, const bool request_corners,
              const int num_tiles)
-      : Mesh(request_faces,request_edges,request_wedges,request_corners,
-             num_tiles,comm)
-  {
+      : Mesh(request_faces, request_edges, request_wedges, request_corners,
+             num_tiles, comm) {
     Exceptions::Jali_throw(Errors::Message("reading not supported"));
   }
 
   bogus_mesh(double x0, double y0, double z0,
-	     double x1, double y1, double z1,
-	     int nx, int ny, int nz,
-	     const MPI_Comm& comm,
+             double x1, double y1, double z1,
+             int nx, int ny, int nz,
+             const MPI_Comm& comm,
              const JaliGeometry::GeometricModelPtr& gm,
              const bool request_faces, const bool request_edges,
              const bool request_wedges, const bool request_corners,
              const int num_tiles)
-      : Mesh(request_faces,request_edges,request_wedges,request_corners,num_tiles,comm)
-  {
+      : Mesh(request_faces, request_edges, request_wedges, request_corners,
+             num_tiles, comm) {
     Exceptions::Jali_throw(Errors::Message("generation not supported"));
   }
 
   bogus_mesh(double x0, double y0,
-	     double x1, double y1,
-	     int nx, int ny,
-	     const MPI_Comm& comm,
+             double x1, double y1,
+             int nx, int ny,
+             const MPI_Comm& comm,
              const JaliGeometry::GeometricModelPtr& gm,
              const bool request_faces, const bool request_edges,
              const bool request_wedges, const bool request_corners,
              const int num_tiles)
-      : Mesh(request_faces,request_edges,request_wedges,request_corners,num_tiles,comm)
-  {
+      : Mesh(request_faces, request_edges, request_wedges, request_corners,
+             num_tiles, comm) {
     Exceptions::Jali_throw(Errors::Message("generation not supported"));
   }
 
@@ -98,8 +97,7 @@ class bogus_mesh : public Jali::Mesh {
              const bool flatten, const bool extrude,
              const bool request_faces, const bool request_edges,
              const bool request_wedges, const bool request_corners,
-             const int num_tiles)
-  {
+             const int num_tiles) {
     Exceptions::Jali_throw(Errors::Message("extraction not supported"));
   }
 
@@ -109,8 +107,7 @@ class bogus_mesh : public Jali::Mesh {
              const bool flatten, const bool extrude,
              const bool request_faces, const bool request_edges,
              const bool request_wedges, const bool request_corners,
-             const int num_tiles)
-  {
+             const int num_tiles) {
     Exceptions::Jali_throw(Errors::Message("extraction not supported"));
   }
 
@@ -120,19 +117,18 @@ class bogus_mesh : public Jali::Mesh {
              const bool flatten, const bool extrude,
              const bool request_faces, const bool request_edges,
              const bool request_wedges, const bool request_corners,
-             const int num_tiles)
-  {
+             const int num_tiles) {
     Exceptions::Jali_throw(Errors::Message("extraction not supported"));
   }
 
   Jali::Parallel_type
   entity_get_ptype(const Jali::Entity_kind kind,
                    const Jali::Entity_ID entid) const
-  { return Jali::OWNED; }
+  { return Jali::Parallel_type::OWNED; }
 
   Jali::Cell_type
   cell_get_type(const Jali::Entity_ID cellid) const
-  { return Jali::CELLTYPE_UNKNOWN; }
+  { return Jali::Entity_kind::CELLTYPE_UNKNOWN; }
 
   //  unsigned int
   //  num_entities (const Jali::Entity_kind kind,
@@ -144,84 +140,80 @@ class bogus_mesh : public Jali::Mesh {
       const Jali::Entity_kind kind) const
   { return 0; }
 
-  void cell_get_faces_and_dirs_internal (const Jali::Entity_ID cellid,
-                                Jali::Entity_ID_List *faceids,
-                                std::vector<int> *face_dirs,
-                                const bool ordered=false) const
+  void cell_get_faces_and_dirs_internal(const Jali::Entity_ID cellid,
+                                        Jali::Entity_ID_List *faceids,
+                                        std::vector<int> *face_dirs,
+                                        const bool ordered = false) const {}
+
+  void cell_get_edges_internal(const Jali::Entity_ID cellid,
+                               Jali::Entity_ID_List *edgeids) const {}
+
+  void cell_2D_get_edges_and_dirs_internal(const Jali::Entity_ID cellid,
+                                           Jali::Entity_ID_List *edgeids,
+                                           std::vector<int> *edge_dirs) const
   {}
 
-  void cell_get_edges_internal (const Jali::Entity_ID cellid,
-                                Jali::Entity_ID_List *edgeids)
-    const
+  void cell_get_nodes(const Jali::Entity_ID cellid,
+                      Jali::Entity_ID_List *nodeids) const
   {}
 
-  void cell_2D_get_edges_and_dirs_internal (const Jali::Entity_ID cellid,
-                                            Jali::Entity_ID_List *edgeids,
-                                            std::vector<int> *edge_dirs) const
-  {}
+  void face_get_edges_and_dirs_internal(const Jali::Entity_ID faceid,
+                                        Jali::Entity_ID_List *edgeids,
+                                        std::vector<int> *edge_dirs,
+                                        const bool ordered = true) const {}
 
-  void cell_get_nodes (const Jali::Entity_ID cellid,
-                       Jali::Entity_ID_List *nodeids) const
-  {}
-
-  void face_get_edges_and_dirs_internal (const Jali::Entity_ID faceid,
-                                Jali::Entity_ID_List *edgeids,
-                                std::vector<int> *edge_dirs,
-                                const bool ordered=true) const
-  {}
-
-  void face_get_nodes (const Jali::Entity_ID faceid,
-                       Jali::Entity_ID_List *nodeids) const
+  void face_get_nodes(const Jali::Entity_ID faceid,
+                      Jali::Entity_ID_List *nodeids) const
   {}
 
 
-  void edge_get_nodes (const Jali::Entity_ID edgeid,
-                       Jali::Entity_ID *nodeid0,
-                       Jali::Entity_ID *nodeid1) const
+  void edge_get_nodes(const Jali::Entity_ID edgeid,
+                      Jali::Entity_ID *nodeid0,
+                      Jali::Entity_ID *nodeid1) const
   {}
 
-  void node_get_cells (const Jali::Entity_ID nodeid,
-                       const Jali::Parallel_type ptype,
-                       Jali::Entity_ID_List *cellids) const
+  void node_get_cells(const Jali::Entity_ID nodeid,
+                      const Jali::Parallel_type ptype,
+                      Jali::Entity_ID_List *cellids) const
   {}
 
-  void node_get_faces (const Jali::Entity_ID nodeid,
-                       const Jali::Parallel_type ptype,
-                       Jali::Entity_ID_List *faceids) const
+  void node_get_faces(const Jali::Entity_ID nodeid,
+                      const Jali::Parallel_type ptype,
+                      Jali::Entity_ID_List *faceids) const
   {}
 
-  void node_get_cell_faces (const Jali::Entity_ID nodeid,
-                            const Jali::Entity_ID cellid,
-                            const Jali::Parallel_type ptype,
-                            Jali::Entity_ID_List *faceids) const
+  void node_get_cell_faces(const Jali::Entity_ID nodeid,
+                           const Jali::Entity_ID cellid,
+                           const Jali::Parallel_type ptype,
+                           Jali::Entity_ID_List *faceids) const
   {}
 
-  void face_get_cells_internal (const Jali::Entity_ID faceid,
-                                const Jali::Parallel_type ptype,
-                                Jali::Entity_ID_List *cellids) const
+  void face_get_cells_internal(const Jali::Entity_ID faceid,
+                               const Jali::Parallel_type ptype,
+                               Jali::Entity_ID_List *cellids) const
   {}
 
   void cell_get_face_adj_cells(const Jali::Entity_ID cellid,
                                const Jali::Parallel_type ptype,
                                Jali::Entity_ID_List *fadj_cellids) const
   {}
-
+  
   void cell_get_node_adj_cells(const Jali::Entity_ID cellid,
                                const Jali::Parallel_type ptype,
                                Jali::Entity_ID_List *nadj_cellids) const
   {}
 
   void
-  node_get_coordinates (const Jali::Entity_ID nodeid,
-                        JaliGeometry::Point *ncoord) const
+  node_get_coordinates(const Jali::Entity_ID nodeid,
+                       JaliGeometry::Point *ncoord) const
   {}
 
-  void face_get_coordinates (const Jali::Entity_ID faceid,
-			     std::vector<JaliGeometry::Point> *fcoords) const
+  void face_get_coordinates(const Jali::Entity_ID faceid,
+                             std::vector<JaliGeometry::Point> *fcoords) const
   {}
 
-  void cell_get_coordinates (const Jali::Entity_ID cellid,
-			     std::vector<JaliGeometry::Point> *ccoords) const
+  void cell_get_coordinates(const Jali::Entity_ID cellid,
+                            std::vector<JaliGeometry::Point> *ccoords) const
   {}
 
   void node_set_coordinates(const Jali::Entity_ID nodeid,
@@ -252,33 +244,33 @@ class bogus_mesh : public Jali::Mesh {
   { return *bogus_importer_; }
   */
 
-  unsigned int get_set_size (const Jali::Set_Name setname,
-                             const Jali::Entity_kind kind,
-                             const Jali::Parallel_type ptype) const
+  unsigned int get_set_size(const Jali::Set_Name setname,
+                            const Jali::Entity_kind kind,
+                            const Jali::Parallel_type ptype) const
   { return 0; }
 
-  unsigned int get_set_size (const char *setname,
-                             const Jali::Entity_kind kind,
-                             const Jali::Parallel_type ptype) const
+  unsigned int get_set_size(const char *setname,
+                            const Jali::Entity_kind kind,
+                            const Jali::Parallel_type ptype) const
   { return 0; }
 
-  void get_set_entities (const Jali::Set_Name setname,
-                         const Jali::Entity_kind kind,
-                         const Jali::Parallel_type ptype,
-                         Jali::Entity_ID_List *entids) const
+  void get_set_entities(const Jali::Set_Name setname,
+                        const Jali::Entity_kind kind,
+                        const Jali::Parallel_type ptype,
+                        Jali::Entity_ID_List *entids) const
   {}
 
-  void get_set_entities (const char *setname,
-                         const Jali::Entity_kind kind,
-                         const Jali::Parallel_type ptype,
-                         Jali::Entity_ID_List *entids) const
+  void get_set_entities(const char *setname,
+                        const Jali::Entity_kind kind,
+                        const Jali::Parallel_type ptype,
+                        Jali::Entity_ID_List *entids) const
   {}
 
-  void write_to_exodus_file (const std::string filename, bool with_fields) const
-  {}
+  void write_to_exodus_file(const std::string filename, bool with_fields)
+      const {}
 
-  void write_to_gmv_file (const std::string filename, bool with_fields) const
-  {}
+  void write_to_gmv_file(const std::string filename, bool with_fields)
+      const {}
 
  private:
 
@@ -354,9 +346,9 @@ struct FrameworkTraits {
   // is available
   typedef mpl::bool_<
     M == Simple  ||
-    ( M == MOAB && MOAB_FLAG ) ||
-    ( M == STKMESH && STK_FLAG ) ||
-    ( M == MSTK && MSTK_FLAG )
+    (M == MOAB && MOAB_FLAG) ||
+    (M == STKMESH && STK_FLAG) ||
+    (M == MSTK && MSTK_FLAG)
     > available;
 
   // this defines a type, there constructor of which is used to
@@ -459,8 +451,7 @@ struct FrameworkTraits {
        const bool request_edges,
        const bool request_wedges,
        const bool request_corners,
-       const int num_tiles)
-  {
+       const int num_tiles) {
     Mesh *
       result(new typename read_mesh::type(fname.c_str(), comm,
                                           gm,
@@ -505,15 +496,15 @@ struct FrameworkTraits {
   static Mesh *
   generate(const double& x0, const double& y0, const double& z0,
            const double& x1, const double& y1, const double& z1,
-           const unsigned int& nx, const unsigned int& ny, const unsigned int& nz,
+           const unsigned int& nx, const unsigned int& ny,
+           const unsigned int& nz,
            const MPI_Comm& comm,
            const JaliGeometry::GeometricModelPtr& gm,
            const bool request_faces,
            const bool request_edges,
            const bool request_wedges,
            const bool request_corners,
-           const int num_tiles)
-  {
+           const int num_tiles) {
     Mesh *
       result(new typename generate_mesh::type(x0, y0, z0, x1, y1, z1,
                                               nx, ny, nz, comm,
@@ -646,8 +637,7 @@ struct FrameworkTraits {
 // framework_available
 // -------------------------------------------------------------
 bool
-framework_available(const Framework& f)
-{
+framework_available(const Framework& f) {
   bool result;
   switch (f) {
   case Simple:
@@ -677,8 +667,7 @@ framework_available(const Framework& f)
 // -------------------------------------------------------------
 template < class thetest >
 static bool
-parallel_test(const bool& isp)
-{
+parallel_test(const bool& isp) {
   bool result;
   if (isp) {
     result = thetest::parallel::value;
@@ -700,13 +689,13 @@ framework_reads(const Format& fmt, const bool& parallel)
   bool result = false;
   switch (fmt) {
   case ExodusII:
-    result = parallel_test< typename traits::template canread<ExodusII> >(parallel);
+    result = parallel_test<typename traits::template canread<ExodusII>>(parallel);
     break;
   case MOABHDF5:
-    result = parallel_test< typename traits::template canread<MOABHDF5> >(parallel);
+    result = parallel_test<typename traits::template canread<MOABHDF5>>(parallel);
     break;
   case Nemesis:
-    result = parallel_test< typename traits::template canread<Nemesis> >(parallel);
+    result = parallel_test<typename traits::template canread<Nemesis>>(parallel);
     break;
   default:
     result = false;
@@ -812,10 +801,10 @@ framework_generates(const bool& parallel, const unsigned int& dimension) {
   bool result = false;
   switch (dimension) {
   case 2:
-    result = parallel_test< typename traits::template cangenerate<2> >(parallel);
+    result = parallel_test<typename traits::template cangenerate<2>>(parallel);
     break;
   case 3:
-    result = parallel_test< typename traits::template cangenerate<3> >(parallel);
+    result = parallel_test<typename traits::template cangenerate<3>>(parallel);
     break;
   default:
     result = false;
@@ -930,11 +919,10 @@ framework_generate(const MPI_Comm& comm, const Framework& f,
                    const JaliGeometry::GeometricModelPtr& gm,
                    const bool request_faces, const bool request_edges,
                    const bool request_wedges, const bool request_corners,
-                   const int num_tiles)
-{
+                   const int num_tiles) {
   Mesh *result;
   int myPID;
-  MPI_Comm_rank(comm,&myPID);
+  MPI_Comm_rank(comm, &myPID);
   switch (f) {
   case Simple:
     if (myPID == 0)
@@ -988,8 +976,7 @@ framework_generate(const MPI_Comm& comm, const Framework& f,
 // -------------------------------------------------------------
 template < int F >
 bool
-framework_extracts(const bool& parallel, const unsigned int& dimension)
-{
+framework_extracts(const bool& parallel, const unsigned int& dimension) {
   typedef FrameworkTraits<F> traits;
   bool result = false;
   switch (dimension) {
@@ -1046,8 +1033,7 @@ framework_extract(const MPI_Comm& comm, const Framework& f,
                   const bool flatten, const bool extrude,
                   const bool request_faces, const bool request_edges,
                   const bool request_wedges, const bool request_corners,
-                  const int num_tiles)
-{
+                  const int num_tiles) {
   Mesh *result;
   switch (f) {
   case Simple:
@@ -1104,8 +1090,7 @@ framework_extract(const MPI_Comm& comm, const Framework& f,
                   const bool flatten, const bool extrude,
                   const bool request_faces, const bool request_edges,
                   const bool request_wedges, const bool request_corners,
-                  const int num_tiles)
-{
+                  const int num_tiles) {
   Mesh *result;
   switch (f) {
   case Simple:
@@ -1162,8 +1147,7 @@ framework_extract(const MPI_Comm& comm, const Framework& f,
                   const bool flatten, const bool extrude,
                   const bool request_faces, const bool request_edges,
                   const bool request_wedges, const bool request_corners,
-                  const int num_tiles)
-{
+                  const int num_tiles) {
   Mesh *result;
   switch (f) {
   case Simple:
@@ -1216,6 +1200,5 @@ framework_extract(const MPI_Comm& comm, const Framework& f,
   return result;
 }
 
-
-} // namespace Jali
+}  // namespace Jali
 

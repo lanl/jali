@@ -20,6 +20,7 @@
 
 #include <string>
 #include <vector>
+
 #include <mpi.h>
 
 #include "MeshException.hh"
@@ -53,9 +54,9 @@ class MeshFactory {
                (JaliGeometry::GeometricModelPtr) NULL,
                const bool request_faces = true,
                const bool request_edges = false,
-               const bool request_wedges=false,
-               const bool request_corners=false,
-               const int num_tiles=0);
+               const bool request_wedges = false,
+               const bool request_corners = false,
+               const int num_tiles = 0);
 
 
   /// Create a hexahedral mesh of the specified dimensions
@@ -66,9 +67,9 @@ class MeshFactory {
                (JaliGeometry::GeometricModelPtr) NULL,
                const bool request_faces = true,
                const bool request_edges = false,
-               const bool request_wedges=false,
-               const bool request_corners=false,
-               const int num_tiles=0);
+               const bool request_wedges = false,
+               const bool request_corners = false,
+               const int num_tiles = 0);
 
 
   /// Create a quadrilateral mesh of the specified dimensions
@@ -79,9 +80,9 @@ class MeshFactory {
                (JaliGeometry::GeometricModelPtr) NULL,
                const bool request_faces = true,
                const bool request_edges = false,
-               const bool request_wedges=false,
-               const bool request_corners=false,
-               const int num_tiles=0);
+               const bool request_wedges = false,
+               const bool request_corners = false,
+               const int num_tiles = 0);
 
 
   /// Create a mesh by extract subsets of entities from an existing mesh
@@ -117,9 +118,9 @@ class MeshFactory {
                                     (JaliGeometry::GeometricModelPtr) NULL,
                                     const bool request_faces = true,
                                     const bool request_edges = false,
-                                    const bool request_wedges=false,
-                                    const bool request_corners=false,
-                                    const int num_tiles=0) {
+                                    const bool request_wedges = false,
+                                    const bool request_corners = false,
+                                    const int num_tiles = 0) {
 
     return std::unique_ptr<Mesh>(create(filename, gm, request_faces,
                                         request_edges, request_wedges,
@@ -134,9 +135,9 @@ class MeshFactory {
                                     (JaliGeometry::GeometricModelPtr) NULL,
                                     const bool request_faces = true,
                                     const bool request_edges = false,
-                                    const bool request_wedges=false,
-                                    const bool request_corners=false,
-                                    const int num_tiles=0) {
+                                    const bool request_wedges = false,
+                                    const bool request_corners = false,
+                                    const int num_tiles = 0) {
 
     return std::unique_ptr<Mesh>(create(x0, y0, z0, x1, y1, z1, nx, ny, nz, gm,
                                         request_faces, request_edges,
@@ -152,9 +153,9 @@ class MeshFactory {
                                     (JaliGeometry::GeometricModelPtr) NULL,
                                     const bool request_faces = true,
                                     const bool request_edges = false,
-                                    const bool request_wedges=false,
-                                    const bool request_corners=false,
-                                    const int num_tiles=0)  {
+                                    const bool request_wedges = false,
+                                    const bool request_corners = false,
+                                    const int num_tiles = 0)  {
 
     return std::unique_ptr<Mesh>(create(x0, y0, x1, y1, nx, ny, gm,
                                         request_faces, request_edges,
@@ -182,6 +183,6 @@ class MeshFactory {
 
 };
 
-} // namespace Jali
+}  // namespace Jali
 
 #endif

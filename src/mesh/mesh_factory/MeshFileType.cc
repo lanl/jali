@@ -89,14 +89,13 @@ namespace Jali {
    * @return format type identifier (::UnknownFormat if something goes wrong)
    */
   Format
-  file_format(const MPI_Comm& comm, const char *name)
-  {
+  file_format(const MPI_Comm& comm, const char *name) {
     int np(1);
     int me(0);
     Format result(UnknownFormat);
 
-    MPI_Comm_size(comm,&np);
-    MPI_Comm_rank(comm,&me);
+    MPI_Comm_size(comm, &np);
+    MPI_Comm_rank(comm, &me);
 
     // take a guess at the format using the file name
 
@@ -107,7 +106,7 @@ namespace Jali {
       result = MOABHDF5;
     } else if (boost::regex_match(fname, NemesisExt)) {
       result = Nemesis;
-      int ndigits = (int)floor(log10(np)) + 1;
+      int ndigits = (int) floor(log10(np)) + 1;
       std::string fmt =
         boost::str(boost::format("%%s.%%d.%%0%dd") % ndigits);
       fname = boost::str(boost::format(fmt) %
@@ -176,4 +175,4 @@ namespace Jali {
     return result;
   }
 
-} // close namespace Jali
+}  // close namespace Jali

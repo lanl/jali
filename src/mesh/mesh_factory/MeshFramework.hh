@@ -49,6 +49,6 @@ namespace Jali {
   /// Modify framework preferences to get those available
   extern FrameworkPreference available_preference(const FrameworkPreference& p);
 
-} // close namespace Jali
+}  // close namespace Jali
 
 #endif

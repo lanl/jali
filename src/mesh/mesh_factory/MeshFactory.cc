@@ -32,14 +32,9 @@ namespace Jali {
 // -------------------------------------------------------------
 MeshFactory::MeshFactory(const MPI_Comm& communicator)
   : my_comm(communicator),
-    my_preference(default_preference())
-{
+    my_preference(default_preference()) {}
 
-}
-
-MeshFactory::~MeshFactory(void)
-{
-}
+MeshFactory::~MeshFactory(void) {}
 
 // -------------------------------------------------------------
 // MeshFactory::preference
@@ -55,8 +50,7 @@ MeshFactory::~MeshFactory(void)
  * @param pref list of mesh framework preferences
  */
 void
-MeshFactory::preference(const FrameworkPreference& pref)
-{
+MeshFactory::preference(const FrameworkPreference& pref) {
   my_preference.clear();
   my_preference = available_preference(pref);
   if (my_preference.empty()) {
@@ -89,8 +83,7 @@ MeshFactory::create(const std::string& filename,
                     const bool request_edges,
                     const bool request_wedges,
                     const bool request_corners,
-                    const int num_tiles)
-{
+                    const int num_tiles) {
   // check the file format
   Format fmt = file_format(my_comm, filename);
 
@@ -107,7 +100,7 @@ MeshFactory::create(const std::string& filename,
   aerr[0] = 0;
 
   int numproc;
-  MPI_Comm_size(my_comm,&numproc);
+  MPI_Comm_size(my_comm, &numproc);
 
   Mesh *result;
   for (FrameworkPreference::const_iterator i = my_preference.begin();
@@ -119,7 +112,8 @@ MeshFactory::create(const std::string& filename,
                                 request_wedges, request_corners,
                                 num_tiles);
         if (gm && (gm->dimension() != result->space_dimension())) {
-          Errors::Message mesg("Geometric model and mesh dimension do not match");
+          Errors::Message
+              mesg("Geometric model and mesh dimension do not match");
           Exceptions::Jali_throw(mesg);
         }
         return result;
@@ -186,22 +180,24 @@ MeshFactory::create(double x0, double y0, double z0,
 
   if (nx <= 0 || ny <= 0 || nz <= 0) {
     ierr[0] += 1;
-    e.add_data(boost::str(boost::format("invalid mesh cells requested: %d x %d x %d") %
+    e.add_data(boost::str(
+        boost::format("invalid mesh cells requested: %d x %d x %d") %
                           nx % ny % nz).c_str());
   }
-  MPI_Allreduce(&ierr,&aerr,1,MPI_INT,MPI_SUM,my_comm);
+  MPI_Allreduce(&ierr, &aerr, 1, MPI_INT, MPI_SUM, my_comm);
   if (aerr[0] > 0) Exceptions::Jali_throw(e);
 
   if (x1 - x0 <= 0.0 || y1 - y0 <= 0.0 || z1 - z0 <= 0.0) {
     ierr[0] += 1;
-    e.add_data(boost::str(boost::format("invalid mesh dimensions requested: %.6g x %.6g x %.6g") %
+    e.add_data(boost::str(
+        boost::format("invalid mesh dimensions requested: %.6g x %.6g x %.6g") %
                           (x1 - x0) % (y1 - y0) % (z1 - z0)).c_str());
   }
-  MPI_Allreduce(&ierr,&aerr,1,MPI_INT,MPI_SUM,my_comm);
+  MPI_Allreduce(&ierr, &aerr, 1, MPI_INT, MPI_SUM, my_comm);
   if (aerr[0] > 0) Exceptions::Jali_throw(e);
 
   int numprocs;
-  MPI_Comm_size(my_comm,&numprocs);
+  MPI_Comm_size(my_comm, &numprocs);
 
   for (FrameworkPreference::const_iterator i = my_preference.begin();
        i != my_preference.end(); i++) {
@@ -213,7 +209,7 @@ MeshFactory::create(double x0, double y0, double z0,
                                     gm,
                                     request_faces, request_edges,
                                     request_wedges, request_corners,
-	                            num_tiles);
+                                    num_tiles);
         return result;
       } catch (const Message& msg) {
         ierr[0] += 1;
@@ -274,23 +270,25 @@ MeshFactory::create(double x0, double y0,
 
   if (nx <= 0 || ny <= 0) {
     ierr[0] += 1;
-    e.add_data(boost::str(boost::format("invalid mesh cells requested: %d x %d") %
+    e.add_data(boost::str(
+        boost::format("invalid mesh cells requested: %d x %d") %
                           nx % ny).c_str());
   }
-  MPI_Allreduce(&ierr,&aerr,1,MPI_INT,MPI_SUM,my_comm);
+  MPI_Allreduce(&ierr, &aerr, 1, MPI_INT, MPI_SUM, my_comm);
   if (aerr[0] > 0) Exceptions::Jali_throw(e);
 
   if (x1 - x0 <= 0.0 || y1 - y0 <= 0.0) {
     ierr[0] += 1;
-    e.add_data(boost::str(boost::format("invalid mesh dimensions requested: %.6g x %.6g") %
+    e.add_data(boost::str(
+        boost::format("invalid mesh dimensions requested: %.6g x %.6g") %
                           (x1 - x0) % (y1 - y0)).c_str());
   }
 
-  MPI_Allreduce(ierr,aerr,1,MPI_INT,MPI_SUM,my_comm);
+  MPI_Allreduce(ierr, aerr, 1, MPI_INT, MPI_SUM, my_comm);
   if (aerr[0] > 0) Exceptions::Jali_throw(e);
 
   int numprocs;
-  MPI_Comm_size(my_comm,&numprocs);
+  MPI_Comm_size(my_comm, &numprocs);
 
   for (FrameworkPreference::const_iterator i = my_preference.begin();
        i != my_preference.end(); i++) {
@@ -312,7 +310,7 @@ MeshFactory::create(double x0, double y0,
         e.add_data("internal error: ");
         e.add_data(stde.what());
       }
-      MPI_Allreduce(ierr,aerr,1,MPI_INT,MPI_SUM,my_comm);
+      MPI_Allreduce(ierr, aerr, 1, MPI_INT, MPI_SUM, my_comm);
       if (aerr[0] > 0) Exceptions::Jali_throw(e);
     }
   }
@@ -343,8 +341,7 @@ MeshFactory::create(const Mesh *inmesh,
                     const bool request_edges,
                     const bool request_wedges,
                     const bool request_corners,
-                    const int num_tiles)
-{
+                    const int num_tiles) {
   Mesh *result;
   Message e("MeshFactory::create: error: ");
   int ierr[1], aerr[1];
@@ -353,7 +350,7 @@ MeshFactory::create(const Mesh *inmesh,
 
   int dim = inmesh->cell_dimension();
   int numprocs;
-  MPI_Comm_size(my_comm,&numprocs);
+  MPI_Comm_size(my_comm, &numprocs);
 
   for (FrameworkPreference::const_iterator i = my_preference.begin();
        i != my_preference.end(); i++) {
@@ -373,7 +370,7 @@ MeshFactory::create(const Mesh *inmesh,
         e.add_data("internal error: ");
         e.add_data(stde.what());
       }
-      MPI_Allreduce(ierr,aerr,1,MPI_INT,MPI_SUM,my_comm);
+      MPI_Allreduce(ierr, aerr, 1, MPI_INT, MPI_SUM, my_comm);
       if (aerr[0] > 0) Exceptions::Jali_throw(e);
     }
   }
@@ -381,4 +378,4 @@ MeshFactory::create(const Mesh *inmesh,
   Exceptions::Jali_throw(e);
 }
 
-} // namespace Jali
+}  // namespace Jali
