@@ -3,10 +3,10 @@
  * @file   Domain.hh
  * @author Rao Garimella
  * @date   Mon Aug  1 09:57:42 2011
- * 
+ *
  * @brief  Declaration of the Domain class
- * 
- * 
+ *
+ *
  */
 
 #ifndef _Domain_hh_
@@ -26,12 +26,12 @@ namespace JaliGeometry {
 /**
  * The geometric domain contains one or more objects describing the specifics
  * of how the domain is decomposed into subdomains. In its simplest form,
- * the geometric domain is a list of geometric regions (see 
+ * the geometric domain is a list of geometric regions (see
  * JaliGeometry::Region) that may or may not tile the domain with or
  * without overlap. In its most sophisticated form, the domain has a list
  * of geometric models, each of which is a particular non-overlapping, tiling
  * decomposition of the domain into geometric regions. Other free floating
- * regions may also exist in the domain for purposes like post-processing 
+ * regions may also exist in the domain for purposes like post-processing
  */
 
 class Domain {
@@ -41,23 +41,23 @@ public:
 
   Domain(const unsigned int dim);
 
-  // Copy constructor 
+  // Copy constructor
 
   Domain(const Domain& old);
 
 
   // Constructor with Geometric Model List
 
-  Domain(const unsigned int dim, 
-         const std::vector<GeometricModelPtr>& in_geometric_models, 
-         const std::vector<RegionPtr>& in_Regions); 
+  Domain(const unsigned int dim,
+         const std::vector<GeometricModelPtr>& in_geometric_models,
+         const std::vector<RegionPtr>& in_Regions);
 
   // Destructor
 
   virtual ~Domain(void);
 
 
-  inline 
+  inline
   unsigned int spatial_dimension() const
   {
     return spatial_dimension_;

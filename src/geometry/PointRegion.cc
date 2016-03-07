@@ -1,11 +1,11 @@
 /**
  * @file   PointRegion.cc
  * @author Rao Garimella
- * @date 
- * 
+ * @date
+ *
  * @brief  Implementation of PointRegion class
- * 
- * 
+ *
+ *
  */
 
 #include "PointRegion.hh"
@@ -21,7 +21,7 @@ namespace JaliGeometry {
 // -------------------------------------------------------------
 // PointRegion:: constructors / destructor
 // -------------------------------------------------------------
-PointRegion::PointRegion(const std::string name, 
+PointRegion::PointRegion(const std::string name,
 			 const unsigned int id,
 			 const Point& p,
                          const LifeCycleType lifecycle)
@@ -43,7 +43,7 @@ PointRegion::PointRegion(const PointRegion& old)
 
 PointRegion::~PointRegion(void)
 {
-  
+
 }
 
 // -------------------------------------------------------------
@@ -63,7 +63,7 @@ PointRegion::inside(const Point& p) const
 
   bool result(true);
 
-  for (int i = 0; i < p.dim(); ++i) 
+  for (int i = 0; i < p.dim(); ++i)
     {
       result = result & (fabs(p[i]-p_[i]) < 1e-12);
     }

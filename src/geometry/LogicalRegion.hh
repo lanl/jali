@@ -2,12 +2,12 @@
 /**
  * @file   LogicalRegion.hh
  * @author Rao Garimella
- * @date 
- * 
- * @brief  Declaration of Logical Region class which derives 
+ * @date
+ *
+ * @brief  Declaration of Logical Region class which derives
  *         an operation on one or two other regions
- * 
- * 
+ *
+ *
  */
 
 #ifndef _LogicalRegion_hh_
@@ -31,17 +31,17 @@
 class LogicalRegion : public Region {
 public:
 
-  /// Default constructor 
+  /// Default constructor
 
-  LogicalRegion(const std::string name, 
-                const unsigned int id, 
+  LogicalRegion(const std::string name,
+                const unsigned int id,
                 const std::string operation_str,
                 const std::vector<std::string> region_names,
                 const LifeCycleType lifecycle=PERMANENT);
 
 
-  LogicalRegion(const char *name, 
-                const unsigned int id, 
+  LogicalRegion(const char *name,
+                const unsigned int id,
                 const std::string operation_str,
                 const std::vector<std::string> region_names,
                 const LifeCycleType lifecycle=PERMANENT);
@@ -62,11 +62,11 @@ public:
   /// Is the the specified point inside this region
   bool inside(const Point& p) const;
 
-  inline std::vector<std::string> const &component_regions() const 
+  inline std::vector<std::string> const &component_regions() const
   { return region_names_; }
 
 
-protected:  
+protected:
   BoolOpType operation_; // what logical operation should be performed
   const std::vector<std::string> region_names_; // names of regions in operation
 };

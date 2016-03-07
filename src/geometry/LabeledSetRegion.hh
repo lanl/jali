@@ -2,13 +2,13 @@
 /**
  * @file   LabeledSetRegion.hh
  * @author Rao Garimella
- * @date 
- * 
- * @brief  Declaration of Labeled Set Region class which derives 
+ * @date
+ *
+ * @brief  Declaration of Labeled Set Region class which derives
  *         its definition from a named set of mesh entities in
  *         a mesh file
- * 
- * 
+ *
+ *
  */
 
 #ifndef _LabeledSetRegion_hh_
@@ -25,10 +25,10 @@
 ///
 /// Strictly speaking, we should tie this region class to a particular
 /// mesh or mesh file but that cause a circular dependency of meshes
-/// on regions and of labeled set regions on meshes. We will rely on the 
+/// on regions and of labeled set regions on meshes. We will rely on the
 /// fact that when a mesh is created specifying a geometric model, it
-/// will create mesh entity sets based on the labeled sets in that 
-/// geometric model. 
+/// will create mesh entity sets based on the labeled sets in that
+/// geometric model.
 ///
 /// If we need to change this behavior, then we can make a forward
 /// declaration of Jali::Mesh, make the Mesh class a friend, add
@@ -38,18 +38,18 @@
 class LabeledSetRegion : public Region {
 public:
 
-  /// Default constructor 
+  /// Default constructor
 
-  LabeledSetRegion(const std::string name, 
-                   const unsigned int id, 
+  LabeledSetRegion(const std::string name,
+                   const unsigned int id,
                    const std::string entity_str,
                    const std::string file,
                    const std::string format,
                    const std::string label,
                    const LifeCycleType lifecycle=PERMANENT);
 
-  LabeledSetRegion(const char *name, 
-                   const unsigned int id, 
+  LabeledSetRegion(const char *name,
+                   const unsigned int id,
                    const std::string entity_str,
                    const std::string file,
                    const std::string format,
@@ -74,7 +74,7 @@ public:
 
   inline std::string entity_str() const { return entity_str_; }
 
-protected:  
+protected:
   const std::string entity_str_; // what kind of entities make up this set
   const std::string file_; // which file are we supposed to read it from
   const std::string format_; // format of the file

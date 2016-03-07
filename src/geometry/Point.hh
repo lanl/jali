@@ -1,9 +1,9 @@
 /*
-This is the geometry component of the Jali code. 
+This is the geometry component of the Jali code.
 
-Copyright 2010-2012 held jointly by LANS/LANL, LBNL, and PNNL. 
-Jali is released under the three-clause BSD License. 
-The terms of use and "as is" disclaimer for this license are 
+Copyright 2010-2012 held jointly by LANS/LANL, LBNL, and PNNL.
+Jali is released under the three-clause BSD License.
+The terms of use and "as is" disclaimer for this license are
 provided in the top-level COPYRIGHT file.
 
 Authors: Rao Garimella
@@ -33,7 +33,7 @@ class Point {
   }
   explicit Point(const int N) {
     d = N;
-    xyz[0] = xyz[1] = xyz[2] = 0.0;    
+    xyz[0] = xyz[1] = xyz[2] = 0.0;
   }
   Point(const double& x, const double& y) {
     d = 2;
@@ -130,7 +130,7 @@ class Point {
   }
   friend Point operator*(const Point& p, const double& r) { return r*p; }
   friend double operator*(const Point& p, const Point& q) {
-    double s = 0.0; 
+    double s = 0.0;
     for (int i = 0; i < p.d; i++ ) s += p[i]*q[i];
     return s;
   }
