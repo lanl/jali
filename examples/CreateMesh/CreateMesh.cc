@@ -42,22 +42,25 @@ int main(int argc, char *argv[]) {
     // request faces, edges, wedges and corners (true, true, true,
     // true)
 
-    mymesh = mesh_factory(0.0,0.0,0.0,1.0,1.0,1.0,3,3,3,NULL,
-                          true,true,true,true);
+    mymesh = mesh_factory(0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 3, 3, 3, NULL,
+                          true, true, true, true);
   }
 
 
   // Print out the topological dimension of cells in the mesh
 
-  std::cerr << "Cells are of dimension: " << mymesh->cell_dimension() << std::endl;
+  std::cerr << "Cells are of dimension: " << mymesh->cell_dimension() <<
+    std::endl;
   
   // Print out the number of cells in the mesh
 
-  std::cerr << "Number of mesh cells: " << mymesh->num_entities(CELL,ALL) << std::endl;
+  std::cerr << "Number of mesh cells: " <<
+    mymesh->num_entities(Entity_kind::CELL, Parallel_type::ALL) << std::endl;
 
   // Print out the number of nodes in the mesh
 
-  std::cerr << "Number of mesh nodes: " << mymesh->num_entities(NODE,ALL) << std::endl;
+  std::cerr << "Number of mesh nodes: " <<
+    mymesh->num_entities(Entity_kind::NODE, Parallel_type::ALL) << std::endl;
 
 
 

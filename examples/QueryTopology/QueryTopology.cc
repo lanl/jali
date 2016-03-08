@@ -50,7 +50,7 @@ int main(int argc, char *argv[]) {
   
   // Iterate through the cells of the mesh and get the faces and of the cell
 
-  for (auto c : mymesh->cells<OWNED>()) {
+  for (auto c : mymesh->cells<Parallel_type::OWNED>()) {
     
     Entity_ID_List cfaces;   // Entity_ID_List is just a std::vector<Entity_ID>
     std::vector<int> cfdirs;

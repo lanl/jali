@@ -101,7 +101,7 @@ int main(int argc, char *argv[]) {
   // argument for StateVector (in this case it is "double")
 
   StateVector<double> rhovec;
-  bool found = mystate.get(density_name,CELL,&rhovec);
+  bool found = mystate.get(density_name, Entity_kind::CELL, &rhovec);
   if (!found) {
     std::cerr << "Could not find state vector on cells with name " << density_name << std::endl;
     exit(-1);
@@ -109,16 +109,16 @@ int main(int argc, char *argv[]) {
 
   // Compute the average density on cells using all node connected neighbors
 
-  int nc = mymesh->num_entities(CELL,ALL);
+  int nc = mymesh->num_entities(Entity_kind::CELL, Parallel_type::ALL);
   double *ave_density = new double[nc];
   for (int i = 0; i < nc; ++i) ave_density[i] = 0.0;
 
-  for (auto c : mymesh->cells<OWNED>()) {
+  for (auto c : mymesh->cells<Parallel_type::OWNED>()) {
 
     // Get all (owned or ghost) node connected/adjacent neighbors of a cell 
 
     Entity_ID_List nbrs;
-    mymesh->cell_get_node_adj_cells(c,ALL,&nbrs);
+    mymesh->cell_get_node_adj_cells(c, Parallel_type::ALL, &nbrs);
 
     auto itc2 = nbrs.begin();
     while (itc2 != nbrs.end()) {
@@ -131,7 +131,8 @@ int main(int argc, char *argv[]) {
 
   // Add the average density data as a new state vector
 
-  StateVector<double> &rhobarvec = mystate.add("rhobar",CELL,ave_density);
+  StateVector<double> &rhobarvec = mystate.add("rhobar", Entity_kind::CELL,
+                                               ave_density);
   
   delete [] ave_density;
 
@@ -140,7 +141,7 @@ int main(int argc, char *argv[]) {
   // Retrieve the vector of velocities
 
   StateVector<std::array<double,3>> vels;
-  found = mystate.get(velocity_name,NODE,&vels);
+  found = mystate.get(velocity_name, Entity_kind::NODE, &vels);
   if (!found) {
     std::cerr << "Could not find state vector on nodes with name " << 
         velocity_name << std::endl;
@@ -150,12 +151,12 @@ int main(int argc, char *argv[]) {
   // Update them to be the average of the centroids of the connected
   // cells weighted by the average cell density
 
-  for (auto n : mymesh->nodes<OWNED>()) {
+  for (auto n : mymesh->nodes<Parallel_type::OWNED>()) {
 
     // Get the cells using (connected to) this node
 
     Entity_ID_List nodecells;
-    mymesh->node_get_cells(n,ALL,&nodecells);
+    mymesh->node_get_cells(n, Parallel_type::ALL, &nodecells);
   
     std::array<double,3> tmpvels;
     for (int i = 0; i < 3; ++i) tmpvels[i] = 0.0;
@@ -180,7 +181,7 @@ int main(int argc, char *argv[]) {
   
   std::cerr << "Average densities at cell centers:" << std::endl;
 
-  for (auto c : mymesh->cells<OWNED>()) {
+  for (auto c : mymesh->cells<Parallel_type::OWNED>()) {
     JaliGeometry::Point ccen = mymesh->cell_centroid(c);
     
     std::cerr << "Cell " << c << "    Centroid (" <<
@@ -194,7 +195,7 @@ int main(int argc, char *argv[]) {
 
   std::cerr << "Computed velocities at nodes:" << std::endl;
 
-  for (auto n : mymesh->nodes<OWNED>()) {
+  for (auto n : mymesh->nodes<Parallel_type::OWNED>()) {
     JaliGeometry::Point npnt;
     mymesh->node_get_coordinates(n,&npnt);
 
@@ -219,13 +220,13 @@ int main(int argc, char *argv[]) {
 void initialize_data(Mesh & mesh, State & state) {
 
   // number of cells in the mesh - ALL means OWNED+GHOST
-  int nc = mesh.num_entities(CELL,ALL);
+  int nc = mesh.num_entities(Entity_kind::CELL, Parallel_type::ALL);
 
   // Create a density vector that will be used to initialize a state
   // variable called 'rho99' on cells
 
   std::vector<double> density(nc);
-  for (auto c : mesh.cells<OWNED>()) {
+  for (auto c : mesh.cells<Parallel_type::OWNED>()) {
     JaliGeometry::Point ccen = mesh.cell_centroid(c);  
     density[c] = ccen[0]+ccen[1]+ccen[2];
   }
@@ -236,13 +237,13 @@ void initialize_data(Mesh & mesh, State & state) {
   // data. Since density is a std::vector<double> we have to send in
   // the address of the first element.  as &(density[0]).
 
-  state.add(density_name,CELL,&(density[0]));
+  state.add(density_name, Entity_kind::CELL, &(density[0]));
 
 
   // Create a velocity vector
 
   int dim = mesh.space_dimension();
-  int nn = mesh.num_entities(NODE,ALL);
+  int nn = mesh.num_entities(Entity_kind::NODE, Parallel_type::ALL);
 
   // Initialize to zero
 
@@ -253,6 +254,6 @@ void initialize_data(Mesh & mesh, State & state) {
 
   // Add it to the state manager
 
-  state.add(velocity_name,NODE,&(vels[0]));
+  state.add(velocity_name, Entity_kind::NODE, &(vels[0]));
 }
 

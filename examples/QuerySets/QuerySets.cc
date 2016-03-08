@@ -174,11 +174,13 @@ int main(int argc, char *argv[]) {
   
   // Print out the number of cells in the mesh
 
-  std::cerr << "Number of mesh cells: " << mymesh->num_entities(CELL,ALL) << std::endl;
+  std::cerr << "Number of mesh cells: " <<
+      mymesh->num_cells<Parallel_type::ALL>() << std::endl;
 
   // Print out the number of nodes in the mesh
 
-  std::cerr << "Number of mesh nodes: " << mymesh->num_entities(NODE,ALL) << std::endl;
+  std::cerr << "Number of mesh nodes: " <<
+      mymesh->num_nodes<Parallel_type::ALL>() << std::endl;
 
 
   
@@ -188,7 +190,8 @@ int main(int argc, char *argv[]) {
   //-------------------------------------------------------------------------
 
   for (int i = 0; i < ncellsets; ++i) {
-    int ncells = mymesh->get_set_size(cellsetnames[i],CELL,OWNED);
+    int ncells = mymesh->get_set_size(cellsetnames[i], Entity_kind::CELL,
+                                      Parallel_type::OWNED);
     if (ncells != expected_cells[i].size()) {
       std::cerr << "Wrong number of cells in cell set " << cellsetnames[i] <<
           "(Expected " << expected_cells[i].size() << " Got " << ncells << 
@@ -197,7 +200,8 @@ int main(int argc, char *argv[]) {
     }
 
     Entity_ID_List cellids;
-    mymesh->get_set_entities(cellsetnames[i],CELL,OWNED,&cellids);
+    mymesh->get_set_entities(cellsetnames[i], Entity_kind::CELL,
+                             Parallel_type::OWNED, &cellids);
     for (int j = 0; j < ncells; ++j) {
       if (expected_cells[i][j] != cellids[j]) {
         std::cerr << "Mismatch in expected and retrieved cell for cell set " <<
@@ -214,7 +218,8 @@ int main(int argc, char *argv[]) {
   }
 
   for (int i = 0; i < nfacesets; ++i) {
-    int nfaces = mymesh->get_set_size(facesetnames[i],FACE,OWNED);
+    int nfaces = mymesh->get_set_size(facesetnames[i], Entity_kind::FACE,
+                                      Parallel_type::OWNED);
     if (nfaces != expected_faces[i].size()) {
       std::cerr << "Wrong number of faces in face set " << facesetnames[i] <<
           "(Expected " << expected_faces[i].size() << " Got " << nfaces << 
@@ -223,7 +228,8 @@ int main(int argc, char *argv[]) {
     }
 
     Entity_ID_List faceids;
-    mymesh->get_set_entities(facesetnames[i],FACE,OWNED,&faceids);
+    mymesh->get_set_entities(facesetnames[i], Entity_kind::FACE,
+                             Parallel_type::OWNED, &faceids);
     for (int j = 0; j < nfaces; ++j) {
       if (expected_faces[i][j] != faceids[j]) {
         std::cerr << "Mismatch in expected and retrieved face for face set " <<
@@ -240,7 +246,8 @@ int main(int argc, char *argv[]) {
   }
 
   for (int i = 0; i < nnodesets; ++i) {
-    int nnodes = mymesh->get_set_size(nodesetnames[i],NODE,OWNED);
+    int nnodes = mymesh->get_set_size(nodesetnames[i], Entity_kind::NODE,
+                                      Parallel_type::OWNED);
     if (nnodes != expected_nodes[i].size()) {
       std::cerr << "Wrong number of nodes in node set " << nodesetnames[i] <<
           "(Expected " << expected_nodes[i].size() << " Got " << nnodes << 
@@ -249,7 +256,8 @@ int main(int argc, char *argv[]) {
     }
 
     Entity_ID_List nodeids;
-    mymesh->get_set_entities(nodesetnames[i],NODE,OWNED,&nodeids);
+    mymesh->get_set_entities(nodesetnames[i], Entity_kind::NODE,
+                             Parallel_type::OWNED, &nodeids);
     for (int j = 0; j < nnodes; ++j) {
       if (expected_nodes[i][j] != nodeids[j]) {
         std::cerr << "Mismatch in expected and retrieved node for node set " <<

@@ -85,13 +85,13 @@ int main(int argc, char *argv[]) {
   
   // Print out the number of cells in the mesh
 
-  std::cerr << "Number of mesh cells: " << mymesh->num_entities(CELL,ALL) 
-            << std::endl;
+  std::cerr << "Number of mesh cells: " <<
+    mymesh->num_entities(Entity_kind::CELL, Parallel_type::ALL) << std::endl;
 
   // Print out the number of nodes in the mesh
 
-  std::cerr << "Number of mesh nodes: " << mymesh->num_entities(NODE,ALL)
-            << std::endl;
+  std::cerr << "Number of mesh nodes: " <<
+    mymesh->num_entities(Entity_kind::NODE, Parallel_type::ALL) << std::endl;
 
 
   // Create a Jali State Manager
@@ -111,23 +111,26 @@ int main(int argc, char *argv[]) {
   // This will do a copy construction and myvec data space will be different
   // from the state vector data space!!
 
-  Jali::StateVector<double> & myvec = mystate.add("myzonevar",Jali::CELL,data);
+  Jali::StateVector<double> & myvec = mystate.add("myzonevar",
+                                                  Entity_kind::CELL, data);
 
 
   // Try to retrieve it through a get function
 
   Jali::StateVector<double> myvec_copy;
-  bool found = mystate.get("myzonevar",Jali::CELL,&myvec_copy);
+  bool found = mystate.get("myzonevar", Entity_kind::CELL, &myvec_copy);
 
   int ndata = myvec_copy.size();
   if (myvec.size() != myvec_copy.size()) {
-    std::cerr << "Stored and retrieved vectors have different sizes?" << std::endl;
+    std::cerr << "Stored and retrieved vectors have different sizes?" <<
+      std::endl;
     exit(-1);
   }
    
   for (int i = 0; i < ndata; i++) {
     if (myvec[i] != myvec_copy[i]) {
-      std::cerr << "Stored and retrieved vectors differ at element " << i << std::endl;
+      std::cerr << "Stored and retrieved vectors differ at element " << i <<
+        std::endl;
     }
   }
 
@@ -203,7 +206,9 @@ int main(int argc, char *argv[]) {
                                      {24.0,25.0,26.0}};
 
 
-  Jali::StateVector<std::array<double,3>> pntvec("vec3",Jali::NODE,mymesh.get(),&(arrdata[0]));
+  Jali::StateVector<std::array<double,3>> pntvec("vec3", Entity_kind::NODE,
+                                                 mymesh.get(),
+                                                 &(arrdata[0]));
 
   std::cerr << pntvec << std::endl;
 
