@@ -21,7 +21,7 @@
 #include "FrameworkTraits.hh"
 #include "Geometry.hh"
 
-TEST(MESH_Entity_kind::CORNERS_2D) {
+TEST(MESH_CORNERS_2D) {
 
   int nproc, me;
   MPI_Comm_size(MPI_COMM_WORLD, &nproc);
@@ -205,7 +205,7 @@ TEST(MESH_Entity_kind::CORNERS_2D) {
 
 
 
-TEST(MESH_Entity_kind::CORNERS_3D) {
+TEST(MESH_CORNERS_3D) {
 
   int nproc, me;
   MPI_Comm_size(MPI_COMM_WORLD, &nproc);
