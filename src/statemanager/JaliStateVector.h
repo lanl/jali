@@ -69,7 +69,7 @@ class StateVector : public BaseStateVector {
 
   //! Default constructor
 
-  StateVector() : BaseStateVector("NoName", UNKNOWN_KIND, NULL) {}
+  StateVector() : BaseStateVector("NoName", Entity_kind::UNKNOWN_KIND, NULL) {}
 
   //! Meaningful constructor with data
 
@@ -145,13 +145,13 @@ class StateVector : public BaseStateVector {
   const_reference operator[](int i) const { return (*mydata_)[i]; }
   
   int size() const {return mydata_->size();}
-  void resize(size_t n, T val) {mydata_->resize(n,val);}
+  void resize(size_t n, T val) {mydata_->resize(n, val);}
 
   void clear() { mydata_->clear(); }
 
   //! Output the data
 
-  std::ostream & print(std::ostream & os) const {
+  std::ostream& print(std::ostream& os) const {
     os << "\n";
     os << "Vector \"" << myname_ << "\" on entity kind " << on_what_ << " :\n";
     os << size() << " elements\n";

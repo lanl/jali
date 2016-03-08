@@ -144,7 +144,7 @@ TEST(Jali_State_Define) {
 
   // Try to retrieve the vector by name but without giving a specific type
 
-  itc = mystate.find("nodevars", Jali::ANY_KIND);
+  itc = mystate.find("nodevars", Jali::Entity_kind::ANY_KIND);
   CHECK(mystate.end() != itc);
 
   // Make sure the object we retrieved is identical to the one we put in
@@ -221,7 +221,7 @@ TEST(Jali_State_Define) {
   cnt = 0;
   for (Jali::State::permutation_type it =
            dstate.entity_begin(Jali::Entity_kind::CELL);
-       it != dstate.entity_end(Jali::CELL);
+       it != dstate.entity_end(Jali::Entity_kind::CELL);
        it++)
     cnt++;
   CHECK_EQUAL(cnt, 2);
@@ -231,7 +231,7 @@ TEST(Jali_State_Define) {
   cnt = 0;
   for (Jali::State::permutation_type it =
            dstate.entity_begin(Jali::Entity_kind::NODE);
-       it != dstate.entity_end(Jali::NODE);
+       it != dstate.entity_end(Jali::Entity_kind::NODE);
        it++)
     cnt++;
   CHECK_EQUAL(cnt, 1);

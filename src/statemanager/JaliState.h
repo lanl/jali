@@ -53,14 +53,17 @@ class State {
   //! Typedef for permutation iterators to allow iteration through only
   //! the state vectors on a specified entity
 
-  typedef
-  boost::permutation_iterator<std::vector<std::shared_ptr<BaseStateVector>>::iterator, std::vector<int>::iterator> permutation_type;
+  typedef boost::permutation_iterator<
+    std::vector<std::shared_ptr<BaseStateVector>>::iterator,
+    std::vector<int>::iterator
+    >
+  permutation_type;
 
   //! Typedef for permutation iterators to allow iteration through only
   //! the state vector _names_ on a specified entity
 
-  typedef boost::permutation_iterator<std::vector<std::string>::iterator,
-                                      std::vector<int>::iterator>
+  typedef boost::permutation_iterator< std::vector<std::string>::iterator,
+                                       std::vector<int>::iterator >
   string_permutation;
 
   
@@ -78,27 +81,27 @@ class State {
   //! specific entity type
 
   permutation_type entity_begin(Jali::Entity_kind entitykind) {
-    return
-        boost::make_permutation_iterator(state_vectors_.begin(),
-                                         entity_indexes_[entitykind].begin());
+    const int ikind = static_cast<int>(entitykind);
+    return boost::make_permutation_iterator(state_vectors_.begin(),
+                                            entity_indexes_[ikind].begin());
   }
   permutation_type entity_end(Jali::Entity_kind entitykind) {
-    return
-        boost::make_permutation_iterator(state_vectors_.begin(),
-                                         entity_indexes_[entitykind].end());
+    const int ikind = static_cast<int>(entitykind);
+    return boost::make_permutation_iterator(state_vectors_.begin(),
+                                            entity_indexes_[ikind].end());
   }
 
   //! Iterators for vector names of specific entity types
   
   string_permutation names_entity_begin(Jali::Entity_kind entitykind) {
-    return
-        boost::make_permutation_iterator(names_.begin(),
-                                         entity_indexes_[entitykind].begin());
+    const int ikind = static_cast<int>(entitykind);
+    return boost::make_permutation_iterator(names_.begin(),
+                                            entity_indexes_[ikind].begin());
   }
   string_permutation names_entity_end(Jali::Entity_kind entitykind) {
-    return
-        boost::make_permutation_iterator(names_.begin(),
-                                         entity_indexes_[entitykind].end());
+    const int ikind = static_cast<int>(entitykind);
+    return boost::make_permutation_iterator(names_.begin(),
+                                            entity_indexes_[ikind].end());
   }
 
   //! References to state vectors
@@ -131,7 +134,7 @@ class State {
     while (it != state_vectors_.end()) {
       BaseStateVector const & vector = *(*it);
       if ((vector.name() == name) &&
-          ((on_what == ANY_KIND) || (vector.on_what() == on_what)))
+          ((on_what == Entity_kind::ANY_KIND) || (vector.on_what() == on_what)))
         break;
       else
         ++it;
@@ -200,7 +203,7 @@ class State {
 
   template <class T>
   bool get(std::string const name, Jali::Entity_kind const on_what,
-           std::shared_ptr<StateVector<T>> *vector_ptr) {    
+           std::shared_ptr<StateVector<T>> *vector_ptr) {
     iterator it = find(name, on_what);
     if (it != state_vectors_.end()) {
       *vector_ptr = std::static_pointer_cast<StateVector<T>>(*it);
@@ -233,7 +236,8 @@ class State {
       // indexes for this entity type, to allow iteration over state
       // vectors on this entity type with a permutation iterator
 
-      entity_indexes_[on_what].emplace_back(state_vectors_.size()-1);
+      int ikind = static_cast<int>(on_what);
+      entity_indexes_[ikind].emplace_back(state_vectors_.size()-1);
       names_.emplace_back(name);
 
       // emplace back may cause reallocation of the vector so the iterator
@@ -254,8 +258,7 @@ class State {
   //! the input state vector. Meta data is copied from one vector to
   //! another and A DEEP COPY IS MADE of the input vector data
 
-  template <class T>
-  StateVector<T> & add(StateVector<T>& in_vector) {
+  template <class T> StateVector<T>& add(StateVector<T>& in_vector) {
     iterator it = find(in_vector.name(), in_vector.on_what());
     if (it == end()) {
       
@@ -265,7 +268,7 @@ class State {
       
         // the input vector is defined on a different mesh? copy the
         // vector data onto a vector defined on mymesh and then add
-        std::shared_ptr<StateVector<T>> 
+        std::shared_ptr<StateVector<T>>
           vector_copy(new StateVector<T>(in_vector.name(), in_vector.on_what(),
                                          mymesh_, &(in_vector[0])));
         state_vectors_.emplace_back(vector_copy);
@@ -279,7 +282,8 @@ class State {
       // indexes for this entity type, to allow iteration over state
       // vectors on this entity type with a permutation iterator
 
-      entity_indexes_[in_vector.on_what()].emplace_back(state_vectors_.size()-1);
+      int ikind = static_cast<int>(in_vector.on_what());
+      entity_indexes_[ikind].emplace_back(state_vectors_.size()-1);
       names_.emplace_back(in_vector.name());
 
       // emplace back may cause reallocation of the vector so the iterator
@@ -290,13 +294,12 @@ class State {
           (*(std::static_pointer_cast<StateVector<T>>(state_vectors_[nvec-1])));
     } else {
       // found a state vector by same name
-    
       std::cerr << "Attempted to add duplicate state vector. Ignoring\n" <<
           std::endl;
       return in_vector;
     }
 
-  };
+  }
 
 
   //! \brief Import field data from mesh
