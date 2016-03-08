@@ -19,6 +19,7 @@
 #include "Point.hh"
 #include "GeometricModel.hh"
 #include "Region.hh"
+#include "MeshTile.hh"
 
 //! \mainpage Jali
 //!
@@ -61,13 +62,6 @@
 //  - JaliGeometry::RegionFactory    in file       RegionFactory.hh
 
 namespace Jali {
-
-// Forward declaration of MeshTile class which the mesh class
-// references - need to do this to avoid circular dependence between
-// Mesh and MeshTile classes
-
-class MeshTile;
-
 
 //! \class Mesh.hh
 //! \brief Base mesh class
