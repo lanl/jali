@@ -3,11 +3,11 @@
 // All rights reserved. See Copyright notice in main directory
 //
 
+#include <mpi.h>
+
 #include <vector>
 #include <algorithm>
 #include <memory>
-
-#include "mpi.h"
 
 #include "MeshDefs.hh"
 #include "Mesh.hh"
