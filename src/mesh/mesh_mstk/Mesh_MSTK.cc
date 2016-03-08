@@ -471,7 +471,7 @@ Mesh_MSTK::Mesh_MSTK(const Mesh *inmesh,
       int idx = 0;
       MEntity_ptr ment;
       while ((ment = (MEntity_ptr) MSet_Next_Entry(mset, &idx))) {
-        if (!MEnt_IsMarked(ment, mkid) && MEnt_PType(ment) != PParallel_type::GHOST) {
+        if (!MEnt_IsMarked(ment, mkid) && MEnt_PType(ment) != PGHOST) {
           List_Add(src_ents, ment);
           MEnt_Mark(ment, mkid);
         }
@@ -518,7 +518,8 @@ Mesh_MSTK::Mesh_MSTK(const Mesh& inmesh,
     // if it already does not exist
 
     int setsize = ((Mesh_MSTK &) inmesh).get_set_size(setnames[i],
-                                                      setkind, Parallel_type::OWNED);
+                                                      setkind,
+                                                      Parallel_type::OWNED);
 
     //  Now retrieve the entities in the set from MSTK
 
@@ -530,7 +531,7 @@ Mesh_MSTK::Mesh_MSTK(const Mesh& inmesh,
       int idx = 0;
       MEntity_ptr ment;
       while ((ment = (MEntity_ptr) MSet_Next_Entry(mset, &idx))) {
-        if (!MEnt_IsMarked(ment, mkid) && MEnt_PType(ment) != PParallel_type::GHOST) {
+        if (!MEnt_IsMarked(ment, mkid) && MEnt_PType(ment) != PGHOST) {
           List_Add(src_ents, ment);
           MEnt_Mark(ment, mkid);
         }
@@ -1189,7 +1190,7 @@ Cell_type Mesh_MSTK::cell_get_type(const Entity_ID cellid) const {
   cell = cell_id_to_handle[cellid];
 
   MEnt_Get_AttVal(cell, celltype_att, &ival, NULL, NULL);
-  celltype = (Cell_type) ival;
+  celltype = static_cast<Cell_type>(ival);
 
   return celltype;
 }  // Mesh_MSTK::cell_get_type
@@ -1219,9 +1220,10 @@ void Mesh_MSTK::cell_get_faces_and_dirs_ordered(const Entity_ID cellid,
   MEntity_ptr cell;
 
   if (cell_dimension() == 3) {
-    int celltype = cell_get_type(cellid);
+    Cell_type celltype = cell_get_type(cellid);
 
-    if (celltype >= TET && celltype <= HEX) {
+    if (celltype == Cell_type::TET || celltype == Cell_type::HEX ||
+        celltype == Cell_type::PYRAMID || celltype == Cell_type::PRISM) {
       int lid, nf;
 
       cell = cell_id_to_handle[cellid];
@@ -1238,10 +1240,10 @@ void Mesh_MSTK::cell_get_faces_and_dirs_ordered(const Entity_ID cellid,
       MFace_ptr face0;
       int fdir0;
 
-      if (celltype == TET || celltype == HEX) {
+      if (celltype == Cell_type::TET || celltype == Cell_type::HEX) {
         face0 = List_Entry(rfaces, 0);
         fdir0 = MR_FaceDir_i((MRegion_ptr)cell, 0);
-      } else if (celltype == PRISM) {  // Find the first triangular face
+      } else if (celltype == Cell_type::PRISM) {  // Find the first triangular face
         for (int i = 0; i < 5; ++i) {
           MFace_ptr face = List_Entry(rfaces, i);
           if (MF_Num_Edges(face) == 3) {
@@ -1250,7 +1252,7 @@ void Mesh_MSTK::cell_get_faces_and_dirs_ordered(const Entity_ID cellid,
             break;
           }
         }
-      } else if (celltype == PYRAMID) {  // Find the quad face
+      } else if (celltype == Cell_type::PYRAMID) {  // Find the quad face
         for (int i = 0; i < 5; ++i) {
           MFace_ptr face = List_Entry(rfaces, i);
           if (MF_Num_Edges(face) == 4) {
@@ -1880,7 +1882,7 @@ void Mesh_MSTK::node_get_cells(const Entity_ID nodeid,
     int n = 0;
     idx = 0;
     while ((ment = List_Next_Entry(cell_list, &idx))) {
-      if (MEnt_PType(ment) == PParallel_type::GHOST) {
+      if (MEnt_PType(ment) == PGHOST) {
         if (ptype == Parallel_type::GHOST || ptype == Parallel_type::ALL) {
           lid = MEnt_ID(ment);
           *it = lid-1;  // assign to next spot by dereferencing iterator
@@ -1966,7 +1968,7 @@ void Mesh_MSTK::node_get_faces(const Entity_ID nodeid,
     Entity_ID_List::iterator it = faceids->begin();
     idx = 0; n = 0;
     while ((ment = List_Next_Entry(face_list, &idx))) {
-      if (MEnt_PType(ment) == PParallel_type::GHOST) {
+      if (MEnt_PType(ment) == PGHOST) {
         if (ptype == Parallel_type::GHOST || ptype == Parallel_type::ALL) {
           lid = MEnt_ID(ment);
           *it = lid-1;  // assign to next spot by dereferencing iterator
@@ -2026,7 +2028,7 @@ void Mesh_MSTK::node_get_cell_faces(const Entity_ID nodeid,
     while ((mf = List_Next_Entry(rfaces, &idx))) {
       if (!MF_UsesEntity(mf, mv, MVERTEX)) continue;
 
-      if (MEnt_PType(mf) == PParallel_type::GHOST) {
+      if (MEnt_PType(mf) == PGHOST) {
         if (ptype == Parallel_type::GHOST || ptype == Parallel_type::ALL) {
           lid = MEnt_ID(mf);
           *it = lid-1;  // assign to next spot by dereferencing iterator
@@ -2055,7 +2057,7 @@ void Mesh_MSTK::node_get_cell_faces(const Entity_ID nodeid,
     while ((me = List_Next_Entry(fedges, &idx))) {
       if (!ME_UsesEntity(me, mv, MVERTEX)) continue;
 
-      if (MEnt_PType(me) == PParallel_type::GHOST) {
+      if (MEnt_PType(me) == PGHOST) {
         if (ptype == Parallel_type::GHOST || ptype == Parallel_type::ALL) {
           lid = MEnt_ID(me);
           *it = lid-1;  // assign to next spot by dereferencing iterator
@@ -2107,7 +2109,7 @@ void Mesh_MSTK::face_get_cells_internal(const Entity_ID faceid,
     } else {
       int idx = 0;
       while ((mr = List_Next_Entry(fregs, &idx))) {
-        if (MEnt_PType(mr) == PParallel_type::GHOST) {
+        if (MEnt_PType(mr) == PGHOST) {
           if (ptype == Parallel_type::GHOST) {
             *it = MR_ID(mr)-1;  // assign to next spot by dereferencing iterator
             ++it;
@@ -2137,7 +2139,7 @@ void Mesh_MSTK::face_get_cells_internal(const Entity_ID faceid,
     } else {
       int idx = 0;
       while ((mf = List_Next_Entry(efaces, &idx))) {
-        if (MEnt_PType(mf) == PParallel_type::GHOST) {
+        if (MEnt_PType(mf) == PGHOST) {
           if (ptype == Parallel_type::GHOST) {
             *it = MF_ID(mf)-1;  // assign to next spot by dereferencing iterator
             ++it;
@@ -2194,7 +2196,7 @@ void Mesh_MSTK::cell_get_face_adj_cells(const Entity_ID cellid,
       MRegion_ptr mr2;
       while ((mr2 = List_Next_Entry(fregs, &idx2))) {
         if (mr2 != mr) {
-          if (MEnt_PType(mr2) == PParallel_type::GHOST) {
+          if (MEnt_PType(mr2) == PGHOST) {
             if (ptype == Parallel_type::GHOST || ptype == Parallel_type::ALL) {
               lid = MEnt_ID(mr2);
               fadj_cellids->push_back(lid-1);
@@ -2225,7 +2227,7 @@ void Mesh_MSTK::cell_get_face_adj_cells(const Entity_ID cellid,
       MFace_ptr mf2;
       while ((mf2 = List_Next_Entry(efaces, &idx2))) {
         if (mf2 != mf) {
-          if (MEnt_PType(mf2) == PParallel_type::GHOST) {
+          if (MEnt_PType(mf2) == PGHOST) {
             if (ptype == Parallel_type::GHOST || ptype == Parallel_type::ALL) {
               lid = MEnt_ID(mf2);
               fadj_cellids->push_back(lid-1);
@@ -2284,7 +2286,7 @@ void Mesh_MSTK::cell_get_node_adj_cells(const Entity_ID cellid,
         if (mr2 != mr && !MEnt_IsMarked(mr2, mkid)) {
           MEnt_Mark(mr2, mkid);
           List_Add(cell_list, mr2);
-          if (MEnt_PType(mr2) == PParallel_type::GHOST) {
+          if (MEnt_PType(mr2) == PGHOST) {
             if (ptype == Parallel_type::GHOST || ptype == Parallel_type::ALL) {
               lid = MEnt_ID(mr2);
               nadj_cellids->push_back(lid-1);
@@ -2317,7 +2319,7 @@ void Mesh_MSTK::cell_get_node_adj_cells(const Entity_ID cellid,
         if (mf2 != mf && !MEnt_IsMarked(mf2, mkid)) {
           MEnt_Mark(mf2, mkid);
           List_Add(cell_list, mf2);
-          if (MEnt_PType(mf2) == PParallel_type::GHOST) {
+          if (MEnt_PType(mf2) == PGHOST) {
             if (ptype == Parallel_type::GHOST || ptype == Parallel_type::ALL) {
               lid = MEnt_ID(mf2);
               nadj_cellids->push_back(lid-1);
@@ -2965,7 +2967,9 @@ void Mesh_MSTK::get_set_entities(const std::string setname,
     if ((kind == Entity_kind::CELL && entity_type != "CELL") ||
         (kind == Entity_kind::FACE && entity_type != "FACE") ||
         (kind == Entity_kind::NODE && entity_type != "NODE")) {
-      std::cerr << "Found labeled set region named " << setname << " but it contains entities of type " << entity_type << ", not the requested type of " << kind_to_string[kind];
+      std::cerr << "Found labeled set region named " << setname <<
+          " but it contains entities of type " << entity_type <<
+          ", not the requested type of " << Entity_kind_string(kind) << "\n";
     } else {
       mset1 = MESH_MSetByName(mesh, internal_name.c_str());
       
@@ -2989,7 +2993,9 @@ void Mesh_MSTK::get_set_entities(const std::string setname,
         MPI_Comm_size(comm, &nprocs);
         if (nprocs == 1) {
           std::stringstream mesg_stream;
-          mesg_stream << "Could not find labeled set " << label << " in mesh file in order to initialize mesh set " << setname << ". Verify mesh file.";
+          mesg_stream << "Could not find labeled set " << label <<
+              " in mesh file in order to initialize mesh set " << setname <<
+              ". Verify mesh file.";
           Errors::Message mesg(mesg_stream.str());
           Exceptions::Jali_throw(mesg);
         }
@@ -3071,7 +3077,7 @@ void Mesh_MSTK::get_set_entities(const std::string setname,
     case Parallel_type::OWNED:
       idx = 0;
       while ((ment = MSet_Next_Entry(mset1, &idx))) {
-        if (MEnt_PType(ment) != PParallel_type::GHOST) {
+        if (MEnt_PType(ment) != PGHOST) {
           *it = MEnt_ID(ment) - 1;  // assign to next spot by dereferencing iterator
           ++it;
           ++nent_loc;
@@ -3081,7 +3087,7 @@ void Mesh_MSTK::get_set_entities(const std::string setname,
     case Parallel_type::GHOST:
       idx = 0;
       while ((ment = MSet_Next_Entry(mset1, &idx))) {
-        if (MEnt_PType(ment) == PParallel_type::GHOST) {
+        if (MEnt_PType(ment) == PGHOST) {
           *it = MEnt_ID(ment) - 1;  // assign to next spot by dereferencing iterator
           ++it;
           ++nent_loc;
@@ -3590,7 +3596,7 @@ void Mesh_MSTK::init_pvert_lists() {
 
   idx = 0;
   while ((vtx = MESH_Next_Vertex(mesh, &idx))) {
-    if (MV_PType(vtx) == PParallel_type::GHOST)
+    if (MV_PType(vtx) == PGHOST)
       MSet_Add(NotOwnedVerts, vtx);
     else
       MSet_Add(OwnedVerts, vtx);
@@ -3612,7 +3618,7 @@ void Mesh_MSTK::init_pedge_lists() {
 
   idx = 0;
   while ((edge = MESH_Next_Edge(mesh, &idx))) {
-    if (ME_PType(edge) == PParallel_type::GHOST)
+    if (ME_PType(edge) == PGHOST)
       MSet_Add(NotOwnedEdges, edge);
     else
       MSet_Add(OwnedEdges, edge);
@@ -3715,7 +3721,7 @@ void Mesh_MSTK::init_pface_lists() {
 
     idx = 0;
     while ((face = MESH_Next_Face(mesh, &idx))) {
-      if (MF_PType(face) == PParallel_type::GHOST)
+      if (MF_PType(face) == PGHOST)
         MSet_Add(NotOwnedFaces, face);
       else
         MSet_Add(OwnedFaces, face);
@@ -3729,7 +3735,7 @@ void Mesh_MSTK::init_pface_lists() {
 
     idx = 0;
     while ((edge = MESH_Next_Edge(mesh, &idx))) {
-      if (ME_PType(edge) == PParallel_type::GHOST)
+      if (ME_PType(edge) == PGHOST)
         MSet_Add(NotOwnedFaces, edge);
       else
         MSet_Add(OwnedFaces, edge);
@@ -3919,7 +3925,7 @@ void Mesh_MSTK::init_pcell_lists() {
 
     idx = 0;
     while ((region = MESH_Next_Region(mesh, &idx))) {
-      if (MR_PType(region) == PParallel_type::GHOST)
+      if (MR_PType(region) == PGHOST)
         MSet_Add(GhostCells, region);
       else
         MSet_Add(OwnedCells, region);
@@ -3932,7 +3938,7 @@ void Mesh_MSTK::init_pcell_lists() {
 
     idx = 0;
     while ((face = MESH_Next_Face(mesh, &idx))) {
-      if (MF_PType(face) == PParallel_type::GHOST)
+      if (MF_PType(face) == PGHOST)
         MSet_Add(GhostCells, face);
       else
         MSet_Add(OwnedCells, face);
@@ -4191,13 +4197,13 @@ Cell_type Mesh_MSTK::MFace_Celltype(MFace_ptr face) {
 
   switch (nfv) {
   case 3:
-    return TRI;
+    return Cell_type::TRI;
     break;
   case 4:
-    return QUAD;
+    return Cell_type::QUAD;
     break;
   default:
-    return POLYGON;
+    return Cell_type::POLYGON;
   }
 }
 
@@ -4214,7 +4220,7 @@ Cell_type Mesh_MSTK::MRegion_Celltype(MRegion_ptr region) {
 
   switch (nrf) {
   case 4:
-    return TET;
+    return Cell_type::TET;
     break;
   case 5:
 
@@ -4228,13 +4234,13 @@ Cell_type Mesh_MSTK::MRegion_Celltype(MRegion_ptr region) {
 
     switch (nquads) {
     case 1:
-      return PYRAMID;
+      return Cell_type::PYRAMID;
       break;
     case 3:
-      return PRISM;
+      return Cell_type::PRISM;
       break;
     default:
-      return POLYHED;
+      return Cell_type::POLYHED;
     }
 
     break;
@@ -4250,14 +4256,14 @@ Cell_type Mesh_MSTK::MRegion_Celltype(MRegion_ptr region) {
     List_Delete(rfaces);
 
     if (nquads == 6)
-      return HEX;
+      return Cell_type::HEX;
     else
-      return POLYHED;
+      return Cell_type::POLYHED;
 
     break;
 
   default:
-    return POLYHED;
+    return Cell_type::POLYHED;
   }
 
 }
@@ -4277,13 +4283,13 @@ void Mesh_MSTK::label_celltype() {
     idx = 0;
     while ((face = MESH_Next_Face(mesh, &idx))) {
       ctype = MFace_Celltype(face);
-      MEnt_Set_AttVal(face, celltype_att, ctype, 0.0, NULL);
+      MEnt_Set_AttVal(face, celltype_att, static_cast<int>(ctype), 0.0, NULL);
     }
   } else if (cell_dimension() == 3) {
     idx = 0;
     while ((region = MESH_Next_Region(mesh, &idx))) {
       ctype = MRegion_Celltype(region);
-      MEnt_Set_AttVal(region, celltype_att, ctype, 0.0, NULL);
+      MEnt_Set_AttVal(region, celltype_att, static_cast<int>(ctype), 0.0, NULL);
     }
   }
 }  /* Mesh_MSTK::label_celltypes */
