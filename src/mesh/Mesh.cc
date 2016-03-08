@@ -2067,29 +2067,4 @@ bool Mesh::point_in_cell(const JaliGeometry::Point &p, const Entity_ID cellid)
   return false;
 }
 
-
-std::string Mesh::cell_type_to_name(const Cell_type type) {
-
-  switch (type) {
-    case TRI:
-      return "triangle";
-    case QUAD:
-      return "quad";
-    case POLYGON:
-      return "polygon";
-    case TET:
-      return "tetrahedron";
-    case PYRAMID:
-      return "pyramid";
-    case PRISM:
-      return "prism";
-    case HEX:
-      return "hexahedron";
-    case POLYHED:
-      return "polyhedron";
-    default:
-      return "unknown";
-  }
-}
-
 }  // close namespace Jali
