@@ -6,7 +6,7 @@
 
 // Test edge functions in 2D
 
-TEST(MSTK_Entity_kind::EDGES_2D)
+TEST(MSTK_EDGES_2D)
 {
 
   int rank, size;
@@ -101,7 +101,7 @@ TEST(MSTK_Entity_kind::EDGES_2D)
 
 // Test edge functions in 3D
 
-TEST(MSTK_Entity_kind::EDGES_3D)
+TEST(MSTK_EDGES_3D)
 {
 
   int rank, size;
