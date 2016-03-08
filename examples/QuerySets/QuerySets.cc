@@ -1,3 +1,8 @@
+//
+// Copyright Los Alamos National Security, LLC 2009-2015
+// All rights reserved. See Copyright notice in main directory
+//
+
 #include <iostream>
 
 #include "mpi.h"
@@ -9,8 +14,8 @@
 #include "MeshFactory.hh"
 #include "FrameworkTraits.hh"
 
-// Once we resurrect RegionFactory, you won't have to include the 
-// headers for the individual types of regions 
+// Once we resurrect RegionFactory, you won't have to include the
+// headers for the individual types of regions
 
 #include "LabeledSetRegion.hh"
 #include "BoxRegion.hh"
@@ -34,28 +39,30 @@ int main(int argc, char *argv[]) {
 
   // Some sets that we want to query
 
-  std::string cellsetnames[3] = {"Bottom LabeledSet", "Bottom+Middle Box", 
+  std::string cellsetnames[3] = {"Bottom LabeledSet", "Bottom+Middle Box",
                                  "Middle Layer"};
   int ncellsets = 3;
-  Entity_ID_List expected_cells[3] = {{0,1,2,3,4,5,6,7,8},
-                                      {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17},
-                                      {9,10,11,12,13,14,15,16,17}};
+  Entity_ID_List expected_cells[3] = {{0, 1, 2, 3, 4, 5, 6, 7, 8},
+                                      {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
+                                       12, 13, 14, 15, 16, 17},
+                                      {9, 10, 11, 12, 13, 14, 15, 16, 17}};
 
   std::string facesetnames[3] = {"Face 101", "ZLO FACE Plane", "YLO FACE Box"};
   int nfacesets = 3;
-  Entity_ID_List expected_faces[3] = {{4,19,9,32,23,14,36,27,40},
-                                      {4,9,14,19,23,27,32,36,40},
-                                      {0,6,11,42,47,51,75,80,84}};
+  Entity_ID_List expected_faces[3] = {{4, 19, 9, 32, 23, 14, 36, 27, 40},
+                                      {4, 9, 14, 19, 23, 27, 32, 36, 40},
+                                      {0, 6, 11, 42, 47, 51, 75, 80, 84}};
   
 
   std::string nodesetnames[1] = {"INTERIOR XY PLANE"};
   int nnodesets = 1;
-  Entity_ID_List expected_nodes[1] = {{16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31}};
+  Entity_ID_List expected_nodes[1] = {{16, 17, 18, 19, 20, 21, 22, 23, 24, 25,
+                                       26, 27, 28, 29, 30, 31}};
   
 
-  // Jali depends on MPI 
+  // Jali depends on MPI
 
-  MPI_Init(&argc,&argv);
+  MPI_Init(&argc, &argv);
   MPI_Comm comm = MPI_COMM_WORLD;
 
 
@@ -77,15 +84,15 @@ int main(int argc, char *argv[]) {
   // with the same ID
 
   // Labeled set - an Exodus element block with ID 10000. The second
-  // argument is a set ID and can be any unique number.  
+  // argument is a set ID and can be any unique number.
 
-  gregions.emplace_back(new LabeledSetRegion(cellsetnames[0],1,"CELL",
-                                             exofilename,"Exodus II","10000"));
+  gregions.emplace_back(new LabeledSetRegion(cellsetnames[0], 1, "CELL",
+                                             exofilename, "Exodus II", "10000"));
 
   // Box Region
 
-  Point boxlo(0.0,0.0,0.0), boxhi(1.0,1.0,0.66);
-  gregions.emplace_back(new BoxRegion(cellsetnames[1],2,boxlo,boxhi));
+  Point boxlo(0.0, 0.0, 0.0), boxhi(1.0, 1.0, 0.66);
+  gregions.emplace_back(new BoxRegion(cellsetnames[1], 2, boxlo, boxhi));
 
   // Logical region from two other regions - Extract cells of the
   // bottom layer by subtracting the middle layer from the
@@ -94,38 +101,40 @@ int main(int argc, char *argv[]) {
   std::vector<std::string> setnames;
   setnames.push_back(cellsetnames[1]);  // Bottom+Middle box
   setnames.push_back(cellsetnames[0]);  // Bottom Labeled Set
-  gregions.emplace_back(new LogicalRegion(cellsetnames[2],99,"Subtract",
+  gregions.emplace_back(new LogicalRegion(cellsetnames[2], 99, "Subtract",
                                           setnames));
   
 
   // Labeled set - an Exodus side set (face set) with ID 101.
 
-  gregions.emplace_back(new LabeledSetRegion(facesetnames[0],5,"FACE",
-                                             exofilename,"Exodus II","101"));
+  gregions.emplace_back(new LabeledSetRegion(facesetnames[0], 5, "FACE",
+                                             exofilename, "Exodus II", "101"));
 
   // Plane region - designed to capture faces on the bottom surface of the mesh
 
-  Point planepoint(0.0,0.0,0.0), planenormal(0.0,0.0,1.0);
-  gregions.emplace_back(new PlaneRegion(facesetnames[1],6,planepoint,
+  Point planepoint(0.0, 0.0, 0.0), planenormal(0.0, 0.0, 1.0);
+  gregions.emplace_back(new PlaneRegion(facesetnames[1], 6, planepoint,
                                         planenormal));
 
-  // Box region - degenerate box to capture faces on the left surface of the mesh
+  // Box region - degenerate box to capture faces on the left surface
+  // of the mesh
 
-  boxlo.set(0.0,0.0,0.0);
-  boxhi.set(1.0,0.0,1.0);
-  gregions.emplace_back(new BoxRegion(facesetnames[2],7,boxlo,boxhi));
+  boxlo.set(0.0, 0.0, 0.0);
+  boxhi.set(1.0, 0.0, 1.0);
+  gregions.emplace_back(new BoxRegion(facesetnames[2], 7, boxlo, boxhi));
 
 
   // Interior XY plane - will be used to query nodes on a plane
 
-  planepoint.set(0.0,0.0,1.0/3.0);
-  planenormal.set(0.0,0.0,1.0);
-  gregions.emplace_back(new PlaneRegion(nodesetnames[0],8,planepoint,planenormal));
+  planepoint.set(0.0, 0.0, 1.0/3.0);
+  planenormal.set(0.0, 0.0, 1.0);
+  gregions.emplace_back(new PlaneRegion(nodesetnames[0], 8, planepoint,
+                                        planenormal));
 
 
   // Create a geometric model of spatial dimension 3
 
-  GeometricModelPtr gm(new GeometricModel(3,gregions));
+  GeometricModelPtr gm(new GeometricModel(3, gregions));
 
 
   //---------------------------------------------------------------------------
@@ -153,13 +162,13 @@ int main(int argc, char *argv[]) {
 
   std::unique_ptr<Mesh> mymesh;  // Pointer to a mesh object
   if (framework_available(MSTK)) {  // check if framework is available
-    mesh_factory.preference(pref);  
+    mesh_factory.preference(pref);
   
     // Read in an exodus file. Request faces, edges, wedges and
     // corners (true, true, true, true). MAKE SURE TO SPECIFY THE
     // GEOMETRIC MODEL
 
-    mymesh = mesh_factory(exofilename,gm,true,true,true,true);
+    mymesh = mesh_factory(exofilename, gm, true, true, true, true);
   }
 
   //---------------------------------------------------------------------------
@@ -170,7 +179,8 @@ int main(int argc, char *argv[]) {
 
   // Print out the spatial dimension of the mesh
 
-  std::cerr << "Spatial dimension of mesh: " << mymesh->space_dimension() << std::endl;
+  std::cerr << "Spatial dimension of mesh: " << mymesh->space_dimension() <<
+      std::endl;
   
   // Print out the number of cells in the mesh
 
@@ -194,7 +204,7 @@ int main(int argc, char *argv[]) {
                                       Parallel_type::OWNED);
     if (ncells != expected_cells[i].size()) {
       std::cerr << "Wrong number of cells in cell set " << cellsetnames[i] <<
-          "(Expected " << expected_cells[i].size() << " Got " << ncells << 
+          "(Expected " << expected_cells[i].size() << " Got " << ncells <<
           ")" << std::endl;
       continue;
     }
@@ -214,7 +224,7 @@ int main(int argc, char *argv[]) {
 
     std::cerr << "Retrieved cell set " << cellsetnames[i] << " containing " <<
         ncells << " cells  -- ";
-    for (auto const & c : cellids) 
+    for (auto const & c : cellids)
       std::cerr << c << " ";
     std::cerr << std::endl << std::endl;
   }
@@ -224,7 +234,7 @@ int main(int argc, char *argv[]) {
                                       Parallel_type::OWNED);
     if (nfaces != expected_faces[i].size()) {
       std::cerr << "Wrong number of faces in face set " << facesetnames[i] <<
-          "(Expected " << expected_faces[i].size() << " Got " << nfaces << 
+          "(Expected " << expected_faces[i].size() << " Got " << nfaces <<
           ")" << std::endl;
       continue;
     }
@@ -254,7 +264,7 @@ int main(int argc, char *argv[]) {
                                       Parallel_type::OWNED);
     if (nnodes != expected_nodes[i].size()) {
       std::cerr << "Wrong number of nodes in node set " << nodesetnames[i] <<
-          "(Expected " << expected_nodes[i].size() << " Got " << nnodes << 
+          "(Expected " << expected_nodes[i].size() << " Got " << nnodes <<
           ")" << std::endl;
       continue;
     }

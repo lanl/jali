@@ -1,3 +1,8 @@
+//
+// Copyright Los Alamos National Security, LLC 2009-2015
+// All rights reserved. See Copyright notice in main directory
+//
+
 #include <iostream>
 
 #include "mpi.h"
@@ -14,9 +19,9 @@ using namespace Jali;
 
 int main(int argc, char *argv[]) {
 
-  // Jali depends on MPI 
+  // Jali depends on MPI
 
-  MPI_Init(&argc,&argv);
+  MPI_Init(&argc, &argv);
 
   // Create a mesh factory object - this object has methods for
   // specifying the preference of mesh frameworks and unified
@@ -34,28 +39,27 @@ int main(int argc, char *argv[]) {
 
   std::unique_ptr<Mesh> mymesh;  // Pointer to a mesh object
   if (framework_available(MSTK)) {  // check if framework is available
-    mesh_factory.preference(pref);  
+    mesh_factory.preference(pref);
   
-    // Create a 3D mesh from (0.0,0.0,0.0) to (1.0,1.0,1.0)
+    // Create a 3D mesh from (0.0, 0.0, 0.0) to (1.0, 1.0, 1.0)
     // with 3, 3 and 3 elements in the X, Y and Z directions. Specify
     // that we did not instantiate a geometric model (NULL). Also,
     // request faces, edges, wedges and corners (true, true, true,
     // true)
 
-    mymesh = mesh_factory(0.0,0.0,0.0,1.0,1.0,1.0,3,3,3,NULL,
-                          true,true,true,true);
+    mymesh = mesh_factory(0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 3, 3, 3, NULL,
+                          true, true, true, true);
   }
 
 
-  
   // Iterate through the cells of the mesh and get the faces and of the cell
 
   for (auto c : mymesh->cells<Parallel_type::OWNED>()) {
-    
+
     Entity_ID_List cfaces;   // Entity_ID_List is just a std::vector<Entity_ID>
     std::vector<int> cfdirs;
 
-    mymesh->cell_get_faces_and_dirs(c,&cfaces,&cfdirs);
+    mymesh->cell_get_faces_and_dirs(c, &cfaces, &cfdirs);
 
     std::cerr << "Cell " << c << ":" << std::endl;
     std::cerr << "  Faces:";

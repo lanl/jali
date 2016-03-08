@@ -1,3 +1,8 @@
+//
+// Copyright Los Alamos National Security, LLC 2009-2015
+// All rights reserved. See Copyright notice in main directory
+//
+
 #include <iostream>
 
 #include "mpi.h"
@@ -14,9 +19,9 @@ using namespace Jali;
 
 int main(int argc, char *argv[]) {
 
-  // Jali depends on MPI 
+  // Jali depends on MPI
 
-  MPI_Init(&argc,&argv);
+  MPI_Init(&argc, &argv);
 
   // Create a mesh factory object - this object has methods for
   // specifying the preference of mesh frameworks and unified
@@ -34,19 +39,20 @@ int main(int argc, char *argv[]) {
 
   std::unique_ptr<Mesh> mymesh;  // Pointer to a mesh object
   if (framework_available(MSTK)) {  // check if framework is available
-    mesh_factory.preference(pref);  
+    mesh_factory.preference(pref);
   
     // Read in an exodus file. Specify that we did not instantiate a
     // geometric model (NULL). Also, request faces, edges, wedges and
     // corners (true, true, true, true)
 
-    mymesh = mesh_factory("test.exo",NULL,true,true,true,true);
+    mymesh = mesh_factory("test.exo", NULL, true, true, true, true);
   }
 
 
   // Print out the spatial dimension of the mesh
 
-  std::cerr << "Spatial dimension of mesh: " << mymesh->space_dimension() << std::endl;
+  std::cerr << "Spatial dimension of mesh: " << mymesh->space_dimension() <<
+      std::endl;
   
   // Print out the number of cells in the mesh
 
@@ -57,7 +63,6 @@ int main(int argc, char *argv[]) {
 
   std::cerr << "Number of mesh nodes: " <<
     mymesh->num_entities(Entity_kind::NODE, Parallel_type::ALL) << std::endl;
-
 
 
   // Clean up and exit

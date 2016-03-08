@@ -1,3 +1,8 @@
+//
+// Copyright Los Alamos National Security, LLC 2009-2015
+// All rights reserved. See Copyright notice in main directory
+//
+
 #include <iostream>
 #include <vector>
 #include <array>
@@ -12,12 +17,13 @@
 #include "JaliStateVector.h"
 #include "JaliState.h"
 
-// Code that attempts to _mock_ what may be done in a staggered grid 
+// Code that attempts to _mock_ what may be done in a staggered grid
 // numerical scheme with some fields on cells and others on nodes
 // The "numerics" have no relation to any real numerical algorithm but
 // but illustrate how a real algorithm may be written
 
 using namespace Jali;
+using namespace JaliGeometry;
 
 // Define two variable names that will be used to define state data in
 // the "initialize_data" routine and retrieve it in "main"
@@ -29,7 +35,7 @@ std::string velocity_name("nodevel");
 // illustrate definition/initialization of state data in one place and
 // retrieval of the data by name in another
 
-void initialize_data(Mesh & mesh, State & state);
+void initialize_data(Mesh& mesh, State& state);
 
 
 
@@ -38,9 +44,9 @@ void initialize_data(Mesh & mesh, State & state);
 
 int main(int argc, char *argv[]) {
 
-  // Jali depends on MPI 
+  // Jali depends on MPI
 
-  MPI_Init(&argc,&argv);
+  MPI_Init(&argc, &argv);
 
   // Create a mesh factory object - this object has methods for
   // specifying the preference of mesh frameworks and unified
@@ -58,15 +64,15 @@ int main(int argc, char *argv[]) {
 
   std::unique_ptr<Mesh> mymesh;  // Pointer to a mesh object
   if (framework_available(MSTK)) {  // check if framework is available
-    mesh_factory.preference(pref);  
+    mesh_factory.preference(pref);
   
-    // Create a 3D mesh from (0.0,0.0,0.0) to (1.0,1.0,1.0) with 10, 5
+    // Create a 3D mesh from (0.0, 0.0, 0.0) to (1.0, 1.0, 1.0) with 10, 5
     // and 5 elements in the X, Y and Z directions. Specify that we
     // did not instantiate a geometric model (NULL). Also, request
     // faces, edges, wedges and corners (true, true, true, true)
 
-    mymesh = mesh_factory(0.0,0.0,0.0,1.0,1.0,1.0,10,5,5,NULL,
-                          true,true,true,true);
+    mymesh = mesh_factory(0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 10, 5, 5, NULL,
+                          true, true, true, true);
   }
 
 
@@ -92,7 +98,7 @@ int main(int argc, char *argv[]) {
   // density_name and a vector array on nodes using the string in
   // velocity_name
 
-  initialize_data(*mymesh,mystate);
+  initialize_data(*mymesh, mystate);
 
 
   // Retrieve the density data on cells. This is indirect. The find
@@ -103,7 +109,8 @@ int main(int argc, char *argv[]) {
   StateVector<double> rhovec;
   bool found = mystate.get(density_name, Entity_kind::CELL, &rhovec);
   if (!found) {
-    std::cerr << "Could not find state vector on cells with name " << density_name << std::endl;
+    std::cerr << "Could not find state vector on cells with name " <<
+        density_name << std::endl;
     exit(-1);
   }
 
@@ -115,7 +122,7 @@ int main(int argc, char *argv[]) {
 
   for (auto c : mymesh->cells<Parallel_type::OWNED>()) {
 
-    // Get all (owned or ghost) node connected/adjacent neighbors of a cell 
+    // Get all (owned or ghost) node connected/adjacent neighbors of a cell
 
     Entity_ID_List nbrs;
     mymesh->cell_get_node_adj_cells(c, Parallel_type::ALL, &nbrs);
@@ -127,7 +134,7 @@ int main(int argc, char *argv[]) {
 
   // Add the average density data as a new state vector
 
-  StateVector<double> &rhobarvec = mystate.add("rhobar", Entity_kind::CELL,
+  StateVector<double>& rhobarvec = mystate.add("rhobar", Entity_kind::CELL,
                                                ave_density);
   
   delete [] ave_density;
@@ -136,10 +143,10 @@ int main(int argc, char *argv[]) {
 
   // Retrieve the vector of velocities
 
-  StateVector<std::array<double,3>> vels;
+  StateVector<std::array<double, 3>> vels;
   found = mystate.get(velocity_name, Entity_kind::NODE, &vels);
   if (!found) {
-    std::cerr << "Could not find state vector on nodes with name " << 
+    std::cerr << "Could not find state vector on nodes with name " <<
         velocity_name << std::endl;
     exit(-1);
   }
@@ -153,13 +160,13 @@ int main(int argc, char *argv[]) {
 
     Entity_ID_List nodecells;
     mymesh->node_get_cells(n, Parallel_type::ALL, &nodecells);
-  
-    std::array<double,3> tmpvels;
+
+    std::array<double, 3> tmpvels;
     for (int i = 0; i < 3; ++i) tmpvels[i] = 0.0;
 
     for (auto c : nodecells) {
 
-      // Get cell centroid - this is computed once and cached unless the 
+      // Get cell centroid - this is computed once and cached unless the
       // mesh changes or the routine is explicitly asked to recompute it
       // to help understand the effect of a temporary change
 
@@ -178,10 +185,10 @@ int main(int argc, char *argv[]) {
   std::cerr << "Average densities at cell centers:" << std::endl;
 
   for (auto c : mymesh->cells<Parallel_type::OWNED>()) {
-    JaliGeometry::Point ccen = mymesh->cell_centroid(c);
+    Point ccen = mymesh->cell_centroid(c);
     
     std::cerr << "Cell " << c << "    Centroid (" <<
-        ccen[0] << "," << ccen[1] << "," << ccen[2] <<
+        ccen[0] << ", " << ccen[1] << ", " << ccen[2] <<
         ")    Ave density " << rhobarvec[c] << std::endl;
   }
   std::cerr << std::endl << std::endl;
@@ -192,13 +199,13 @@ int main(int argc, char *argv[]) {
   std::cerr << "Computed velocities at nodes:" << std::endl;
 
   for (auto n : mymesh->nodes<Parallel_type::OWNED>()) {
-    JaliGeometry::Point npnt;
-    mymesh->node_get_coordinates(n,&npnt);
+    Point npnt;
+    mymesh->node_get_coordinates(n, &npnt);
 
     std::cerr << "Node " << n << "    Coord (" <<
-        npnt[0] << "," << npnt[1] << "," << npnt[2] <<
-        ")    Velocity (" << vels[n][0] << "," << vels[n][1] <<
-        "," << vels[n][2] << ")" << std::endl << std::endl;
+        npnt[0] << ", " << npnt[1] << ", " << npnt[2] <<
+        ")    Velocity (" << vels[n][0] << ", " << vels[n][1] <<
+        ", " << vels[n][2] << ")" << std::endl << std::endl;
   }
 
 
@@ -213,7 +220,7 @@ int main(int argc, char *argv[]) {
 // Routine for initialization of state data
 
 
-void initialize_data(Mesh & mesh, State & state) {
+void initialize_data(Mesh& mesh, State& state) {
 
   // number of cells in the mesh - ALL means OWNED+GHOST
   int nc = mesh.num_entities(Entity_kind::CELL, Parallel_type::ALL);
@@ -223,7 +230,7 @@ void initialize_data(Mesh & mesh, State & state) {
 
   std::vector<double> density(nc);
   for (auto c : mesh.cells<Parallel_type::OWNED>()) {
-    JaliGeometry::Point ccen = mesh.cell_centroid(c);  
+    Point ccen = mesh.cell_centroid(c);
     density[c] = ccen[0]+ccen[1]+ccen[2];
   }
 
@@ -243,10 +250,10 @@ void initialize_data(Mesh & mesh, State & state) {
 
   // Initialize to zero
 
-  std::array<double,3> initarray;
+  std::array<double, 3> initarray;
   for (int i = 0; i < dim; ++i) initarray[i] = 0.0;
 
-  std::vector<std::array<double,3>> vels(nn,initarray);
+  std::vector<std::array<double, 3>> vels(nn, initarray);
 
   // Add it to the state manager
 

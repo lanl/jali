@@ -1,6 +1,9 @@
+//
+// Copyright Los Alamos National Security, LLC 2009-2015
+// All rights reserved. See Copyright notice in main directory
+//
+
 #include <iostream>
-#include <vector>
-#include <array>
 
 #include "mpi.h"
 
@@ -8,15 +11,15 @@
 
 int main(int argc, char *argv[]) {
 
-  // Jali depends on MPI 
+  // Jali depends on MPI
 
-  MPI_Init(&argc,&argv);
+  MPI_Init(&argc, &argv);
 
   MPI_Comm comm = MPI_COMM_WORLD;
 
   int rank, nprocs;
-  MPI_Comm_rank(comm,&rank);
-  MPI_Comm_size(comm,&nprocs);
+  MPI_Comm_rank(comm, &rank);
+  MPI_Comm_size(comm, &nprocs);
 
   if (rank == 0)
     std::cerr << "Running on " << nprocs << " ranks" << std::endl;
