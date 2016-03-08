@@ -12,7 +12,6 @@
 #include "mpi.h"
 
 #include "MeshDefs.hh"
-#include "Mesh.hh"
 
 namespace Jali {
 
@@ -46,6 +45,10 @@ namespace Jali {
   mutable data are declared with a constant qualifier.
   
 */
+
+// forward declaration of the mesh class
+
+class Mesh;
 
 class MeshTile {
 
