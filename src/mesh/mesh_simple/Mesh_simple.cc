@@ -415,7 +415,7 @@ Parallel_type Mesh_simple::entity_get_ptype(const Entity_kind kind,
 
 Jali::Cell_type Mesh_simple::cell_get_type(const Jali::Entity_ID cellid) const
 {
-  return HEX;
+  return Cell_type::HEX;
 }
 
 
