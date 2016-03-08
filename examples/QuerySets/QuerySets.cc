@@ -202,18 +202,20 @@ int main(int argc, char *argv[]) {
     Entity_ID_List cellids;
     mymesh->get_set_entities(cellsetnames[i], Entity_kind::CELL,
                              Parallel_type::OWNED, &cellids);
-    for (int j = 0; j < ncells; ++j) {
-      if (expected_cells[i][j] != cellids[j]) {
+    int j = 0;
+    for (auto const & c : cellids) {
+      if (expected_cells[i][j] != c) {
         std::cerr << "Mismatch in expected and retrieved cell for cell set " <<
             cellsetnames[i] << std::endl;
         break;
       }
+      j++;
     }
 
     std::cerr << "Retrieved cell set " << cellsetnames[i] << " containing " <<
         ncells << " cells  -- ";
-    for (int j = 0; j < ncells; ++j)
-      std::cerr << cellids[j] << " ";
+    for (auto const & c : cellids) 
+      std::cerr << c << " ";
     std::cerr << std::endl << std::endl;
   }
 
@@ -230,18 +232,20 @@ int main(int argc, char *argv[]) {
     Entity_ID_List faceids;
     mymesh->get_set_entities(facesetnames[i], Entity_kind::FACE,
                              Parallel_type::OWNED, &faceids);
-    for (int j = 0; j < nfaces; ++j) {
-      if (expected_faces[i][j] != faceids[j]) {
+    int j = 0;
+    for (auto const & f : faceids) {
+      if (expected_faces[i][j] != f) {
         std::cerr << "Mismatch in expected and retrieved face for face set " <<
             facesetnames[i] << std::endl;
         break;
       }
+      j++;
     }
 
     std::cerr << "Retrieved face set " << facesetnames[i] << " containing " <<
         nfaces << " faces  -- ";
-    for (int j = 0; j < nfaces; ++j)
-      std::cerr << faceids[j] << " ";
+    for (auto const & f : faceids)
+      std::cerr << f << " ";
     std::cerr << std::endl << std::endl;
   }
 
@@ -258,18 +262,20 @@ int main(int argc, char *argv[]) {
     Entity_ID_List nodeids;
     mymesh->get_set_entities(nodesetnames[i], Entity_kind::NODE,
                              Parallel_type::OWNED, &nodeids);
-    for (int j = 0; j < nnodes; ++j) {
-      if (expected_nodes[i][j] != nodeids[j]) {
+    int j = 0;
+    for (auto const & n : nodeids) {
+      if (expected_nodes[i][j] != n) {
         std::cerr << "Mismatch in expected and retrieved node for node set " <<
             nodesetnames[i] << std::endl;
         break;
       }
+      j++;
     }
 
     std::cerr << "Retrieved node set " << nodesetnames[i] << " containing " <<
         nnodes << " nodes  -- ";
-    for (int j = 0; j < nnodes; ++j)
-      std::cerr << nodeids[j] << " ";
+    for (auto const & n : nodeids)
+      std::cerr << n << " ";
     std::cerr << std::endl << std::endl;
   }
 

@@ -59,9 +59,8 @@ int main(int argc, char *argv[]) {
     mymesh->cell_get_coordinates(c,&ccoords);
 
     std::cerr << "  Node Coordinates:" << std::endl;
-    int nnodes = ccoords.size();
-    for (int i = 0; i < nnodes; i++)
-      std::cerr << "     " << ccoords[i] << std::endl;
+    for (auto const& xyz : ccoords)
+      std::cerr << "     " << xyz << std::endl;
 
     // Get volume of cell
     

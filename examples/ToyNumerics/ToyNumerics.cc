@@ -120,12 +120,8 @@ int main(int argc, char *argv[]) {
     Entity_ID_List nbrs;
     mymesh->cell_get_node_adj_cells(c, Parallel_type::ALL, &nbrs);
 
-    auto itc2 = nbrs.begin();
-    while (itc2 != nbrs.end()) {
-      auto c = *itc2;
+    for (auto const & c : nbrs)
       ave_density[c] += rhovec[c];
-      ++itc2;
-    }
     ave_density[c] /= nbrs.size();
   }
 
@@ -243,7 +239,7 @@ void initialize_data(Mesh & mesh, State & state) {
   // Create a velocity vector
 
   int dim = mesh.space_dimension();
-  int nn = mesh.num_entities(Entity_kind::NODE, Parallel_type::ALL);
+  int nn = mesh.num_nodes<Parallel_type::ALL>();
 
   // Initialize to zero
 

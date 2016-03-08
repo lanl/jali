@@ -59,14 +59,13 @@ int main(int argc, char *argv[]) {
 
     std::cerr << "Cell " << c << ":" << std::endl;
     std::cerr << "  Faces:";
-    int nfaces = cfaces.size();
-    for (int i = 0; i < nfaces; i++) 
-      std::cerr << " " << cfaces[i];
+    for (auto const & f : cfaces)
+      std::cerr << " " << c;
     std::cerr << std::endl;
 
     std::cerr << "  Dirs:";
-    for (int i = 0; i < nfaces; i++)
-      std::cerr << " " << cfdirs[i];
+    for (auto const & fdir : cfdirs)
+      std::cerr << " " << fdir;
     std::cerr << std::endl;
 
     std::cerr << std::endl;

@@ -86,12 +86,12 @@ int main(int argc, char *argv[]) {
   // Print out the number of cells in the mesh
 
   std::cerr << "Number of mesh cells: " <<
-    mymesh->num_entities(Entity_kind::CELL, Parallel_type::ALL) << std::endl;
+    mymesh->num_cells<Parallel_type::ALL>() << std::endl;
 
   // Print out the number of nodes in the mesh
 
   std::cerr << "Number of mesh nodes: " <<
-    mymesh->num_entities(Entity_kind::NODE, Parallel_type::ALL) << std::endl;
+    mymesh->num_nodes<Parallel_type::ALL>() << std::endl;
 
 
   // Create a Jali State Manager
