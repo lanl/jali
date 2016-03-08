@@ -699,7 +699,7 @@ inline Parallel_type Mesh_MSTK::entity_get_ptype(const Entity_kind kind,
       break;
   }
 
-  if (MEnt_PType(ment) == PParallel_type::GHOST)
+  if (MEnt_PType(ment) == PGHOST)
     return Parallel_type::GHOST;
   else
     return Parallel_type::OWNED;
