@@ -429,7 +429,7 @@ Mesh_MSTK::Mesh_MSTK(const double x0, const double y0,
 // new MSTK mesh
 //---------------------------------------------------------
 
-Mesh_MSTK::Mesh_MSTK(const Mesh *inmesh,
+Mesh_MSTK::Mesh_MSTK(const std::shared_ptr<Mesh> inmesh,
                      const std::vector<std::string>& setnames,
                      const Entity_kind setkind,
                      const bool flatten,
@@ -443,7 +443,8 @@ Mesh_MSTK::Mesh_MSTK(const Mesh *inmesh,
     Mesh(request_faces, request_edges, request_wedges, request_corners,
          num_tiles) {
 
-  Mesh_ptr inmesh_mstk = (reinterpret_cast<const Mesh_MSTK *>(inmesh))->mesh;
+  Mesh_MSTK *inmesh_mstk = dynamic_cast<Mesh_MSTK *>(inmesh.get());
+  Mesh_ptr mstk_source_mesh = inmesh_mstk->mesh;
 
   int mkid = MSTK_GetMarker();
   List_ptr src_ents = List_New(10);
@@ -456,16 +457,14 @@ Mesh_MSTK::Mesh_MSTK(const Mesh *inmesh,
     // access the set in Jali so that the set gets created in 'inmesh'
     // if it already does not exist
 
-    int setsize =
-        (reinterpret_cast<const Mesh_MSTK *>(inmesh))->get_set_size(setnames[i],
-                                                                    setkind,
-                                                                    Parallel_type::OWNED);
+    int setsize = inmesh_mstk->get_set_size(setnames[i], setkind,
+                                            Parallel_type::OWNED);
 
     // Now retrieve the entities in the set from MSTK
 
     std::string internal_name = internal_name_of_set(rgn, setkind);
 
-    mset = MESH_MSetByName(inmesh_mstk, internal_name.c_str());
+    mset = MESH_MSetByName(mstk_source_mesh,internal_name.c_str());
 
     if (mset) {
       int idx = 0;
@@ -479,12 +478,10 @@ Mesh_MSTK::Mesh_MSTK(const Mesh *inmesh,
     }
   }
 
-  MType entity_dim =
-      (reinterpret_cast<const Mesh_MSTK *>(inmesh))->entity_kind_to_mtype(setkind);
+  MType entity_dim = inmesh_mstk->entity_kind_to_mtype(setkind);
 
-  extract_mstk_mesh(*(reinterpret_cast<const Mesh_MSTK *>(inmesh)),
-                    src_ents, entity_dim, flatten, extrude,
-                    request_faces, request_edges, num_tiles);
+  extract_mstk_mesh(*inmesh_mstk, src_ents, entity_dim,
+                    flatten, extrude, request_faces, request_edges, num_tiles);
 
   List_Delete(src_ents);
 }
@@ -2963,7 +2960,7 @@ void Mesh_MSTK::get_set_entities(const std::string setname,
         dynamic_cast<JaliGeometry::LabeledSetRegionPtr> (rgn);
     std::string label = lsrgn->label();
     std::string entity_type = lsrgn->entity_str();
-    
+
     if ((kind == Entity_kind::CELL && entity_type != "CELL") ||
         (kind == Entity_kind::FACE && entity_type != "FACE") ||
         (kind == Entity_kind::NODE && entity_type != "NODE")) {
@@ -2972,7 +2969,7 @@ void Mesh_MSTK::get_set_entities(const std::string setname,
           ", not the requested type of " << Entity_kind_string(kind) << "\n";
     } else {
       mset1 = MESH_MSetByName(mesh, internal_name.c_str());
-      
+
       if (!mset1 && kind == Entity_kind::CELL) {
         // Since both element blocks and cell sets are referenced
         // with the region type 'Labeled Set' and Entity kind 'Cell'
@@ -2980,14 +2977,14 @@ void Mesh_MSTK::get_set_entities(const std::string setname,
         // MEANS THAT IF AN ELEMENT BLOCK AND ELEMENT SET HAVE THE
         // SAME ID, ONLY THE ELEMENT BLOCK WILL GET PICKED UP - WE
         // CHECKED FOR THIS IN BUILD SET
-        
+
         std::string internal_name2 = other_internal_name_of_set(rgn, kind);
         mset1 = MESH_MSetByName(mesh, internal_name2.c_str());
       }
-      
+
       /// Due to the parallel partitioning its possible that this
       /// set is not on this processor
-      
+
       if (!mset1) {
         int nprocs;
         MPI_Comm_size(comm, &nprocs);
@@ -3004,13 +3001,13 @@ void Mesh_MSTK::get_set_entities(const std::string setname,
   } else {
     // Modify region/set name by prefixing it with the type of
     // entity requested
-    
+
     mset1 = MESH_MSetByName(mesh, internal_name.c_str());
-    
+
     // Make sure we retrieved a mesh set with the right kind of entities
-    
+
     MType entdim;
-    
+
     switch (kind) {
       case Entity_kind::CELL:
         if (celldim == 3)
@@ -3027,17 +3024,17 @@ void Mesh_MSTK::get_set_entities(const std::string setname,
       case Entity_kind::NODE:
         entdim = MVERTEX;
     }
-    
+
     // If not, can we find a mesh set with the right name and right
     // kind of entities
-    
+
     char setname1[256];
-    
+
     if (mset1 && MSet_EntDim(mset1) != entdim) {
       idx = 0;
       while ((mset1 = MESH_Next_MSet(mesh, &idx))) {
         MSet_Name(mset1, setname1);
-        
+
         if (MSet_EntDim(mset1) == entdim &&
             strcmp(setname1, internal_name.c_str()) == 0)
           break;
@@ -3299,7 +3296,7 @@ void Mesh_MSTK::init_nodes() {
 
   Mesh::nodeids_all_.resize(nowned + nghost);
   j = 0;
-      
+
   Mesh::nodeids_owned_.resize(nowned);
   idx = 0; i = 0;
   while ((mv = MSet_Next_Entry(OwnedVerts, &idx))) {
@@ -3395,7 +3392,7 @@ void Mesh_MSTK::init_faces() {
   MEntity_ptr ment;
   int nowned = MSet_Num_Entries(OwnedFaces);
   int nghost = MSet_Num_Entries(NotOwnedFaces);
-  
+
   Mesh::faceids_all_.resize(nowned + nghost);
   j = 0;
 
@@ -4324,7 +4321,7 @@ int Mesh_MSTK::generate_regular_mesh(Mesh_ptr mesh, double x0, double y0,
     | /         | /         | /9       2| /10      | /      3  | /
     |/__________|/          |/__________|/         |/__________|/
    1             2                1
-                         
+
                                                     Front  - Face1
                                                     Back   - Face2
                                                     Bottom - Face3

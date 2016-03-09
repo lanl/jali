@@ -66,7 +66,7 @@ SUITE (MeshFramework)
   TEST (PreferenceThrow)
   {
     int nproc;
-    MPI_Comm_size(MPI_COMM_WORLD,&nproc);
+    MPI_Comm_size(MPI_COMM_WORLD, &nproc);
     bool parallel(nproc > 1);
 
     Jali::MeshFactory mesh_factory(MPI_COMM_WORLD);
@@ -82,14 +82,14 @@ SUITE (MeshFramework)
   TEST (Generate)
   {
     int nproc;
-    MPI_Comm_size(MPI_COMM_WORLD,&nproc);
+    MPI_Comm_size(MPI_COMM_WORLD, &nproc);
     bool parallel(nproc > 1);
 
     Jali::FrameworkPreference pref;
-    std::unique_ptr<Jali::Mesh> mesh;
+    std::shared_ptr<Jali::Mesh> mesh;
     Jali::MeshFactory mesh_factory(MPI_COMM_WORLD);
 
-    double x0( 0.0), y0( 0.0), z0( 0.0);
+    double x0(0.0), y0(0.0), z0(0.0);
     double x1(10.0), y1(10.0), z1(10.0);
     int nx(10), ny(10), nz(10);
 
@@ -104,13 +104,13 @@ SUITE (MeshFramework)
                                       x1, y1, z1,
                                       nx, ny, nz),
                   Jali::Message);
-      mesh = NULL;
+      mesh.reset();
     } else {
       mesh = mesh_factory(x0, y0, z0,
                           x1, y1, z1,
                           nx, ny, nz);
-      CHECK(mesh.get());
-      mesh = NULL;
+      CHECK(mesh);
+      mesh.reset();
     }
 
     // The STK, if available, framework will always generate
@@ -121,8 +121,8 @@ SUITE (MeshFramework)
       mesh = mesh_factory(x0, y0, z0,
                           x1, y1, z1,
                           nx, ny, nz);
-      CHECK(mesh.get());
-      mesh = NULL;
+      CHECK(mesh);
+      mesh.reset();
     }
 
     // The MSTK framework, if available, will always generate
@@ -133,8 +133,8 @@ SUITE (MeshFramework)
       mesh = mesh_factory(x0, y0, z0,
                           x1, y1, z1,
                           nx, ny, nz);
-      CHECK(mesh.get());
-      mesh = NULL;
+      CHECK(mesh);
+      mesh.reset();
     }
 
     // The MOAB framework cannot generate
@@ -147,21 +147,21 @@ SUITE (MeshFramework)
                                       x1, y1, z1,
                                       nx, ny, nz),
                   Jali::Message);
-      mesh = NULL;
+      mesh.reset();
     }
   }
 
   TEST (Generate2D)
   {
     int nproc;
-    MPI_Comm_size(MPI_COMM_WORLD,&nproc);
+    MPI_Comm_size(MPI_COMM_WORLD, &nproc);
     bool parallel(nproc > 1);
 
     Jali::FrameworkPreference pref;
-    std::unique_ptr<Jali::Mesh> mesh;
+    std::shared_ptr<Jali::Mesh> mesh;
     Jali::MeshFactory mesh_factory(MPI_COMM_WORLD);
 
-    double x0( 0.0), y0( 0.0);
+    double x0(0.0), y0(0.0);
     double x1(10.0), y1(10.0);
     int nx(10), ny(10);
 
@@ -173,8 +173,8 @@ SUITE (MeshFramework)
       mesh = mesh_factory(x0, y0,
                           x1, y1,
                           nx, ny);
-      CHECK(mesh.get());
-      mesh = NULL;
+      CHECK(mesh);
+      mesh.reset();
     }
 
     // The Simple framework is always available, but
@@ -187,7 +187,7 @@ SUITE (MeshFramework)
                                     x1, y1,
                                     nx, ny),
                 Jali::Message);
-    mesh = NULL;
+    mesh.reset();
 
     // The STK, even if available cannot generate 2D meshes
 
@@ -198,7 +198,7 @@ SUITE (MeshFramework)
                                       x1, y1,
                                       nx, ny),
                   Jali::Message);
-      mesh = NULL;
+      mesh.reset();
     }
 
     // The MOAB framework cannot generate
@@ -211,7 +211,7 @@ SUITE (MeshFramework)
                                       x1, y1,
                                       nx, ny),
                   Jali::Message);
-      mesh = NULL;
+      mesh.reset();
     }
   }
 
@@ -219,11 +219,11 @@ SUITE (MeshFramework)
   // The Simple framework cannot read anything, even if it exists
   TEST (ReadSimple) {
     int nproc;
-    MPI_Comm_size(MPI_COMM_WORLD,&nproc);
+    MPI_Comm_size(MPI_COMM_WORLD, &nproc);
     bool parallel(nproc > 1);
 
     Jali::FrameworkPreference pref;
-    std::unique_ptr<Jali::Mesh> mesh;
+    std::shared_ptr<Jali::Mesh> mesh;
     Jali::MeshFactory mesh_factory(MPI_COMM_WORLD);
 
     pref.clear(); pref.push_back(Jali::Simple);
@@ -243,15 +243,16 @@ SUITE (MeshFramework)
   TEST (ReadMOABHDF5)
   {
     int nproc;
-    MPI_Comm_size(MPI_COMM_WORLD,&nproc);
+    MPI_Comm_size(MPI_COMM_WORLD, &nproc);
     bool parallel(nproc > 1);
 
-    std::unique_ptr<Jali::Mesh> mesh;
+    std::shared_ptr<Jali::Mesh> mesh;
     Jali::MeshFactory mesh_factory(MPI_COMM_WORLD);
 
     if (Jali::framework_available(Jali::MOAB)) {
       mesh = mesh_factory(MOAB_TEST_FILE);
-      CHECK(mesh.get());
+      CHECK(mesh);
+      mesh.reset();
     } else {
       CHECK_THROW(mesh = mesh_factory(MOAB_TEST_FILE),
                   Jali::Message);
@@ -271,10 +272,10 @@ SUITE (MeshFramework)
   TEST (ReadExodus)
   {
     int nproc;
-    MPI_Comm_size(MPI_COMM_WORLD,&nproc);
+    MPI_Comm_size(MPI_COMM_WORLD, &nproc);
     bool parallel(nproc > 1);
 
-    std::unique_ptr<Jali::Mesh> mesh;
+    std::shared_ptr<Jali::Mesh> mesh;
     Jali::MeshFactory mesh_factory(MPI_COMM_WORLD);
 
     bool available =
@@ -283,7 +284,7 @@ SUITE (MeshFramework)
 
     if (available) {
       mesh = mesh_factory(EXODUS_TEST_FILE);
-      CHECK(mesh.get());
+      CHECK(mesh);
     } else {
       CHECK_THROW(mesh = mesh_factory(EXODUS_TEST_FILE),
                   Jali::Message);
@@ -293,20 +294,19 @@ SUITE (MeshFramework)
   TEST (ReadNemesis)
   {
     int nproc;
-    MPI_Comm_size(MPI_COMM_WORLD,&nproc);
+    MPI_Comm_size(MPI_COMM_WORLD, &nproc);
     bool parallel(nproc > 1);
 
-    std::unique_ptr<Jali::Mesh> mesh;
+    std::shared_ptr<Jali::Mesh> mesh;
     Jali::MeshFactory mesh_factory(MPI_COMM_WORLD);
     if ((Jali::framework_available(Jali::STKMESH) ||
          Jali::framework_available(Jali::MSTK)) &&
         parallel) {
       mesh = mesh_factory(NEMESIS_TEST_FILE);
-      CHECK(mesh.get());
+      CHECK(mesh);
     } else {
       CHECK_THROW(mesh = mesh_factory(NEMESIS_TEST_FILE),
                   Jali::Message);
     }
   }
-
 }

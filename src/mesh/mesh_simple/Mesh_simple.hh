@@ -61,7 +61,7 @@ public:
   // dimensional space or to extrude the mesh to give higher
   // dimensional cells
 
-  Mesh_simple(const Mesh *inmesh,
+  Mesh_simple(const std::shared_ptr<Mesh> inmesh,
               const std::vector<std::string>& setnames,
               const Entity_kind setkind,
               const bool flatten = false,

@@ -39,8 +39,8 @@ extern bool framework_reads(const Framework& f, const Format& fmt,
                             const bool& parallel);
 
 /// Read a mesh
-extern Mesh *
-framework_read(const MPI_Comm& comm, const Framework& f,
+extern std::shared_ptr<Mesh>
+framework_read(const MPI_Comm& comm, const Framework& f, 
                const std::string& fname,
                const JaliGeometry::GeometricModelPtr& gm =
                (JaliGeometry::GeometricModelPtr) NULL,
@@ -59,8 +59,8 @@ extern bool framework_extracts(const Framework& f, const bool& parallel,
                                const unsigned int& dimension);
 
 /// Generate a hexahedral mesh
-extern Mesh *
-framework_generate(const MPI_Comm& comm, const Framework& f,
+extern std::shared_ptr<Mesh>
+framework_generate(const MPI_Comm& comm, const Framework& f, 
                    const double& x0, const double& y0, const double& z0,
                    const double& x1, const double& y1, const double& z1,
                    const unsigned int& nx, const unsigned int& ny,
@@ -74,8 +74,8 @@ framework_generate(const MPI_Comm& comm, const Framework& f,
                    const int num_tiles = 0);
 
 /// Generate a quadrilateral mesh
-extern Mesh *
-framework_generate(const MPI_Comm& comm, const Framework& f,
+extern std::shared_ptr<Mesh>
+framework_generate(const MPI_Comm& comm, const Framework& f, 
                    const double& x0, const double& y0,
                    const double& x1, const double& y1,
                    const unsigned int& nx, const unsigned int& ny,
@@ -87,9 +87,9 @@ framework_generate(const MPI_Comm& comm, const Framework& f,
                    const bool request_corners = false,
                    const int num_tiles = 0);
 
-extern Mesh *
+extern std::shared_ptr<Mesh>
 framework_extract(const MPI_Comm& comm, const Framework& f,
-                  const Mesh *inmesh,
+                  const std::shared_ptr<Mesh> inmesh,
                   const std::vector<std::string>& setnames,
                   const Entity_kind setkind,
                   const bool flatten = false,
@@ -100,7 +100,7 @@ framework_extract(const MPI_Comm& comm, const Framework& f,
                   const bool request_corners = false,
                   const int num_tiles = 0);
 
-extern Mesh *
+extern std::shared_ptr<Mesh>
 framework_extract(const MPI_Comm& comm, const Framework& f,
                   const Mesh& inmesh,
                   const std::vector<std::string>& setnames,
@@ -113,9 +113,9 @@ framework_extract(const MPI_Comm& comm, const Framework& f,
                   const bool request_corners = false,
                   const int num_tiles = 0);
 
-Mesh *
-framework_extract(const MPI_Comm& comm, const Framework& f,
-                  const Mesh& inmesh,
+std::shared_ptr<Mesh>
+framework_extract(const MPI_Comm& comm, const Framework& f, 
+                  const Mesh& inmesh, 
                   const std::vector<int>& entity_id_list,
                   const Entity_kind entity_kind,
                   const bool request_faces = true,

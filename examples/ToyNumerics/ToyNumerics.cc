@@ -35,8 +35,7 @@ std::string velocity_name("nodevel");
 // illustrate definition/initialization of state data in one place and
 // retrieval of the data by name in another
 
-void initialize_data(Mesh& mesh, State& state);
-
+void initialize_data(const std::shared_ptr<Mesh> mesh, State& state);
 
 
 // Start main routine
@@ -62,11 +61,11 @@ int main(int argc, char *argv[]) {
   FrameworkPreference pref;
   pref.push_back(MSTK);
 
-  std::unique_ptr<Mesh> mymesh;  // Pointer to a mesh object
+  std::shared_ptr<Mesh> mymesh;  // Pointer to a mesh object
   if (framework_available(MSTK)) {  // check if framework is available
     mesh_factory.preference(pref);
   
-    // Create a 3D mesh from (0.0, 0.0, 0.0) to (1.0, 1.0, 1.0) with 10, 5
+    // Create a 3D mesh from (0.0,0.0,0.0) to (1.0,1.0,1.0) with 10, 5
     // and 5 elements in the X, Y and Z directions. Specify that we
     // did not instantiate a geometric model (NULL). Also, request
     // faces, edges, wedges and corners (true, true, true, true)
@@ -90,7 +89,7 @@ int main(int argc, char *argv[]) {
 
   // Create a state manager for handling data associated with mesh entities
 
-  State mystate(mymesh.get());
+  State mystate(mymesh);
 
 
   // Initialize the state manager with some data - see routine at end
@@ -98,7 +97,7 @@ int main(int argc, char *argv[]) {
   // density_name and a vector array on nodes using the string in
   // velocity_name
 
-  initialize_data(*mymesh, mystate);
+  initialize_data(mymesh, mystate);
 
 
   // Retrieve the density data on cells. This is indirect. The find
@@ -136,7 +135,7 @@ int main(int argc, char *argv[]) {
 
   StateVector<double>& rhobarvec = mystate.add("rhobar", Entity_kind::CELL,
                                                ave_density);
-  
+
   delete [] ave_density;
 
 
@@ -178,10 +177,10 @@ int main(int argc, char *argv[]) {
     vels[n] = tmpvels;
   }
 
-  
+
 
   // Print out the average densities at cell centers
-  
+
   std::cerr << "Average densities at cell centers:" << std::endl;
 
   for (auto c : mymesh->cells<Parallel_type::OWNED>()) {
@@ -193,7 +192,7 @@ int main(int argc, char *argv[]) {
   }
   std::cerr << std::endl << std::endl;
 
-  
+
   // Print out computed velocities at nodes
 
   std::cerr << "Computed velocities at nodes:" << std::endl;
@@ -220,7 +219,7 @@ int main(int argc, char *argv[]) {
 // Routine for initialization of state data
 
 
-void initialize_data(Mesh& mesh, State& state) {
+void initialize_data(const std::shared_ptr<Mesh> mesh, State& state) {
 
   // number of cells in the mesh - ALL means OWNED+GHOST
   int nc = mesh.num_entities(Entity_kind::CELL, Parallel_type::ALL);

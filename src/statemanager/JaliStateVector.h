@@ -29,13 +29,13 @@ class BaseStateVector {
  public:
 
   //! Constructor
-  
+
   BaseStateVector(std::string const name, Entity_kind const on_what,
-                  Mesh const * const mesh) :
+                  const std::shared_ptr<Mesh> mesh) :
       myname_(name), on_what_(on_what), mymesh_(mesh) {}
 
   //! Destructor
-  
+
   virtual ~BaseStateVector() {}
 
   //! Virtual methods
@@ -46,16 +46,16 @@ class BaseStateVector {
   virtual const std::type_info& get_type() = 0;
 
   //! Query Metadata
-  
+
   std::string name() const { return myname_; }
   Jali::Entity_kind on_what() const { return on_what_; }
-  Jali::Mesh const * mesh() const { return mymesh_; }
+  std::shared_ptr<Mesh> mesh() const { return mymesh_; }
 
  protected:
 
   Jali::Entity_kind on_what_;
   std::string myname_;
-  Mesh const * mymesh_;
+  std::shared_ptr<Mesh> mymesh_;
 };
 
 
@@ -69,12 +69,13 @@ class StateVector : public BaseStateVector {
 
   //! Default constructor
 
-  StateVector() : BaseStateVector("NoName", Entity_kind::UNKNOWN_KIND, NULL) {}
+  StateVector() : BaseStateVector("NoName", UNKNOWN_KIND,
+                                  std::shared_ptr<Mesh>()) {}
 
   //! Meaningful constructor with data
 
   StateVector(std::string const name, Entity_kind const on_what,
-              Mesh const * const mesh, T* data) :
+              const std::shared_ptr<Mesh> mesh, T* data) :
       BaseStateVector(name, on_what, mesh) {
 
     int num = mesh->num_entities(on_what, Parallel_type::ALL);
@@ -100,9 +101,9 @@ class StateVector : public BaseStateVector {
               mydata_->begin());
   }
 
-  
+
   //! \brief Assignment operator
-  
+
   //! Assignment operator does a shallow copy of the metadata and a
   //! shared_ptr to the data. So modification of one state vector's
   //! data will result in modification of the other's data as well
@@ -116,7 +117,7 @@ class StateVector : public BaseStateVector {
   }
 
   //! Destructor
-  
+
   ~StateVector() {}
 
   //! Get the raw data
@@ -133,19 +134,19 @@ class StateVector : public BaseStateVector {
 
   typedef typename std::vector<T>::iterator iterator;
   typedef typename std::vector<T>::const_iterator const_iterator;
-  
-  iterator begin() {return mydata_->begin();}
-  iterator end() {return mydata_->end();}
-  const_iterator cbegin() const {return mydata_->cbegin();}
-  const_iterator cend() const {return mydata_->cend();}
-  
+
+  iterator begin() { return mydata_->begin(); }
+  iterator end() { return mydata_->end(); }
+  const_iterator cbegin() const { return mydata_->cbegin(); }
+  const_iterator cend() const { return mydata_->cend(); }
+
   typedef T& reference;
   typedef T const& const_reference;
   reference operator[](int i) { return (*mydata_)[i]; }
   const_reference operator[](int i) const { return (*mydata_)[i]; }
-  
+
   int size() const {return mydata_->size();}
-  void resize(size_t n, T val) {mydata_->resize(n, val);}
+  void resize(size_t n, T val) { mydata_->resize(n, val); }
 
   void clear() { mydata_->clear(); }
 
@@ -186,5 +187,6 @@ std::ostream & operator<<(std::ostream & os, const std::array<T, N>& arr) {
 }
 
 }  // namespace Jali
-  
+
+
 #endif  // JALI_STATE_VECTOR_H_

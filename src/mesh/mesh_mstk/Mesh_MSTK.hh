@@ -100,7 +100,7 @@ class Mesh_MSTK : public Mesh {
   // lower dimensional space or to extrude the mesh to give higher
   // dimensional cells
 
-  Mesh_MSTK(const Mesh *inmesh,
+  Mesh_MSTK(const std::shared_ptr<Mesh> inmesh,
             const std::vector<std::string>& setnames,
             const Entity_kind entity_kind,
             const bool flatten = false,

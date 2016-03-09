@@ -33,7 +33,7 @@ struct Vec2d {
 TEST(Jali_State_Define) {
 
   Jali::MeshFactory mf(MPI_COMM_WORLD);
-  std::unique_ptr<Jali::Mesh> mesh1 = mf(0.0, 0.0, 1.0, 1.0, 2, 2);
+  std::shared_ptr<Jali::Mesh> mesh1 = mf(0.0, 0.0, 1.0, 1.0, 2, 2);
 
   CHECK(mesh1 != NULL);
 
@@ -41,24 +41,23 @@ TEST(Jali_State_Define) {
 
   std::vector<double> data1 = {1.0, 3.0, 2.5, 4.5};
   Jali::StateVector<double> myvec1("cellvars", Jali::Entity_kind::CELL,
-                                   mesh1.get(), &(data1[0]));
+                                   mesh1, &(data1[0]));
 
   std::vector<double> data2 = {0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0};
   Jali::StateVector<double> myvec2("nodevars", Jali::Entity_kind::NODE,
-                                   mesh1.get(), &(data2[0]));
+                                   mesh1, &(data2[0]));
 
   // Define another mesh and another statevector on that mesh
 
   std::unique_ptr<Jali::Mesh> mesh2 = mf(0.0, 0.0, 1.0, 1.0, 3, 3);
-  
+
   std::vector<double> data3 = {1.0, 3.0, 2.5, 4.5, 1.0, 2.0};
   Jali::StateVector<double> myvec3("cellvars2", Jali::Entity_kind::CELL,
-                                   mesh2.get(), &(data3[0]));
-    
+                                   mesh2, &(data3[0]));
 
   // Create a state object and add the first two vectors to it
 
-  Jali::State mystate(mesh1.get());
+  Jali::State mystate(mesh1);
 
   int add_status;
   Jali::StateVector<double> &addvec1 = mystate.add(myvec1);
@@ -84,7 +83,7 @@ TEST(Jali_State_Define) {
   // Now retrieve the state vectors from the state object in different ways
 
   Jali::State::const_iterator itc;
-  
+
   // Make sure we can retrieve the object by name
 
   itc = mystate.find("cellvars", Jali::Entity_kind::CELL);
@@ -94,7 +93,7 @@ TEST(Jali_State_Define) {
 
   Jali::StateVector<double> myvec1_copy =
       *(std::static_pointer_cast<Jali::StateVector<double>>(*itc));
-  
+
   CHECK_EQUAL(myvec1.size(), myvec1_copy.size());
   for (int i = 0; i < myvec1.size(); ++i)
     CHECK_EQUAL(myvec1[i], myvec1_copy[i]);
@@ -119,7 +118,7 @@ TEST(Jali_State_Define) {
   for (int i = 0; i < myvec1.size(); ++i)
     CHECK_EQUAL(myvec1[i], myvec1_copy[i]);
 
-  
+
 
   // Make sure the code fails if we ask for the right name but wrong entity type
 
@@ -140,7 +139,7 @@ TEST(Jali_State_Define) {
   CHECK_EQUAL(myvec2.size(), myvec2_copy.size());
   for (int i = 0; i < myvec2.size(); ++i)
     CHECK_EQUAL(myvec2[i], myvec2_copy[i]);
-  
+
 
   // Try to retrieve the vector by name but without giving a specific type
 
@@ -154,10 +153,10 @@ TEST(Jali_State_Define) {
   CHECK_EQUAL(myvec2.size(), myvec2_copy.size());
   for (int i = 0; i < myvec2.size(); ++i)
     CHECK_EQUAL(myvec2[i], myvec2_copy[i]);
-  
+
 
   // Retrieve state data through iterators and [] operators
- 
+
   Jali::State::iterator it = mystate.begin();
   while (it != mystate.end()) {
     Jali::StateVector<double> myvec4 =
@@ -171,12 +170,12 @@ TEST(Jali_State_Define) {
           ||
           (myvec4.name() == "nodevars" &&
            myvec4.on_what() == Jali::Entity_kind::NODE));
-    
+
     ++it;
   }
-  
 
-  myvec1_copy = 
+
+  myvec1_copy =
       *(std::static_pointer_cast<Jali::StateVector<double>>(mystate[0]));
   CHECK(myvec1_copy.name() == "cellvars" &&
         myvec1_copy.on_what() == Jali::Entity_kind::CELL);
@@ -190,7 +189,7 @@ TEST(Jali_State_Define) {
 
   std::cout << mystate;
 
-  
+
   // Add state vectors of different data types
 
   const int n_cells = 4;
@@ -202,8 +201,8 @@ TEST(Jali_State_Define) {
 
   Jali::MeshFactory factory(MPI_COMM_WORLD);
 
-  std::unique_ptr<Jali::Mesh> dataMesh = factory(0.0, 0.0, 1.0, 1.0, 2, 2);
-  Jali::State dstate(dataMesh.get());
+  std::shared_ptr<Jali::Mesh> dataMesh = factory(0.0, 0.0, 1.0, 1.0, 2, 2);
+  Jali::State dstate(dataMesh);
 
   dstate.add("f1", Jali::Entity_kind::CELL, ftest);
   dstate.add("i1", Jali::Entity_kind::NODE, itest);
@@ -258,13 +257,13 @@ TEST(State_Write_Read_With_Mesh) {
   // Define mesh with 4 cells and 9 nodes
 
   Jali::MeshFactory mf(MPI_COMM_WORLD);
-  std::unique_ptr<Jali::Mesh> mesh1 = mf(0.0, 0.0, 1.0, 1.0, 2, 2);
+  std::shared_ptr<Jali::Mesh> mesh1 = mf(0.0, 0.0, 1.0, 1.0, 2, 2);
 
-  CHECK(mesh1 != NULL);
+  CHECK(mesh1);
 
   // Create a state object associated with this mesh
 
-  Jali::State mystate1(mesh1.get());
+  Jali::State mystate1(mesh1);
 
   // Add a state vector of scalars on cells
 
@@ -289,18 +288,18 @@ TEST(State_Write_Read_With_Mesh) {
 
   bool with_fields = true;
   mesh1->write_to_exodus_file("temp.exo", with_fields);
-  
+
 
 
 
   // Now read the mesh back in - No need of wedges, corners, faces, etc
   // so just the filename is needed
 
-  std::unique_ptr<Jali::Mesh> mesh2 = mf("temp.exo");
-  
+  std::shared_ptr<Jali::Mesh> mesh2 = mf("temp.exo");
+
   // Create a state object associated with this mesh
 
-  Jali::State mystate2(mesh2.get());
+  Jali::State mystate2(mesh2);
 
   // Initialize the state object from the mesh
 
