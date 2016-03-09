@@ -8,7 +8,7 @@
 
 /*!
   @class State jali_state.h
-  @brief State is a class that stores all of the state data associated 
+  @brief State is a class that stores all of the state data associated
   with a mesh
 */
 
@@ -26,23 +26,23 @@ namespace Jali {
 
 class State {
  public:
-  
+
   //! Constructor
-  
-  State(Jali::Mesh * const mesh) : mymesh_(mesh) {}
-  
+
+  State(const std::shared_ptr<Mesh> mesh) : mymesh_(mesh) {}
+
   // Copy constructor (disabled)
-  
+
   State(const State &) = delete;
-           
+
   // Assignment operator (disabled)
-              
+
   State & operator=(const State &) = delete;
-                   
+
   //! Destructor
-                       
+
   ~State() {}
-                           
+
   //! Typedefs for iterators for going through all the state vectors
 
   typedef std::vector<std::shared_ptr<BaseStateVector>>::iterator iterator;
@@ -66,7 +66,7 @@ class State {
                                        std::vector<int>::iterator >
   string_permutation;
 
-  
+
   iterator begin() {return state_vectors_.begin();}
   iterator end() {return state_vectors_.end();}
   const_iterator cbegin() const {return state_vectors_.begin();}
@@ -92,7 +92,7 @@ class State {
   }
 
   //! Iterators for vector names of specific entity types
-  
+
   string_permutation names_entity_begin(Jali::Entity_kind entitykind) {
     const int ikind = static_cast<int>(entitykind);
     return boost::make_permutation_iterator(names_.begin(),
@@ -105,7 +105,7 @@ class State {
   }
 
   //! References to state vectors
-  
+
   typedef std::shared_ptr<BaseStateVector> pointer;
   typedef const std::shared_ptr<BaseStateVector> const_pointer;
 
@@ -114,7 +114,7 @@ class State {
 
   //! Return const pointer to the i'th state vector
   const_pointer operator[](int i) const { return state_vectors_[i]; }
-  
+
   //! Number of state vectors
   int size() const {return state_vectors_.size();}
 
@@ -154,6 +154,7 @@ class State {
 
   const_iterator find(std::string const name,
                       Jali::Entity_kind const on_what) const {
+
     const_iterator it = state_vectors_.cbegin();
     while (it != state_vectors_.cend()) {
       BaseStateVector const & vector = *(*it);
@@ -167,11 +168,11 @@ class State {
   }
 
   //! \brief Get state vector
-  
+
   //! Get a statevector with the given name and particular entity kind
   //! it is on. The function returns true if such a vector was found;
   //! false otherwise. The caller must know the type of elements in
-  //! the state vector, int, double, std::array<double,3> or whatever
+  //! the state vector, int, double, std::array<double, 3> or whatever
   //! else. The calling routine must declare the state vector as "T
   //! vector" where T is StateVector<int> or StateVector<double> or
   //! StateVector<some_other_type>. Even though this is a copy into
@@ -180,7 +181,7 @@ class State {
   template <class T>
     bool get(std::string const name, Jali::Entity_kind const on_what,
              StateVector<T> *vector) {
-    
+
     iterator it = find(name, on_what);
     if (it != state_vectors_.end()) {
       *vector = *(std::static_pointer_cast<StateVector<T>>(*it));
@@ -191,12 +192,12 @@ class State {
   }
 
   //! \brief Get state vector
-  
+
   //! Get a shared_ptr to a statevector with the given name and
   //! particular entity kind it is on. The function returns true if
   //! such a vector was found; false otherwise. The caller must know
   //! the type of elements in the state vector, int, double,
-  //! std::array<double,3> or whatever else. The calling routine must
+  //! std::array<double, 3> or whatever else. The calling routine must
   //! declare the state vector as "std::shared_ptr<T> vector" where T
   //! is StateVector<int> or StateVector<double> or
   //! StateVector<some_other_type>
@@ -227,11 +228,11 @@ class State {
       // a search of the state vectors by name and kind of entity turned up
       // empty, so add the vector to the list; if not, warn about duplicate
       // state data
-    
+
       std::shared_ptr<StateVector<T>> vector(new StateVector<T>(name, on_what,
                                                                 mymesh_, data));
       state_vectors_.emplace_back(vector);
-    
+
       // add the index of this vector in state_vectors_ to the vector of
       // indexes for this entity type, to allow iteration over state
       // vectors on this entity type with a permutation iterator
@@ -261,11 +262,11 @@ class State {
   template <class T> StateVector<T>& add(StateVector<T>& in_vector) {
     iterator it = find(in_vector.name(), in_vector.on_what());
     if (it == end()) {
-      
+
       // a search of the state vectors by name and kind of entity turned up
       // empty, so add the vector to the list
       if (mymesh_ != in_vector.mesh()) {
-      
+
         // the input vector is defined on a different mesh? copy the
         // vector data onto a vector defined on mymesh and then add
         std::shared_ptr<StateVector<T>>
@@ -304,7 +305,7 @@ class State {
 
   //! \brief Import field data from mesh
   //! Initialize state vectors in the statemanager from mesh field data
-  
+
   void init_from_mesh();
 
 
@@ -315,9 +316,9 @@ class State {
 
 
  private:
-  
+
   //! Constant pointer to the mesh associated with this state
-  Jali::Mesh * const mymesh_;
+  const std::shared_ptr<Mesh> mymesh_;
 
   //! All the state vectors
   std::vector<std::shared_ptr<BaseStateVector>> state_vectors_;
@@ -335,5 +336,5 @@ class State {
 std::ostream & operator<<(std::ostream & os, State const & s);
 
 }  // namespace Jali
-  
+
 #endif  // JALI_STATE_H_

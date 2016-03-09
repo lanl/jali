@@ -11,10 +11,10 @@ namespace Jali {
 //! Initialize a state vectors in the statemanager from mesh field data
 
 void State::init_from_mesh() {
-  
+
   int num;
   std::vector<std::string> varnames, vartypes;
-  
+
   for (int ikind = 0; ikind < NUM_ENTITY_KINDS; ikind++) {
     Entity_kind kind = (Entity_kind) ikind;
     if (kind != Entity_kind::NODE && kind != Entity_kind::FACE &&
@@ -22,7 +22,7 @@ void State::init_from_mesh() {
     
     mymesh_->get_field_info(kind, &num, &varnames, &vartypes);
     if (!num) continue;
-    
+
     int spacedim = mymesh_->space_dimension();
     
     int nent = mymesh_->num_entities(kind, Parallel_type::ALL);
@@ -35,7 +35,7 @@ void State::init_from_mesh() {
       } else if (vartypes[i] == "DOUBLE") {
         double *data = new double[nent];
         mymesh_->get_field(varnames[i], kind, data);
-        Jali::StateVector<double> & sv = add(varnames[i], kind, data);          
+        Jali::StateVector<double> & sv = add(varnames[i], kind, data);
       } else if (vartypes[i] == "VECTOR") {
         if (spacedim == 2) {
           std::array<double, 2> *data = new std::array<double, 2>[nent];
@@ -54,7 +54,7 @@ void State::init_from_mesh() {
           mymesh_->get_field(varnames[i], kind, data);
           Jali::StateVector<std::array<double, 3>> & sv =
               add(varnames[i], kind, data);
-        } else if (spacedim == 3) { // lower half & diagonal of 3x3 tensor
+        } else if (spacedim == 3) {  // lower half & diagonal of 3x3 tensor
           std::array<double, 6> *data = new std::array<double, 6>[nent];
           mymesh_->get_field(varnames[i], kind, data);
           Jali::StateVector<std::array<double, 6>> & sv =
@@ -63,7 +63,7 @@ void State::init_from_mesh() {
       }  // TENSOR
     }  // for each field on entity kind
   }  // for each entity kind
-  
+
 }  // init_from_mesh
 
 
@@ -91,10 +91,10 @@ void State::export_to_mesh() {
                                     (std::array<double, 2> *) vec->get_data());
     else if (vec->get_type() == typeid(std::array<double, 3>))
       status = mymesh_->store_field(name, on_what,
-                                    (std::array<double, 3> *)vec->get_data());
+                                    (std::array<double, 3> *) vec->get_data());
     else if (vec->get_type() == typeid(std::array<double, 6>))
       status = mymesh_->store_field(name, on_what,
-                                    (std::array<double,6> *)vec->get_data());
+                                    (std::array<double, 6> *) vec->get_data());
     
 
     if (!status)

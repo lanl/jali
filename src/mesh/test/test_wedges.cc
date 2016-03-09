@@ -45,7 +45,7 @@ TEST(MESH_WEDGES_2D) {
     // Create the mesh
 
     Jali::MeshFactory factory(MPI_COMM_WORLD);
-    std::unique_ptr<Jali::Mesh> mesh;
+    std::shared_ptr<Jali::Mesh> mesh;
 
     int ierr = 0;
     int aerr = 0;
@@ -276,7 +276,7 @@ TEST(MESH_WEDGES_3D) {
     // Create the mesh
 
     Jali::MeshFactory factory(MPI_COMM_WORLD);
-    std::unique_ptr<Jali::Mesh> mesh;
+    std::shared_ptr<Jali::Mesh> mesh;
 
     int ierr = 0;
     int aerr = 0;

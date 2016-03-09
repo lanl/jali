@@ -170,7 +170,7 @@ void Mesh::cache_wedge_info() const {
       num_wedges_all += 2*fedges.size();  // In 2D there will be 1 edge per face
       numwedges_in_cell += 2*fedges.size();
 
-      if (ptype == Parallel_type::OWNED) 
+      if (ptype == Parallel_type::OWNED)
         num_wedges_owned += 2*fedges.size();
       else
         num_wedges_ghost += 2*fedges.size();
@@ -305,7 +305,7 @@ void Mesh::cache_corner_info() const {
   int nnodes_owned = num_nodes<Parallel_type::OWNED>();
   int nnodes_ghost = num_nodes<Parallel_type::GHOST>();
   int nnodes = nnodes_owned + nnodes_ghost;
-  
+
   cell_corner_ids.resize(ncells);
   node_corner_ids.resize(nnodes);
 
@@ -415,7 +415,7 @@ void Mesh::build_tiles() {
   // #else
   std::cerr << "No partitioner defined - " <<
       "subdividing cell index space into equal parts\n";
-  
+
   int ncells = num_cells<Parallel_type::OWNED>();
   int ncells_per_tile =
       static_cast<int> (static_cast<double>(ncells)/num_tiles_ + 0.5);
@@ -677,7 +677,7 @@ void Mesh::face_to_cell_edge_map(const Entity_ID faceid,
 }
 
 
-void Mesh::cell_get_edges (const Entity_ID cellid, 
+void Mesh::cell_get_edges (const Entity_ID cellid,
                            Entity_ID_List *edgeids) const {
 
 
@@ -1856,7 +1856,7 @@ Mesh::corner_get_facetization (const Entity_ID cornerid,
 // particular order in 3D
 
 void
-Mesh::corner_get_coordinates(const Entity_ID cornerid, 
+Mesh::corner_get_coordinates(const Entity_ID cornerid,
                              std::vector<JaliGeometry::Point> *pointcoords)
     const {
 

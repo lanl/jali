@@ -76,7 +76,7 @@ MeshFactory::preference(const FrameworkPreference& pref) {
  *
  * @return mesh instance
  */
-Mesh *
+std::shared_ptr<Mesh>
 MeshFactory::create(const std::string& filename,
                     const JaliGeometry::GeometricModelPtr &gm,
                     const bool request_faces,
@@ -84,6 +84,7 @@ MeshFactory::create(const std::string& filename,
                     const bool request_wedges,
                     const bool request_corners,
                     const int num_tiles) {
+
   // check the file format
   Format fmt = file_format(my_comm, filename);
 
@@ -102,7 +103,7 @@ MeshFactory::create(const std::string& filename,
   int numproc;
   MPI_Comm_size(my_comm, &numproc);
 
-  Mesh *result;
+  std::shared_ptr<Mesh> result;
   for (FrameworkPreference::const_iterator i = my_preference.begin();
        i != my_preference.end(); i++) {
     if (framework_reads(*i, fmt, numproc > 1)) {
@@ -154,7 +155,7 @@ MeshFactory::create(const std::string& filename,
  *
  * @return mesh instance
  */
-Mesh *
+std::shared_ptr<Mesh>
 MeshFactory::create(double x0, double y0, double z0,
                     double x1, double y1, double z1,
                     int nx, int ny, int nz,
@@ -165,7 +166,7 @@ MeshFactory::create(double x0, double y0, double z0,
                     const bool request_corners,
                     const int num_tiles) {
 
-  Mesh *result;
+  std::shared_ptr<Mesh> result;
   Message e("MeshFactory::create: error: ");
   int ierr[1], aerr[1];
   ierr[0] = 0;
@@ -204,9 +205,7 @@ MeshFactory::create(double x0, double y0, double z0,
     if (framework_generates(*i, numprocs > 1, dim)) {
       try {
         result = framework_generate(my_comm, *i,
-                                    x0, y0, z0, x1, y1, z1,
-                                    nx, ny, nz,
-                                    gm,
+                                    x0, y0, z0, x1, y1, z1, nx, ny, nz, gm,
                                     request_faces, request_edges,
                                     request_wedges, request_corners,
                                     num_tiles);
@@ -245,7 +244,7 @@ MeshFactory::create(double x0, double y0, double z0,
  * @return mesh instance
  */
 
-Mesh *
+std::shared_ptr<Mesh>
 MeshFactory::create(double x0, double y0,
                     double x1, double y1,
                     int nx, int ny,
@@ -255,7 +254,8 @@ MeshFactory::create(double x0, double y0,
                     const bool request_wedges,
                     const bool request_corners,
                     const int num_tiles) {
-  Mesh *result;
+
+  std::shared_ptr<Mesh> result;
   Message e("MeshFactory::create: error: ");
   int ierr[1], aerr[1];
   ierr[0] = 0;
@@ -295,9 +295,7 @@ MeshFactory::create(double x0, double y0,
     if (framework_generates(*i, numprocs > 1, dim)) {
       try {
         result = framework_generate(my_comm, *i,
-                                    x0, y0, x1, y1,
-                                    nx, ny,
-                                    gm,
+                                    x0, y0, x1, y1, nx, ny, gm,
                                     request_faces, request_edges,
                                     request_wedges, request_corners,
                                     num_tiles);
@@ -332,8 +330,8 @@ MeshFactory::create(double x0, double y0,
  *
  * @return
  */
-Mesh *
-MeshFactory::create(const Mesh *inmesh,
+std::shared_ptr<Mesh>
+MeshFactory::create(const std::shared_ptr<Mesh> inmesh,
                     const std::vector<std::string> setnames,
                     const Entity_kind setkind,
                     const bool flatten, const bool extrude,
@@ -342,7 +340,8 @@ MeshFactory::create(const Mesh *inmesh,
                     const bool request_wedges,
                     const bool request_corners,
                     const int num_tiles) {
-  Mesh *result;
+
+  std::shared_ptr<Mesh> result;
   Message e("MeshFactory::create: error: ");
   int ierr[1], aerr[1];
   ierr[0] = 0;
@@ -356,7 +355,8 @@ MeshFactory::create(const Mesh *inmesh,
        i != my_preference.end(); i++) {
     if (framework_extracts(*i, numprocs > 1, dim)) {
       try {
-        result = framework_extract(my_comm, *i, inmesh, setnames, setkind,
+        result = framework_extract(my_comm, *i, inmesh,
+                                   setnames, setkind,
                                    flatten, extrude,
                                    request_faces, request_edges,
                                    request_wedges, request_corners,

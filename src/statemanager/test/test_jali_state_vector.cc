@@ -3,25 +3,26 @@
  * All rights reserved.
  *---------------------------------------------------------------------------~*/
 
+#include "mpi.h"
+
+#include <iostream>
+
 #include "JaliStateVector.h"
 #include "Mesh.hh"
 #include "MeshFactory.hh"
 
-#include <iostream>
-
 #include "UnitTest++.h"
-#include "mpi.h"
 
 TEST(JaliStateVectorCells) {
 
   Jali::MeshFactory mf(MPI_COMM_WORLD);
-  std::unique_ptr<Jali::Mesh> mesh = mf(0.0, 0.0, 1.0, 1.0, 2, 2);
+  std::shared_ptr<Jali::Mesh> mesh = mf(0.0, 0.0, 1.0, 1.0, 2, 2);
 
-  CHECK(mesh != NULL);
+  CHECK(mesh);
 
   std::vector<double> data1 = {1.0, 3.0, 2.5, 4.5};
   Jali::StateVector<double> myvec1("var1", Jali::Entity_kind::CELL,
-                                   mesh.get(), &(data1[0]));
+                                   mesh, &(data1[0]));
 
   int ncells = mesh->num_entities(Jali::Entity_kind::CELL,
                                   Jali::Parallel_type::ALL);
@@ -38,12 +39,12 @@ TEST(JaliStateVectorCells) {
 TEST(JaliStateVectorNodes) {
 
   Jali::MeshFactory mf(MPI_COMM_WORLD);
-  std::unique_ptr<Jali::Mesh> mesh = mf(0.0, 0.0, 1.0, 1.0, 2, 2);
+  std::shared_ptr<Jali::Mesh> mesh = mf(0.0, 0.0, 1.0, 1.0, 2, 2);
 
-  CHECK(mesh != NULL);
+  CHECK(mesh);
 
   std::vector<double> data1 = {1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0};
-  Jali::StateVector<double> myvec1("var1", Jali::Entity_kind::NODE, mesh.get(),
+  Jali::StateVector<double> myvec1("var1", Jali::Entity_kind::NODE, mesh,
                                    &(data1[0]));
 
   int nnodes = mesh->num_entities(Jali::Entity_kind::NODE,
@@ -57,12 +58,12 @@ TEST(JaliStateVectorNodes) {
 TEST(JaliStateVectorAssignCopy) {
 
   Jali::MeshFactory mf(MPI_COMM_WORLD);
-  std::unique_ptr<Jali::Mesh> mesh = mf(0.0, 0.0, 1.0, 1.0, 2, 2);
+  std::shared_ptr<Jali::Mesh> mesh = mf(0.0, 0.0, 1.0, 1.0, 2, 2);
 
-  CHECK(mesh != NULL);
+  CHECK(mesh);
 
   std::vector<double> data1 = {1.0, 3.0, 2.5, 4.5};
-  Jali::StateVector<double> myvec1("var1", Jali::Entity_kind::CELL, mesh.get(),
+  Jali::StateVector<double> myvec1("var1", Jali::Entity_kind::CELL, mesh,
                                    &(data1[0]));
   Jali::StateVector<double> myvec2;
 
@@ -107,7 +108,7 @@ TEST(JaliStateVectorAssignCopy) {
 TEST(JaliStateVectorArray) {
 
   Jali::MeshFactory mf(MPI_COMM_WORLD);
-  std::unique_ptr<Jali::Mesh> mesh = mf(0.0, 0.0, 1.0, 1.0, 2, 2);
+  std::shared_ptr<Jali::Mesh> mesh = mf(0.0, 0.0, 1.0, 1.0, 2, 2);
 
   CHECK(mesh != NULL);
 
@@ -129,7 +130,7 @@ TEST(JaliStateVectorArray) {
 
   Jali::StateVector<std::array<double, 2>> myvec1("var1",
                                                   Jali::Entity_kind::CELL,
-                                                  mesh.get(), &(data1[0]));
+                                                  mesh, &(data1[0]));
 
   // Verify we can retrieve the data as expected
 
