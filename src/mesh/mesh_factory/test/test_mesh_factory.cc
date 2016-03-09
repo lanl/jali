@@ -104,13 +104,13 @@ SUITE (MeshFramework)
                                       x1, y1, z1,
                                       nx, ny, nz),
                   Jali::Message);
-      mesh = NULL;
+      mesh = nullptr;
     } else {
       mesh = mesh_factory(x0, y0, z0,
                           x1, y1, z1,
                           nx, ny, nz);
       CHECK(mesh.get());
-      mesh = NULL;
+      mesh = nullptr;
     }
 
     // The STK, if available, framework will always generate
@@ -122,7 +122,7 @@ SUITE (MeshFramework)
                           x1, y1, z1,
                           nx, ny, nz);
       CHECK(mesh.get());
-      mesh = NULL;
+      mesh = nullptr;
     }
 
     // The MSTK framework, if available, will always generate
@@ -134,7 +134,7 @@ SUITE (MeshFramework)
                           x1, y1, z1,
                           nx, ny, nz);
       CHECK(mesh.get());
-      mesh = NULL;
+      mesh = nullptr;
     }
 
     // The MOAB framework cannot generate
@@ -147,7 +147,7 @@ SUITE (MeshFramework)
                                       x1, y1, z1,
                                       nx, ny, nz),
                   Jali::Message);
-      mesh = NULL;
+      mesh = nullptr;
     }
   }
 
@@ -174,7 +174,7 @@ SUITE (MeshFramework)
                           x1, y1,
                           nx, ny);
       CHECK(mesh.get());
-      mesh = NULL;
+      mesh = nullptr;
     }
 
     // The Simple framework is always available, but 
@@ -187,7 +187,7 @@ SUITE (MeshFramework)
                                     x1, y1,
                                     nx, ny),
                 Jali::Message);
-    mesh = NULL;
+    mesh = nullptr;
 
     // The STK, even if available cannot generate 2D meshes
 
@@ -198,7 +198,7 @@ SUITE (MeshFramework)
                                       x1, y1,
                                       nx, ny),
                   Jali::Message);
-      mesh = NULL;
+      mesh = nullptr;
     }
 
     // The MOAB framework cannot generate
@@ -211,7 +211,7 @@ SUITE (MeshFramework)
                                       x1, y1,
                                       nx, ny),
                   Jali::Message);
-      mesh = NULL;
+      mesh = nullptr;
     }
   }
 
