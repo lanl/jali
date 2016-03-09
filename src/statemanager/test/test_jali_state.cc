@@ -49,7 +49,7 @@ TEST(Jali_State_Define) {
 
   // Define another mesh and another statevector on that mesh
 
-  std::unique_ptr<Jali::Mesh> mesh2 = mf(0.0, 0.0, 1.0, 1.0, 3, 3);
+  std::shared_ptr<Jali::Mesh> mesh2 = mf(0.0, 0.0, 1.0, 1.0, 3, 3);
 
   std::vector<double> data3 = {1.0, 3.0, 2.5, 4.5, 1.0, 2.0};
   Jali::StateVector<double> myvec3("cellvars2", Jali::Entity_kind::CELL,

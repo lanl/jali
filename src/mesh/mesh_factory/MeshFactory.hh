@@ -86,7 +86,7 @@ class MeshFactory {
 
 
   /// Create a mesh by extract subsets of entities from an existing mesh
-  std::shared_ptr<Mesh> create(const Mesh *inmesh,
+  std::shared_ptr<Mesh> create(const std::shared_ptr<Mesh> inmesh,
                                const std::vector<std::string> setnames,
                                const Entity_kind setkind,
                                const bool flatten = false,
@@ -122,9 +122,8 @@ class MeshFactory {
                                     const bool request_corners = false,
                                     const int num_tiles = 0) {
 
-    return std::shared_ptr<Mesh>(create(filename, gm, request_faces,
-                                        request_edges, request_wedges,
-                                        request_corners, num_tiles));
+    return create(filename, gm, request_faces, request_edges, request_wedges,
+                  request_corners, num_tiles);
   }
 
   /// Create a hexahedral mesh of the specified dimensions -- operator
@@ -140,7 +139,7 @@ class MeshFactory {
                                     const int num_tiles = 0) {
     
     return create(x0, y0, z0, x1, y1, z1, nx, ny, nz, gm, request_faces,
-                  request_edges, request_wedges, request_corners);
+                  request_edges, request_wedges, request_corners, num_tiles);
   }
 
   /// Create a quadrilateral mesh of the specified dimensions -- operator
@@ -156,7 +155,7 @@ class MeshFactory {
                                     const int num_tiles = 0)  {
 
     return create(x0, y0, x1, y1, nx, ny, gm, request_faces, request_edges,
-                  request_wedges, request_corners);
+                  request_wedges, request_corners, num_tiles);
   }
 
   /// Create a mesh by extract subsets of entities from an existing mesh
@@ -172,7 +171,7 @@ class MeshFactory {
                                     const int num_tiles = 0) {
 
     return create(inmesh, setnames, setkind, flatten, extrude, request_faces,
-                  request_edges, request_wedges, request_corners);
+                  request_edges, request_wedges, request_corners, num_tiles);
   }
 
 };

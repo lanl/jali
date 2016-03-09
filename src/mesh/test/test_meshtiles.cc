@@ -54,7 +54,7 @@ TEST(MESH_TILES_MPI) {
 
     // Create the mesh
     Jali::MeshFactory factory(MPI_COMM_WORLD);
-    std::unique_ptr<Jali::Mesh> mesh;
+    std::shared_ptr<Jali::Mesh> mesh;
 
     bool faces_requested = true;
     bool edges_requested = (the_framework == Jali::MSTK) ? true : false;

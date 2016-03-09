@@ -222,14 +222,14 @@ int main(int argc, char *argv[]) {
 void initialize_data(const std::shared_ptr<Mesh> mesh, State& state) {
 
   // number of cells in the mesh - ALL means OWNED+GHOST
-  int nc = mesh.num_entities(Entity_kind::CELL, Parallel_type::ALL);
+  int nc = mesh->num_cells<Parallel_type::ALL>();
 
   // Create a density vector that will be used to initialize a state
   // variable called 'rho99' on cells
 
   std::vector<double> density(nc);
-  for (auto c : mesh.cells<Parallel_type::OWNED>()) {
-    Point ccen = mesh.cell_centroid(c);
+  for (auto c : mesh->cells<Parallel_type::OWNED>()) {
+    Point ccen = mesh->cell_centroid(c);
     density[c] = ccen[0]+ccen[1]+ccen[2];
   }
 
@@ -244,8 +244,8 @@ void initialize_data(const std::shared_ptr<Mesh> mesh, State& state) {
 
   // Create a velocity vector
 
-  int dim = mesh.space_dimension();
-  int nn = mesh.num_nodes<Parallel_type::ALL>();
+  int dim = mesh->space_dimension();
+  int nn = mesh->num_nodes<Parallel_type::ALL>();
 
   // Initialize to zero
 
