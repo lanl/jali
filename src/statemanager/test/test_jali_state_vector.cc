@@ -17,10 +17,10 @@ TEST(JaliStateVectorCells) {
   Jali::MeshFactory mf(MPI_COMM_WORLD);
   std::shared_ptr<Jali::Mesh> mesh = mf(0.0,0.0,1.0,1.0,2,2);
 
-  CHECK(mesh != NULL);
+  CHECK(mesh);
 
   std::vector<double> data1 = {1.0,3.0,2.5,4.5}; 
-  Jali::StateVector<double> myvec1("var1",Jali::CELL,mesh.get(),&(data1[0]));
+  Jali::StateVector<double> myvec1("var1",Jali::CELL,mesh,&(data1[0]));
 
   int ncells = mesh->num_entities(Jali::CELL,Jali::ALL);
   CHECK_EQUAL(ncells,myvec1.size());
@@ -41,7 +41,7 @@ TEST(JaliStateVectorNodes) {
   CHECK(mesh != NULL);
 
   std::vector<double> data1 = {1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0}; 
-  Jali::StateVector<double> myvec1("var1",Jali::NODE,mesh.get(),&(data1[0]));
+  Jali::StateVector<double> myvec1("var1",Jali::NODE,mesh,&(data1[0]));
 
   int nnodes = mesh->num_entities(Jali::NODE,Jali::ALL);
   CHECK_EQUAL(nnodes,myvec1.size());
@@ -58,7 +58,7 @@ TEST(JaliStateVectorAssignCopy) {
   CHECK(mesh != NULL);
 
   std::vector<double> data1 = {1.0,3.0,2.5,4.5}; 
-  Jali::StateVector<double> myvec1("var1",Jali::CELL,mesh.get(),&(data1[0]));
+  Jali::StateVector<double> myvec1("var1",Jali::CELL,mesh,&(data1[0]));
   Jali::StateVector<double> myvec2;
 
   myvec2 = myvec1;
@@ -121,7 +121,7 @@ TEST(JaliStateVectorArray) {
   data1[2][0] = 3.0; data1[2][1] = -3.0;
   data1[3][0] = 4.0; data1[3][1] = -4.0;
 
-  Jali::StateVector<std::array<double,2>> myvec1("var1",Jali::CELL,mesh.get(),&(data1[0]));
+  Jali::StateVector<std::array<double,2>> myvec1("var1",Jali::CELL,mesh,&(data1[0]));
 
   // Verify we can retrieve the data as expected
 

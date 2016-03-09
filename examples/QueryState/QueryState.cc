@@ -96,7 +96,7 @@ int main(int argc, char *argv[]) {
 
   // Create a Jali State Manager
 
-  Jali::State mystate(mymesh.get());
+  Jali::State mystate(mymesh);
 
 
   // Create some CELL-based data
@@ -203,7 +203,7 @@ int main(int argc, char *argv[]) {
                                      {24.0,25.0,26.0}};
 
 
-  Jali::StateVector<std::array<double,3>> pntvec("vec3",Jali::NODE,mymesh.get(),&(arrdata[0]));
+  Jali::StateVector<std::array<double,3>> pntvec("vec3",Jali::NODE,mymesh,&(arrdata[0]));
 
   std::cerr << pntvec << std::endl;
 

@@ -12,7 +12,7 @@
 #include "JaliStateVector.h"
 #include "JaliState.h"
 
-// Code that attempts to _mock_ what may be done in a staggered grid 
+// Code that attempts to _mock_ what may be done in a staggered grid
 // numerical scheme with some fields on cells and others on nodes
 // The "numerics" have no relation to any real numerical algorithm but
 // but illustrate how a real algorithm may be written
@@ -29,8 +29,7 @@ std::string velocity_name("nodevel");
 // illustrate definition/initialization of state data in one place and
 // retrieval of the data by name in another
 
-void initialize_data(Mesh & mesh, State & state);
-
+void initialize_data(const std::shared_ptr<Mesh> mesh, State& state);
 
 
 // Start main routine
@@ -38,9 +37,9 @@ void initialize_data(Mesh & mesh, State & state);
 
 int main(int argc, char *argv[]) {
 
-  // Jali depends on MPI 
+  // Jali depends on MPI
 
-  MPI_Init(&argc,&argv);
+  MPI_Init(&argc, &argv);
 
   // Create a mesh factory object - this object has methods for
   // specifying the preference of mesh frameworks and unified
@@ -58,15 +57,15 @@ int main(int argc, char *argv[]) {
 
   std::shared_ptr<Mesh> mymesh;  // Pointer to a mesh object
   if (framework_available(MSTK)) {  // check if framework is available
-    mesh_factory.preference(pref);  
-  
+    mesh_factory.preference(pref);
+
     // Create a 3D mesh from (0.0,0.0,0.0) to (1.0,1.0,1.0) with 10, 5
     // and 5 elements in the X, Y and Z directions. Specify that we
     // did not instantiate a geometric model (NULL). Also, request
     // faces, edges, wedges and corners (true, true, true, true)
 
-    mymesh = mesh_factory(0.0,0.0,0.0,1.0,1.0,1.0,10,5,5,NULL,
-                          true,true,true,true);
+    mymesh = mesh_factory(0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 10, 5, 5, NULL,
+                          true, true, true, true);
   }
 
 
@@ -84,7 +83,7 @@ int main(int argc, char *argv[]) {
 
   // Create a state manager for handling data associated with mesh entities
 
-  State mystate(mymesh.get());
+  State mystate(mymesh);
 
 
   // Initialize the state manager with some data - see routine at end
@@ -92,7 +91,7 @@ int main(int argc, char *argv[]) {
   // density_name and a vector array on nodes using the string in
   // velocity_name
 
-  initialize_data(*mymesh,mystate);
+  initialize_data(mymesh, mystate);
 
 
   // Retrieve the density data on cells. This is indirect. The find
@@ -101,15 +100,16 @@ int main(int argc, char *argv[]) {
   // argument for StateVector (in this case it is "double")
 
   StateVector<double> rhovec;
-  bool found = mystate.get(density_name,CELL,&rhovec);
+  bool found = mystate.get(density_name, CELL, &rhovec);
   if (!found) {
-    std::cerr << "Could not find state vector on cells with name " << density_name << std::endl;
+    std::cerr << "Could not find state vector on cells with name " <<
+        density_name << std::endl;
     exit(-1);
   }
 
   // Compute the average density on cells using all node connected neighbors
 
-  int nc = mymesh->num_entities(CELL,ALL);
+  int nc = mymesh->num_entities(CELL, ALL);
   double *ave_density = new double[nc];
   for (int i = 0; i < nc; ++i) ave_density[i] = 0.0;
 
@@ -117,10 +117,10 @@ int main(int argc, char *argv[]) {
   while (itc != mymesh->end_cells()) {
     auto c = *itc;
 
-    // Get all (owned or ghost) node connected/adjacent neighbors of a cell 
+    // Get all (owned or ghost) node connected/adjacent neighbors of a cell
 
     Entity_ID_List nbrs;
-    mymesh->cell_get_node_adj_cells(c,ALL,&nbrs);
+    mymesh->cell_get_node_adj_cells(c, ALL, &nbrs);
 
     auto itc2 = nbrs.begin();
     while (itc2 != nbrs.end()) {
@@ -135,18 +135,18 @@ int main(int argc, char *argv[]) {
 
   // Add the average density data as a new state vector
 
-  StateVector<double> &rhobarvec = mystate.add("rhobar",CELL,ave_density);
-  
+  StateVector<double> &rhobarvec = mystate.add("rhobar", CELL, ave_density);
+
   delete [] ave_density;
 
 
 
   // Retrieve the vector of velocities
 
-  StateVector<std::array<double,3>> vels;
-  found = mystate.get(velocity_name,NODE,&vels);
+  StateVector<std::array<double, 3>> vels;
+  found = mystate.get(velocity_name, NODE, &vels);
   if (!found) {
-    std::cerr << "Could not find state vector on nodes with name " << 
+    std::cerr << "Could not find state vector on nodes with name " <<
         velocity_name << std::endl;
     exit(-1);
   }
@@ -161,16 +161,16 @@ int main(int argc, char *argv[]) {
     // Get the cells using (connected to) this node
 
     Entity_ID_List nodecells;
-    mymesh->node_get_cells(n,ALL,&nodecells);
-  
-    std::array<double,3> tmpvels;
+    mymesh->node_get_cells(n, ALL, &nodecells);
+
+    std::array<double, 3> tmpvels;
     for (int i = 0; i < 3; ++i) tmpvels[i] = 0.0;
 
     auto itc2 = nodecells.begin();
     while (itc2 != nodecells.end()) {
       auto c = *itc2;
 
-      // Get cell centroid - this is computed once and cached unless the 
+      // Get cell centroid - this is computed once and cached unless the
       // mesh changes or the routine is explicitly asked to recompute it
       // to help understand the effect of a temporary change
 
@@ -183,10 +183,10 @@ int main(int argc, char *argv[]) {
     ++itn;
   }
 
-  
+
 
   // Print out the average densities at cell centers
-  
+
   std::cerr << "Average densities at cell centers:" << std::endl;
 
   itc = mymesh->begin_cells();
@@ -194,7 +194,7 @@ int main(int argc, char *argv[]) {
     auto c = *itc;
 
     JaliGeometry::Point ccen = mymesh->cell_centroid(c);
-    
+
     std::cerr << "Cell " << c << "    Centroid (" <<
         ccen[0] << "," << ccen[1] << "," << ccen[2] <<
         ")    Ave density " << rhobarvec[c] << std::endl;
@@ -202,7 +202,7 @@ int main(int argc, char *argv[]) {
   }
   std::cerr << std::endl << std::endl;
 
-  
+
   // Print out computed velocities at nodes
 
   std::cerr << "Computed velocities at nodes:" << std::endl;
@@ -212,7 +212,7 @@ int main(int argc, char *argv[]) {
     auto n = *itn;
 
     JaliGeometry::Point npnt;
-    mymesh->node_get_coordinates(n,&npnt);
+    mymesh->node_get_coordinates(n, &npnt);
 
     std::cerr << "Node " << n << "    Coord (" <<
         npnt[0] << "," << npnt[1] << "," << npnt[2] <<
@@ -233,19 +233,20 @@ int main(int argc, char *argv[]) {
 // Routine for initialization of state data
 
 
-void initialize_data(Mesh & mesh, State & state) {
+void initialize_data(const std::shared_ptr<Mesh> mesh,
+                     State& state) {
 
   // number of cells in the mesh - ALL means OWNED+GHOST
-  int nc = mesh.num_entities(CELL,ALL);
+  int nc = mesh->num_entities(CELL, ALL);
 
   // Create a density vector that will be used to initialize a state
   // variable called 'rho99' on cells
 
   std::vector<double> density(nc);
-  auto itc = mesh.begin_cells();
-  while (itc != mesh.end_cells()) {
+  auto itc = mesh->begin_cells();
+  while (itc != mesh->end_cells()) {
     auto c = *itc;
-    JaliGeometry::Point ccen = mesh.cell_centroid(c);  
+    JaliGeometry::Point ccen = mesh->cell_centroid(c);
     density[c] = ccen[0]+ccen[1]+ccen[2];
     ++itc;
   }
@@ -256,23 +257,23 @@ void initialize_data(Mesh & mesh, State & state) {
   // data. Since density is a std::vector<double> we have to send in
   // the address of the first element.  as &(density[0]).
 
-  state.add(density_name,CELL,&(density[0]));
+  state.add(density_name, CELL, &(density[0]));
 
 
   // Create a velocity vector
 
-  int dim = mesh.space_dimension();
-  int nn = mesh.num_entities(NODE,ALL);
+  int dim = mesh->space_dimension();
+  int nn = mesh->num_entities(NODE, ALL);
 
   // Initialize to zero
 
-  std::array<double,3> initarray;
+  std::array<double, 3> initarray;
   for (int i = 0; i < dim; ++i) initarray[i] = 0.0;
 
-  std::vector<std::array<double,3>> vels(nn,initarray);
+  std::vector<std::array<double, 3>> vels(nn, initarray);
 
   // Add it to the state manager
 
-  state.add(velocity_name,NODE,&(vels[0]));
+  state.add(velocity_name, NODE, &(vels[0]));
 }
 
