@@ -36,7 +36,7 @@ struct Vec2d
 TEST(Jali_State_Define) {
 
   Jali::MeshFactory mf(MPI_COMM_WORLD);
-  std::unique_ptr<Jali::Mesh> mesh1 = mf(0.0,0.0,1.0,1.0,2,2);
+  std::shared_ptr<Jali::Mesh> mesh1 = mf(0.0,0.0,1.0,1.0,2,2);
 
   CHECK(mesh1 != NULL);
 
@@ -50,7 +50,7 @@ TEST(Jali_State_Define) {
 
   // Define another mesh and another statevector on that mesh
 
-  std::unique_ptr<Jali::Mesh> mesh2 = mf(0.0,0.0,1.0,1.0,3,3);
+  std::shared_ptr<Jali::Mesh> mesh2 = mf(0.0,0.0,1.0,1.0,3,3);
   
   std::vector<double> data3 = {1.0,3.0,2.5,4.5,1.0,2.0}; 
   Jali::StateVector<double> myvec3("cellvars2",Jali::CELL,mesh2.get(),&(data3[0]));
@@ -190,7 +190,7 @@ TEST(Jali_State_Define) {
 
   Jali::MeshFactory factory(MPI_COMM_WORLD);
 
-  std::unique_ptr<Jali::Mesh> dataMesh = factory(0.0, 0.0, 1.0, 1.0, 2, 2);
+  std::shared_ptr<Jali::Mesh> dataMesh = factory(0.0, 0.0, 1.0, 1.0, 2, 2);
   Jali::State dstate(dataMesh.get());
 
   dstate.add("f1", Jali::CELL, ftest);
@@ -234,7 +234,7 @@ TEST(State_Write_Read_With_Mesh) {
   // Define mesh with 4 cells and 9 nodes 
 
   Jali::MeshFactory mf(MPI_COMM_WORLD);
-  std::unique_ptr<Jali::Mesh> mesh1 = mf(0.0,0.0,1.0,1.0,2,2);
+  std::shared_ptr<Jali::Mesh> mesh1 = mf(0.0,0.0,1.0,1.0,2,2);
 
   CHECK(mesh1 != NULL);
 
@@ -272,7 +272,7 @@ TEST(State_Write_Read_With_Mesh) {
   // Now read the mesh back in - No need of wedges, corners, faces, etc 
   // so just the filename is needed
 
-  std::unique_ptr<Jali::Mesh> mesh2 = mf("temp.exo");
+  std::shared_ptr<Jali::Mesh> mesh2 = mf("temp.exo");
   
   // Create a state object associated with this mesh
 

@@ -415,7 +415,7 @@ Mesh_MSTK::Mesh_MSTK(const double x0, const double y0,
 // new MSTK mesh
 //---------------------------------------------------------
 
-Mesh_MSTK::Mesh_MSTK (const Mesh *inmesh, 
+Mesh_MSTK::Mesh_MSTK (const std::shared_ptr<Mesh> inmesh, 
                       const std::vector<std::string>& setnames, 
                       const Entity_kind setkind,
                       const bool flatten,
@@ -426,8 +426,10 @@ Mesh_MSTK::Mesh_MSTK (const Mesh *inmesh,
                       const bool request_corners) :
     mpicomm(inmesh->get_comm()),
     Mesh(request_faces,request_edges,request_wedges,request_corners) {  
+
   
-  Mesh_ptr inmesh_mstk = ((Mesh_MSTK *)inmesh)->mesh;
+  Mesh_MSTK *inmesh_mstk = dynamic_cast<Mesh_MSTK *>(inmesh.get());
+  Mesh_ptr mstk_source_mesh = inmesh_mstk->mesh;
 
   int mkid = MSTK_GetMarker();
   List_ptr src_ents = List_New(10);
@@ -440,13 +442,13 @@ Mesh_MSTK::Mesh_MSTK (const Mesh *inmesh,
     // access the set in Jali so that the set gets created in 'inmesh'
     // if it already does not exist
 
-    int setsize = ((Mesh_MSTK *) inmesh)->get_set_size(setnames[i],setkind,OWNED);
+    int setsize = inmesh_mstk->get_set_size(setnames[i],setkind,OWNED);
 
     // Now retrieve the entities in the set from MSTK
 
     std::string internal_name = internal_name_of_set(rgn,setkind);
 
-    mset = MESH_MSetByName(inmesh_mstk,internal_name.c_str());
+    mset = MESH_MSetByName(mstk_source_mesh,internal_name.c_str());
 
     if (mset) {
       int idx = 0;
@@ -460,9 +462,9 @@ Mesh_MSTK::Mesh_MSTK (const Mesh *inmesh,
     }
   }
 
-  MType entity_dim = ((Mesh_MSTK *) inmesh)->entity_kind_to_mtype(setkind);
+  MType entity_dim = inmesh_mstk->entity_kind_to_mtype(setkind);
 
-  extract_mstk_mesh(*((Mesh_MSTK *) inmesh), src_ents, entity_dim,
+  extract_mstk_mesh(*inmesh_mstk, src_ents, entity_dim,
 		    flatten, extrude, request_faces, request_edges);
 
   List_Delete(src_ents);

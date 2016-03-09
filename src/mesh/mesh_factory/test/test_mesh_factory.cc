@@ -86,7 +86,7 @@ SUITE (MeshFramework)
     bool parallel(nproc > 1);
         
     Jali::FrameworkPreference pref;
-    std::unique_ptr<Jali::Mesh> mesh;
+    std::shared_ptr<Jali::Mesh> mesh;
     Jali::MeshFactory mesh_factory(MPI_COMM_WORLD);
 
     double x0( 0.0), y0( 0.0), z0( 0.0);
@@ -158,7 +158,7 @@ SUITE (MeshFramework)
     bool parallel(nproc > 1);
     
     Jali::FrameworkPreference pref;
-    std::unique_ptr<Jali::Mesh> mesh;
+    std::shared_ptr<Jali::Mesh> mesh;
     Jali::MeshFactory mesh_factory(MPI_COMM_WORLD);
 
     double x0( 0.0), y0( 0.0);
@@ -223,7 +223,7 @@ SUITE (MeshFramework)
     bool parallel(nproc > 1);
     
     Jali::FrameworkPreference pref;
-    std::unique_ptr<Jali::Mesh> mesh;
+    std::shared_ptr<Jali::Mesh> mesh;
     Jali::MeshFactory mesh_factory(MPI_COMM_WORLD);
 
     pref.clear(); pref.push_back(Jali::Simple);
@@ -246,7 +246,7 @@ SUITE (MeshFramework)
     MPI_Comm_size(MPI_COMM_WORLD,&nproc);
     bool parallel(nproc > 1);
 
-    std::unique_ptr<Jali::Mesh> mesh;
+    std::shared_ptr<Jali::Mesh> mesh;
     Jali::MeshFactory mesh_factory(MPI_COMM_WORLD);
 
     if (Jali::framework_available(Jali::MOAB)) {
@@ -274,7 +274,7 @@ SUITE (MeshFramework)
     MPI_Comm_size(MPI_COMM_WORLD,&nproc);
     bool parallel(nproc > 1);
     
-    std::unique_ptr<Jali::Mesh> mesh;
+    std::shared_ptr<Jali::Mesh> mesh;
     Jali::MeshFactory mesh_factory(MPI_COMM_WORLD);
 
     bool available =
@@ -296,7 +296,7 @@ SUITE (MeshFramework)
     MPI_Comm_size(MPI_COMM_WORLD,&nproc);
     bool parallel(nproc > 1);
     
-    std::unique_ptr<Jali::Mesh> mesh;
+    std::shared_ptr<Jali::Mesh> mesh;
     Jali::MeshFactory mesh_factory(MPI_COMM_WORLD);
     if ((Jali::framework_available(Jali::STKMESH) ||
          Jali::framework_available(Jali::MSTK)) && 

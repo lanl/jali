@@ -15,7 +15,7 @@
 TEST(JaliStateVectorCells) {
 
   Jali::MeshFactory mf(MPI_COMM_WORLD);
-  std::unique_ptr<Jali::Mesh> mesh = mf(0.0,0.0,1.0,1.0,2,2);
+  std::shared_ptr<Jali::Mesh> mesh = mf(0.0,0.0,1.0,1.0,2,2);
 
   CHECK(mesh != NULL);
 
@@ -36,7 +36,7 @@ TEST(JaliStateVectorCells) {
 TEST(JaliStateVectorNodes) {
 
   Jali::MeshFactory mf(MPI_COMM_WORLD);
-  std::unique_ptr<Jali::Mesh> mesh = mf(0.0,0.0,1.0,1.0,2,2);
+  std::shared_ptr<Jali::Mesh> mesh = mf(0.0,0.0,1.0,1.0,2,2);
 
   CHECK(mesh != NULL);
 
@@ -53,7 +53,7 @@ TEST(JaliStateVectorNodes) {
 TEST(JaliStateVectorAssignCopy) {
 
   Jali::MeshFactory mf(MPI_COMM_WORLD);
-  std::unique_ptr<Jali::Mesh> mesh = mf(0.0,0.0,1.0,1.0,2,2);
+  std::shared_ptr<Jali::Mesh> mesh = mf(0.0,0.0,1.0,1.0,2,2);
 
   CHECK(mesh != NULL);
 
@@ -102,7 +102,7 @@ TEST(JaliStateVectorAssignCopy) {
 TEST(JaliStateVectorArray) {
 
   Jali::MeshFactory mf(MPI_COMM_WORLD);
-  std::unique_ptr<Jali::Mesh> mesh = mf(0.0,0.0,1.0,1.0,2,2);
+  std::shared_ptr<Jali::Mesh> mesh = mf(0.0,0.0,1.0,1.0,2,2);
 
   CHECK(mesh != NULL);
 
