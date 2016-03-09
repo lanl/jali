@@ -55,7 +55,7 @@ Mesh_simple::Mesh_simple (double x0, double y0,
 // Constructor - Construct a new mesh from a subset of an existing mesh
 //--------------------------------------
 
-Mesh_simple::Mesh_simple (const Mesh *inmesh, 
+Mesh_simple::Mesh_simple (const std::shared_ptr<Mesh> inmesh, 
                           const std::vector<std::string>& setnames, 
                           const Entity_kind setkind,
                           const bool flatten,
