@@ -2,10 +2,10 @@
  * @file   BoxRegion.cc
  * @author Rao Garimella, William A. Perkins
  * @date Fri Jul 29 12:28:10 2011
- * 
+ *
  * @brief  Implementation of BoxRegion class (Adapted from RectangularRegion.cc)
- * 
- * 
+ *
+ *
  */
 
 #include "BoxRegion.hh"
@@ -33,14 +33,14 @@ BoxRegion::BoxRegion(const std::string name, const unsigned int id,
     Errors::Message mesg(tempstr.str());
     Exceptions::Jali_throw(mesg);
   }
-  
+
   // Check if this is a reduced dimensionality box (e.g. even though
   // it is in 3D space it is a 2D box)
 
   int dim = p0.dim();
   for (int i = 0; i < p0.dim(); i++)
     if (p0[i] == p1[i]) dim--;
-  
+
   if (dim < p0.dim()) Region::set_dimension(dim);
 }
 
@@ -50,7 +50,7 @@ BoxRegion::BoxRegion(const char *name, const unsigned int id,
   : Region(name,id,p0.dim(),lifecycle), p0_(p0), p1_(p1)
 {
 
-  if (p0_.dim() != p1_.dim()) {    
+  if (p0_.dim() != p1_.dim()) {
     std::stringstream tempstr;
     tempstr << "\nMismatch in dimensions of corner points of BoxRegion \"" << Region::name() << "\"\nPerhaps the region is improperly defined?\n";
     Errors::Message mesg(tempstr.str());
@@ -63,7 +63,7 @@ BoxRegion::BoxRegion(const char *name, const unsigned int id,
   int dim = p0.dim();
   for (int i = 0; i < p0.dim(); i++)
     if (p0[i] == p1[i]) dim--;
-  
+
   if (dim < p0.dim()) Region::set_dimension(dim);
 }
 
@@ -75,7 +75,7 @@ BoxRegion::BoxRegion(const BoxRegion& old)
 
 BoxRegion::~BoxRegion(void)
 {
-  
+
 }
 
 // -------------------------------------------------------------
@@ -117,7 +117,7 @@ BoxRegion::is_degenerate(int *ndeg) const
 {
   *ndeg = 0;
   for (int i = 0; i < p0_.dim(); ++i) {
-    if (p0_[i] == p1_[i]) (*ndeg)++;    
+    if (p0_[i] == p1_[i]) (*ndeg)++;
   }
   if (*ndeg) return true;
 

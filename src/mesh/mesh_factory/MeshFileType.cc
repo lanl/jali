@@ -6,10 +6,10 @@
  * @file   MeshFileType.cc
  * @author William A. Perkins
  * @date Thu Jul 28 14:16:00 2011
- * 
- * @brief  
- * 
- * 
+ *
+ * @brief
+ *
+ *
  */
 // -------------------------------------------------------------
 // Created March 11, 2011 by William A. Perkins
@@ -64,18 +64,18 @@ namespace Jali {
   // -------------------------------------------------------------
   // file_format
   // -------------------------------------------------------------
-  /** 
+  /**
    * Collective
    *
-   * This routine identifies the format of the mesh file specified by @c name.  
+   * This routine identifies the format of the mesh file specified by @c name.
    *
    * Currently, this is very stupid.  Format is basically only
-   * determined by file name extension, as follows: 
+   * determined by file name extension, as follows:
    *
    *   - @c .exo is ::ExodusII
    *   - @c .par.N.i is ::Nemesis, where N is # cpu and i is this process id
    *   - @c .h5m is ::MOABHDF5
-   * 
+   *
    * This routine also makes sure the specified file is there and is readable.
    *
    * In parallel, all processes should perform this check, even if
@@ -83,21 +83,20 @@ namespace Jali {
    *
    * If the file exists and can be opened, this routine returns a
    * Format. If anything goes wrong, a FileMessage is thrown.
-   * 
+   *
    * @param name name of file to check
-   * 
+   *
    * @return format type identifier (::UnknownFormat if something goes wrong)
    */
   Format
-  file_format(const MPI_Comm& comm, const char *name) 
-  {
+  file_format(const MPI_Comm& comm, const char *name) {
     int np(1);
     int me(0);
     Format result(UnknownFormat);
 
-    MPI_Comm_size(comm,&np);
-    MPI_Comm_rank(comm,&me);
-    
+    MPI_Comm_size(comm, &np);
+    MPI_Comm_rank(comm, &me);
+
     // take a guess at the format using the file name
 
     std::string fname(name);
@@ -107,10 +106,10 @@ namespace Jali {
       result = MOABHDF5;
     } else if (boost::regex_match(fname, NemesisExt)) {
       result = Nemesis;
-      int ndigits = (int)floor(log10(np)) + 1;
-      std::string fmt = 
+      int ndigits = (int) floor(log10(np)) + 1;
+      std::string fmt =
         boost::str(boost::format("%%s.%%d.%%0%dd") % ndigits);
-      fname = boost::str(boost::format(fmt) % 
+      fname = boost::str(boost::format(fmt) %
                          name % np % me);
     } else {
       result = UnknownFormat;
@@ -124,15 +123,15 @@ namespace Jali {
       e.add_data(": path not found");
       Exceptions::Jali_throw(e);
     }
-    
+
     // check the file's magic number
-    
+
     std::ifstream s(fname.c_str(), std::ios::binary);
     if (s.fail()) {
       e.add_data(": cannot open");
       Exceptions::Jali_throw(e);
     }
-    
+
     char buffer[magiclen];
     s.read(buffer, magiclen);
     s.close();
@@ -143,13 +142,13 @@ namespace Jali {
     case (ExodusII):
     case (Nemesis):
       fmagic.assign(buffer, NetCDFmagic1.size());
-      if (fmagic == NetCDFmagic1) { 
+      if (fmagic == NetCDFmagic1) {
         ok = true;
-      } 
+      }
       fmagic.assign(buffer, NetCDFmagic2.size());
-      if (fmagic == NetCDFmagic2) { 
+      if (fmagic == NetCDFmagic2) {
         ok = true;
-      } 
+      }
       if (!ok) {
         e.add_data(": bad magic number, expected NetCDF");
         fmagic.assign(buffer, HDF5magic.size());
@@ -158,7 +157,7 @@ namespace Jali {
         } else {
           e.add_data(", expected HDF5");
         }
-      } 
+      }
       break;
     case (MOABHDF5):
       fmagic.assign(buffer, HDF5magic.size());
@@ -176,4 +175,4 @@ namespace Jali {
     return result;
   }
 
-} // close namespace Jali
+}  // close namespace Jali

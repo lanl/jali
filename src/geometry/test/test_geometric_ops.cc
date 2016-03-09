@@ -47,7 +47,7 @@ TEST(Geometric_Ops)
 
   for (int i = 0; i < 8; i++) {
     JaliGeometry::Point xyz3(3);
-    
+
     xyz3.set(hex_ccoords1[i][0],hex_ccoords1[i][1],hex_ccoords1[i][2]);
 
     ccoords3.push_back(xyz3);
@@ -59,7 +59,7 @@ TEST(Geometric_Ops)
 
     for (int j = 0; j < nfnodes[i]; j++) {
       JaliGeometry::Point xyz3(3);
-      
+
       int k = hex_fnodes[i][j];
       xyz3.set(hex_ccoords1[k][0],hex_ccoords1[k][1],hex_ccoords1[k][2]);
 
@@ -97,5 +97,5 @@ TEST(Geometric_Ops)
   CHECK_EQUAL(exp_centroid.y(),centroid.y());
   CHECK_EQUAL(exp_centroid.z(),centroid.z());
 
-}  
+}
 

@@ -1,4 +1,7 @@
-/* -*-  mode: c++; c-default-style: "google"; indent-tabs-mode: nil -*- */
+//
+// Copyright Los Alamos National Security, LLC 2009-2015
+// All rights reserved. See Copyright notice in main directory
+//
 #ifndef _MESH_SIMPLE_H_
 #define _MESH_SIMPLE_H_
 
@@ -19,9 +22,9 @@ class GenerationSpec;
 
 class Mesh_simple : public virtual Mesh
 {
-      
+
 public:
-      
+
   // the request_faces and request_edges arguments have to be at the
   // end and not in the middle because if we omit them and specify a
   // pointer argument like gm or verbosity_obj, then there is implicit
@@ -29,27 +32,29 @@ public:
   // of the call and making the pointer argument seem NULL. In C++11,
   // we could "delete" the illegal version of the call effectively
   // blocking the implicit conversion.
-  
+
   Mesh_simple (double x0, double y0, double z0,
 	       double x1, double y1, double z1,
 	       int nx, int ny, int nz, const MPI_Comm& communicator,
-	       const JaliGeometry::GeometricModelPtr gm = 
+	       const JaliGeometry::GeometricModelPtr gm =
                (JaliGeometry::GeometricModelPtr) NULL,
 	       const bool request_faces = true,
 	       const bool request_edges = false,
                const bool request_wedges = false,
-               const bool request_corners = false);
-  
+               const bool request_corners = false,
+               const int num_tiles = 0);
+
   Mesh_simple (double x0, double y0,
 	       double x1, double y1,
 	       int nx, int ny, const MPI_Comm& communicator,
-	       const JaliGeometry::GeometricModelPtr &gm = 
+	       const JaliGeometry::GeometricModelPtr &gm =
                (JaliGeometry::GeometricModelPtr) NULL,
 	       const bool request_faces = true,
 	       const bool request_edges = false,
                const bool request_wedges = false,
-               const bool request_corners = false);
-  
+               const bool request_corners = false,
+               const int num_tiles = 0);
+
   // Construct a mesh by extracting a subset of entities from another
   // mesh. In some cases like extracting a surface mesh from a volume
   // mesh, constructor can be asked to "flatten" the mesh to a lower
@@ -64,7 +69,8 @@ public:
 	      const bool request_faces = true,
 	      const bool request_edges = false,
               const bool request_wedges = false,
-              const bool request_corners = false);
+              const bool request_corners = false,
+              const int num_tiles = 0);
 
   Mesh_simple(const Mesh& inmesh,
               const std::vector<std::string>& setnames,
@@ -74,85 +80,87 @@ public:
 	      const bool request_faces = true,
 	      const bool request_edges = false,
               const bool request_wedges = false,
-              const bool request_corners = false);
+              const bool request_corners = false,
+              const int num_tiles = 0);
 
-  Mesh_simple(const Mesh& inmesh, 
-              const std::vector<int>& entity_id_list, 
+  Mesh_simple(const Mesh& inmesh,
+              const std::vector<int>& entity_id_list,
               const Entity_kind entity_kind,
               const bool flatten = false,
               const bool extrude = false,
               const bool request_faces = true,
               const bool request_edges = false,
               const bool request_wedges = false,
-              const bool request_corners = false);
-  
+              const bool request_corners = false,
+              const int num_tiles = 0);
+
   virtual ~Mesh_simple ();
-  
+
   void update ();
 
 
   // Get parallel type of entity
-    
-  Parallel_type entity_get_ptype(const Entity_kind kind, 
+
+  Parallel_type entity_get_ptype(const Entity_kind kind,
 				 const Entity_ID entid) const;
 
 
   // Get cell type
-    
+
   Cell_type cell_get_type(const Entity_ID cellid) const;
-        
-   
+
+
   //
   // General mesh information
   // -------------------------
   //
-    
+
   // Number of entities of any kind (cell, face, node) and in a
   // particular category (OWNED, GHOST, USED)
-    
-  unsigned int num_entities (const Entity_kind kind,
-			     const Parallel_type ptype) const;
-    
-    
+
+  //  unsigned int num_entities (const Entity_kind kind,
+  //			     const Parallel_type ptype) const;
+
+
   // Global ID of any entity
-    
+
   Entity_ID GID(const Entity_ID lid, const Entity_kind kind) const;
-    
-    
-    
+
+
+
   //
-  // Mesh Entity Adjacencies 
+  // Mesh Entity Adjacencies
   //-------------------------
 
 
   // Downward Adjacencies
   //---------------------
-    
-    
-  // Get nodes of cell 
-  // On a distributed mesh, all nodes (OWNED or GHOST) of the cell 
+
+
+  // Get nodes of cell
+  // On a distributed mesh, all nodes (OWNED or GHOST) of the cell
   // are returned
   // Nodes are returned in a standard order (Exodus II convention)
-  // STANDARD CONVENTION WORKS ONLY FOR STANDARD CELL TYPES in 3D
+  // STANDARD CONVENTION WORKS ONLY FOR STANDARD Entity_kind::CELL TYPES in 3D
   // For a general polyhedron this will return the nodes in
   // arbitrary order
-  // In 2D, the nodes of the polygon will be returned in ccw order 
+  // In 2D, the nodes of the polygon will be returned in ccw order
   // consistent with the face normal
-    
-  void cell_get_nodes (const Entity_ID cellid, 
+
+  void cell_get_nodes (const Entity_ID cellid,
 		       std::vector<Entity_ID> *nodeids) const;
-    
-    
-  // Get nodes of face 
-  // On a distributed mesh, all nodes (OWNED or GHOST) of the face 
+
+
+  // Get nodes of face
+  // On a distributed mesh, all nodes (OWNED or GHOST) of the face
   // are returned
   // In 3D, the nodes of the face are returned in ccw order consistent
   // with the face normal
   // In 2D, nfnodes is 2
-    
-  void face_get_nodes (const Entity_ID faceid, 
+
+  void face_get_nodes (const Entity_ID faceid,
 		       std::vector<Entity_ID> *nodeids) const;
-    
+
 
   // Get nodes of edge
 
@@ -164,27 +172,27 @@ public:
 
   // Upward adjacencies
   //-------------------
-    
+
   // Cells of type 'ptype' connected to a node
-    
-  void node_get_cells (const Entity_ID nodeid, 
+
+  void node_get_cells (const Entity_ID nodeid,
 		       const Parallel_type ptype,
 		       std::vector<Entity_ID> *cellids) const;
-    
+
   // Faces of type 'ptype' connected to a node
-    
-  void node_get_faces (const Entity_ID nodeid, 
+
+  void node_get_faces (const Entity_ID nodeid,
 		       const Parallel_type ptype,
 		       std::vector<Entity_ID> *faceids) const;
-    
+
   // Get faces of ptype of a particular cell that are connected to the
   // given node
-    
-  void node_get_cell_faces (const Entity_ID nodeid, 
+
+  void node_get_cell_faces (const Entity_ID nodeid,
 			    const Entity_ID cellid,
 			    const Parallel_type ptype,
-			    std::vector<Entity_ID> *faceids) const;    
-    
+			    std::vector<Entity_ID> *faceids) const;
+
 
   // Same level adjacencies
   //-----------------------
@@ -209,66 +217,66 @@ public:
 			       const Parallel_type ptype,
 			       std::vector<Entity_ID> *nadj_cellids) const;
 
-    
+
   //
   // Mesh entity geometry
   //--------------
   //
-    
+
   // Node coordinates - 3 in 3D and 2 in 2D
-    
-  void node_get_coordinates (const Entity_ID nodeid, 
+
+  void node_get_coordinates (const Entity_ID nodeid,
 			     JaliGeometry::Point *ncoord) const;
-    
-    
-  // Face coordinates - conventions same as face_to_nodes call 
+
+
+  // Face coordinates - conventions same as face_to_nodes call
   // Number of nodes is the vector size divided by number of spatial dimensions
-    
-  void face_get_coordinates (const Entity_ID faceid, 
-			     std::vector<JaliGeometry::Point> *fcoords) const; 
-    
+
+  void face_get_coordinates (const Entity_ID faceid,
+			     std::vector<JaliGeometry::Point> *fcoords) const;
+
   // Coordinates of cells in standard order (Exodus II convention)
-  // STANDARD CONVENTION WORKS ONLY FOR STANDARD CELL TYPES IN 3D
+  // STANDARD CONVENTION WORKS ONLY FOR STANDARD Entity_kind::CELL TYPES IN 3D
   // For a general polyhedron this will return the node coordinates in
   // arbitrary order
   // Number of nodes is vector size divided by number of spatial dimensions
-    
-  void cell_get_coordinates (const Entity_ID cellid, 
+
+  void cell_get_coordinates (const Entity_ID cellid,
 			     std::vector<JaliGeometry::Point> *ccoords) const;
-    
+
   // Modify the coordinates of a node
 
   void node_set_coordinates (const Entity_ID nodeid, const JaliGeometry::Point coords);
 
   void node_set_coordinates (const Entity_ID nodeid, const double *coords);
 
-    
+
   //
   // Boundary Conditions or Sets
   //----------------------------
   //
-    
 
-  unsigned int get_set_size (const Set_Name setname, 
+
+  unsigned int get_set_size (const Set_Name setname,
 			     const Entity_kind kind,
 			     const Parallel_type ptype) const;
 
 
-  unsigned int get_set_size (const char *setname, 
+  unsigned int get_set_size (const char *setname,
 			     const Entity_kind kind,
 			     const Parallel_type ptype) const;
 
 
-  void get_set_entities (const Set_Name setname, 
-			 const Entity_kind kind, 
-			 const Parallel_type ptype, 
-			 Entity_ID_List *entids) const; 
+  void get_set_entities (const Set_Name setname,
+			 const Entity_kind kind,
+			 const Parallel_type ptype,
+			 Entity_ID_List *entids) const;
 
 
-  void get_set_entities (const char *setname, 
-			 const Entity_kind kind, 
-			 const Parallel_type ptype, 
-			 Entity_ID_List *entids) const; 
+  void get_set_entities (const char *setname,
+			 const Entity_kind kind,
+			 const Parallel_type ptype,
+			 Entity_ID_List *entids) const;
 
 
   // this should be used with extreme caution:
@@ -315,7 +323,7 @@ private:
   std::vector<Entity_ID> node_to_face_;
   std::vector<Entity_ID> node_to_cell_;
 
-  // The following are mutable because they have to be modified 
+  // The following are mutable because they have to be modified
   // after the class construction even though the class is instantiated
   // as a constant class
 
@@ -329,7 +337,7 @@ private:
 
   // Get faces of a cell.
 
-  // Get faces of a cell and directions in which the cell uses the face 
+  // Get faces of a cell and directions in which the cell uses the face
 
   // The Jali coding guidelines regarding function arguments is purposely
   // violated here to allow for a default input argument
@@ -351,8 +359,8 @@ private:
                                 const bool ordered=false) const;
 
   // Cells connected to a face
-    
-  void face_get_cells_internal (const Entity_ID faceid, 
+
+  void face_get_cells_internal (const Entity_ID faceid,
                                 const Parallel_type ptype,
                                 std::vector<Entity_ID> *cellids) const;
 
@@ -360,13 +368,13 @@ private:
   // Edges of a cell
 
   void cell_get_edges_internal (const Entity_ID cellid,
-                                Entity_ID_List *edgeids) const 
-  { 
+                                Entity_ID_List *edgeids) const
+  {
     Errors::Message mesg("Edges not implemented in this framework. Use MSTK");
     Exceptions::Jali_throw(mesg);
   }
 
-  // edges and directions of a 2D cell 
+  // edges and directions of a 2D cell
 
   void cell_2D_get_edges_and_dirs_internal (const Entity_ID cellid,
                                             Entity_ID_List *edgeids,
@@ -389,7 +397,7 @@ private:
     Exceptions::Jali_throw(mesg);
   };
 
-    
+
 };
 
   // -------------------------

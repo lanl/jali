@@ -2,11 +2,11 @@
 /**
  * @file   PointRegion.hh
  * @author Rao Garimella
- * @date 
- * 
+ * @date
+ *
  * @brief  Declaration of PointRegion class
- * 
- * 
+ *
+ *
  */
 
 #ifndef _PointRegion_hh_
@@ -47,7 +47,7 @@ public:
   bool inside(const Point& p) const;
 
 protected:
-  
+
   const Point p_;              /* point */
 
 };

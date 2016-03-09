@@ -3,10 +3,10 @@
  * @file   Domain.cc
  * @author Rao V. Garimella
  * @date Mon Aug  1 10:05:25 2011
- * 
- * @brief  
- * 
- * 
+ *
+ * @brief
+ *
+ *
  */
 
 #include "Domain.hh"
@@ -67,8 +67,8 @@ Domain::~Domain(void)
 
 // Constructor with lists of geometric models and free regions
 
-Domain::Domain(const unsigned int dim, 
-               const std::vector<GeometricModelPtr>& in_geometric_models, 
+Domain::Domain(const unsigned int dim,
+               const std::vector<GeometricModelPtr>& in_geometric_models,
                const std::vector<RegionPtr>& in_Regions) :
   spatial_dimension_(dim), GeometricModels(in_geometric_models),
   FreeRegions(in_Regions)

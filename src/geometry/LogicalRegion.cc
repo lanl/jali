@@ -1,12 +1,12 @@
 /**
  * @file   LogicalRegion.cc
  * @author Rao Garimella
- * @date 
- * 
+ * @date
+ *
  * @brief  Implementation of Labeled Set Region class which derives its
  *         definition from named set of mesh entities in a mesh file
- * 
- * 
+ *
+ *
  */
 
 #include "LogicalRegion.hh"
@@ -22,7 +22,7 @@ namespace JaliGeometry {
 // -------------------------------------------------------------
 // LogicalRegion:: constructors / destructor
 // -------------------------------------------------------------
-LogicalRegion::LogicalRegion(const std::string name, 
+LogicalRegion::LogicalRegion(const std::string name,
                              const unsigned int id,
                              const std::string operation_str,
                              const std::vector<std::string> region_names,
@@ -45,10 +45,10 @@ LogicalRegion::LogicalRegion(const std::string name,
     Errors::Message mesg("Unknown logical operation type requested on regions");
     Exceptions::Jali_throw(mesg);
   }
-    
+
 }
 
-LogicalRegion::LogicalRegion(const char *name, 
+LogicalRegion::LogicalRegion(const char *name,
                              const unsigned int id,
                              const std::string operation_str,
                              const std::vector<std::string> region_names,

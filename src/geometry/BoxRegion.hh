@@ -3,10 +3,10 @@
  * @file   BoxRegion.hh
  * @author Rao Garimella, William A. Perkins
  * @date Wed Sep 28 08:54:19 2011
- * 
+ *
  * @brief  Declaration of BoxRegion class (adapted from RectangularRegion)
- * 
- * 
+ *
+ *
  */
 
 #ifndef _BoxRegion_hh_
@@ -28,9 +28,9 @@ public:
 
   /// Default constructor uses two corner points (order not important).
 
-  BoxRegion(const std::string name, const unsigned int id, const Point& p0, 
+  BoxRegion(const std::string name, const unsigned int id, const Point& p0,
             const Point& p1, const LifeCycleType lifecycle=PERMANENT);
-  BoxRegion(const char *name, const unsigned int id, const Point& p0, 
+  BoxRegion(const char *name, const unsigned int id, const Point& p0,
             const Point& p1, const LifeCycleType lifecycle=PERMANENT);
 
   /// Protected copy constructor to avoid unwanted copies.
@@ -78,7 +78,7 @@ public:
   bool is_degenerate(int *ndeg) const;
 
 protected:
-  
+
   const Point p0_;              /**< one corner of the region  */
   const Point p1_;              /**< the other corner of the region */
 

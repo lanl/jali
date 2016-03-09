@@ -1,22 +1,12 @@
-// Emacs Mode Line: -*- Mode:c++;-*-
-// -------------------------------------------------------------
-// file: MeshDefs.hh
-// -------------------------------------------------------------
-/**
+//
+// Copyright Los Alamos National Security, LLC 2009-2015
+// All rights reserved. See Copyright notice in main directory
+//
+/*!
  * @file   MeshDefs.hh
- * @author William A. Perkins
- * @date Mon May  2 13:03:23 2011
- * 
  * @brief  Various definitions needed by Mesh
- * 
- * 
+ * @author Originally by Bill Perkins (PNNL), Enhanced by Rao Garimella (LANL)
  */
-// -------------------------------------------------------------
-// Created May  2, 2011 by William A. Perkins
-// Last Change: Mon May  2 13:03:23 2011 by William A. Perkins <d3g096@PE10900.pnl.gov>
-// -------------------------------------------------------------
-
-// SCCS ID: $Id$ Battelle PNL
 
 #ifndef _MeshDefs_hh_
 #define _MeshDefs_hh_
@@ -27,8 +17,8 @@
 namespace Jali {
 
 // Necessary typedefs and enumerations
-      
-typedef int Entity_ID; 
+
+typedef int Entity_ID;
 typedef int Set_ID;
 typedef std::string Set_Name;
 typedef std::vector<Entity_ID> Entity_ID_List;
@@ -36,26 +26,26 @@ typedef std::vector<Set_ID> Set_ID_List;
 
 // Mesh Type
 
-enum Mesh_type
-{
+enum class Mesh_type {
   RECTANGULAR,   // Equivalent of structured but can't use i,j,k notation
   GENERAL        // general unstructured
 };
 
 // Mesh Geometry Type
 
-enum Geom_type
-{
+enum class Geom_type {
   CARTESIAN,
   CYLINDRICAL,
   SPHERICAL
 };
 
-// Cells (aka zones/elements) are the highest dimension entities in a mesh 
-// Nodes (aka vertices) are lowest dimension entities in a mesh 
+
+
+// Cells (aka zones/elements) are the highest dimension entities in a mesh
+// Nodes (aka vertices) are lowest dimension entities in a mesh
 // Faces in a 3D mesh are 2D entities, in a 2D mesh are 1D entities
-// BOUNDARY_FACE is a special type of entity that is need so that process 
-// kernels can define composite vectors (see src/data_structures) on 
+// BOUNDARY_FACE is a special type of entity that is need so that process
+// kernels can define composite vectors (see src/data_structures) on
 // exterior boundary faces of the mesh only
 //
 // Wedges are special subcell entities that are a simplicial
@@ -68,7 +58,7 @@ enum Geom_type
 // midpoint of the cell. There are two wedges associated with an edge
 // of cell face in 3D.
 //
-// Corners are also subcell entities that are associated uniquely with 
+// Corners are also subcell entities that are associated uniquely with
 // a node of a cell. Each corner is the union of all the wedges incident
 // upon that node in the cell
 //
@@ -78,13 +68,12 @@ enum Geom_type
 // an edge that is shared by two wedges in adjacent cells
 //
 
-    
-enum Entity_kind 
-{
+
+enum class Entity_kind {
   ALL_KIND = -3,
   ANY_KIND = -2,
   UNKNOWN_KIND = -1,
-  NODE = 0,
+  NODE,
   EDGE,
   FACE,
   CELL,
@@ -94,36 +83,82 @@ enum Entity_kind
   BOUNDARY_FACE
 };
 
-const int NUM_ENTITY_KINDS = 8;
+const int NUM_ENTITY_KINDS = 8;  // Don't want to count the 3 catch-all types
 
+// Return a string describing the entity kind that can be printed out
+inline
+std::string Entity_kind_string(Entity_kind kind) {
+  static const std::string entity_kind_string[8] =
+      {"Entity_kind::NODE", "Entity_kind::EDGE", "Entity_kind::FACE",
+       "Entity_kind::CELL", "Entity_kind::WEDGE", "Entity_kind::CORNER",
+       "Entity_kind::FACET", "Entity_kind::BOUNDARY_FACE"};
 
-// Check if Entity_kind is valid
-inline 
-bool entity_valid_kind (const Entity_kind kind) {
-  return (kind >= NODE && kind <= CELL);
+  int ikind = static_cast<int>(kind);
+  return (ikind >= 0 && ikind < NUM_ENTITY_KINDS) ?
+      entity_kind_string[ikind] : "";
 }
 
-// Parallel status of entity 
-    
-enum Parallel_type 
-{
-  PTYPE_UNKNOWN = 0, // Initializer
+// Output operator for Entity_kind
+inline
+std::ostream& operator<<(std::ostream& os, const Entity_kind& kind) {
+  os << " " << Entity_kind_string(kind) << " ";
+  return os;
+}
+
+// Check if Entity_kind is valid
+
+inline
+bool entity_valid_kind(const Entity_kind kind) {
+  return (kind >= Entity_kind::NODE && kind <= Entity_kind::CELL);
+}
+
+
+
+
+// Parallel status of entity
+
+enum class Parallel_type {
+  PTYPE_UNKNOWN = 0,  // Initializer
   OWNED = 1,         // Owned by this processor
   GHOST = 2,         // Owned by another processor
-  ALL  = 3           // OWNED + GHOST
+  ALL  = 3           // Parallel_type::OWNED + Parall_type::Parallel_type::GHOST
 };
+
+const int NUM_PARALLEL_TYPES = 4;
+
+// Return a string describing the entity kind that can be printed out
+inline
+std::string Parallel_type_string(Parallel_type const ptype) {
+  static const std::string parallel_type_str[4] =
+      {"Parallel_type::PTYPE_UNKNOWN", "Parallel_type::OWNED",
+       "Parallel_type::GHOST", "Parallel_type::ALL"};
+
+  int iptype = static_cast<int>(ptype);
+  return (iptype >= 0 && iptype < NUM_PARALLEL_TYPES) ?
+      parallel_type_str[iptype] : "";
+}
+
+
+// Output operator for Parallel_type
+inline
+std::ostream& operator<<(std::ostream& os, const Parallel_type& ptype) {
+  os << " " << Parallel_type_string(ptype) << " ";
+  return os;
+}
 
 // Check if Parallel_type is valid
 
-inline 
-bool entity_valid_ptype (const Parallel_type ptype) {
-  return (ptype >= OWNED && ptype <= ALL);
+inline
+bool entity_valid_ptype(const Parallel_type ptype) {
+  return (ptype >= Parallel_type::OWNED && ptype <= Parallel_type::ALL);
 }
-    
+
+
+
+
 // Standard element types and catchall (POLYGON/POLYHED)
 
-enum Cell_type 
-{
+enum class Cell_type {
   CELLTYPE_UNKNOWN = 0,
   TRI = 1,
   QUAD,
@@ -132,16 +167,63 @@ enum Cell_type
   PRISM,
   PYRAMID,
   HEX,
-  POLYHED                // Polyhedron 
+  POLYHED                // Polyhedron
 };
-    
-// Check if Cell_type is valid
-inline 
-bool cell_valid_type (const Cell_type type) {
-  return (type >= TRI && type <= POLYHED); 
+
+const int NUM_CELL_TYPES = 9;
+
+// Return an string description for each cell type
+inline
+std::string Cell_type_string(const Cell_type ctype) {
+  static std::string cell_type_str[9] =
+      {"Cell_type::CELLTYPE_UNKNOWN", "Cell_type::TRI", "Cell_type::QUAD",
+       "Cell_type::POLYGON", "Cell_type::TET", "Cell_type::PRISM",
+       "Cell_type::PYRAMID", "Cell_type::HEX", "Cell_type::POLYHED"};
+
+  int ictype = static_cast<int>(ctype);
+  return (ictype >= 0 && ictype < NUM_CELL_TYPES) ?
+      cell_type_str[ictype] : "";
 }
 
-} // close namespace Jali
+// Output operator for Cell_type
+inline
+std::ostream& operator<<(std::ostream& os, const Cell_type& ctype) {
+  os << " " << Cell_type_string(ctype) << " ";
+  return os;
+}
+
+
+// Check if Cell_type is valid
+inline
+bool cell_valid_type(const Cell_type type) {
+  return (type >= Cell_type::TRI && type <= Cell_type::POLYHED);
+}
+
+
+// std::string Mesh::cell_type_to_name(const Cell_type type) {
+//   switch (type) {
+//     case TRI:
+//       return "triangle";
+//     case QUAD:
+//       return "quad";
+//     case POLYGON:
+//       return "polygon";
+//     case TET:
+//       return "tetrahedron";
+//     case PYRAMID:
+//       return "pyramid";
+//     case PRISM:
+//       return "prism";
+//     case HEX:
+//       return "hexahedron";
+//     case POLYHED:
+//       return "polyhedron";
+//     default:
+//       return "unknown";
+//   }
+// }
+
+}  // close namespace Jali
 
 
 

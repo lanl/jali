@@ -2,11 +2,11 @@
 /**
  * @file   PlaneRegion.hh
  * @author Rao Garimella
- * @date 
- * 
+ * @date
+ *
  * @brief  Declaration of PlaneRegion class
- * 
- * 
+ *
+ *
  */
 
 #ifndef _PlaneRegion_hh_
@@ -26,9 +26,9 @@ public:
 
   /// Default constructor uses point and normal
 
-  PlaneRegion(const std::string name, const unsigned int id, const Point& p, 
+  PlaneRegion(const std::string name, const unsigned int id, const Point& p,
               const Point& normal, const LifeCycleType lifecycle=PERMANENT);
-  PlaneRegion(const char *name, const unsigned int id, const Point& p, 
+  PlaneRegion(const char *name, const unsigned int id, const Point& p,
               const Point& normal, const LifeCycleType lifecycle=PERMANENT);
 
   /// Protected copy constructor to avoid unwanted copies.
@@ -52,7 +52,7 @@ public:
   bool inside(const Point& p) const;
 
 protected:
-  
+
   const Point p_;              /* point on the plane */
   const Point n_;              /* normal to the plane */
 

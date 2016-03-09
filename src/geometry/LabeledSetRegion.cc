@@ -1,12 +1,12 @@
 /**
  * @file   LabeledSetRegion.cc
  * @author Rao Garimella
- * @date 
- * 
+ * @date
+ *
  * @brief  Implementation of Labeled Set Region class which derives its
  *         definition from named set of mesh entities in a mesh file
- * 
- * 
+ *
+ *
  */
 
 #include "LabeledSetRegion.hh"
@@ -22,7 +22,7 @@ namespace JaliGeometry {
 // -------------------------------------------------------------
 // LabeledSetRegion:: constructors / destructor
 // -------------------------------------------------------------
-LabeledSetRegion::LabeledSetRegion(const std::string name, 
+LabeledSetRegion::LabeledSetRegion(const std::string name,
 				   const unsigned int id,
 				   const std::string entity_str,
                                    const std::string file,
@@ -37,7 +37,7 @@ LabeledSetRegion::LabeledSetRegion(const std::string name,
   // entities in the mesh will determine the dimension
 }
 
-LabeledSetRegion::LabeledSetRegion(const char *name, 
+LabeledSetRegion::LabeledSetRegion(const char *name,
                                    const unsigned int id,
 				   const std::string entity_str,
                                    const std::string file,
