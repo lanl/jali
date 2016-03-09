@@ -70,7 +70,8 @@ class StateVector : public BaseStateVector {
 
   //! Default constructor
 
-  StateVector() : BaseStateVector("NoName", UNKNOWN_KIND, NULL) {}
+  StateVector() : BaseStateVector("NoName", UNKNOWN_KIND,
+                                  std::shared_ptr<Mesh>()) {}
 
   //! Meaningful constructor with data
 
