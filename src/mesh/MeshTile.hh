@@ -85,6 +85,14 @@ class MeshTile {
   //
 
   /*! 
+    @brief Number of entities of a particular kind and parallel type
+    @param kind Entity_kind of the entities (CELL, NODE, WEDGE etc)
+    @param parallel_type Parallel_type of entities (OWNED, GHOST, ALL)
+  */
+
+  unsigned int num_entities(Entity_kind kind, Parallel_type parallel_type) const;
+
+  /*! 
     @brief Number of nodes of parallel type
     @tparam ptype Parallel type (Parallel_type::OWNED, Parallel_type::GHOST, Parallel_type::ALL)
   */
@@ -318,6 +326,61 @@ unsigned int MeshTile::num_cells<Parallel_type::ALL>() const {
   return (num_cells<Parallel_type::OWNED>() +
           num_cells<Parallel_type::GHOST>());
 }
+
+
+
+inline
+unsigned int MeshTile::num_entities(const Entity_kind kind,
+                                   const Parallel_type ptype) const {
+  switch (kind) {
+    case Entity_kind::NODE:
+      switch (ptype) {
+        case Parallel_type::OWNED: return num_nodes<Parallel_type::OWNED>();
+        case Parallel_type::GHOST: return num_nodes<Parallel_type::GHOST>();
+        case Parallel_type::ALL: return num_nodes<Parallel_type::ALL>();
+        default: return 0;
+      }
+    case Entity_kind::EDGE:
+      switch (ptype) {
+        case Parallel_type::OWNED: return num_edges<Parallel_type::OWNED>();
+        case Parallel_type::GHOST: return num_edges<Parallel_type::GHOST>();
+        case Parallel_type::ALL: return num_edges<Parallel_type::ALL>();
+        default: return 0;
+      }
+    case Entity_kind::FACE:
+      switch (ptype) {
+        case Parallel_type::OWNED: return num_faces<Parallel_type::OWNED>();
+        case Parallel_type::GHOST: return num_faces<Parallel_type::GHOST>();
+        case Parallel_type::ALL: return num_faces<Parallel_type::ALL>();
+        default: return 0;
+      }
+    case Entity_kind::WEDGE:
+      switch (ptype) {
+        case Parallel_type::OWNED: return num_wedges<Parallel_type::OWNED>();
+        case Parallel_type::GHOST: return num_wedges<Parallel_type::GHOST>();
+        case Parallel_type::ALL: return num_wedges<Parallel_type::ALL>();
+        default: return 0;
+      }
+    case Entity_kind::CORNER:
+      switch (ptype) {
+        case Parallel_type::OWNED: return num_corners<Parallel_type::OWNED>();
+        case Parallel_type::GHOST: return num_corners<Parallel_type::GHOST>();
+        case Parallel_type::ALL: return num_corners<Parallel_type::ALL>();
+        default: return 0;
+      }
+    case Entity_kind::CELL:
+      switch (ptype) {
+        case Parallel_type::OWNED: return num_cells<Parallel_type::OWNED>();
+        case Parallel_type::GHOST: return num_cells<Parallel_type::GHOST>();
+        case Parallel_type::ALL: return num_cells<Parallel_type::ALL>();
+        default: return 0;
+      }
+    default:
+      return 0;
+  }
+}
+
+
 
 
 // entity lists (default implementation prints error message -
