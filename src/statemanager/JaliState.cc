@@ -31,34 +31,36 @@ void State::init_from_mesh() {
       if (vartypes[i] == "INT") {
         int *data = new int[nent];
         mymesh_->get_field(varnames[i], kind, data);
-        Jali::StateVector<int> & sv = add(varnames[i], kind, data);
+        Jali::StateVector<int> & sv = add(varnames[i], mymesh_, kind,
+                                          Parallel_type::ALL, data);
       } else if (vartypes[i] == "DOUBLE") {
         double *data = new double[nent];
         mymesh_->get_field(varnames[i], kind, data);
-        Jali::StateVector<double> & sv = add(varnames[i], kind, data);
+        Jali::StateVector<double> & sv = add(varnames[i], mymesh_, kind,
+                                             Parallel_type::ALL, data);
       } else if (vartypes[i] == "VECTOR") {
         if (spacedim == 2) {
           std::array<double, 2> *data = new std::array<double, 2>[nent];
           mymesh_->get_field(varnames[i], kind, data);
           Jali::StateVector<std::array<double, 2>> & sv =
-              add(varnames[i], kind, data);
+              add(varnames[i], mymesh_, kind, Parallel_type::ALL, data);
         } else if (spacedim == 3) {
           std::array<double, 3> *data = new std::array<double, 3>[nent];
           mymesh_->get_field(varnames[i], kind, data);
           Jali::StateVector<std::array<double, 3>> & sv =
-              add(varnames[i], kind, data);
+              add(varnames[i], mymesh_, kind, Parallel_type::ALL, data);
         }
       } else if (vartypes[i] == "TENSOR") {  // assumes symmetric tensors
         if (spacedim == 2) {  // lower half & diagonal of 2x2 tensor
           std::array<double, 3> *data = new std::array<double, 3>[nent];
           mymesh_->get_field(varnames[i], kind, data);
           Jali::StateVector<std::array<double, 3>> & sv =
-              add(varnames[i], kind, data);
+              add(varnames[i], mymesh_, kind, Parallel_type::ALL, data);
         } else if (spacedim == 3) {  // lower half & diagonal of 3x3 tensor
           std::array<double, 6> *data = new std::array<double, 6>[nent];
           mymesh_->get_field(varnames[i], kind, data);
           Jali::StateVector<std::array<double, 6>> & sv =
-              add(varnames[i], kind, data);
+              add(varnames[i], mymesh_, kind, Parallel_type::ALL, data);
         }
       }  // TENSOR
     }  // for each field on entity kind
@@ -83,18 +85,18 @@ void State::export_to_mesh() {
     bool status = false;
 
     if (vec->get_type() == typeid(double))
-      status = mymesh_->store_field(name, on_what, (double *)vec->get_data());
+      status = mymesh_->store_field(name, on_what, (double *)vec->get_raw_data());
     else if (vec->get_type() == typeid(int))
-      status = mymesh_->store_field(name, on_what, (int *)vec->get_data());
+      status = mymesh_->store_field(name, on_what, (int *)vec->get_raw_data());
     else if (vec->get_type() == typeid(std::array<double, 2>))
       status = mymesh_->store_field(name, on_what,
-                                    (std::array<double, 2> *) vec->get_data());
+                                    (std::array<double, 2> *) vec->get_raw_data());
     else if (vec->get_type() == typeid(std::array<double, 3>))
       status = mymesh_->store_field(name, on_what,
-                                    (std::array<double, 3> *) vec->get_data());
+                                    (std::array<double, 3> *) vec->get_raw_data());
     else if (vec->get_type() == typeid(std::array<double, 6>))
       status = mymesh_->store_field(name, on_what,
-                                    (std::array<double, 6> *) vec->get_data());
+                                    (std::array<double, 6> *) vec->get_raw_data());
     
 
     if (!status)
