@@ -106,7 +106,8 @@ int main(int argc, char *argv[]) {
   // argument for StateVector (in this case it is "double")
 
   StateVector<double> rhovec;
-  bool found = mystate.get(density_name, Entity_kind::CELL, &rhovec);
+  bool found = mystate.get(density_name, mymesh, Entity_kind::CELL,
+                           Parallel_type::OWNED, &rhovec);
   if (!found) {
     std::cerr << "Could not find state vector on cells with name " <<
         density_name << std::endl;
@@ -133,7 +134,9 @@ int main(int argc, char *argv[]) {
 
   // Add the average density data as a new state vector
 
-  StateVector<double>& rhobarvec = mystate.add("rhobar", Entity_kind::CELL,
+  StateVector<double>& rhobarvec = mystate.add("rhobar", mymesh,
+                                               Entity_kind::CELL,
+                                               Parallel_type::ALL,
                                                ave_density);
 
   delete [] ave_density;
@@ -142,8 +145,9 @@ int main(int argc, char *argv[]) {
 
   // Retrieve the vector of velocities
 
-  StateVector<std::array<double, 3>> vels;
-  found = mystate.get(velocity_name, Entity_kind::NODE, &vels);
+  StateVector<std::array<double, 3>, Mesh> vels;
+  found = mystate.get(velocity_name, mymesh, Entity_kind::NODE,
+                      Parallel_type::ALL, &vels);
   if (!found) {
     std::cerr << "Could not find state vector on nodes with name " <<
         velocity_name << std::endl;
@@ -239,7 +243,8 @@ void initialize_data(const std::shared_ptr<Mesh> mesh, State& state) {
   // data. Since density is a std::vector<double> we have to send in
   // the address of the first element.  as &(density[0]).
 
-  state.add(density_name, Entity_kind::CELL, &(density[0]));
+  state.add(density_name, mesh, Entity_kind::CELL, Parallel_type::ALL,
+            &(density[0]));
 
 
   // Create a velocity vector
@@ -256,6 +261,7 @@ void initialize_data(const std::shared_ptr<Mesh> mesh, State& state) {
 
   // Add it to the state manager
 
-  state.add(velocity_name, Entity_kind::NODE, &(vels[0]));
+  state.add(velocity_name, mesh, Entity_kind::NODE, Parallel_type::ALL,
+            &(vels[0]));
 }
 
