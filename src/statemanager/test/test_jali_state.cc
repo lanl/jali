@@ -319,7 +319,8 @@ TEST(Jali_State_Define_MeshTiles) {
                     &(data2[0]));
 
     auto myvec3 = mystate.add("cellarrays", meshtile,
-                              Jali::Entity_kind::CELL, Jali::Parallel_type::ALL,
+                              Jali::Entity_kind::CELL,
+                              Jali::Parallel_type::OWNED,
                               &(data3[0]));
   }
 
@@ -333,7 +334,7 @@ TEST(Jali_State_Define_MeshTiles) {
 
     Jali::StateVector<double, Jali::MeshTile> svec1;
     bool found = mystate.get("cellvars", meshtile,
-                        Jali::Entity_kind::CELL, Jali::Parallel_type::ALL,
+                        Jali::Entity_kind::CELL, Jali::Parallel_type::OWNED,
                         &svec1);
     CHECK(found);
 
@@ -392,7 +393,7 @@ TEST(State_Write_Read_With_Mesh) {
 
   std::vector<double> data1 = {1.0, 3.0, 2.5, 4.5};
   Jali::StateVector<double> & outvec1 =
-      mystate1.add("cellvars", mesh1, Jali::Entity_kind::CELL, 
+      mystate1.add("cellvars", mesh1, Jali::Entity_kind::CELL,
                    Jali::Parallel_type::ALL, &(data1[0]));
 
   std::vector<std::array<double, 2>> data2(9);
@@ -402,7 +403,7 @@ TEST(State_Write_Read_With_Mesh) {
       data2[i][j] = 0.4*i+0.1*j;
 
   Jali::StateVector<std::array<double, 2>> & outvec2 =
-      mystate1.add("nodevars", mesh1, Jali::Entity_kind::NODE, 
+      mystate1.add("nodevars", mesh1, Jali::Entity_kind::NODE,
                    Jali::Parallel_type::ALL, &(data2[0]));
 
   // Export the fields to the mesh
