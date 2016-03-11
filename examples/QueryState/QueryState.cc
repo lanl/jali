@@ -125,7 +125,7 @@ int main(int argc, char *argv[]) {
   // This will do a copy construction and myvec data space will be different
   // from the state vector data space!!
 
-  // NOTE that there is an implicit second template parameter Mesh here that
+  // NOTE that there is an implicit second template parameter "Mesh" here
   // that is figured out from the arguments to the add function. 
 
   StateVector<double> & myvec = mystate.add("myzonevar", mymesh,

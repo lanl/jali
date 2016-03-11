@@ -61,7 +61,7 @@ class State {
   const_iterator cend() const {return state_vectors_.end();}
 
 
-  /// Typedefs for itertors for going through all the state vector name
+  /// Typedefs for iterators for going through all the state vector name
 
   typedef std::vector<std::string>::iterator string_iterator;
 

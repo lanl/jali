@@ -81,7 +81,7 @@ class BaseStateVector {
 //! Provides some limited functionality of a std::vector while adding
 //! some additional meta-data like the mesh associated with this data.
 //!  @param on_what  Data corresponds to what type of entity in the Domain
-//!  @tparam DomainType  Pointer to Mesh, Mesh Tile or Mesh Subset (coming soon)
+//!  @tparam DomainType  Mesh, Mesh Tile or Mesh Subset (coming soon)
 
 template <class T, class DomainType = Mesh>
 class StateVector : public BaseStateVector {
