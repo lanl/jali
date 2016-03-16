@@ -17,13 +17,10 @@
 #include <string>
 #include <algorithm>
 #include <typeinfo>
-#include <typeindex>
 
 #include "Mesh.hh"    // jali mesh header
 
 namespace Jali {
-
-// Helper functions to get the mesh of a domain (Mesh, MeshTile or MeshSubset)
 
 /*!
   @class BaseStateVector jali_state_vector.h
@@ -87,7 +84,7 @@ template <class T, class DomainType = Mesh>
 class StateVector : public BaseStateVector {
  public:
 
-  //! No Default constructor
+  //! Default constructor
   StateVector() : BaseStateVector("UninitializedVector",
                                   Entity_kind::UNKNOWN_KIND,
                                   Parallel_type::PTYPE_UNKNOWN) {}
@@ -96,13 +93,11 @@ class StateVector : public BaseStateVector {
   
   StateVector(std::string const name, std::shared_ptr<DomainType> domain,
               Entity_kind const on_what, Parallel_type const parallel_type,
-              T const * const data) : 
+              T const * const data) :
       BaseStateVector(name, on_what, parallel_type), mydomain_(domain) {
 
     int num = mydomain_->num_entities(on_what_, parallel_type_);
     mydata_ = std::make_shared<std::vector<T>>(data, data+num);
-
-    //    mymesh_ = get_mesh_of_domain(domain);
   }
 
   /*! 
@@ -121,7 +116,6 @@ class StateVector : public BaseStateVector {
     
     mydata_ = std::make_shared<std::vector<T>>((in_vector.mydata_)->begin(),
                                                (in_vector.mydata_)->end());
-    //    mymesh_ = get_mesh_of_domain(in_vector.domain_);
   }
 
   /*!
@@ -149,9 +143,11 @@ class StateVector : public BaseStateVector {
   std::shared_ptr<DomainType> domain() const { return mydomain_; }
 
   /// Underlying mesh regardless of what type of domain StateVector is
-  /// defined on
+  /// defined on. We have to return a reference to the mesh rather
+  /// than a shared pointer because if the DomainType is a MeshTile,
+  /// it only has a mesh reference not a pointer to the mesh
 
-  std::shared_ptr<Mesh> mesh() const { return mymesh_; }
+  Mesh & mesh() const { return get_mesh_of_domain(mydomain_); }
 
   /// Get the raw data
 
@@ -205,21 +201,16 @@ class StateVector : public BaseStateVector {
 
  protected:
   std::shared_ptr<DomainType> mydomain_;
-  std::shared_ptr<Mesh> mymesh_;
   std::shared_ptr<std::vector<T>> mydata_;
 
  private:
-  // template <DomainType>
-  // std::shared_ptr<Mesh> get_mesh_of_domain(std::shared_ptr<DomainType> domain) {
-  //   return domain->mesh();
-  // }
+  Mesh & get_mesh_of_domain(std::shared_ptr<MeshTile> meshtile) const {
+     return meshtile->mesh();
+  }
+  Mesh & get_mesh_of_domain(std::shared_ptr<Mesh> mesh) const {
+    return *mesh;
+  }
 };
-
-// template<>
-// std::shared_ptr<Mesh>
-// StateVector::get_mesh_of_domain<Mesh>(std::shared_ptr<Mesh> mesh) {
-//   return mesh;
-// }
 
 
 //! Send StateVector to output stream
