@@ -152,7 +152,7 @@ class State {
     iterator it = state_vectors_.begin();
     while (it != state_vectors_.end()) {
       std::shared_ptr<BaseStateVector> bv = *it;
-      std::shared_ptr<StateVector<T, DomainType>> sv = 
+      std::shared_ptr<StateVector<T, DomainType>> sv =
           std::dynamic_pointer_cast<StateVector<T, DomainType>>(bv);
       if (sv && (sv->name() == name) &&
           (sv->domain() == domain) &&
@@ -265,7 +265,8 @@ class State {
     
     iterator it = find<T>(name, domain, on_what, parallel_type);
     if (it != state_vectors_.end()) {
-      *vector_ptr = std::static_pointer_cast<StateVector<T, DomainType>>(*it);
+      *vector_ptr =
+          std::static_pointer_cast<StateVector<T, DomainType>>(*it);
       return true;
     } else {
       return false;
@@ -311,9 +312,10 @@ class State {
       // empty, so add the vector to the list; if not, warn about duplicate
       // state data
       
-      auto vector = std::make_shared<StateVector<T, DomainType>>(name, domain,
-                                                                 on_what, ptype,
-                                                                 data);
+      auto vector =
+          std::make_shared<StateVector<T, DomainType>>(name, domain,
+                                                       on_what, ptype,
+                                                       data);
       state_vectors_.emplace_back(vector);
 
       // add the index of this vector in state_vectors_ to the vector of
@@ -332,7 +334,8 @@ class State {
       // found a state vector by same name
       std::cerr <<
           "Attempted to add duplicate state vector. Ignoring\n" << std::endl;
-      return (*(std::static_pointer_cast<StateVector<T, DomainType>>(*it)));
+      return 
+          (*(std::static_pointer_cast<StateVector<T, DomainType>>(*it)));
     }
   }
 
@@ -345,7 +348,8 @@ class State {
   //! vector copy even if they are on the same domain
 
   template <class T, class DomainType>
-  StateVector<T, DomainType>& add(StateVector<T, DomainType> const& in_vec) {
+  StateVector<T, DomainType>&
+  add(StateVector<T, DomainType> const& in_vec) {
 
     Entity_kind on_what = in_vec.on_what();
     Parallel_type ptype = in_vec.parallel_type();
@@ -357,7 +361,7 @@ class State {
 
       // a search of the state vectors by name and kind of entity turned up
       // empty, so add the vector to the list
-      if (mymesh_ != in_vec.mesh()) {
+      if (mymesh_.get() != &(in_vec.mesh())) {
 
         // the input vector is defined on a different mesh? copy the
         // vector data onto a vector defined on mesh and then add
@@ -368,12 +372,10 @@ class State {
                                                          on_what,
                                                          ptype,
                                                          &(in_vec[0]));
-        state_vectors_.emplace_back(vector_copy);
       } else {
-        vector_copy =
-            std::shared_ptr<StateVector<T, DomainType>>(new StateVector<T, DomainType>(in_vec));
-        state_vectors_.emplace_back(vector_copy);
+        vector_copy = std::make_shared<StateVector<T, DomainType>>(in_vec);
       }
+      state_vectors_.emplace_back(vector_copy);
       
       // add the index of this vector in state_vectors_ to the vector of
       // indexes for this entity type, to allow iteration over state
