@@ -1896,7 +1896,7 @@ Mesh::corner_get_facetization (const Entity_ID cornerid,
   facetpoints->push_back({{0,1}});
   facetpoints->push_back({{1,2}});
   facetpoints->push_back({{2,3}});
-  facetpoints->push_back({{2,4}});
+  facetpoints->push_back({{3,0}});
 
 } // corner get facetization for 2D
 

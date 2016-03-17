@@ -87,7 +87,7 @@ class bogus_mesh : public Jali::Mesh {
     Exceptions::Jali_throw(Errors::Message("generation not supported"));
   }
 
-  bogus_mesh(const Mesh *inmesh,
+  bogus_mesh(const std::shared_ptr<Mesh> inmesh,
              const std::vector<std::string>& setnames,
              const Jali::Entity_kind setkind,
              const bool flatten, const bool extrude,
@@ -444,20 +444,20 @@ struct FrameworkTraits {
   };
   
   /// Construct a mesh from a Exodus II file or file set
-  static Mesh *
+  static std::shared_ptr<Mesh>
   read(const MPI_Comm& comm, const std::string& fname,
        const JaliGeometry::GeometricModelPtr& gm,
        const bool request_faces, 
        const bool request_edges,
        const bool request_wedges,
-       const bool request_corners)
-  {
-    Mesh *
-      result(new typename read_mesh::type(fname.c_str(), comm,
-                                          gm, 
-                                          request_faces, request_edges,
-                                          request_wedges, request_corners));
-    return result;
+       const bool request_corners) {
+    return
+        std::shared_ptr<Mesh>(new typename read_mesh::type(fname.c_str(), comm,
+                                                           gm, 
+                                                           request_faces,
+                                                           request_edges,
+                                                           request_wedges,
+                                                           request_corners));
   }
   
   /// A type to indicate whether this framework can generate meshes
@@ -492,7 +492,7 @@ struct FrameworkTraits {
   };
 
   /// Generate a hex mesh from explicit arguments
-  static Mesh *
+  static std::shared_ptr<Mesh>
   generate(const double& x0, const double& y0, const double& z0,
            const double& x1, const double& y1, const double& z1,
            const unsigned int& nx, const unsigned int& ny, const unsigned int& nz, 
@@ -501,19 +501,20 @@ struct FrameworkTraits {
            const bool request_faces, 
            const bool request_edges,
            const bool request_wedges,
-           const bool request_corners)
-  {
-    Mesh *
-      result(new typename generate_mesh::type(x0, y0, z0, x1, y1, z1, 
-                                              nx, ny, nz, comm,
-                                              gm, 
-                                              request_faces, request_edges,
-                                              request_wedges, request_corners));
-    return result;
+           const bool request_corners) {
+    return 
+        std::shared_ptr<Mesh>(new typename generate_mesh::type(x0, y0, z0,
+                                                               x1, y1, z1, 
+                                                               nx, ny, nz,
+                                                               comm, gm, 
+                                                               request_faces,
+                                                               request_edges,
+                                                               request_wedges,
+                                                               request_corners));
   }
   
   /// Generate a quad mesh from explicit arguments
-  static Mesh *
+  static std::shared_ptr<Mesh>
   generate(const double& x0, const double& y0,
            const double& x1, const double& y1,
            const unsigned int& nx, const unsigned int& ny,
@@ -522,14 +523,14 @@ struct FrameworkTraits {
            const bool request_faces, 
            const bool request_edges,
            const bool request_wedges,
-           const bool request_corners)
-  {
-    Mesh *
-      result(new typename generate_mesh::type(x0, y0, x1, y1, nx, ny, comm,
-                                              gm,
-                                              request_faces, request_edges,
-                                              request_wedges, request_corners));
-    return result;
+           const bool request_corners) {
+    return
+        std::shared_ptr<Mesh>(new typename generate_mesh::type(x0, y0, x1, y1,
+                                                               nx, ny, comm, gm,
+                                                               request_faces,
+                                                               request_edges,
+                                                               request_wedges,
+                                                               request_corners));
   }
 
   /// Generate a 1d mesh from explicit arguments
@@ -596,9 +597,9 @@ struct FrameworkTraits {
   };
 
   /// Construct a new mesh by extracting mesh entities from an existing mesh
-  static Mesh *
+  static std::shared_ptr<Mesh>
   extract(const MPI_Comm& comm,            // unused for now
-          const Mesh *inmesh, 
+          const std::shared_ptr<Mesh> inmesh, 
           const std::vector<std::string>& setnames,
           const Entity_kind setkind,
           const bool flatten = false,
@@ -606,19 +607,19 @@ struct FrameworkTraits {
           const bool request_faces = true, 
           const bool request_edges = false,
           const bool request_wedges = false,
-          const bool request_corners = false)
-  {
-    Mesh *
-      result(new typename extract_mesh::type(inmesh,
-                                             setnames,setkind,
-                                             flatten,extrude,
-                                             request_faces,request_edges,
-                                             request_wedges,request_corners));
-    return result;
+          const bool request_corners = false) {
+    return
+        std::shared_ptr<Mesh>(new typename extract_mesh::type(inmesh,
+                                                              setnames, setkind,
+                                                              flatten, extrude,
+                                                              request_faces,
+                                                              request_edges,
+                                                              request_wedges,
+                                                              request_corners));
   }
 
   /// Construct a new mesh by extracting mesh entities from an existing mesh
-  static Mesh *
+  static std::shared_ptr<Mesh>
   extract(const MPI_Comm& comm,            // unused for now
           const Mesh& inmesh, 
           const std::vector<std::string>& setnames,
@@ -628,19 +629,19 @@ struct FrameworkTraits {
           const bool request_faces = true, 
           const bool request_edges = false,
           const bool request_wedges = false,
-          const bool request_corners = false)
-  {
-    Mesh *
-      result(new typename extract_mesh::type(inmesh,
-                                             setnames,setkind,
-                                             flatten,extrude,
-                                             request_faces,request_edges,
-                                             request_wedges,request_corners));
-    return result;
+          const bool request_corners = false) {
+    return
+        std::shared_ptr<Mesh>(new typename extract_mesh::type(inmesh,
+                                                              setnames, setkind,
+                                                              flatten, extrude,
+                                                              request_faces,
+                                                              request_edges,
+                                                              request_wedges,
+                                                              request_corners));
   }
 
   /// Construct a new mesh by extracting mesh entities from an existing mesh
-  static Mesh *
+  static std::shared_ptr<Mesh>
   extract(const MPI_Comm& comm,            // unused for now
           const Mesh& inmesh, 
           const std::vector<int>& entity_id_list,
@@ -650,17 +651,16 @@ struct FrameworkTraits {
           const bool request_faces = true, 
           const bool request_edges = false,
           const bool request_wedges = false,
-          const bool request_corners = false)
-  {
-    Mesh *
-      result(new typename extract_mesh::type(inmesh,
-                                             entity_id_list, entity_kind,
-                                             flatten, extrude,
-                                             request_faces,
-                                             request_edges,
-                                             request_wedges,
-                                             request_corners));
-    return result;
+          const bool request_corners = false) {
+    return
+        std::shared_ptr<Mesh>(new typename extract_mesh::type(inmesh,
+                                                              entity_id_list,
+                                                              entity_kind,
+                                                              flatten, extrude,
+                                                              request_faces,
+                                                              request_edges,
+                                                              request_wedges,
+                                                              request_corners));
   }
 
 };
@@ -767,14 +767,14 @@ framework_reads(const Framework& f, const Format& fmt, const bool& parallel)
 // -------------------------------------------------------------
 // framework_read
 // -------------------------------------------------------------
-Mesh *
+std::shared_ptr<Mesh>
 framework_read(const MPI_Comm& comm, const Framework& f, 
                const std::string& fname,
                const JaliGeometry::GeometricModelPtr& gm,
                const bool request_faces, const bool request_edges,
                const bool request_wedges, const bool request_corners)
 {
-  Mesh *result;
+  std::shared_ptr<Mesh> result;
   int myPID;
   MPI_Comm_rank(comm,&myPID);
   switch (f) {
@@ -878,7 +878,7 @@ framework_generates(const Framework& f, const bool& parallel, const unsigned int
 // -------------------------------------------------------------
 // framework_generate
 // -------------------------------------------------------------
-Mesh *
+std::shared_ptr<Mesh>
 framework_generate(const MPI_Comm& comm, const Framework& f, 
                    const double& x0, const double& y0, const double& z0,
                    const double& x1, const double& y1, const double& z1,
@@ -888,7 +888,7 @@ framework_generate(const MPI_Comm& comm, const Framework& f,
                    const bool request_faces, const bool request_edges,
                    const bool request_wedges, const bool request_corners)
 {
-  Mesh *result;
+  std::shared_ptr<Mesh> result;
   int myPID;
   MPI_Comm_rank(comm,&myPID);
   switch (f) {
@@ -941,7 +941,7 @@ framework_generate(const MPI_Comm& comm, const Framework& f,
 // -------------------------------------------------------------
 // framework_generate
 // -------------------------------------------------------------
-Mesh *
+std::shared_ptr<Mesh>
 framework_generate(const MPI_Comm& comm, const Framework& f, 
                    const double& x0, const double& y0,
                    const double& x1, const double& y1,
@@ -950,7 +950,7 @@ framework_generate(const MPI_Comm& comm, const Framework& f,
                    const bool request_faces, const bool request_edges,
                   const bool request_wedges, const bool request_corners)
 {
-  Mesh *result;
+  std::shared_ptr<Mesh> result;
   int myPID;
   MPI_Comm_rank(comm,&myPID);
   switch (f) {
@@ -1108,16 +1108,16 @@ framework_extracts(const Framework& f, const bool& parallel, const unsigned int&
 // framework_extract
 // -------------------------------------------------------------
 
-Mesh *
+std::shared_ptr<Mesh>
 framework_extract(const MPI_Comm& comm, const Framework& f, 
-                  const Mesh *inmesh, 
+                  const std::shared_ptr<Mesh> inmesh, 
                   const std::vector<std::string>& setnames,
                   const Entity_kind setkind,
                   const bool request_faces, const bool request_edges,
                   const bool request_wedges, const bool request_corners,
                   const bool flatten, const bool extrude)
 {
-  Mesh *result;
+  std::shared_ptr<Mesh> result;
   switch (f) {
   case Simple:
     result = FrameworkTraits<Simple>::extract(comm, 
@@ -1161,7 +1161,7 @@ framework_extract(const MPI_Comm& comm, const Framework& f,
   return result;
 }
 
-Mesh *
+std::shared_ptr<Mesh>
 framework_extract(const MPI_Comm& comm, const Framework& f, 
                   const Mesh& inmesh, 
                   const std::vector<std::string>& setnames,
@@ -1170,7 +1170,7 @@ framework_extract(const MPI_Comm& comm, const Framework& f,
                   const bool request_wedges, const bool request_corners,
                   const bool flatten, const bool extrude)
 {
-  Mesh *result;
+  std::shared_ptr<Mesh> result;
   switch (f) {
   case Simple:
     result = FrameworkTraits<Simple>::extract(comm, 
@@ -1214,7 +1214,7 @@ framework_extract(const MPI_Comm& comm, const Framework& f,
   return result;
 }
 
-Mesh *
+std::shared_ptr<Mesh>
 framework_extract(const MPI_Comm& comm, const Framework& f, 
                   const Mesh& inmesh, 
                   const std::vector<int>& entity_id_list,
@@ -1223,7 +1223,7 @@ framework_extract(const MPI_Comm& comm, const Framework& f,
                   const bool request_wedges, const bool request_corners,
                   const bool flatten, const bool extrude)
 {
-  Mesh *result;
+  std::shared_ptr<Mesh> result;
   switch (f) {
   case Simple:
     result = FrameworkTraits<Simple>::extract(comm, 
