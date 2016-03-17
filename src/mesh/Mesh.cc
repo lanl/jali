@@ -417,22 +417,26 @@ void Mesh::build_tiles() {
       "subdividing cell index space into equal parts\n";
 
   int ncells = num_cells<Parallel_type::OWNED>();
-  int ncells_per_tile =
+  int maxcells_per_tile =
       static_cast<int> (static_cast<double>(ncells)/num_tiles_ + 0.5);
   int index = 0;
+
+  int *ncells_per_tile = new int[num_tiles_];
   for (int i = 0; i < num_tiles_; ++i) {
-    partitions[i].resize(ncells_per_tile);  // excludes MPI ghosts
+    partitions[i].resize(maxcells_per_tile);  // excludes MPI ghosts
+    ncells_per_tile[i] = 0;
 
     // Owned cells in this partition
-    for (int j = 0; j < ncells_per_tile && j < ncells; ++j)
+    for (int j = 0; j < maxcells_per_tile && index < ncells; ++j) {
       partitions[i][j] = index++;
+      (ncells_per_tile[i])++;
+    }
+
+    partitions[i].resize(ncells_per_tile[i]);
   }
 
-  // Put any leftover cells in the last partition
 
-  for (int j = index; j < ncells; ++j)
-    partitions[num_tiles_-1][j] = j;
-
+  delete [] ncells_per_tile;
   // #endif
 
   // Make the tiles and store shared pointers to them

@@ -8,7 +8,7 @@
 
 /*!
   @class StateVector jali_state_vector.h
-  @brief StateVector provides a mechanism to store state data for mesh entities
+  @brief StateVector stores state data for entities in a mesh, mesh tile or mesh subset
 */
 
 #include <iostream>
@@ -22,17 +22,27 @@
 
 namespace Jali {
 
-//! Base class for state vectors.  Children inherit from this class
-//! and hold specific types of data.
+/*!
+  @class BaseStateVector jali_state_vector.h
+  @brief BaseStateVector provides a base class for state vectors on meshes, mesh tiles or mesh subsets
+  @param name   Name of the state vector
+
+  A StateVector class inherits from this class and is templated on
+  specific types of data. The DomainType class has to be of type mesh
+  or a type that is part of a mesh and therefore, can answer the
+  question "What is your mesh" and "How many entities of type
+  'on_what' do you have"?
+*/
 
 class BaseStateVector {
  public:
 
   //! Constructor
-
-  BaseStateVector(std::string const name, Entity_kind const on_what,
-                  const std::shared_ptr<Mesh> mesh) :
-      myname_(name), on_what_(on_what), mymesh_(mesh) {}
+  
+  explicit BaseStateVector(std::string const name,
+                           Entity_kind const on_what,
+                           Parallel_type const parallel_type) :
+      myname_(name), on_what_(on_what), parallel_type_(parallel_type) {}
 
   //! Destructor
 
@@ -41,89 +51,113 @@ class BaseStateVector {
   //! Virtual methods
 
   virtual std::ostream & print(std::ostream & os) const = 0;
-  virtual void* get_data() = 0;
+  virtual void* get_raw_data() = 0;
   virtual int size() const = 0;
   virtual const std::type_info& get_type() = 0;
 
-  //! Query Metadata
+  /// Name of BaseStateVector
 
   std::string name() const { return myname_; }
-  Jali::Entity_kind on_what() const { return on_what_; }
-  std::shared_ptr<Mesh> mesh() const { return mymesh_; }
+
+  /// What type of entity does it live on (CELL, WEDGE, NODE)?
+
+  Entity_kind on_what() const { return on_what_; }
+
+  /// What type of parallel entity does it live on (OWNED, GHOST or ALL)?
+
+  Parallel_type parallel_type() const { return parallel_type_; }
 
  protected:
-
-  Jali::Entity_kind on_what_;
   std::string myname_;
-  std::shared_ptr<Mesh> mymesh_;
+  Entity_kind on_what_;
+  Parallel_type parallel_type_;
 };
 
 
 //! Templated class for state vectors with specific types.
 //! Provides some limited functionality of a std::vector while adding
 //! some additional meta-data like the mesh associated with this data.
+//!  @param on_what  Data corresponds to what type of entity in the Domain
+//!  @tparam DomainType  Mesh, Mesh Tile or Mesh Subset (coming soon)
 
-template <class T>
+template <class T, class DomainType = Mesh>
 class StateVector : public BaseStateVector {
  public:
 
   //! Default constructor
-
-  StateVector() : BaseStateVector("NoName", Entity_kind::UNKNOWN_KIND,
-                                  std::shared_ptr<Mesh>()) {}
+  StateVector() : BaseStateVector("UninitializedVector",
+                                  Entity_kind::UNKNOWN_KIND,
+                                  Parallel_type::PTYPE_UNKNOWN) {}
 
   //! Meaningful constructor with data
+  
+  StateVector(std::string const name, std::shared_ptr<DomainType> domain,
+              Entity_kind const on_what, Parallel_type const parallel_type,
+              T const * const data) :
+      BaseStateVector(name, on_what, parallel_type), mydomain_(domain) {
 
-  StateVector(std::string const name, Entity_kind const on_what,
-              const std::shared_ptr<Mesh> mesh, T* data) :
-      BaseStateVector(name, on_what, mesh) {
-
-    int num = mesh->num_entities(on_what, Parallel_type::ALL);
-    mydata_ = std::shared_ptr<std::vector<T>>(new std::vector<T>);
-    mydata_->resize(num);
-    std::copy(data, data+num, mydata_->begin());
-
+    int num = mydomain_->num_entities(on_what_, parallel_type_);
+    mydata_ = std::make_shared<std::vector<T>>(data, data+num);
   }
 
-  //! Copy constructor - DEEP COPY OF DATA
+  /*! 
+    @brief Copy constructor - DEEP COPY OF DATA
 
-  //! Copy constructor creates a new vector and copies the meta data
-  //! of the StateVector over. Additionally, it copies all of the
-  //! vector data from the source vector to the new vector.
-  //! Modification of one vector's data has no effect on the other.
+    Copy constructor creates a new vector and copies the meta data of
+    the StateVector over. Additionally, it copies all of the vector
+    data from the source vector to the new vector.  Modification of one
+    vector's data has no effect on the other.
+  */
 
   StateVector(StateVector const & in_vector) :
-      BaseStateVector(in_vector.myname_, in_vector.on_what_, in_vector.mymesh_),
-      mydata_(new std::vector<T>(in_vector.size())) {
-
-    // deep copy of the data
-    std::copy((in_vector.mydata_)->begin(), (in_vector.mydata_)->end(),
-              mydata_->begin());
+      BaseStateVector(in_vector.myname_, in_vector.on_what_,
+                      in_vector.parallel_type_),
+      mydomain_(in_vector.mydomain_) {
+    
+    mydata_ = std::make_shared<std::vector<T>>((in_vector.mydata_)->begin(),
+                                               (in_vector.mydata_)->end());
   }
 
-
-  //! \brief Assignment operator
-
-  //! Assignment operator does a shallow copy of the metadata and a
-  //! shared_ptr to the data. So modification of one state vector's
-  //! data will result in modification of the other's data as well
+  /*!
+    @brief Assignment operator
+  
+    Assignment operator does a shallow copy of the metadata and a
+    shared_ptr to the data. So modification of one state vector's
+    data will result in modification of the other's data as well
+  */
 
   StateVector & operator=(StateVector const & in_vector) {
-
-    myname_ = in_vector.myname_;
-    on_what_ = in_vector.on_what_;
-    mymesh_ = in_vector.mymesh_;
-    mydata_ = in_vector.mydata_;
+    BaseStateVector::myname_ = in_vector.myname_;
+    BaseStateVector::on_what_ = in_vector.on_what_;
+    BaseStateVector::parallel_type_ = in_vector.parallel_type_;
+    mydomain_ = in_vector.mydomain_;
+    mydata_ = in_vector.mydata_;  // shared_ptr counter will increment
   }
 
-  //! Destructor
-
+  /// Destructor
+  
   ~StateVector() {}
 
-  //! Get the raw data
+  /// Domain on which StateVector is defined on (Mesh, MeshTile, MeshSubset)
+  
+  std::shared_ptr<DomainType> domain() const { return mydomain_; }
 
-  void* get_data() { return (void*)(&((*mydata_)[0])); }
+  /// Underlying mesh regardless of what type of domain StateVector is
+  /// defined on. We have to return a reference to the mesh rather
+  /// than a shared pointer because if the DomainType is a MeshTile,
+  /// it only has a mesh reference not a pointer to the mesh
 
+  Mesh & mesh() const { return get_mesh_of_domain(mydomain_); }
+
+  /// Get the raw data
+
+  void* get_raw_data() { return (void*)(&((*mydata_)[0])); }
+
+  /// Get a shared pointer to the data
+
+  std::shared_ptr<T> get_data() { return mydata_; }
+
+  /// Type of data
 
   const std::type_info& get_type() {
     const std::type_info& ti = typeid(T);
@@ -154,7 +188,8 @@ class StateVector : public BaseStateVector {
 
   std::ostream& print(std::ostream& os) const {
     os << "\n";
-    os << "Vector \"" << myname_ << "\" on entity kind " << on_what_ << " :\n";
+    os << "Vector \"" << myname_ << "\" on entity kind " << on_what_ <<
+        " :\n";
     os << size() << " elements\n";
 
     for (const_iterator it = cbegin(); it != cend(); it++)
@@ -165,15 +200,24 @@ class StateVector : public BaseStateVector {
   }
 
  protected:
-
+  std::shared_ptr<DomainType> mydomain_;
   std::shared_ptr<std::vector<T>> mydata_;
+
+ private:
+  Mesh & get_mesh_of_domain(std::shared_ptr<MeshTile> meshtile) const {
+     return meshtile->mesh();
+  }
+  Mesh & get_mesh_of_domain(std::shared_ptr<Mesh> mesh) const {
+    return *mesh;
+  }
 };
 
 
 //! Send StateVector to output stream
 
-template <class T>
-std::ostream & operator<<(std::ostream & os, Jali::StateVector<T> const & sv) {
+template <class T, class DomainType>
+std::ostream & operator<<(std::ostream & os,
+                          StateVector<T, DomainType> const & sv) {
   return sv.print(os);
 }
 
@@ -185,6 +229,7 @@ std::ostream & operator<<(std::ostream & os, const std::array<T, N>& arr) {
   std::copy(arr.cbegin(), arr.cend(), std::ostream_iterator<T>(os, " "));
   return os;
 }
+
 
 }  // namespace Jali
 

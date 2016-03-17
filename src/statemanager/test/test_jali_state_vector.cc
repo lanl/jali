@@ -13,7 +13,7 @@
 
 #include "UnitTest++.h"
 
-TEST(JaliStateVectorCells) {
+TEST(JaliStateVector_Cells_Mesh) {
 
   Jali::MeshFactory mf(MPI_COMM_WORLD);
   std::shared_ptr<Jali::Mesh> mesh = mf(0.0, 0.0, 1.0, 1.0, 2, 2);
@@ -21,8 +21,8 @@ TEST(JaliStateVectorCells) {
   CHECK(mesh);
 
   std::vector<double> data1 = {1.0, 3.0, 2.5, 4.5};
-  Jali::StateVector<double> myvec1("var1", Jali::Entity_kind::CELL,
-                                   mesh, &(data1[0]));
+  Jali::StateVector<double> myvec1("var1", mesh, Jali::Entity_kind::CELL,
+                                   Jali::Parallel_type::ALL, &(data1[0]));
 
   int ncells = mesh->num_entities(Jali::Entity_kind::CELL,
                                   Jali::Parallel_type::ALL);
@@ -44,11 +44,12 @@ TEST(JaliStateVectorNodes) {
   CHECK(mesh);
 
   std::vector<double> data1 = {1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0};
-  Jali::StateVector<double> myvec1("var1", Jali::Entity_kind::NODE, mesh,
+  Jali::StateVector<double> myvec1("var1", mesh, Jali::Entity_kind::NODE,
+                                   Jali::Parallel_type::OWNED,
                                    &(data1[0]));
 
   int nnodes = mesh->num_entities(Jali::Entity_kind::NODE,
-                                  Jali::Parallel_type::ALL);
+                                  Jali::Parallel_type::OWNED);
   CHECK_EQUAL(nnodes, myvec1.size());
   for (int i = 0; i < nnodes; ++i)
     CHECK_EQUAL(data1[i], myvec1[i]);
@@ -63,11 +64,13 @@ TEST(JaliStateVectorAssignCopy) {
   CHECK(mesh);
 
   std::vector<double> data1 = {1.0, 3.0, 2.5, 4.5};
-  Jali::StateVector<double> myvec1("var1", Jali::Entity_kind::CELL, mesh,
+  Jali::StateVector<double> myvec1("var1", mesh, Jali::Entity_kind::CELL,
+                                   Jali::Parallel_type::ALL,
                                    &(data1[0]));
-  Jali::StateVector<double> myvec2;
 
-  myvec2 = myvec1;
+  // Assignment (NOTE that doing myvec2 = myvec1 is a copy not an assignment)
+
+  Jali::StateVector<double>& myvec2 = myvec1;
 
   // Pick a particular element from both vectors to compare
 
@@ -128,9 +131,10 @@ TEST(JaliStateVectorArray) {
   data1[2][0] = 3.0; data1[2][1] = -3.0;
   data1[3][0] = 4.0; data1[3][1] = -4.0;
 
-  Jali::StateVector<std::array<double, 2>> myvec1("var1",
+  Jali::StateVector<std::array<double, 2>> myvec1("var1", mesh,
                                                   Jali::Entity_kind::CELL,
-                                                  mesh, &(data1[0]));
+                                                  Jali::Parallel_type::ALL,
+                                                  &(data1[0]));
 
   // Verify we can retrieve the data as expected
 
