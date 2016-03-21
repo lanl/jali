@@ -25,10 +25,40 @@ include_directories(${ATK_SOURCE_DIR})
 
 include_directories(${Boost_INCLUDE_DIRS})
 
+
+# Check which partitioners are enabled and set some variables that
+# can be checked in the code with an ifdef statement. ENABLE_METIS,
+# ENABLE_ZOLTAN, METIS_DIR and ZOLTAN_DIR are all from Jali-tpl-config.cmake
+
+if (ENABLE_METIS)
+  message(STATUS "Adding definition Jali_HAVE_METIS")
+  add_definitions(-DJali_HAVE_METIS)
+  include_directories(${METIS_DIR}/include)
+endif ()
+
+if (ENABLE_ZOLTAN)
+  message(STATUS "Adding definition Jali_HAVE_ZOLTAN")
+  add_definitions(-DJali_HAVE_ZOLTAN)
+  include_directories(${ZOLTAN_DIR}/include)
+endif ()
+if ((NOT ENABLE_METIS) AND (NOT ENABLE_ZOLTAN))
+  message(STATUS "No partitioner enabled?")
+endif()
+
+
+
 #
 # Library: mesh
 #
-add_Jali_library(mesh SOURCE Mesh.cc MeshTile.cc LINK_LIBS geometry)
+set(mesh_link_libs geometry)
+if (ENABLE_METIS)
+  list(APPEND mesh_link_libs ${METIS_LIBRARIES})
+endif (ENABLE_METIS)
+if (ENABLE_ZOLTAN)
+  list(APPEND mesh_link_libs ${ZOLTAN_LIBRARIES})
+endif (ENABLE_ZOLTAN)
+
+add_Jali_library(mesh SOURCE Mesh.cc MeshTile.cc LINK_LIBS ${mesh_link_libs})
 
 #
 # Library: mesh_audit
@@ -65,19 +95,6 @@ if (ENABLE_MSTK_Mesh)
 endif(ENABLE_MSTK_Mesh)    
 
 
-# Check which partitioners are enabled and set some variables that
-# can be checked in the code with an ifdef statement
-
-if (Jali_TPL_METIS_ENABLED)
-  add_definitions(-DHAVE_METIS)
-endif ()
-
-if (Jali_TPL_Zoltan_ENABLED)
-  add_definitions(-DHAVE_ZOLTAN)
-endif ()
-
-
-
 
 # Factory class
 
@@ -101,7 +118,7 @@ if (BUILD_TESTS)
     endif()
 
     # Test link libraries
-    set(test_link_libs geometry simple_mesh mesh_factory ${UnitTest_LIBRARIES})
+    set(test_link_libs geometry ${mesh_link_libs} simple_mesh mesh_factory ${UnitTest_LIBRARIES})
 
     # STK (Trilinos Package)
    if (ENABLE_STK_Mesh)
