@@ -107,7 +107,7 @@ int main(int argc, char *argv[]) {
 
   StateVector<double> rhovec;
   bool found = mystate.get(density_name, mymesh, Entity_kind::CELL,
-                           Parallel_type::OWNED, &rhovec);
+                           Parallel_type::ALL, &rhovec);
   if (!found) {
     std::cerr << "Could not find state vector on cells with name " <<
         density_name << std::endl;
@@ -127,8 +127,8 @@ int main(int argc, char *argv[]) {
     Entity_ID_List nbrs;
     mymesh->cell_get_node_adj_cells(c, Parallel_type::ALL, &nbrs);
 
-    for (auto const & c : nbrs)
-      ave_density[c] += rhovec[c];
+    for (auto const & nc : nbrs)
+      ave_density[c] += rhovec[nc];
     ave_density[c] /= nbrs.size();
   }
 
