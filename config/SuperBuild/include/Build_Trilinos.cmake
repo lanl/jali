@@ -35,6 +35,7 @@ Jali_tpl_version_write(FILENAME ${TPL_VERSIONS_INCLUDE_FILE}
 #  list(APPEND Trilinos_PACKAGE_LIST STK)
 #endif()
 if ( ENABLE_MSTK_Mesh )
+  set(ENABLE_ZOLTAN TRUE)
   list(APPEND Trilinos_PACKAGE_LIST Zoltan)
 endif()
 
