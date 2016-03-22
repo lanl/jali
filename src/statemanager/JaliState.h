@@ -106,13 +106,6 @@ class State {
   //! Number of state vectors
   int size() const {return state_vectors_.size();}
 
- /*  Convert enum to string for identifying state vectors. Uses ~ 
-   (which should be forbidden in user-defined names) to avoid
-   potential collisions with string names if both are used.
-  std::string int_to_string(int const identifier) const {
-    return ("~" + std::to_string(identifier)); 
-  }*/
-
   //! \brief Find state vector
 
   //! Find iterator to state vector by name and what type of entity it
