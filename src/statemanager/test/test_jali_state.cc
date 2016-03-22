@@ -284,7 +284,7 @@ TEST(Jali_State_Define_Mesh) {
 
 TEST(Jali_State_Define_MeshTiles) {
 
-  // Create a 6x6 mesh and ask for 4 tiles on it so that each tile has 4 cells
+  // Create a 6x6 mesh and ask for 4 tiles on it so that each tile has 9 cells
   constexpr int NXY = 6;  // cells in any direction
   constexpr int NTILES = 4;
   constexpr int NCELLS_PER_TILE = (NXY*NXY)/NTILES;
