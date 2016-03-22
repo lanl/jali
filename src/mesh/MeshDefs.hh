@@ -200,28 +200,13 @@ bool cell_valid_type(const Cell_type type) {
 }
 
 
-// std::string Mesh::cell_type_to_name(const Cell_type type) {
-//   switch (type) {
-//     case TRI:
-//       return "triangle";
-//     case QUAD:
-//       return "quad";
-//     case POLYGON:
-//       return "polygon";
-//     case TET:
-//       return "tetrahedron";
-//     case PYRAMID:
-//       return "pyramid";
-//     case PRISM:
-//       return "prism";
-//     case HEX:
-//       return "hexahedron";
-//     case POLYHED:
-//       return "polyhedron";
-//     default:
-//       return "unknown";
-//   }
-// }
+// Types of partitioners 
+
+enum class Partitioner_type {METIS, ZOLTAN};
+
+// Types of partitioning algorithms - Add as needed in the format METIS_RCB etc.
+
+enum class Partitioning_scheme {DEFAULT};
 
 }  // close namespace Jali
 
