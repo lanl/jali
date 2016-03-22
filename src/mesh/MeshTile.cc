@@ -50,6 +50,9 @@ MeshTile::MeshTile(Mesh& parent_mesh,
   // Build up halos if requested
 
   if (num_halo_layers > 0) {
+
+    // Make a list of halo/ghost cells
+
     for (int i = 0; i < num_halo_layers; ++i) {
       Entity_ID_List next_halo_layer;
 
@@ -159,7 +162,7 @@ MeshTile::MeshTile(Mesh& parent_mesh,
                         faceids_ghost_.begin(), faceids_ghost_.end());
   }
 
-  // Make a list of faces similarly if requested
+  // Make a list of edges similarly if requested
 
   if (request_edges) {
     for (auto const& c : cellids_owned_) {
