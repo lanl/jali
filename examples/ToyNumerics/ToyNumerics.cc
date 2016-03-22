@@ -68,10 +68,12 @@ int main(int argc, char *argv[]) {
     // Create a 3D mesh from (0.0,0.0,0.0) to (1.0,1.0,1.0) with 10, 5
     // and 5 elements in the X, Y and Z directions. Specify that we
     // did not instantiate a geometric model (NULL). Also, request
-    // faces, edges, wedges and corners (true, true, true, true)
+    // faces, edges, wedges and corners (true, true, true, true).
+    // Finally, request that the mesh be divided into 10 tiles.
 
+    int num_tiles_requested = 10;
     mymesh = mesh_factory(0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 10, 5, 5, NULL,
-                          true, true, true, true);
+                          true, true, true, true, num_tiles_requested);
   }
 
 
@@ -120,16 +122,18 @@ int main(int argc, char *argv[]) {
   double *ave_density = new double[nc];
   for (int i = 0; i < nc; ++i) ave_density[i] = 0.0;
 
-  for (auto c : mymesh->cells<Parallel_type::OWNED>()) {
+  for (auto const& t : mymesh->tiles()) {
+    for (auto const& c : t->cells()) {
 
-    // Get all (owned or ghost) node connected/adjacent neighbors of a cell
+      // Get all (owned or ghost) node connected/adjacent neighbors of a cell
 
-    Entity_ID_List nbrs;
-    mymesh->cell_get_node_adj_cells(c, Parallel_type::ALL, &nbrs);
+      Entity_ID_List nbrs;
+      mymesh->cell_get_node_adj_cells(c, Parallel_type::ALL, &nbrs);
 
-    for (auto const & nc : nbrs)
-      ave_density[c] += rhovec[nc];
-    ave_density[c] /= nbrs.size();
+      for (auto const & nc : nbrs)
+        ave_density[c] += rhovec[nc];
+      ave_density[c] /= nbrs.size();
+    }
   }
 
   // Add the average density data as a new state vector
@@ -157,28 +161,30 @@ int main(int argc, char *argv[]) {
   // Update them to be the average of the centroids of the connected
   // cells weighted by the average cell density
 
-  for (auto n : mymesh->nodes<Parallel_type::OWNED>()) {
+  for (auto const& t : mymesh->tiles()) {
+    for (auto const n : t->nodes()) {
 
-    // Get the cells using (connected to) this node
+      // Get the cells using (connected to) this node
 
-    Entity_ID_List nodecells;
-    mymesh->node_get_cells(n, Parallel_type::ALL, &nodecells);
+      Entity_ID_List nodecells;
+      mymesh->node_get_cells(n, Parallel_type::ALL, &nodecells);
 
-    std::array<double, 3> tmpvels;
-    for (int i = 0; i < 3; ++i) tmpvels[i] = 0.0;
+      std::array<double, 3> tmpvels;
+      for (int i = 0; i < 3; ++i) tmpvels[i] = 0.0;
 
-    for (auto c : nodecells) {
+      for (auto c : nodecells) {
 
-      // Get cell centroid - this is computed once and cached unless the
-      // mesh changes or the routine is explicitly asked to recompute it
-      // to help understand the effect of a temporary change
+        // Get cell centroid - this is computed once and cached unless the
+        // mesh changes or the routine is explicitly asked to recompute it
+        // to help understand the effect of a temporary change
 
-      JaliGeometry::Point ccen = mymesh->cell_centroid(c);
-      for (int i = 0; i < 3; ++i) tmpvels[i] += rhobarvec[c]*ccen[i];
+        JaliGeometry::Point ccen = mymesh->cell_centroid(c);
+        for (int i = 0; i < 3; ++i) tmpvels[i] += rhobarvec[c]*ccen[i];
 
+      }
+
+      vels[n] = tmpvels;
     }
-
-    vels[n] = tmpvels;
   }
 
 
