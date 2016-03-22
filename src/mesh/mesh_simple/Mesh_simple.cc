@@ -698,7 +698,7 @@ void Mesh_simple::cell_get_node_adj_cells(const Jali::Entity_ID cellid,
     unsigned int offset2 = (unsigned int) 9*nodeid;
     unsigned int ncell = node_to_cell_[offset2];
 
-    for (int j = 0; j < 8; j++) {
+    for (int j = 1; j < 9; j++) {
       Entity_ID nodecell = node_to_cell_[offset2+j];
 
       unsigned int found = 0;
