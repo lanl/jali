@@ -56,7 +56,7 @@ class BaseStateVector {
   //! (which should be forbidden in user-defined names) to avoid
   //! potential collisions with string names if both are used.
   static std::string int_to_string(int const identifier) {
-    return ("~" + std::to_string((int)identifier)); 
+    return ("~" + std::to_string(static_cast<long long>(identifier))); 
   }
 
   //! Query Metadata
