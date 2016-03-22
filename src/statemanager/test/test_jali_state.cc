@@ -15,9 +15,9 @@
 #include "mpi.h"
 
 // Enum for field names
-enum FieldNames
+enum FieldNames : int
 {
-  cellvars,
+  cellvars = 0,
   nodevars,
   cellvars2,
   f1,
@@ -251,17 +251,17 @@ TEST(Jali_State_Enum) {
   // Define two state vectors
 
   std::vector<double> data1 = {1.0,3.0,2.5,4.5};
-  Jali::StateVector<double> myvec1((int)FieldNames::cellvars,Jali::CELL,mesh1,&(data1[0]));
+  Jali::StateVector<double> myvec1(FieldNames::cellvars,Jali::CELL,mesh1,&(data1[0]));
 
   std::vector<double> data2 = {0.0,1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0};
-  Jali::StateVector<double> myvec2((int)FieldNames::nodevars,Jali::NODE,mesh1,&(data2[0]));
+  Jali::StateVector<double> myvec2(FieldNames::nodevars,Jali::NODE,mesh1,&(data2[0]));
 
   // Define another mesh and another statevector on that mesh
 
   std::shared_ptr<Jali::Mesh> mesh2 = mf(0.0,0.0,1.0,1.0,3,3);
 
   std::vector<double> data3 = {1.0,3.0,2.5,4.5,1.0,2.0};
-  Jali::StateVector<double> myvec3((int)FieldNames::cellvars2,Jali::CELL,mesh2,&(data3[0]));
+  Jali::StateVector<double> myvec3(FieldNames::cellvars2,Jali::CELL,mesh2,&(data3[0]));
 
 
   // Create a state object and add the first two vectors to it
@@ -274,7 +274,7 @@ TEST(Jali_State_Enum) {
   for (int i = 0; i < addvec1.size(); ++i)
     CHECK_EQUAL(addvec1[i],myvec1[i]);
 
-  Jali::StateVector<double> &addvec2 = mystate.add((int)FieldNames::nodevars,Jali::NODE,&(data2[0]));
+  Jali::StateVector<double> &addvec2 = mystate.add(FieldNames::nodevars,Jali::NODE,&(data2[0]));
   CHECK_EQUAL(addvec2.size(),myvec2.size());
   for (int i = 0; i < addvec2.size(); ++i)
     CHECK_EQUAL(addvec2[i],myvec2[i]);
@@ -293,7 +293,7 @@ TEST(Jali_State_Enum) {
 
   // Make sure we can retrieve the object by name
 
-  itc = mystate.find((int)FieldNames::cellvars,Jali::CELL);
+  itc = mystate.find(FieldNames::cellvars,Jali::CELL);
   CHECK(mystate.end() != itc);
 
   // Make sure the object we retrieved is identical to the one we put in
@@ -308,7 +308,7 @@ TEST(Jali_State_Enum) {
 
   std::shared_ptr<Jali::StateVector<double>> myvec1_ptr;
   bool found;
-  found = mystate.get((int)FieldNames::cellvars,Jali::CELL,&myvec1_ptr);
+  found = mystate.get(FieldNames::cellvars,Jali::CELL,&myvec1_ptr);
 
   CHECK(found);
   CHECK_EQUAL(myvec1.size(),myvec1_ptr->size());
@@ -317,7 +317,7 @@ TEST(Jali_State_Enum) {
 
   // Retrieve the state vector even more easily
 
-  found = mystate.get((int)FieldNames::cellvars,Jali::CELL,&myvec1_copy);
+  found = mystate.get(FieldNames::cellvars,Jali::CELL,&myvec1_copy);
 
   CHECK(found);
   CHECK_EQUAL(myvec1.size(),myvec1_copy.size());
@@ -328,13 +328,13 @@ TEST(Jali_State_Enum) {
 
   // Make sure the code fails if we ask for the right name but wrong entity type
 
-  itc = mystate.find((int)FieldNames::cellvars,Jali::FACE);
+  itc = mystate.find(FieldNames::cellvars,Jali::FACE);
   CHECK(mystate.end() == itc);
 
 
   // Try to retrieve a different vector by name
 
-  itc = mystate.find((int)FieldNames::nodevars,Jali::NODE);
+  itc = mystate.find(FieldNames::nodevars,Jali::NODE);
   CHECK(mystate.end() != itc);
 
   // Make sure the object we retrieved is identical to the one we put in
@@ -348,7 +348,7 @@ TEST(Jali_State_Enum) {
 
   // Try to retrieve the vector by name but without giving a specific type
 
-  itc = mystate.find((int)FieldNames::nodevars,Jali::ANY_KIND);
+  itc = mystate.find(FieldNames::nodevars,Jali::ANY_KIND);
   CHECK(mystate.end() != itc);
 
   // Make sure the object we retrieved is identical to the one we put in
