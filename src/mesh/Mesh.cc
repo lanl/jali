@@ -3,6 +3,14 @@
 // All rights reserved. See Copyright notice in main directory
 //
 
+#ifdef Jali_HAVE_METIS
+#include "metis.h"
+#endif
+
+#ifdef Jali_HAVE_ZOLTAN
+#include "zoltan.h"
+#endif
+
 #include "Geometry.hh"
 #include "dbc.hh"
 #include "errors.hh"
@@ -15,17 +23,6 @@
 #define CACHE_VARS 1
 
 namespace Jali {
-
-// Forward declaration of make_meshtile function which the mesh class
-// references - need to do this to avoid circular dependence between
-// Mesh and MeshTile classes
-
-std::shared_ptr<MeshTile> make_meshtile(Mesh const & parent_mesh,
-                                        const std::vector<int> & cells,
-                                        const bool request_faces,
-                                        const bool request_edges,
-                                        const bool request_wedges,
-                                        const bool request_corners);
 
 // Gather and cache cell to face connectivity info.
 //
@@ -156,7 +153,7 @@ void Mesh::cache_wedge_info() const {
   int num_wedges_ghost = 0;
 
   for (auto const & c : cells()) {
-    Parallel_type ptype = entity_get_ptype(Entity_kind::CELL,c);
+    Parallel_type ptype = entity_get_ptype(Entity_kind::CELL, c);
 
     std::vector<Entity_ID> cfaces;
     cell_get_faces(c, &cfaces);
@@ -401,53 +398,47 @@ void Mesh::cache_extra_variables() {
 
 
 // Partition the mesh on this compute node into submeshes or tiles
-// Each tile contains only cell indices that are owned by it - no
-// halo/ghost cell indices
 
 void Mesh::build_tiles() {
 
-  std::vector<std::vector<int>> partitions(num_tiles_);
+  std::vector<std::vector<int>> partitions;
+  partitions.resize(num_tiles_ini_);
 
-  // #ifdef HAVE_METIS
-  //  get_partitioning_with_metis(num_tiles, &partitions);
-  // #elif HAVE_ZOLTAN
-  //  get_partitioning_with_zoltan(num_tiles, &partitions);
-  // #else
-  std::cerr << "No partitioner defined - " <<
-      "subdividing cell index space into equal parts\n";
+  Partitioner_type partitioner_pref = Partitioner_type::METIS;
+  std::cerr << "Calling partitioner " << static_cast<int>(partitioner_pref) <<
+      "\n";
+  get_partitioning(num_tiles_ini_, partitioner_pref, &partitions);
 
-  int ncells = num_cells<Parallel_type::OWNED>();
-  int maxcells_per_tile =
-      static_cast<int> (static_cast<double>(ncells)/num_tiles_ + 0.5);
-  int index = 0;
+  // Make the tiles - make mesh tile will also call a routine of this mesh
+  // to add the tile to the mesh's list of tiles
 
-  int *ncells_per_tile = new int[num_tiles_];
-  for (int i = 0; i < num_tiles_; ++i) {
-    partitions[i].resize(maxcells_per_tile);  // excludes MPI ghosts
-    ncells_per_tile[i] = 0;
-
-    // Owned cells in this partition
-    for (int j = 0; j < maxcells_per_tile && index < ncells; ++j) {
-      partitions[i][j] = index++;
-      (ncells_per_tile[i])++;
-    }
-
-    partitions[i].resize(ncells_per_tile[i]);
-  }
-
-
-  delete [] ncells_per_tile;
-  // #endif
-
-  // Make the tiles and store shared pointers to them
-
-  for (int i = 0; i < num_tiles_; ++i)
-    meshtiles[i] = make_meshtile(*this, partitions[i],
-                                 faces_requested, edges_requested,
-                                 wedges_requested, corners_requested);
+  for (int i = 0; i < num_tiles_ini_; ++i)
+    make_meshtile(*this, partitions[i], num_halo_layers_, faces_requested,
+                  edges_requested, wedges_requested, corners_requested);
 }
 
 
+
+// Initialize some arrays for storing master tile ID of entity. On
+// this tile, the entity is OWNED. It can be a GHOST on any number of
+// other entities
+
+void Mesh::init_tiles() {
+  tiles_initialized_ = true;
+  node_master_tile_ID_.resize(num_nodes(), -1);
+  if (edges_requested) edge_master_tile_ID_.resize(num_edges(), -1);
+  if (faces_requested) face_master_tile_ID_.resize(num_faces(), -1);
+  cell_master_tile_ID_.resize(num_cells(), -1);
+}
+
+
+// Add one tile to the mesh
+
+void Mesh::add_tile(std::shared_ptr<MeshTile> const tile2add) {
+  meshtiles.emplace_back(tile2add);
+}
+
+  
 
 Entity_ID Mesh::entity_get_parent(const Entity_kind kind, const Entity_ID entid)
     const {
@@ -1910,7 +1901,6 @@ Mesh::corner_get_coordinates(const Entity_ID cornerid,
 
     int c = corner_get_cell(cornerid);
     JaliGeometry::Point ccen = cell_centroid(c);
-    JaliGeometry::Point vec0 = ccen-(*pointcoords)[0];
 
     Entity_ID_List::iterator itw = cwedges.begin();
     while (itw != cwedges.end()) {
@@ -1948,6 +1938,8 @@ Mesh::corner_get_coordinates(const Entity_ID cornerid,
 
       ++itw;
     }
+
+    pointcoords->push_back(ccen);
   }
 
 }  // corner_get_points
@@ -2070,5 +2062,175 @@ bool Mesh::point_in_cell(const JaliGeometry::Point &p, const Entity_ID cellid)
 
   return false;
 }
+
+
+void
+Mesh::get_partitioning(int const num_parts,
+                       Partitioner_type const partitioner,
+                       std::vector<std::vector<Entity_ID>> *partitions) {
+
+
+  partitions->resize(num_parts);
+
+  if (partitioner == Partitioner_type::METIS && space_dimension() != 1) {
+
+#ifdef Jali_HAVE_METIS
+
+    get_partitioning_with_metis(num_parts, partitions);
+
+// #elif Jali_HAVE_ZOLTAN
+
+//     std::cerr << "Mesh::get_partitioning() - " <<
+//         "Preferred partitioner METIS not available. Using ZOLTAN.\n";
+
+//     get_partitioning_with_zoltan(num_tiles_ini, partitions);
+
+#else
+    std::cerr << "Mesh::get_partitioning() - " <<
+        "Preferred partitioner METIS not available. " <<
+        "Partitioning by entity IDs.\n";
+
+     get_partitioning_by_index_space(num_parts, partitions);
+
+#endif
+  } else if (partitioner == Partitioner_type::ZOLTAN &&
+             space_dimension() != 1) {
+
+// #ifdef Jali_HAVE_ZOLTAN
+
+//     get_partitioning_with_zoltan(num_parts, partitions);
+
+// #elif Jali_HAVE_METIS
+
+//     std::cerr << "Mesh::get_partitioning() - " <<
+//         "Preferred partitioner ZOLTAN not available. " <<
+//         " Using METIS.\n";
+
+//     get_partitioning_with_metis(num_parts, partitions);
+
+// #else
+
+    std::cerr << "Mesh::get_partitioning() - " <<
+        "Requested partitioner ZOLTAN not available. " <<
+        "Partitioning by entity IDs\n";
+
+    get_partitioning_by_index_space(num_parts, partitions);
+
+// #endif
+  } else {
+    if (space_dimension() != 1) {
+      std::cerr << "Mesh::get_partitioning() - " <<
+          "No valid partitioner or partioning scheme specified. " <<
+          "Partitioning by entity IDs\n";
+    }
+
+    get_partitioning_by_index_space(num_parts, partitions);
+  }
+
+
+}
+
+void Mesh::get_partitioning_by_index_space(int const num_parts,
+                                 std::vector<std::vector<int>> *partitions) {
+        
+  std::cerr << "No partitioner defined - " <<
+      "subdividing cell index space into equal parts\n";
+
+  int ncells = num_cells<Parallel_type::OWNED>();
+  int maxcells_per_tile =
+      static_cast<int> (static_cast<double>(ncells)/num_parts + 0.5);
+  int index = 0;
+
+  int *ncells_per_tile = new int[num_parts];
+  for (int i = 0; i < num_parts; ++i) {
+    (*partitions)[i].resize(maxcells_per_tile);  // excludes MPI ghosts
+    ncells_per_tile[i] = 0;
+
+    // Owned cells in this partition
+    for (int j = 0; j < maxcells_per_tile && index < ncells; ++j) {
+      (*partitions)[i][j] = index++;
+      (ncells_per_tile[i])++;
+    }
+
+    (*partitions)[i].resize(ncells_per_tile[i]);
+  }
+  delete [] ncells_per_tile;
+}
+
+#ifdef Jali_HAVE_METIS
+
+void Mesh::get_partitioning_with_metis(int const num_parts,
+                                  std::vector<std::vector<int>> *partitions) {
+
+  std::cerr << "Partitioning mesh on each compute node into " << num_parts <<
+      " parts using METIS\n";
+
+  // Build the adjacency info
+
+  int ncells = num_cells();  // includes ghost cells from adjacent compute nodes
+  int nfaces = num_faces();  // includes ghost faces from adjacent compute nodes
+  idx_t *xadj = new idx_t[ncells+1];  // offset indicator into adjacency array
+  idx_t *adjncy = new idx_t[2*nfaces];  // adjacency array (nbrs of a cell)
+
+  xadj[0] = 0;  // starting offset
+  int ipos = 0;
+  int i = 0;
+  Entity_ID_List nbrcells;
+  for (auto const& c : cells()) {
+    cell_get_face_adj_cells(c, Parallel_type::ALL, &nbrcells);
+    for (auto const& nbr : nbrcells)
+      adjncy[ipos++] = nbr;
+    xadj[++i] = ipos;
+  }
+  if (ipos > 2*nfaces)
+    std::cerr << "Mesh::get_partitioning - Wrote past end of adjncy array" <<
+        "Expand adjncy array or expect crashes\n";
+
+  // Partition the graph
+
+  idx_t wtflag = 0;  // No weights
+  idx_t *vwt = nullptr;
+  idx_t *adjwt = nullptr;
+
+  int numflag = 0;  // C style numbering of cells (nodes of the dual graph)
+  idx_t ngraphvtx = ncells;
+  idx_t nparts = static_cast<idx_t>(num_parts);
+  
+  idx_t *idxpart = new idx_t[ngraphvtx];
+
+  idx_t ncons = 1;  // Number of constraints
+  idx_t *vsize = nullptr;
+  real_t *tpwts = nullptr;
+  real_t *ubvec = nullptr;
+  idx_t nedgecut;
+  
+  idx_t metisopts[METIS_NOPTIONS];
+  METIS_SetDefaultOptions(metisopts);  // Get default options from METIS
+  metisopts[METIS_OPTION_NUMBERING] = 0;   // Indicate C style numbering
+
+  if (num_parts <= 8)
+    METIS_PartGraphRecursive(&ngraphvtx, &ncons, xadj, adjncy, vwt, vsize,
+                             adjwt, &nparts, tpwts, ubvec,
+                             metisopts, &nedgecut, idxpart);
+  else
+    METIS_PartGraphKway(&ngraphvtx, &ncons, xadj, adjncy, vwt, vsize,
+                        adjwt, &nparts, tpwts, ubvec, metisopts,
+                        &nedgecut, idxpart);
+
+  for (int i = 0; i < ncells; ++i) {
+    int ipart = idxpart[i];
+    (*partitions)[ipart].push_back(i);
+  }
+}
+
+#endif
+
+#ifdef Jali_HAVE_ZOLTAN
+
+void Mesh::get_partitioning_with_zoltan(int const num_parts,
+                                  std::vector<std::vector<int>> *partitions) {
+}
+
+#endif
 
 }  // close namespace Jali
