@@ -4,8 +4,6 @@ add_subdirectory(HelloJali)
 
 add_subdirectory(CreateMesh)
 
-add_subdirectory(Diffusion1D)
-
 add_subdirectory(ReadMesh)
 
 add_subdirectory(QueryGeometry)
