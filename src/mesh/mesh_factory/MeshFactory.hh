@@ -21,12 +21,14 @@
 #include <string>
 #include <vector>
 #include <mpi.h>
+#include <memory>
 
 #include "MeshException.hh"
 #include "MeshFramework.hh"
 #include "Mesh.hh"
 
 #include "GeometricModel.hh"
+#include "Geometry.hh"
 
 namespace Jali {
 
@@ -89,7 +91,7 @@ class MeshFactory {
                                const bool request_edges = false,
                                const bool request_wedges=false,
                                const bool request_corners=false,
-                               const Jali::Geom_type geom_type=Jali::CARTESIAN);
+                               const JaliGeometry::Geom_type geom_type=JaliGeometry::CARTESIAN);
 
 
   /// Create a mesh by extract subsets of entities from an existing mesh
@@ -162,22 +164,22 @@ class MeshFactory {
   }
 
   /// Create a 1d mesh -- operator
-  std::unique_ptr<Mesh> operator() (std::vector<double> x,
+  std::shared_ptr<Mesh> operator() (std::vector<double> x,
                     const JaliGeometry::GeometricModelPtr &gm = 
                     (JaliGeometry::GeometricModelPtr) NULL,
                     const bool request_faces = true,
                     const bool request_edges = false,
                     const bool request_wedges=false,
                     const bool request_corners=false,
-                    const Jali::Geom_type geom_type=Jali::CARTESIAN)  {
+                    const JaliGeometry::Geom_type geom_type=JaliGeometry::CARTESIAN)  {
  
-    return std::unique_ptr<Mesh>(create(x, gm, request_faces, request_edges,
+    return std::shared_ptr<Mesh>(create(x, gm, request_faces, request_edges,
                                         request_wedges, request_corners,
                                         geom_type));
   }
 
   /// Create a 1d mesh -- operator
-  std::unique_ptr<Mesh> operator() (double x0, double x1,
+  std::shared_ptr<Mesh> operator() (double x0, double x1,
                     int nx,
                     const JaliGeometry::GeometricModelPtr &gm = 
                     (JaliGeometry::GeometricModelPtr) NULL,
@@ -185,7 +187,7 @@ class MeshFactory {
                     const bool request_edges = false,
                     const bool request_wedges=false,
                     const bool request_corners=false,
-                    const Jali::Geom_type geom_type=Jali::CARTESIAN) {
+                    const JaliGeometry::Geom_type geom_type=JaliGeometry::CARTESIAN) {
 
     double dX = (x1-x0)/((double)nx);
     double myX = x0;
@@ -196,7 +198,7 @@ class MeshFactory {
       myX += dX;
     }
 
-    return std::unique_ptr<Mesh>(create(x, gm, request_faces, request_edges,
+    return std::shared_ptr<Mesh>(create(x, gm, request_faces, request_edges,
                                         request_wedges, request_corners,
                                         geom_type));
   }

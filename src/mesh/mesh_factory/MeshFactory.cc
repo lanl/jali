@@ -19,6 +19,7 @@ static const char* SCCS_ID = "$Id$ Battelle PNL";
 #include "MeshFactory.hh"
 #include "MeshFileType.hh"
 #include "FrameworkTraits.hh"
+#include "Geometry.hh"
 
 namespace Jali {
 
@@ -327,7 +328,7 @@ MeshFactory::create(std::vector<double> x,
                     const bool request_edges,
                     const bool request_wedges,
                     const bool request_corners,
-                    const Jali::Geom_type geom_type) {
+                    const JaliGeometry::Geom_type geom_type) {
   std::shared_ptr<Mesh> result;
   Message e("MeshFactory::create: error: ");
   int ierr[1], aerr[1];

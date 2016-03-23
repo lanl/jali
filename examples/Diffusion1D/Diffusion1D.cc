@@ -1,4 +1,5 @@
 #include <iostream>
+#include <memory>
 
 #include "mpi.h"
 
@@ -7,6 +8,7 @@
 #include "Mesh.hh"
 #include "MeshFactory.hh"
 #include "FrameworkTraits.hh"
+#include "Geometry.hh"
 
 using namespace Jali;
 
@@ -32,7 +34,7 @@ int main(int argc, char *argv[]) {
   FrameworkPreference pref;
   pref.push_back(Simple);
 
-  std::unique_ptr<Mesh> mymesh;  // Pointer to a mesh object
+  std::shared_ptr<Mesh> mymesh;  // Pointer to a mesh object
   if (framework_available(Simple)) {  // check if framework is available
     mesh_factory.preference(pref);
 
@@ -43,7 +45,8 @@ int main(int argc, char *argv[]) {
     // true)
     // mymesh = mesh_factory(0.0, 1.0, 11, NULL, true, true, true, true);
     std::vector<double> node_coords = {0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 1.0};
-    mymesh = mesh_factory(node_coords, NULL, true, true, true, true, SPHERICAL);
+    mymesh = mesh_factory(node_coords, NULL, true, true, true, true,
+                          JaliGeometry::SPHERICAL);
     //    mymesh->set_geom_type(SPHERICAL);
   }
 
