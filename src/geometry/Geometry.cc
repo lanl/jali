@@ -2,8 +2,6 @@
 
 #include "Geometry.hh"
 
-using namespace std;
-
 
   namespace JaliGeometry
   {
@@ -25,15 +23,15 @@ using namespace std;
     //
     // The volume of all polyhedra except tets is computed as a sum of
     // volumes of tets created by connecting the polyhedron center to
-    // a face center and an edge of the face      
+    // a face center and an edge of the face
 
 
-    void polyhed_get_vol_centroid(const std::vector<Point> ccoords, 
-				  const unsigned int nf, 
-				  const std::vector<unsigned int> nfnodes,
-				  const std::vector<Point> fcoords,
-				  double *volume,
-				  Point *centroid)
+    void polyhed_get_vol_centroid(const std::vector<Point> ccoords,
+                                  const unsigned int nf,
+                                  const std::vector<unsigned int> nfnodes,
+                                  const std::vector<Point> fcoords,
+                                  double *volume,
+                                  Point *centroid)
     {
       Point v1(3), v2(3), v3(3);
       bool negvol = false;
@@ -43,16 +41,16 @@ using namespace std;
 
       centroid->set(0.0);
       (*volume) = 0.0;
-	
+
       // Compute the geometric center of all face nodes
 
       int np = ccoords.size();
       if (np < 4) {
-	cout << "Not a polyhedron" << std::endl;
-	return;
+        std::cout << "Not a polyhedron" << std::endl;
+        return;
       }
 
-      if (np == 4) { // is a tetrahedron
+      if (np == 4) {  // is a tetrahedron
 
         *centroid = (ccoords[0]+ccoords[1]+ccoords[2]+ccoords[3])/4.0;
         v1 = ccoords[1]-ccoords[0];
@@ -60,83 +58,82 @@ using namespace std;
         v3 = ccoords[3]-ccoords[0];
         *volume = (v1^v2)*v3;
 
-      }
-      else { // if (np > 4), polyhedron with possibly curved faces
+      } else {  // if (np > 4), polyhedron with possibly curved faces
 
-	Point center(0.0,0.0,0.0);
-	for (int i = 0; i < np; i++)
-	  center += ccoords[i];
-	center /= np;
+        Point center(0.0, 0.0, 0.0);
+        for (int i = 0; i < np; ++i)
+          center += ccoords[i];
+        center /= np;
 
-	int offset = 0;
-	for (int i = 0; i < nf; i++) {
+        int offset = 0;
+        for (int i = 0; i < nf; ++i) {
           Point tcentroid(3);
           double tvolume;
 
           if (nfnodes[i] == 3) {
 
-              tcentroid = (center+fcoords[offset]+fcoords[offset+1]+fcoords[offset+2])/4.0;
+              tcentroid = (center+fcoords[offset]+fcoords[offset+1]+
+                           fcoords[offset+2])/4.0;
               v1 = fcoords[offset]-center;
               v2 = fcoords[offset+1]-center;
               v3 = fcoords[offset+2]-center;
               tvolume = (v1^v2)*v3;
-              
+
               if (tvolume <= 0.0) negvol = true;
 
               (*centroid) += tvolume*tcentroid;      // sum up 1st moment
               (*volume) += tvolume;                  // sum up 0th moment
 
-          }
-          else {
+          } else {
             // geometric center of all face nodes
-            
-            Point fcenter(0.0,0.0,0.0);
-            for (int j = 0; j < nfnodes[i]; j++)
+
+            Point fcenter(0.0, 0.0, 0.0);
+            for (int j = 0; j < nfnodes[i]; ++j)
               fcenter += fcoords[offset+j];
             fcenter /= nfnodes[i];
-            
-            for (int j = 0; j < nfnodes[i]; j++) { // for each edge of face
-              
+
+            for (int j = 0; j < nfnodes[i]; ++j) {  // for each edge of face
+
               // form tet from edge of face, face center and cell center
-              
+
               int k, kp1;
-              
+
               k = offset+j;
               kp1 = offset+(j+1)%nfnodes[i];
-              
+
               tcentroid = (center+fcenter+fcoords[k]+fcoords[kp1])/4.0;
               v1 = fcoords[k]-center;
               v2 = fcoords[kp1]-center;
               v3 = fcenter-center;
               tvolume = (v1^v2)*v3;
-              
+
               if (tvolume <= 0.0) negvol = true;
 
               (*centroid) += tvolume*tcentroid;      // sum up 1st moment
               (*volume) += tvolume;                  // sum up 0th moment
-	    
-            } // for each edge of face
+
+            }  // for each edge of face
           }
 
-	  offset += nfnodes[i];
+          offset += nfnodes[i];
 
-	} // for each face
+        }  // for each face
 
 
-	(*centroid) /= (*volume);  // centroid = 1st moment / 0th moment
-      } // end if (np > 4)
+        (*centroid) /= (*volume);  // centroid = 1st moment / 0th moment
+      }  // end if (np > 4)
 
-      (*volume) /= 6; // Account for multiplier here rather than in
-                      // computation of each tet
+      (*volume) /= 6;  // Account for multiplier here rather than in
+                       // computation of each tet
 
-      if (negvol) { // one of the subtets was inverted. Label the volume
-                    // total as negative so that calling applications 
-                    // understand that this is an invalid element
+      if (negvol) {  // one of the subtets was inverted. Label the volume
+                     // total as negative so that calling applications
+                     // understand that this is an invalid element
         if (*volume > 0.0)
           (*volume) = -(*volume);
       }
- 
-    } // polyhed_get_vol_centroid
+
+    }  // polyhed_get_vol_centroid
 
 
 
@@ -153,23 +150,21 @@ using namespace std;
     // describes face 2 and so on
     //
     // Assuming that the polyhedron's faces can be broken into
-    // triangular subfaces, this routine checks that the test point 
-    // forms a positive volume with each triangular subface 
+    // triangular subfaces, this routine checks that the test point
+    // forms a positive volume with each triangular subface
 
 
     bool point_in_polyhed(const Point testpnt,
-                          const std::vector<Point> ccoords, 
-                          const unsigned int nf, 
+                          const std::vector<Point> ccoords,
+                          const unsigned int nf,
                           const std::vector<unsigned int> nfnodes,
-                          const std::vector<Point> fcoords)
-    {
+                          const std::vector<Point> fcoords) {
 
       int np = ccoords.size();
       if (np < 4) {
-	cout << "Not a polyhedron" << std::endl;
-	return false;
+        std::cout << "Not a polyhedron" << std::endl;
+        return false;
       }
-
 
       int offset = 0;
       for (int i = 0; i < nf; i++) {
@@ -178,54 +173,52 @@ using namespace std;
         double tvolume;
 
         if (nfnodes[i] == 3) {
-          
+
           v1 = fcoords[offset]-testpnt;
           v2 = fcoords[offset+1]-testpnt;
           v3 = fcoords[offset+2]-testpnt;
           tvolume = (v1^v2)*v3;
-          
+
           if (tvolume < 0.0)
             return false;
-        }
-        else {
+        } else {
 
           // geometric center of all face nodes
-	
-          Point fcenter(0.0,0.0,0.0);
+
+          Point fcenter(0.0, 0.0, 0.0);
           for (int j = 0; j < nfnodes[i]; j++)
             fcenter += fcoords[offset+j];
           fcenter /= nfnodes[i];
-	
 
-          for (int j = 0; j < nfnodes[i]; j++) { // for each edge of face
-	    
+          for (int j = 0; j < nfnodes[i]; ++j) {  // for each edge of face
+
             // form tet from edge of face, face center and test point
-            
+
             Point tcentroid(3);
             int k, kp1;
-            
+
             k = offset+j;
             kp1 = offset+(j+1)%nfnodes[i];
-            
+
             v1 = fcoords[k]-testpnt;
             v2 = fcoords[kp1]-testpnt;
             v3 = fcenter-testpnt;
             tvolume = (v1^v2)*v3;
-            
+
             if (tvolume < 0.0)
               return false;
-              
-          } // for each edge of face
-            
+
+          }  // for each edge of face
+
           offset += nfnodes[i];
         }
-            
-      } // for each face
+
+      }  // for each face
 
       return true;
 
 
-    } // point_in_polyhed
+    }  // point_in_polyhed
 
 
 
@@ -233,15 +226,15 @@ using namespace std;
     // point to the edges of the polygon and summing the moments of
     // the resulting triangles
     //
-    // Also, compute the "normal" of the polygon as the sum of the 
+    // Also, compute the "normal" of the polygon as the sum of the
     // area weighted normals of the triangular facets
     //
     // Cannot use the contour integral method as it might indicate that a
-    // self-intersecting polygon has positive volume. This situation 
+    // self-intersecting polygon has positive volume. This situation
     // might occur in dynamic meshes
 
     void polygon_get_area_centroid_normal(const std::vector<Point> coords,
-                                          double *area, Point *centroid, 
+                                          double *area, Point *centroid,
                                           Point *normal) {
 
       bool negvol = false;
@@ -253,44 +246,43 @@ using namespace std;
       unsigned int np = coords.size();
 
       if (np < 3) {
-	cout << "Degenerate polygon - area is zero" << std::endl;
-	return;
+        std::cout << "Degenerate polygon - area is zero" << std::endl;
+        return;
       }
 
       int dim = coords[0].dim();
 
       Point center(dim);
-	
-      // Compute a center point 
-      
+
+      // Compute a center point
+
       for (int i = 0; i < np; i++)
         center += coords[i];
       center /= np;
-      
-      if (coords.size() == 3) { // triangle - straightforward
+
+      if (coords.size() == 3) {  // triangle - straightforward
         Point v1 = coords[2]-coords[1];
         Point v2 = coords[0]-coords[1];
-        
+
         (*normal) = 0.5*v1^v2;
-        
+
         (*area) = norm(*normal);
-        (*centroid) = center;   
-      }
-      else {
+        (*centroid) = center;
+      } else {
         // Compute the area of each triangle formed by
         // the center point and each polygon edge
-	
+
         *area = 0.0;
         for (int i = 0; i < np; i++) {
           Point v1 = coords[i]-center;
           Point v2 = coords[(i+1)%np]-center;
-	  
+
           Point v3 = 0.5*v1^v2;
-	  
+
           double area_temp = norm(v3);
 
           // In 2D, if the cross-product is negative, the element is inverted
-          // In 3D, validity is a lot more subtle - a polygon in 3D is 
+          // In 3D, validity is a lot more subtle - a polygon in 3D is
           // "inverted" if its normal deviates "substantially" from the
           // average normal of the "surface" in that neighborhood - we won't
           // deal with that judgement here
@@ -302,20 +294,19 @@ using namespace std;
           (*area) += area_temp;
           (*centroid) += area_temp*(coords[i]+coords[(i+1)%np]+center)/3.0;
         }
-        
+
         (*centroid) /= (*area);
       }
-      
-      if (negvol) { // one of the subtris was inverted or degenerate.
-                    // Label the volume total as negative so that
-                    // calling applications understand that this is an
-                    // invalid element
+
+      if (negvol) {  // one of the subtris was inverted or degenerate.
+                     // Label the volume total as negative so that
+                     // calling applications understand that this is an
+                     // invalid element
         if (*area > 0.0)
           (*area) = -(*area);
       }
-      
-    } // polygon_get_area_centroid
-  
+
+    }  // polygon_get_area_centroid
 
 
     // Get area weighted normal of polygon
@@ -327,7 +318,8 @@ using namespace std;
     // {
 
     //   if (coords.size() < 3) {
-    //     std::cout << "Degenerate polygon - Cannot compute normal" << std::endl;	
+    //     std::cout << "Degenerate polygon - Cannot compute normal"
+    //               << std::endl;
     //     Point dummynormal(0,0,0);
     //     return dummynormal;
     //   }
@@ -360,19 +352,19 @@ using namespace std;
     //       // compute sum of area weighted normals of each triangular facet
 
     //       Point center(dim);
-	
-    //       // Compute a center point 
-      
+
+    //       // Compute a center point
+
     //       for (int i = 0; i < np; i++)
     //         center += coords[i];
     //       center /= np;
-      
+
     //       for (int i = 0; i < np; i++) {
     //         Point v1 = coords[i]-center;
     //         Point v2 = coords[(i+1)%np]-center;
-            
+
     //         Point v3 = v1^v2;
-	  
+
     //         normal += 0.5*v3;
     //       }
     //     }
@@ -389,22 +381,24 @@ using namespace std;
 
     // Check if point is in polygon by Jordan's crossing algorithm
 
-    bool point_in_polygon(const Point testpnt, const std::vector<Point> coords)
-    {
+    bool point_in_polygon(const Point testpnt,
+                          const std::vector<Point> coords) {
       int i, ip1, c;
 
       /* Basic test - will work for strictly interior and exterior points */
 
       int np = coords.size();
 
-      double x = testpnt.x(); 
+      double x = testpnt.x();
       double y = testpnt.y();
 
       for (i = 0, c = 0; i < np; i++) {
         ip1 = (i+1)%np;
         if (((coords[i].y() > y && coords[ip1].y() <= y) ||
              (coords[ip1].y() > y && coords[i].y() <= y)) &&
-            (x <= (coords[i].x() + (y-coords[i].y())*(coords[ip1].x()-coords[i].x())/(coords[ip1].y()-coords[i].y()))))
+            (x <= (coords[i].x() + (y-coords[i].y())
+                   *(coords[ip1].x()-coords[i].x())
+                   /(coords[ip1].y()-coords[i].y()))))
           c = !c;
       }
 
@@ -418,12 +412,12 @@ using namespace std;
 
 
   void segment_get_vol_centroid(const std::vector<Point> ccoords,
-                                Jali::Geom_type my_geom_type,
+                                Geom_type my_geom_type,
                                 double *volume, Point* centroid) {
-    if (my_geom_type == Jali::CARTESIAN) {
+    if (my_geom_type == CARTESIAN) {
       *volume = norm(ccoords[1]-ccoords[0]);
       *centroid = 0.5*(ccoords[1]+ccoords[0]);
-    } else if (my_geom_type == Jali::SPHERICAL) {
+    } else if (my_geom_type == SPHERICAL) {
       *volume = 4.0*M_PI*(pow(ccoords[1].x(), 3) -
                           pow(ccoords[0].x(), 3)) / 3.0;
       *centroid = 0.5*(ccoords[1]+ccoords[0]);
@@ -431,17 +425,17 @@ using namespace std;
   }
 
   void face1d_get_area(const std::vector<Point> fcoords,
-                       Jali::Geom_type my_geom_type,
+                       Geom_type my_geom_type,
                        double *area) {
-    if (my_geom_type == Jali::CARTESIAN) {
+    if (my_geom_type == CARTESIAN) {
       *area = 1.0;
-    } else if (my_geom_type == Jali::SPHERICAL) {
+    } else if (my_geom_type == SPHERICAL) {
       *area = 4.0*M_PI*pow(fcoords[0].x(), 2);
     }
 
   }
 
-  } // end namespace JaliGeometry
+  }  // namespace JaliGeometry
 
 
 
