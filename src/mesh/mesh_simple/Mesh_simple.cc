@@ -188,11 +188,11 @@ void Mesh_simple::update_internals_1d_() {
     int istart = faces_per_cell_ * cell_index_(ix);
     int jstart = 0;
 
-    cell_to_face_[istart]  = yzface_index_(ix+1);
-    cell_to_face_[istart+1]  = yzface_index_(ix);
+    cell_to_face_[istart]   = yzface_index_(ix);
+    cell_to_face_[istart+1] = yzface_index_(ix+1);
 
-    cell_to_face_dirs_[istart] = 1;
-    cell_to_face_dirs_[istart+1] = -1;
+    cell_to_face_dirs_[istart] = -1;
+    cell_to_face_dirs_[istart+1] = 1;
 
     jstart = 2*yzface_index_(ix+1);
     face_to_cell_[jstart+1] = cell_index_(ix);
