@@ -104,7 +104,7 @@ class Mesh {
        const bool request_edges = false,
        const bool request_wedges = false,
        const bool request_corners = false,
-       const int num_tiles = 0,
+       const int num_tiles_ini = 0,
        const MPI_Comm incomm = MPI_COMM_WORLD) :
       spacedim(3), celldim(3), mesh_type_(Mesh_type::GENERAL),
       cell_geometry_precomputed(false), face_geometry_precomputed(false),
@@ -112,7 +112,7 @@ class Mesh {
       corner_geometry_precomputed(false),
       faces_requested(request_faces), edges_requested(request_edges),
       wedges_requested(request_wedges), corners_requested(request_corners),
-      tiles_requested(num_tiles > 0), num_tiles_(num_tiles),
+      num_tiles_ini_(num_tiles_ini), num_halo_layers_(1),
       cell2face_info_cached(false), face2cell_info_cached(false),
       cell2edge_info_cached(false), face2edge_info_cached(false),
       wedge_info_cached(false), corner_info_cached(false),
@@ -125,10 +125,7 @@ class Mesh {
       edges_requested = true;
     }
 
-      std::cerr << "Num tiles requested " << num_tiles_ << std::endl;
-    if (tiles_requested) {
-      meshtiles.resize(num_tiles_);
-    }
+    std::cerr << "Num tiles requested " << num_tiles_ini_ << std::endl;
   }
 
   //! destructor
@@ -293,7 +290,7 @@ class Mesh {
 
   //! Number of mesh tiles (on a compute node)
 
-  int num_tiles() {return meshtiles.size();}
+  int num_tiles() const {return meshtiles.size();}
 
   //! Nodes of mesh (of a particular parallel type OWNED, GHOST or ALL)
 
@@ -324,6 +321,30 @@ class Mesh {
 
   template<Parallel_type ptype = Parallel_type::ALL>
   const std::vector<Entity_ID> & cells() const;
+
+
+  // Master tile ID for entities
+
+  int master_tile_ID_of_node(Entity_ID const nodeid) const {
+    return tiles_initialized_ ? node_master_tile_ID_[nodeid] : -1;
+  }
+  int master_tile_ID_of_edge(Entity_ID const edgeid) const {
+    return tiles_initialized_ ? edge_master_tile_ID_[edgeid] : -1;
+  }
+  int master_tile_ID_of_face(Entity_ID const faceid) const {
+    return tiles_initialized_ ? face_master_tile_ID_[faceid] : -1;
+  }
+  int master_tile_ID_of_cell(Entity_ID const cellid) const {
+    return tiles_initialized_ ? cell_master_tile_ID_[cellid] : -1;
+  }
+  int master_tile_ID_of_wedge(Entity_ID const wedgeid) const {
+    return (tiles_initialized_ ?
+            cell_master_tile_ID_[wedge_get_cell(wedgeid)] : -1);
+  }
+  int master_tile_ID_of_corner(Entity_ID const cornerid) const {
+    return (tiles_initialized_ ?
+            cell_master_tile_ID_[corner_get_cell(cornerid)] : -1);
+  }
 
 
   //
@@ -997,7 +1018,7 @@ class Mesh {
                    std::array<double, (std::size_t)6> *data) {return false;}
 
 
- protected:
+ protected:   // ??? shouldn't this private? We have two protected sections?
 
   // The following methods are declared const since they do not modify the
   // mesh but just modify cached variables declared as mutable
@@ -1031,6 +1052,34 @@ class Mesh {
   void cache_corner_info() const;
 
   void build_tiles();
+  void add_tile(std::shared_ptr<MeshTile> tile2add);
+  void init_tiles();
+  int get_new_tile_ID() const { return meshtiles.size(); }
+
+  // Set master tile ID for entities
+
+  void set_master_tile_ID_of_node(Entity_ID const nodeid,
+                                 int const tileid) {
+    node_master_tile_ID_[nodeid] = tileid;
+  }
+  void set_master_tile_ID_of_edge(Entity_ID const edgeid,
+                                 int const tileid) {
+    edge_master_tile_ID_[edgeid] = tileid;
+  }
+  void set_master_tile_ID_of_face(Entity_ID const faceid,
+                                 int const tileid) {
+    face_master_tile_ID_[faceid] = tileid;
+  }
+  void set_master_tile_ID_of_cell(Entity_ID const cellid,
+                                 int const tileid) {
+    cell_master_tile_ID_[cellid] = tileid;
+  }
+  void set_master_tile_ID_of_wedge(Entity_ID const wedgeid,
+                                   int const tileid) {}
+  void master_tile_ID_of_corner(Entity_ID const cornerid,
+                                int const tileid) {}
+
+
 
   // Data
 
@@ -1041,9 +1090,12 @@ class Mesh {
   // List of MeshTiles (A meshtile is a list of cell indices that will be
   // processed together)
 
-  const bool tiles_requested;
-  const int num_tiles_;
+  const int num_tiles_ini_;
+  const int num_halo_layers_;
+  bool tiles_initialized_ = false;
   std::vector<std::shared_ptr<MeshTile>> meshtiles;
+  std::vector<int> node_master_tile_ID_, edge_master_tile_ID_;
+  std::vector<int> face_master_tile_ID_, cell_master_tile_ID_;
 
   // Some geometric quantities
 
@@ -1128,6 +1180,50 @@ class Mesh {
   //! methods for retrieving and storing mesh fields
 
   friend class State;
+
+  //! Make the MeshTile class a friend so it can access protected functions
+  //! for getting a new tile ID
+
+  friend class MeshTile;
+
+  // Make the make_meshtile function a friend so that it can access
+  // the protected functions init_tiles and add_tile
+
+  friend
+  std::shared_ptr<MeshTile> make_meshtile(Mesh& parent_mesh,
+                                          std::vector<Entity_ID> const& cells,
+                                          int const num_halo_layers,
+                                          bool const request_faces,
+                                          bool const request_edges,
+                                          bool const request_wedges,
+                                          bool const request_corners);
+
+ private:
+
+  /// Method to get partitioning of a mesh into num parts
+
+  void get_partitioning(int const num_parts,
+                        Partitioner_type const parttype,
+                        std::vector<std::vector<int>> *partitions);
+
+  /// Method to get crude partitioning by chopping up the index space
+
+  void get_partitioning_by_index_space(int const num_parts,
+                                       std::vector<std::vector<int>> *partitions);
+
+  /// Method to get partitioning of a mesh into num parts using METIS
+
+#ifdef Jali_HAVE_METIS
+  void get_partitioning_with_metis(int const num_parts,
+                                   std::vector<std::vector<int>> *partitions);
+#endif
+
+  /// Method to get partitioning of a mesh into num parts using ZOLTAN
+
+#ifdef Jali_HAVE_ZOLTAN
+  void get_partitioning_with_zoltan(int const num_parts,
+                                    std::vector<std::vector<int>> *partitions);
+#endif
 
 };  // End class Mesh
 

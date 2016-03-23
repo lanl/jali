@@ -8,6 +8,7 @@
 
 #include <vector>
 #include <algorithm>
+#include <memory>
 
 #include "mpi.h"
 
@@ -22,17 +23,19 @@ namespace Jali {
   Mesh tiles are small groupings of mesh cells on a compute node and
   are typically obtained by partitioning the full mesh on a compute
   node. They are lightweight structures that are merely lists of cells
-  that are in a partition. Mesh tiles include ghost nodes at the
-  compute node level (i.e. MPI level) BUT TYPICALLY ARE NOT EXPECTED
-  TO INCLUDE GHOST CELLS (although they can).
+  that are in a partition. 
   
   Meshtiles are a way for the work on a mesh to be broken up into
   manageable, parallely executable chunks.
   
+  Meshtiles can have a layer of halo or ghost cells for ease of
+  computations.  Note that ghost cells of a meshtile may or may not be
+  an MPI ghost (Parallel_type::GHOST)
+
   **** IMPORTANT NOTE ABOUT CONSTANTNESS OF THIS CLASS ****
   Instantiating a const version of this class only guarantees that
   the underlying mesh topology and geometry does not change (the
-  public interfaces conforms strictly to this definition). However,
+  public interface conforms strictly to this definition). However,
   for purposes of memory savings we use lazy initialization and
   caching of face data, edge data, geometry quantities, columns etc.,
   which means that these data may still change. We also cannot
@@ -55,11 +58,21 @@ class MeshTile {
  public:
 
   /// @brief Constructor
+  // 
+  // NOTE - should we make this private and only allow Mesh to
+  // call it as a friend? MeshTile can send a reference to itself to the
+  // parent_mesh so that it can be added to the list of tiles. I ran into
+  // C++ trouble when trying to do this so I will need C++ guru help
+  
 
-  MeshTile(Mesh const & parent_mesh, std::vector<Entity_ID> const meshcells,
-           bool const request_faces = true, bool const request_edges = false,
+  MeshTile(Mesh& parent_mesh,
+           std::vector<Entity_ID> const& meshcells_owned,
+           int const num_halo_layers = 0,
+           bool const request_faces = true,
+           bool const request_edges = false,
            bool const request_wedges = false,
            bool const request_corners = false);
+
 
   /// @brief Copy Constructor - deleted
 
@@ -77,6 +90,12 @@ class MeshTile {
 
   Mesh const & mesh() {
     return mesh_;
+  }
+
+  /// @brief IDentifier for the tile
+
+  int ID() const {
+    return mytileid_;
   }
 
   //
@@ -180,7 +199,9 @@ class MeshTile {
 
   // Data
 
-  Mesh const & mesh_;
+  Mesh& mesh_;
+
+  unsigned int const mytileid_;
 
   std::vector<Entity_ID> nodeids_owned_, nodeids_ghost_, nodeids_all_;
   std::vector<Entity_ID> edgeids_owned_, edgeids_ghost_, edgeids_all_;
@@ -190,12 +211,15 @@ class MeshTile {
   std::vector<Entity_ID> cellids_owned_, cellids_ghost_, cellids_all_;
   std::vector<Entity_ID> dummy_list_;
 
+  
+
   // Make the State class a friend so that it can access protected
   // methods for retrieving and storing mesh fields
 
   friend class State;
 
-}; // End class MeshTile
+
+};  // End class MeshTile
 
 
 
@@ -515,15 +539,16 @@ const std::vector<Entity_ID> & MeshTile::cells<Parallel_type::ALL>() const {
 // that Mesh.hh can use a forward declaration of MeshTile and this
 // function to create new tiles
 
-std::shared_ptr<MeshTile> make_meshtile(Mesh const & parent_mesh,
-                                        const std::vector<Entity_ID> & cells,
-                                        const bool request_faces,
-                                        const bool request_edges,
-                                        const bool request_wedges,
-                                        const bool request_corners);
+std::shared_ptr<MeshTile> make_meshtile(Mesh& parent_mesh,
+                                        std::vector<Entity_ID> const& cells,
+                                        int const num_halo_layers,
+                                        bool const request_faces,
+                                        bool const request_edges,
+                                        bool const request_wedges,
+                                        bool const request_corners);
 
 
-} // end namespace Jali
+}  // end namespace Jali
 
 
 

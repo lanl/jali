@@ -16,12 +16,13 @@ Mesh_simple::Mesh_simple (double x0, double y0, double z0,
                           const bool request_edges,
                           const bool request_wedges,
                           const bool request_corners,
-                          const int num_tiles) :
+                          const int num_tiles_ini) :
     nx_(nx), ny_(ny), nz_(nz),
     x0_(x0), x1_(x1),
     y0_(y0), y1_(y1),
     z0_(z0), z1_(z1),
-  Mesh(request_faces, request_edges, request_wedges, request_corners, num_tiles)
+  Mesh(request_faces, request_edges, request_wedges, request_corners,
+       num_tiles_ini)
 {
   Mesh::set_mesh_type(Mesh_type::RECTANGULAR);
   if (gm != (JaliGeometry::GeometricModelPtr) NULL)
@@ -109,7 +110,7 @@ void Mesh_simple::update ()
 {
   clear_internals_ ();
   update_internals_ ();
-  if (Mesh::tiles_requested)
+  if (Mesh::num_tiles_ini_ > 0)
     Mesh::build_tiles();     // Base class method
 }
 
@@ -697,7 +698,7 @@ void Mesh_simple::cell_get_node_adj_cells(const Jali::Entity_ID cellid,
     unsigned int offset2 = (unsigned int) 9*nodeid;
     unsigned int ncell = node_to_cell_[offset2];
 
-    for (int j = 0; j < 8; j++) {
+    for (int j = 1; j < 9; j++) {
       Entity_ID nodecell = node_to_cell_[offset2+j];
 
       unsigned int found = 0;

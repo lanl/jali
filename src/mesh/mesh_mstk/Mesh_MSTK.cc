@@ -27,9 +27,9 @@ Mesh_MSTK::Mesh_MSTK(const char *filename, const MPI_Comm& incomm,
                      const bool request_edges,
                      const bool request_wedges,
                      const bool request_corners,
-                     const int num_tiles) :
+                     const int num_tiles_ini) :
     Mesh(request_faces, request_edges, request_wedges, request_corners,
-         num_tiles, incomm),
+         num_tiles_ini, incomm),
     mpicomm(incomm), meshxyz(NULL),
     faces_initialized(false), edges_initialized(false),
     target_cell_volumes(NULL), min_cell_volumes(NULL) {
@@ -3253,7 +3253,7 @@ void Mesh_MSTK::post_create_steps_() {
 
   cache_extra_variables();
 
-  if (Mesh::tiles_requested)
+  if (Mesh::num_tiles_ini_)
     Mesh::build_tiles();
 }
 
