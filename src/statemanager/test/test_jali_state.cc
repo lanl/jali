@@ -326,7 +326,7 @@ TEST(Jali_State_Define_MeshTiles) {
   std::vector<double> zeroscalar2(MAX_CORNERS_PER_TILE_ALL, 0.0);
   std::array<double, 3> temparray = {0.0, 0.0, 0.0};
   std::vector<std::array<double, 3>> zeroarray3(MAX_CELLS_PER_TILE_ALL,
-                                                {0.0, 0.0, 0.0});
+                                                temparray);
 
 
   // Create a state object
