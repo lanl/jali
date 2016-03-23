@@ -175,6 +175,7 @@ void Mesh::cache_wedge_info() const {
       cell_get_nodes(c, &nodeids);
 
       cell_wedge_ids[c].push_back(wedgeid);
+      cell_wedge_ids[c].push_back(wedgeid+1);
       node_wedge_ids[nodeids[0]].push_back(wedgeid);
       node_wedge_ids[nodeids[1]].push_back(wedgeid+1);
 
