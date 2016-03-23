@@ -28,9 +28,6 @@ int main(int argc, char *argv[]) {
   MPI_Comm comm = MPI_COMM_WORLD;
   MeshFactory mesh_factory(comm);
 
-  // Specify that MSTK is the preferred mesh framework. Currently Jali is
-  // compiled only with MSTK support
-
   FrameworkPreference pref;
   pref.push_back(Simple);
 
