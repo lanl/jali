@@ -291,7 +291,7 @@ TEST(Jali_State_Enum) {
 
   Jali::State::const_iterator itc;
 
-  // Make sure we can retrieve the object by name
+  // Make sure we can retrieve the object by enum type
 
   itc = mystate.find(FieldNames::cellvars,Jali::CELL);
   CHECK(mystate.end() != itc);
