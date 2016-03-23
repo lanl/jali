@@ -6,11 +6,6 @@
 #ifndef JALI_STATE_VECTOR_H_
 #define JALI_STATE_VECTOR_H_
 
-/*!
-  @class StateVector jali_state_vector.h
-  @brief StateVector stores state data for entities in a mesh, mesh tile or mesh subset
-*/
-
 #include <iostream>
 #include <iterator>
 #include <vector>
@@ -44,6 +39,14 @@ class BaseStateVector {
                            Parallel_type const parallel_type) :
       myname_(name), on_what_(on_what), parallel_type_(parallel_type) {}
 
+  //! Constructor using int/enum as identifier instead of string
+
+  BaseStateVector(int const identifier,
+                  Entity_kind const on_what,
+                  Parallel_type const parallel_type) :
+      myname_(int_to_string(identifier)), on_what_(on_what),
+      parallel_type_(parallel_type) {}
+
   //! Destructor
 
   virtual ~BaseStateVector() {}
@@ -55,7 +58,14 @@ class BaseStateVector {
   virtual int size() const = 0;
   virtual const std::type_info& get_type() = 0;
 
-  /// Name of BaseStateVector
+  //! Convert enum to string for identifying state vectors. Uses ~
+  //! (which should be forbidden in user-defined names) to avoid
+  //! potential collisions with string names if both are used.
+  static std::string int_to_string(int const identifier) {
+    return ("~" + std::to_string(static_cast<int64_t>(identifier)));
+  }
+
+  //! Query Metadata
 
   std::string name() const { return myname_; }
 
@@ -74,11 +84,18 @@ class BaseStateVector {
 };
 
 
-//! Templated class for state vectors with specific types.
-//! Provides some limited functionality of a std::vector while adding
-//! some additional meta-data like the mesh associated with this data.
-//!  @param on_what  Data corresponds to what type of entity in the Domain
-//!  @tparam DomainType  Mesh, Mesh Tile or Mesh Subset (coming soon)
+
+
+
+/*!
+  @class StateVector jali_state_vector.h
+  @brief StateVector stores state data for entities in a mesh, mesh tile or mesh subset
+
+  Templated class for state vectors with specific types.
+  Provides some limited functionality of a std::vector while adding
+  some additional meta-data like the mesh associated with this data.
+  @tparam DomainType  Mesh, Mesh Tile or Mesh Subset (coming soon)
+*/
 
 template <class T, class DomainType = Mesh>
 class StateVector : public BaseStateVector {
@@ -89,14 +106,35 @@ class StateVector : public BaseStateVector {
                                   Entity_kind::UNKNOWN_KIND,
                                   Parallel_type::PTYPE_UNKNOWN) {}
 
-  //! Meaningful constructor with data
+  /*!
+    @brief Meaningful constructor with data and a string identifier
+    @param name  String identifier of vector
+    @param on_what  Data corresponds to what type of entity in the Domain
+    @param parallel_type Whether data lives on OWNED, GHOST or ALL entities
+  */
   
   StateVector(std::string const name, std::shared_ptr<DomainType> domain,
               Entity_kind const on_what, Parallel_type const parallel_type,
               T const * const data) :
       BaseStateVector(name, on_what, parallel_type), mydomain_(domain) {
 
-    int num = mydomain_->num_entities(on_what_, parallel_type_);
+    int num = mydomain_->num_entities(on_what, parallel_type);
+    mydata_ = std::make_shared<std::vector<T>>(data, data+num);
+  }
+
+  /*!
+    @brief Meaningful constructor with data and a integer identifier
+    @param name  String identifier of vector
+    @param on_what  Data corresponds to what type of entity in the Domain
+    @param parallel_type Whether data lives on OWNED, GHOST or ALL entities
+  */
+  
+  StateVector(int const identifier, std::shared_ptr<DomainType> domain,
+              Entity_kind const on_what, Parallel_type const parallel_type,
+              T const * const data) :
+      BaseStateVector(identifier, on_what, parallel_type), mydomain_(domain) {
+
+    int num = mydomain_->num_entities(on_what, parallel_type);
     mydata_ = std::make_shared<std::vector<T>>(data, data+num);
   }
 
