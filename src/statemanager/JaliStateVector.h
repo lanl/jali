@@ -35,6 +35,12 @@ class BaseStateVector {
                   const std::shared_ptr<Mesh> mesh) :
       myname_(name), on_what_(on_what), mymesh_(mesh) {}
 
+  //! Constructor using int/enum as identifier instead of string
+
+  BaseStateVector(int const identifier, Entity_kind const on_what,
+                  const std::shared_ptr<Mesh> mesh) :
+      myname_(int_to_string(identifier)), on_what_(on_what), mymesh_(mesh) {}
+
   //! Destructor
 
   virtual ~BaseStateVector() {}
@@ -45,6 +51,13 @@ class BaseStateVector {
   virtual void* get_data() = 0;
   virtual int size() const = 0;
   virtual const std::type_info& get_type() = 0;
+
+  //! Convert enum to string for identifying state vectors. Uses ~ 
+  //! (which should be forbidden in user-defined names) to avoid
+  //! potential collisions with string names if both are used.
+  static std::string int_to_string(int const identifier) {
+    return ("~" + std::to_string(static_cast<long long>(identifier))); 
+  }
 
   //! Query Metadata
 
@@ -78,6 +91,19 @@ class StateVector : public BaseStateVector {
   StateVector(std::string const name, Entity_kind const on_what,
               const std::shared_ptr<Mesh> mesh, T* data) :
       BaseStateVector(name, on_what, mesh) {
+
+    int num = mesh->num_entities(on_what, ALL);
+    mydata_ = std::shared_ptr<std::vector<T>>(new std::vector<T>);
+    mydata_->resize(num);
+    std::copy(data, data+num, mydata_->begin());
+
+  }
+
+  //! Constructor with int/enum as identifier instead of string
+  
+  StateVector(int const identifier, Entity_kind const on_what,
+              const std::shared_ptr<Mesh> mesh, T* data) :
+      BaseStateVector(identifier, on_what, mesh) {
 
     int num = mesh->num_entities(on_what, ALL);
     mydata_ = std::shared_ptr<std::vector<T>>(new std::vector<T>);

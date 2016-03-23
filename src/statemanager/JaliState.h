@@ -106,7 +106,6 @@ class State {
   //! Number of state vectors
   int size() const {return state_vectors_.size();}
 
-
   //! \brief Find state vector
 
   //! Find iterator to state vector by name and what type of entity it
@@ -133,6 +132,15 @@ class State {
 
   }
 
+  //! Same as above, except find state vector by int/enum identifier 
+  //! (instead of string) and what type of entity it is on.
+  
+  iterator find(int const identifier,
+                Jali::Entity_kind const on_what) {
+  
+    return find(BaseStateVector::int_to_string(identifier), on_what);
+  }
+
   //! Find state vector by name and what type of entity it is on - const version
 
   //! Find const_iterator to state vector by name and what type of
@@ -157,6 +165,15 @@ class State {
     }
     return it;
 
+  }
+
+  //! Same as above (const version), except find state vector by int/enum
+  //! identifier (instead of string) and what type of entity it is on.
+
+  const_iterator find(int const identifier,
+                      Jali::Entity_kind const on_what) const {
+
+    return find(BaseStateVector::int_to_string(identifier), on_what);
   }
 
   //! \brief Get state vector
@@ -186,6 +203,17 @@ class State {
 
   //! \brief Get state vector
 
+  //! Same as above, except using int/enum identifier instead of string
+
+  template <class T>
+    bool get(int const identifier, Jali::Entity_kind const on_what,
+             StateVector<T> *vector) {
+ 
+    return get(BaseStateVector::int_to_string(identifier), on_what, vector);
+  } 
+
+  //! \brief Get state vector
+
   //! Get a shared_ptr to a statevector with the given name and
   //! particular entity kind it is on. The function returns true if
   //! such a vector was found; false otherwise. The caller must know
@@ -207,6 +235,15 @@ class State {
     else
       return false;
 
+  }
+
+  //! Same as above, except using int/enum identifier instead of string
+
+  template <class T>
+    bool get(int const identifier, Jali::Entity_kind const on_what,
+             std::shared_ptr<StateVector<T>> *vector_ptr) {
+
+    return get(BaseStateVector::int_to_string(identifier), on_what, vector_ptr);
   }
 
   //! \brief Add state vector
@@ -249,6 +286,18 @@ class State {
       return (*(std::static_pointer_cast<StateVector<T>>(*it)));
     }
 
+  };
+
+
+
+  //! Add a new state vector - returns reference to the added StateVector.
+  //! Same as above, except that it identifies using int/enum instead of string.
+
+  template <class T>
+    StateVector<T> & add(int const identifier,
+                         Jali::Entity_kind const on_what, T* data) {
+  
+    return add(BaseStateVector::int_to_string(identifier), on_what, data);
   };
 
 
