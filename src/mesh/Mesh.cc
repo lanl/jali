@@ -1235,8 +1235,6 @@ void Mesh::compute_wedge_geometry(Entity_ID const wedgeid,
 
     *facet_normal1 = posvol ? normal : -normal;
   } else if (celldim == 1) {
-    // unclear what the definitions of these normals are
-
     std::vector<JaliGeometry::Point> wcoords;
 
     // Get vertex coordinates of wedge

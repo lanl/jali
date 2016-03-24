@@ -554,24 +554,6 @@ struct FrameworkTraits {
     return result;
   }
 
-  /// Generate a 1d mesh from explicit arguments
-  // static Mesh *
-  // generate(const double& x0, const double& x1, 
-  //          const unsigned int& nx,
-  //          const MPI_Comm& comm,
-  //          const JaliGeometry::GeometricModelPtr& gm,
-  //          const bool request_faces, 
-  //          const bool request_edges,
-  //          const bool request_wedges,
-  //          const bool request_corners)
-  // {
-  //   Mesh *
-  //     result(new typename generate_mesh::type(x0, x1, nx, comm,
-  //                                             gm,
-  //                                             request_faces, request_edges,
-  //                                             request_wedges, request_corners));
-  //   return result;
-  // }
 
   // -------------------------------------------------------------
   // FrameworkTraits<M>::canextract
