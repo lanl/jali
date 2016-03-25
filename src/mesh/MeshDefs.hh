@@ -6,14 +6,15 @@
  * @file   MeshDefs.hh
  * @author William A. Perkins
  * @date Mon May  2 13:03:23 2011
- * 
+ *
  * @brief  Various definitions needed by Mesh
- * 
- * 
+ *
+ *
  */
 // -------------------------------------------------------------
 // Created May  2, 2011 by William A. Perkins
-// Last Change: Mon May  2 13:03:23 2011 by William A. Perkins <d3g096@PE10900.pnl.gov>
+// Last Change: Mon May  2 13:03:23 2011
+//              by William A. Perkins <d3g096@PE10900.pnl.gov>
 // -------------------------------------------------------------
 
 // SCCS ID: $Id$ Battelle PNL
@@ -27,8 +28,8 @@
 namespace Jali {
 
 // Necessary typedefs and enumerations
-      
-typedef int Entity_ID; 
+
+typedef int Entity_ID;
 typedef int Set_ID;
 typedef std::string Set_Name;
 typedef std::vector<Entity_ID> Entity_ID_List;
@@ -42,20 +43,11 @@ enum Mesh_type
   GENERAL        // general unstructured
 };
 
-// Mesh Geometry Type
-
-enum Geom_type
-{
-  CARTESIAN,
-  CYLINDRICAL,
-  SPHERICAL
-};
-
-// Cells (aka zones/elements) are the highest dimension entities in a mesh 
-// Nodes (aka vertices) are lowest dimension entities in a mesh 
+// Cells (aka zones/elements) are the highest dimension entities in a mesh
+// Nodes (aka vertices) are lowest dimension entities in a mesh
 // Faces in a 3D mesh are 2D entities, in a 2D mesh are 1D entities
-// BOUNDARY_FACE is a special type of entity that is need so that process 
-// kernels can define composite vectors (see src/data_structures) on 
+// BOUNDARY_FACE is a special type of entity that is need so that process
+// kernels can define composite vectors (see src/data_structures) on
 // exterior boundary faces of the mesh only
 //
 // Wedges are special subcell entities that are a simplicial
@@ -68,7 +60,7 @@ enum Geom_type
 // midpoint of the cell. There are two wedges associated with an edge
 // of cell face in 3D.
 //
-// Corners are also subcell entities that are associated uniquely with 
+// Corners are also subcell entities that are associated uniquely with
 // a node of a cell. Each corner is the union of all the wedges incident
 // upon that node in the cell
 //
@@ -78,8 +70,7 @@ enum Geom_type
 // an edge that is shared by two wedges in adjacent cells
 //
 
-    
-enum Entity_kind 
+enum Entity_kind
 {
   ALL_KIND = -3,
   ANY_KIND = -2,
@@ -98,14 +89,14 @@ const int NUM_ENTITY_KINDS = 8;
 
 
 // Check if Entity_kind is valid
-inline 
+inline
 bool entity_valid_kind (const Entity_kind kind) {
   return (kind >= NODE && kind <= CELL);
 }
 
-// Parallel status of entity 
-    
-enum Parallel_type 
+// Parallel status of entity
+
+enum Parallel_type
 {
   PTYPE_UNKNOWN = 0, // Initializer
   OWNED = 1,         // Owned by this processor
@@ -115,14 +106,14 @@ enum Parallel_type
 
 // Check if Parallel_type is valid
 
-inline 
+inline
 bool entity_valid_ptype (const Parallel_type ptype) {
   return (ptype >= OWNED && ptype <= ALL);
 }
-    
+
 // Standard element types and catchall (POLYGON/POLYHED)
 
-enum Cell_type 
+enum Cell_type
 {
   CELLTYPE_UNKNOWN = 0,
   TRI = 1,
@@ -132,13 +123,13 @@ enum Cell_type
   PRISM,
   PYRAMID,
   HEX,
-  POLYHED                // Polyhedron 
+  POLYHED                // Polyhedron
 };
-    
+
 // Check if Cell_type is valid
-inline 
+inline
 bool cell_valid_type (const Cell_type type) {
-  return (type >= TRI && type <= POLYHED); 
+  return (type >= TRI && type <= POLYHED);
 }
 
 } // close namespace Jali

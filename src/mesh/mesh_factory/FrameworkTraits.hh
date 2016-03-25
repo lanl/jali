@@ -24,6 +24,7 @@
 #include "Mesh.hh"
 
 #include "GeometricModel.hh"
+#include "Geometry.hh"
 
 #include "errors.hh"
 #include "exceptions.hh"
@@ -79,6 +80,19 @@ framework_generate(const MPI_Comm& comm, const Framework& f,
                    const bool request_edges = false,
                    const bool request_wedges=false,
                    const bool request_corners=false);
+
+/// Generate a 1d mesh
+extern std::shared_ptr<Mesh>
+framework_generate(const MPI_Comm& comm, const Framework& f,
+                   const std::vector<double> x,
+                   const JaliGeometry::GeometricModelPtr& gm =
+                   (JaliGeometry::GeometricModelPtr) NULL,
+                   const bool request_faces = true,
+                   const bool request_edges = false,
+                   const bool request_wedges=false,
+                   const bool request_corners=false,
+                   const JaliGeometry::Geom_type
+                   geom_type=JaliGeometry::CARTESIAN);
 
 extern std::shared_ptr<Mesh>
 framework_extract(const MPI_Comm& comm, const Framework& f,
