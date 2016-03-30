@@ -69,6 +69,20 @@ if ( (ENABLE_Unstructured)  AND
 endif()    
 
 
+# Some defines to indicate which partitioners are enabled
+if (Jali_TPL_METIS_ENABLED)
+  message(STATUS "Adding definition Jali_HAVE_METIS")
+  add_definitions("-DJali_HAVE_METIS")
+endif(Jali_TPL_METIS_ENABLED)
+if (Jali_TPL_Zoltan_ENABLED)
+  message(STATUS "Adding definition Jali_HAVE_ZOLTAN")
+  add_definitions("-DJali_HAVE_ZOLTAN")
+endif(Jali_TPL_Zoltan_ENABLED)
+if ((NOT Jali_TPL_METIS_ENABLED) AND (NOT Jali_TPL_Zoltan_ENABLED))
+  message(STATUS "No partitioner enabled?")
+endif()
+
+
 # A property for accumulating the a global amanzi link line.
 set_property(GLOBAL PROPERTY Jali_LINK_LINE "-L${CMAKE_INSTALL_PREFIX}/lib")
 
