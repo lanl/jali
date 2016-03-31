@@ -5,9 +5,9 @@
 
 // Mesh class based on MSTK framework
 
-#include <mpi.h>
-
 #include "Mesh_MSTK.hh"
+
+#include <mpi.h>
 
 #include "dbc.hh"
 #include "errors.hh"

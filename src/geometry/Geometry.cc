@@ -1,7 +1,6 @@
-#include <math.h>
-
 #include "Geometry.hh"
 
+#include <math.h>
 
   namespace JaliGeometry
   {

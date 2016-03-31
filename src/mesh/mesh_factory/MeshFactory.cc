@@ -14,9 +14,10 @@
 
 static const char* SCCS_ID = "$Id$ Battelle PNL";
 
+#include "MeshFactory.hh"
+
 #include <boost/format.hpp>
 
-#include "MeshFactory.hh"
 #include "MeshFileType.hh"
 #include "FrameworkTraits.hh"
 #include "Geometry.hh"

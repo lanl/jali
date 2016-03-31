@@ -18,6 +18,8 @@
 
 static const char* SCCS_ID = "$Id$ Battelle PNL";
 
+#include "MeshFileType.hh"
+
 #include <boost/regex.hpp>
 #define BOOST_FILESYSTEM_NO_DEPRECATED
 #include <boost/filesystem.hpp>
@@ -28,7 +30,6 @@ namespace bfs = boost::filesystem;
 
 #include <fstream>
 
-#include "MeshFileType.hh"
 #include "MeshException.hh"
 
 namespace Jali {

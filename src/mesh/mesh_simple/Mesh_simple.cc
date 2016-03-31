@@ -1,8 +1,9 @@
+#include "Mesh_simple.hh"
+
 #include <algorithm>
 
 #include "mpi.h"   // only for MPI_COMM_WORLD in Mesh constructor
 
-#include "Mesh_simple.hh"
 #include "dbc.hh"
 #include "errors.hh"
 

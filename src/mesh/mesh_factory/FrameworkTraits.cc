@@ -15,6 +15,8 @@
 // Last Change: Tue Oct  4 06:14:05 2011 by William A. Perkins <d3g096@PE10900.pnl.gov>
 // -------------------------------------------------------------
 
+#include "FrameworkTraits.hh"
+
 #include <boost/format.hpp>
 
 #include <iostream>
@@ -24,8 +26,6 @@
 #include <boost/mpl/identity.hpp>
 
 namespace mpl = boost::mpl;
-
-#include "FrameworkTraits.hh"
 
 #include "MeshFramework.hh"
 #include "MeshFileType.hh"

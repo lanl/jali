@@ -3,13 +3,14 @@
 // All rights reserved. See Copyright notice in main directory
 //
 
+#include "MeshTile.hh"
+
 #include <mpi.h>
 
 #include <vector>
 #include <algorithm>
 #include <memory>
 
-#include "MeshTile.hh"
 
 #include "MeshDefs.hh"
 #include "Mesh.hh"

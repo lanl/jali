@@ -3,6 +3,8 @@
 // All rights reserved. See Copyright notice in main directory
 //
 
+#include "Mesh.hh"
+
 #ifdef Jali_HAVE_METIS
 #include "metis.h"
 #endif
@@ -14,7 +16,6 @@
 #include <math.h>
 #include <cmath>
 
-#include "Mesh.hh"
 #include "MeshTile.hh"
 
 #include "Geometry.hh"
