@@ -9,9 +9,10 @@
 #include <algorithm>
 #include <memory>
 
+#include "MeshTile.hh"
+
 #include "MeshDefs.hh"
 #include "Mesh.hh"
-#include "MeshTile.hh"
 
 namespace Jali {
 

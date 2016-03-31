@@ -7,9 +7,10 @@
 
 #include <mpi.h>
 
+#include "Mesh_MSTK.hh"
+
 #include "dbc.hh"
 #include "errors.hh"
-#include "Mesh_MSTK.hh"
 
 
 namespace Jali {
