@@ -59,7 +59,8 @@ set(BLAS_LIBRARIES @LAPACK_LIBRARIES@ CACHE FILEPATH "BLAS libraries")
 set(ENABLE_TESTS @ENABLE_TESTS@ CACHE BOOL "Build the tests")
 set(UnitTest_DIR @TPL_INSTALL_PREFIX@ CACHE PATH "UnitTest installation prefix")
 
-# METIS  
+# METIS
+set(ENABLE_METIS @ENABLE_METIS@ CACHE BOOL "ENABLE METIS Partitioning library")  
 set(METIS_DIR  @METIS_DIR@ CACHE PATH "METIS installation prefix")
 
 # CCSE
@@ -109,6 +110,11 @@ set(ENABLE_HYPRE @ENABLE_HYPRE@ CACHE BOOL "Enable HYPRE (Ifpack) solver interfa
 
 # Trilinos
 set(Trilinos_INSTALL_PREFIX @Trilinos_INSTALL_PREFIX@ CACHE PATH "Trilinos installation prefix")
+
+# Zoltan
+set(ENABLE_ZOLTAN @ENABLE_ZOLTAN@ CACHE BOOL "ENABLE Zoltan Partitioning library")  
+set(ZOLTAN_DIR  @Trilinos_INSTALL_PREFIX@ CACHE PATH "ZOLTAN installation prefix")
+
 
 # XERCES
 set(XERCES_DIR @TPL_INSTALL_PREFIX@ CACHE PATH "XERCES installation prefix")

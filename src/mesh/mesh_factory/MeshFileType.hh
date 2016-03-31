@@ -16,15 +16,18 @@
 #ifndef _MeshFileType_hh_
 #define _MeshFileType_hh_
 
+#include <string>
+
 #include "mpi.h"
 
 namespace Jali {
 
   /// Identifers for those file formats understood
-  enum Format { 
+  enum Format {
     UnknownFormat = 0,          /**< It's a mystery */
     ExodusII,                   /**< Exodus II format */
     Nemesis,                    /**< Exodus II format partitioned by Nemesis */
+    FLAGX3D,                    /**< X3D file format used by LANL/FLAG code */
     MOABHDF5                    /**< HDF5 format used by MOAB */
   };
 
@@ -35,11 +38,10 @@ namespace Jali {
   extern Format file_format(const MPI_Comm& comm, const char *name);
 
   /// Determine, if possible, the format of the specified file
-  inline Format file_format(const MPI_Comm& comm, const std::string& name)
-  {
+  inline Format file_format(const MPI_Comm& comm, const std::string& name) {
     return file_format(comm, name.c_str());
   }
 
-} // namespace Jali
+}  // namespace Jali
 
 #endif

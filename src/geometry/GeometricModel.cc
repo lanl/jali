@@ -3,10 +3,10 @@
  * @file   GeometricModel.cc
  * @author Rao V. Garimella
  * @date Mon Aug  1 10:05:25 2011
- * 
- * @brief  
- * 
- * 
+ *
+ * @brief
+ *
+ *
  */
 
 #include "GeometricModel.hh"
@@ -57,7 +57,7 @@ GeometricModel::GeometricModel(const GeometricModel& old) :
 //                                const VerboseObject *verbobj) :
 //   topo_dimension_(dim), verbosity_obj_(verbobj)
 // {
-  
+
 //   if (dim != 2 && dim != 3) {
 //     Errors::Message mesg("Only 2D and 3D domains are supported");
 //     Exceptions::Jali_throw(mesg);
@@ -65,13 +65,13 @@ GeometricModel::GeometricModel(const GeometricModel& old) :
 
 //   const int region_id_offset = 59049; // arbitrary number to avoid clashing
 //                                       // with IDs of LabeledSet regions
-//   int ngregions = 0; // Number of regions 
+//   int ngregions = 0; // Number of regions
 
 //   // Go through the parameter list and populate the geometric model with regions
 
 //   for (Teuchos::ParameterList::ConstIterator i = gm_params.begin(); i != gm_params.end(); i++)
 //     {
-//       if (gm_params.isSublist(gm_params.name(i))) 
+//       if (gm_params.isSublist(gm_params.name(i)))
 //         {
 
 //           // Region name - get that from parameter list
@@ -91,13 +91,13 @@ GeometricModel::GeometricModel(const GeometricModel& old) :
 //           // specification of what the region looks like
 
 //           unsigned int k = 0;
-//           for (Teuchos::ParameterList::ConstIterator j = reg_spec.begin(); j != reg_spec.end(); j++, k++) 
+//           for (Teuchos::ParameterList::ConstIterator j = reg_spec.begin(); j != reg_spec.end(); j++, k++)
 //             {
-          
-//               if (k > 1) 
+
+//               if (k > 1)
 //                 {
 //                   std::stringstream sstream;
-//                   sstream << "ERROR: Region " << region_name << 
+//                   sstream << "ERROR: Region " << region_name <<
 //                     " described in multiple ways";
 //                   Errors::Message mesg(sstream.str());
 //                   Exceptions::Jali_throw(mesg);
@@ -112,19 +112,19 @@ GeometricModel::GeometricModel(const GeometricModel& old) :
 
 //               // Create the region
 
-//               Jali::JaliGeometry::RegionPtr regptr = 
+//               Jali::JaliGeometry::RegionPtr regptr =
 //                 RegionFactory(region_name, region_id, reg_spec, dim, comm,
 //                               verbosity_obj());
-              
-              
+
+
 //               // Add it to the geometric model
-              
+
 //               Regions.push_back(regptr);
 
 //             }
-          
+
 //         }
-//       else 
+//       else
 //         {
 //           Errors::Message mesg("Error: Improper region specification");
 //           Exceptions::Jali_throw(mesg);
@@ -138,8 +138,8 @@ GeometricModel::GeometricModel(const GeometricModel& old) :
 GeometricModel::~GeometricModel(void)
 {
 
-  // If a geometric model is deleted, we will not delete all the 
-  // the regions added to it because someone else may be holding 
+  // If a geometric model is deleted, we will not delete all the
+  // the regions added to it because someone else may be holding
   // on to a pointer to the regions. For now, the top level routine
   // deleting the geometric model has to delete the regions first
   // to prevent a memory leak
@@ -153,7 +153,7 @@ GeometricModel::~GeometricModel(void)
 
 // Constructor with Region List
 
-GeometricModel::GeometricModel(const unsigned int dim, 
+GeometricModel::GeometricModel(const unsigned int dim,
                                const std::vector<RegionPtr>& in_Regions) :
   topo_dimension_(dim)
 {
@@ -185,7 +185,7 @@ int GeometricModel::Num_Regions(void) const
 
 // Get the i'th Region
 
-RegionPtr GeometricModel::Region_i(const int i) const 
+RegionPtr GeometricModel::Region_i(const int i) const
 {
   return Regions[i];
 }
@@ -204,7 +204,7 @@ RegionPtr GeometricModel::FindRegion(const int id) const
   //       return *r;
   //   }
 
-  for (int i = 0; i < Regions.size(); i++) 
+  for (int i = 0; i < Regions.size(); i++)
     {
       RegionPtr r = Regions[i];
       if (r->id() == id)
@@ -237,7 +237,7 @@ RegionPtr GeometricModel::FindRegion(const std::string name) const
 }
 
 
-// Check if regions cover the domain extents.  
+// Check if regions cover the domain extents.
 // This will work perfectly for domains with rectangular regions
 // but not so for other types of regions
 

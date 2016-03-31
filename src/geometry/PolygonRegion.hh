@@ -3,10 +3,10 @@
  * @file   PolygonRegion.hh
  * @author Rao Garimella
  * @date Wed Sep 28 08:54:19 2011
- * 
- * @brief  Declaration of PolygonRegion class 
- * 
- * 
+ *
+ * @brief  Declaration of PolygonRegion class
+ *
+ *
  */
 
 #ifndef _PolygonRegion_hh_
@@ -26,15 +26,15 @@ public:
 
   /// Default constructor uses two corner points (order not important).
 
-  PolygonRegion(const std::string name, const unsigned int id, 
-                const unsigned int npolypoints, 
-                const std::vector<Point>& polypoints, 
-                const LifeCycleType lifecycle=PERMANENT);
+  PolygonRegion(const std::string name, const unsigned int id,
+                const unsigned int npolypoints,
+                const std::vector<Point>& polypoints,
+                const LifeCycle_type lifecycle = LifeCycle_type::PERMANENT);
 
-  PolygonRegion(const char *name, const unsigned int id, 
-                const unsigned int npolypoints, 
-                const std::vector<Point>& polypoints, 
-                const LifeCycleType lifecycle=PERMANENT);
+  PolygonRegion(const char *name, const unsigned int id,
+                const unsigned int npolypoints,
+                const std::vector<Point>& polypoints,
+                const LifeCycle_type lifecycle = LifeCycle_type::PERMANENT);
 
 
   /// Protected copy constructor to avoid unwanted copies.
@@ -46,9 +46,9 @@ public:
 
   // Type of the region
   inline
-  RegionType type() const { return POLYGON; }
+  Region_type type() const { return Region_type::POLYGON; }
 
-  inline 
+  inline
   unsigned int num_points() const { return num_points_; }
 
   inline
@@ -61,14 +61,14 @@ public:
   bool inside(const Point& p) const;
 
 protected:
-  
+
   const unsigned int num_points_;    /* Number of points defining polygon */
   const std::vector<Point> points_;  /* Points of the polygon */
   Point normal_;                     /* Normal to the polygon */
   unsigned int elim_dir_;            /* Coord dir to eliminate while projecting
-                                        polygon for in/out tests 
-                                        0 - yz, eliminate x coord        
-                                        1 - xz, eliminate y coord        
+                                        polygon for in/out tests
+                                        0 - yz, eliminate x coord
+                                        1 - xz, eliminate y coord
                                         2 - xy, eliminate z coord        */
 
 private:

@@ -68,7 +68,7 @@ SUITE (MeshFramework)
     int nproc;
     MPI_Comm_size(MPI_COMM_WORLD, &nproc);
     bool parallel(nproc > 1);
-    
+
     Jali::MeshFactory mesh_factory(MPI_COMM_WORLD);
     Jali::FrameworkPreference pref(mesh_factory.preference());
 
@@ -78,13 +78,13 @@ SUITE (MeshFramework)
     check_preference(mesh_factory, Jali::STKMESH);
     check_preference(mesh_factory, Jali::MSTK);
   }
-    
+
   TEST (Generate)
   {
     int nproc;
     MPI_Comm_size(MPI_COMM_WORLD, &nproc);
     bool parallel(nproc > 1);
-        
+
     Jali::FrameworkPreference pref;
     std::shared_ptr<Jali::Mesh> mesh;
     Jali::MeshFactory mesh_factory(MPI_COMM_WORLD);
@@ -156,7 +156,7 @@ SUITE (MeshFramework)
     int nproc;
     MPI_Comm_size(MPI_COMM_WORLD, &nproc);
     bool parallel(nproc > 1);
-    
+
     Jali::FrameworkPreference pref;
     std::shared_ptr<Jali::Mesh> mesh;
     Jali::MeshFactory mesh_factory(MPI_COMM_WORLD);
@@ -221,7 +221,7 @@ SUITE (MeshFramework)
     int nproc;
     MPI_Comm_size(MPI_COMM_WORLD, &nproc);
     bool parallel(nproc > 1);
-    
+
     Jali::FrameworkPreference pref;
     std::shared_ptr<Jali::Mesh> mesh;
     Jali::MeshFactory mesh_factory(MPI_COMM_WORLD);
@@ -269,12 +269,12 @@ SUITE (MeshFramework)
     }
   }
 
-  TEST (ReadExodus) 
+  TEST (ReadExodus)
   {
     int nproc;
     MPI_Comm_size(MPI_COMM_WORLD, &nproc);
     bool parallel(nproc > 1);
-    
+
     std::shared_ptr<Jali::Mesh> mesh;
     Jali::MeshFactory mesh_factory(MPI_COMM_WORLD);
 
@@ -291,12 +291,12 @@ SUITE (MeshFramework)
     }
   }
 
-  TEST (ReadNemesis) 
+  TEST (ReadNemesis)
   {
     int nproc;
     MPI_Comm_size(MPI_COMM_WORLD, &nproc);
     bool parallel(nproc > 1);
-    
+
     std::shared_ptr<Jali::Mesh> mesh;
     Jali::MeshFactory mesh_factory(MPI_COMM_WORLD);
     if ((Jali::framework_available(Jali::STKMESH) ||
@@ -308,5 +308,5 @@ SUITE (MeshFramework)
       CHECK_THROW(mesh = mesh_factory(NEMESIS_TEST_FILE),
                   Jali::Message);
     }
-  }      
+  }
 }

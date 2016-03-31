@@ -2,19 +2,22 @@
 /**
  * @file   PointRegion.hh
  * @author Rao Garimella
- * @date 
- * 
+ * @date
+ *
  * @brief  Declaration of PointRegion class
- * 
- * 
+ *
+ *
  */
 
 #ifndef _PointRegion_hh_
 #define _PointRegion_hh_
 
+#include <string>
+
 #include "Region.hh"
 
-  namespace JaliGeometry {
+
+namespace JaliGeometry {
 
 // -------------------------------------------------------------
 //  class PointRegion
@@ -25,9 +28,9 @@ class PointRegion : public Region {
 public:
 
   PointRegion(const std::string name, const unsigned int id, const Point& p,
-              const LifeCycleType lifecycle=PERMANENT);
+              const LifeCycle_type lifecycle = LifeCycle_type::PERMANENT);
   PointRegion(const char *name, const unsigned int id, const Point& p,
-              const LifeCycleType lifecycle=PERMANENT);
+              const LifeCycle_type lifecycle = LifeCycle_type::PERMANENT);
 
   /// Protected copy constructor to avoid unwanted copies.
   PointRegion(const PointRegion& old);
@@ -36,7 +39,7 @@ public:
   ~PointRegion(void);
 
   // Type of the region
-  inline RegionType type() const { return POINT; }
+  inline Region_type type() const { return Region_type::POINT; }
 
   /// Get the point defining the region
   const Point& point(void) const { return p_; }
@@ -47,7 +50,7 @@ public:
   bool inside(const Point& p) const;
 
 protected:
-  
+
   const Point p_;              /* point */
 
 };

@@ -1,11 +1,11 @@
 /**
  * @file   PlaneRegion.cc
  * @author Rao Garimella
- * @date 
- * 
+ * @date
+ *
  * @brief  Implementation of PlaneRegion class
- * 
- * 
+ *
+ *
  */
 
 #include "PlaneRegion.hh"
@@ -21,10 +21,10 @@ namespace JaliGeometry {
 // -------------------------------------------------------------
 // PlaneRegion:: constructors / destructor
 // -------------------------------------------------------------
-PlaneRegion::PlaneRegion(const std::string name, 
+PlaneRegion::PlaneRegion(const std::string name,
 			 const unsigned int id,
 			 const Point& p, const Point& normal,
-                         const LifeCycleType lifecycle)
+                         const LifeCycle_type lifecycle)
   : Region(name,id,p.dim()-1,lifecycle), p_(p), n_(normal)
 {
 
@@ -39,7 +39,7 @@ PlaneRegion::PlaneRegion(const std::string name,
 
 PlaneRegion::PlaneRegion(const char *name, const unsigned int id,
 			 const Point& p, const Point& normal,
-                         const LifeCycleType lifecycle)
+                         const LifeCycle_type lifecycle)
   : Region(name,id,p.dim()-1,lifecycle), p_(p), n_(normal)
 {
 
@@ -60,7 +60,7 @@ PlaneRegion::PlaneRegion(const PlaneRegion& old)
 
 PlaneRegion::~PlaneRegion(void)
 {
-  
+
 }
 
 // -------------------------------------------------------------
@@ -82,7 +82,7 @@ PlaneRegion::inside(const Point& p) const
 
   double d(0.0), res(0.0);
 
-  for (int i = 0; i < p.dim(); ++i) 
+  for (int i = 0; i < p.dim(); ++i)
     {
       res += n_[i]*p[i];
       d += n_[i]*p_[i];

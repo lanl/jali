@@ -1,4 +1,7 @@
-/* -*-  mode: c++; c-default-style: "google"; indent-tabs-mode: nil -*- */
+//
+// Copyright Los Alamos National Security, LLC 2009-2015
+// All rights reserved. See Copyright notice in main directory
+//
 #ifndef _MESH_SIMPLE_H_
 #define _MESH_SIMPLE_H_
 
@@ -18,8 +21,7 @@ namespace Jali {
 
 class GenerationSpec;
 
-class Mesh_simple : public virtual Mesh
-{
+class Mesh_simple : public virtual Mesh {
 public:
 
   // the request_faces and request_edges arguments have to be at the
@@ -37,17 +39,22 @@ public:
 	       const bool request_faces = true,
 	       const bool request_edges = false,
                const bool request_wedges = false,
-               const bool request_corners = false);
+               const bool request_corners = false,
+               const int num_tiles_ini = 0);
 
   Mesh_simple (double x0, double y0,
-               double x1, double y1,
-               int nx, int ny, const MPI_Comm& communicator,
-               const JaliGeometry::GeometricModelPtr &gm =
+	       double x1, double y1,
+	       int nx, int ny, const MPI_Comm& communicator,
+	       const JaliGeometry::GeometricModelPtr &gm =
                (JaliGeometry::GeometricModelPtr) NULL,
-               const bool request_faces = true,
-               const bool request_edges = false,
+	       const bool request_faces = true,
+	       const bool request_edges = false,
                const bool request_wedges = false,
-               const bool request_corners = false);
+               const bool request_corners = false,
+               const int num_tiles_ini = 0,
+               const JaliGeometry::Geom_type geom_type =
+               JaliGeometry::Geom_type::CARTESIAN);
+
 
   Mesh_simple (std::vector<double> x, const MPI_Comm& communicator,
 	       const JaliGeometry::GeometricModelPtr &gm =
@@ -56,8 +63,9 @@ public:
 	       const bool request_edges = false,
                const bool request_wedges = false,
                const bool request_corners = false,
+               const int num_tiles_ini = 0,
                const JaliGeometry::Geom_type
-               geom_type = JaliGeometry::CARTESIAN);
+               geom_type = JaliGeometry::Geom_type::CARTESIAN);
 
   // Construct a mesh by extracting a subset of entities from another
   // mesh. In some cases like extracting a surface mesh from a volume
@@ -73,7 +81,8 @@ public:
 	      const bool request_faces = true,
 	      const bool request_edges = false,
               const bool request_wedges = false,
-              const bool request_corners = false);
+              const bool request_corners = false,
+              const int num_tiles = 0);
 
   Mesh_simple(const Mesh& inmesh,
               const std::vector<std::string>& setnames,
@@ -83,7 +92,8 @@ public:
 	      const bool request_faces = true,
 	      const bool request_edges = false,
               const bool request_wedges = false,
-              const bool request_corners = false);
+              const bool request_corners = false,
+              const int num_tiles = 0);
 
   Mesh_simple(const Mesh& inmesh,
               const std::vector<int>& entity_id_list,
@@ -93,7 +103,8 @@ public:
               const bool request_faces = true,
               const bool request_edges = false,
               const bool request_wedges = false,
-              const bool request_corners = false);
+              const bool request_corners = false,
+              const int num_tiles = 0);
 
   virtual ~Mesh_simple ();
 
@@ -105,15 +116,6 @@ public:
   // Get cell type
   Cell_type cell_get_type(const Entity_ID cellid) const;
 
-  //
-  // General mesh information
-  // -------------------------
-  //
-
-  // Number of entities of any kind (cell, face, node) and in a
-  // particular category (OWNED, GHOST, USED)
-  unsigned int num_entities(const Entity_kind kind,
-                            const Parallel_type ptype) const;
 
   // Global ID of any entity
   Entity_ID GID(const Entity_ID lid, const Entity_kind kind) const;
@@ -130,7 +132,7 @@ public:
   // On a distributed mesh, all nodes (OWNED or GHOST) of the cell
   // are returned
   // Nodes are returned in a standard order (Exodus II convention)
-  // STANDARD CONVENTION WORKS ONLY FOR STANDARD CELL TYPES in 3D
+  // STANDARD CONVENTION WORKS ONLY FOR STANDARD Entity_kind::CELL TYPES in 3D
   // For a general polyhedron this will return the nodes in
   // arbitrary order
   // In 2D, the nodes of the polygon will be returned in ccw order
@@ -221,7 +223,7 @@ public:
                             std::vector<JaliGeometry::Point> *fcoords) const;
 
   // Coordinates of cells in standard order (Exodus II convention)
-  // STANDARD CONVENTION WORKS ONLY FOR STANDARD CELL TYPES IN 3D
+  // STANDARD CONVENTION WORKS ONLY FOR STANDARD Entity_kind::CELL TYPES IN 3D
   // For a general polyhedron this will return the node coordinates in
   // arbitrary order
   // Number of nodes is vector size divided by number of spatial dimensions
@@ -451,7 +453,7 @@ private:
     return i;
   }
 
-} // close namespace Jali
+}  // close namespace Jali
 
 
 

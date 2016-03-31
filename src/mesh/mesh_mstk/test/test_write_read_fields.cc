@@ -25,7 +25,7 @@ class Mesh_MSTK_Test_Protected : public Mesh_MSTK {
                            const MPI_Comm& comm) :
       Mesh_MSTK(x0,y0,z0,x1,y1,z1,nx,ny,nz,comm) {
   }
-  
+
 
   // Destructor
 
@@ -59,7 +59,7 @@ class Mesh_MSTK_Test_Protected : public Mesh_MSTK {
   }
 
   template<long unsigned int N>
-  bool store_field(std::string field_name, Entity_kind on_what, 
+  bool store_field(std::string field_name, Entity_kind on_what,
                    std::array<double,N> *data) {
     return Mesh_MSTK::store_field(field_name, on_what, data);
   }
@@ -75,9 +75,9 @@ TEST(MSTK_WRITE_READ_FIELDS)
 
   std::string filename="hex_3x3x3_att.exo";
 
-  // Generate a mesh consisting of 3x3x3 elements 
+  // Generate a mesh consisting of 3x3x3 elements
 
-  Jali::Mesh_MSTK_Test_Protected *outmesh = 
+  Jali::Mesh_MSTK_Test_Protected *outmesh =
       new Jali::Mesh_MSTK_Test_Protected(0.0,0.0,0.0,1.0,1.0,1.0,3,3,3,
                                          MPI_COMM_WORLD);
 
@@ -91,7 +91,7 @@ TEST(MSTK_WRITE_READ_FIELDS)
     cellval1_out[i] = 2.0 + i*1.5; // make data general
 
   bool status;
-  status = outmesh->store_field("cellval1",Jali::CELL,cellval1_out);
+  status = outmesh->store_field("cellval1",Jali::Entity_kind::CELL,cellval1_out);
   CHECK(status);
 
   // Create a field of doubles on cells
@@ -100,18 +100,18 @@ TEST(MSTK_WRITE_READ_FIELDS)
   for (int i = 0; i < nc; i++)
     cellval2_out[i] = 2 + i*2; // make data general
 
-  status = outmesh->store_field("cellval2",Jali::CELL,cellval2_out);
+  status = outmesh->store_field("cellval2",Jali::Entity_kind::CELL,cellval2_out);
   CHECK(status);
-  
 
-  // Create a field of std::array<double,3> on nodes 
-  
+
+  // Create a field of std::array<double,3> on nodes
+
   std::array<double,3> *nodevec_out = new std::array<double,3>[nv];
-  for (int i = 0; i < nv; i++) 
+  for (int i = 0; i < nv; i++)
     for (int j = 0; j < 3; j++)
       nodevec_out[i][j] = 0.4*i+0.1*j;
 
-  status = outmesh->store_field("nodevec",Jali::NODE,nodevec_out);
+  status = outmesh->store_field("nodevec",Jali::Entity_kind::NODE,nodevec_out);
   CHECK(status);
 
   // Create a field of doubles on nodes
@@ -120,11 +120,11 @@ TEST(MSTK_WRITE_READ_FIELDS)
   for (int i = 0; i < nv; i++)
     nodeval_out[i] = 25.0*i;
 
-  status = outmesh->store_field("nodeval",Jali::NODE,nodeval_out);
+  status = outmesh->store_field("nodeval",Jali::Entity_kind::NODE,nodeval_out);
   CHECK(status);
 
 
-  // Write the mesh out 
+  // Write the mesh out
 
   outmesh->write_to_exodus_file(filename);
 
@@ -134,19 +134,20 @@ TEST(MSTK_WRITE_READ_FIELDS)
 
   // Now read the same mesh back in
 
-  Jali::Mesh_MSTK_Test_Protected *inmesh = 
+  Jali::Mesh_MSTK_Test_Protected *inmesh =
       new Jali::Mesh_MSTK_Test_Protected(filename.c_str(),MPI_COMM_WORLD,3);
   CHECK(inmesh);
 
-  CHECK_EQUAL(nv,inmesh->num_entities(Jali::NODE,Jali::ALL));
-  CHECK_EQUAL(nc,inmesh->num_entities(Jali::CELL,Jali::ALL));
+  int space_dim = inmesh->space_dimension();
+  CHECK_EQUAL(nv,inmesh->num_entities(Jali::Entity_kind::NODE,Jali::Parallel_type::ALL));
+  CHECK_EQUAL(nc,inmesh->num_entities(Jali::Entity_kind::CELL,Jali::Parallel_type::ALL));
 
   // Query the number of mesh fields on each entity type - 2 on cells,
   // 1 on nodes
 
   int ncellfields = 0;
   std::vector< std::string> cellvarnames, cellvartypes;
-  inmesh->get_field_info(Jali::CELL, &ncellfields, &cellvarnames, &cellvartypes);
+  inmesh->get_field_info(Jali::Entity_kind::CELL, &ncellfields, &cellvarnames, &cellvartypes);
   int nfound = 0;
   for (int i = 0; i < ncellfields; i++) {
     if (cellvarnames[i] == "cellval1") {
@@ -162,7 +163,7 @@ TEST(MSTK_WRITE_READ_FIELDS)
 
   int nnodefields = 0;
   std::vector<std::string> nodevarnames,nodevartypes;
-  inmesh->get_field_info(Jali::NODE, &nnodefields, &nodevarnames, &nodevartypes);
+  inmesh->get_field_info(Jali::Entity_kind::NODE, &nnodefields, &nodevarnames, &nodevartypes);
 
   nfound = 0;
   for (int i = 0; i < nnodefields; i++) {
@@ -178,22 +179,22 @@ TEST(MSTK_WRITE_READ_FIELDS)
   CHECK_EQUAL(2,nfound);
 
   double *cellval1_in = new double[nc];
-  status = inmesh->get_field("cellval1",Jali::CELL,cellval1_in);
+  status = inmesh->get_field("cellval1",Jali::Entity_kind::CELL,cellval1_in);
   CHECK(status);
   CHECK_ARRAY_EQUAL(cellval1_out,cellval1_in,nc);
 
   double *cellval2_in = new double[nc];
-  status = inmesh->get_field("cellval2",Jali::CELL,cellval2_in);
+  status = inmesh->get_field("cellval2",Jali::Entity_kind::CELL,cellval2_in);
   CHECK(status);
   CHECK_ARRAY_EQUAL(cellval2_out,cellval2_in,nc);
 
   std::array<double,3> *nodevec_in = new std::array<double,3>[nv];
-  status = inmesh->get_field("nodevec",Jali::NODE,nodevec_in);
+  status = inmesh->get_field("nodevec",Jali::Entity_kind::NODE,nodevec_in);
   for (int i = 0; i < nv; i++)
-    CHECK_ARRAY_EQUAL(nodevec_out[i],nodevec_in[i],3); 
+    CHECK_ARRAY_EQUAL(nodevec_out[i],nodevec_in[i],3);
 
   double *nodeval_in = new double [nv];
-  status = inmesh->get_field("nodeval",Jali::NODE,nodeval_in);
+  status = inmesh->get_field("nodeval",Jali::Entity_kind::NODE,nodeval_in);
   CHECK_ARRAY_EQUAL(nodeval_out,nodeval_in,nv);
 
   delete outmesh;

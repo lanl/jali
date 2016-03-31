@@ -13,13 +13,14 @@ TEST(MESH_GEOMETRY) {
   const int numnodes = 27;
   const int numfaces = 36;
   const int numfaces_per_cell = 6;
-  Jali::Mesh_simple mesh(0.0, 0.0, 0.0, 2.0, 2.0, 2.0,
-                         2, 2, 2,
-                         MPI_COMM_WORLD);
+  Jali::Mesh_simple mesh(0.0, 0.0, 0.0, 2.0, 2.0, 2.0, 2, 2, 2, MPI_COMM_WORLD);
 
-  CHECK_EQUAL(numcells, mesh.num_entities(Jali::CELL, Jali::OWNED));
-  CHECK_EQUAL(numnodes, mesh.num_entities(Jali::NODE, Jali::OWNED));
-  CHECK_EQUAL(numfaces, mesh.num_entities(Jali::FACE, Jali::OWNED));
+  CHECK_EQUAL(numcells, mesh.num_entities(Jali::Entity_kind::CELL,
+                                          Jali::Parallel_type::OWNED));
+  CHECK_EQUAL(numnodes, mesh.num_entities(Jali::Entity_kind::NODE,
+                                          Jali::Parallel_type::OWNED));
+  CHECK_EQUAL(numfaces, mesh.num_entities(Jali::Entity_kind::FACE,
+                                          Jali::Parallel_type::OWNED));
 
   // move the one domain boundary's nodes
   mesh.node_set_coordinates(2, {3.0, 0.0, 0.0});
@@ -97,13 +98,18 @@ TEST(MESH_GEOMETRY_1D) {
   const int numnodes = 3;
   const int numfaces = 3;
   const int numfaces_per_cell = 2;
+  const int num_tiles = 0;
   std::vector<double> node_pts = {0.0, 1.0, 3.0};
   Jali::Mesh_simple mesh(node_pts, MPI_COMM_WORLD, NULL,
-                         true, true, true, true, JaliGeometry::CARTESIAN);
+                         true, true, true, true, num_tiles,
+                         JaliGeometry::Geom_type::CARTESIAN);
 
-  CHECK_EQUAL(numcells, mesh.num_entities(Jali::CELL, Jali::OWNED));
-  CHECK_EQUAL(numnodes, mesh.num_entities(Jali::NODE, Jali::OWNED));
-  CHECK_EQUAL(numfaces, mesh.num_entities(Jali::FACE, Jali::OWNED));
+  CHECK_EQUAL(numcells, mesh.num_entities(Jali::Entity_kind::CELL,
+                                          Jali::Parallel_type::OWNED));
+  CHECK_EQUAL(numnodes, mesh.num_entities(Jali::Entity_kind::NODE,
+                                          Jali::Parallel_type::OWNED));
+  CHECK_EQUAL(numfaces, mesh.num_entities(Jali::Entity_kind::FACE,
+                                          Jali::Parallel_type::OWNED));
 
   // the expected cell volume for each cell
   // the small cell is 1.0^3
@@ -147,13 +153,18 @@ TEST(MESH_GEOMETRY_1D_SPHERICAL) {
   const int numnodes = 3;
   const int numfaces = 3;
   const int numfaces_per_cell = 2;
+  const int num_tiles = 2;
   std::vector<double> node_pts = {0.0, 1.0, 3.0};
   Jali::Mesh_simple mesh(node_pts, MPI_COMM_WORLD, NULL,
-                         true, true, true, true, JaliGeometry::SPHERICAL);
+                         true, true, true, true, num_tiles,
+                         JaliGeometry::Geom_type::SPHERICAL);
 
-  CHECK_EQUAL(numcells, mesh.num_entities(Jali::CELL, Jali::OWNED));
-  CHECK_EQUAL(numnodes, mesh.num_entities(Jali::NODE, Jali::OWNED));
-  CHECK_EQUAL(numfaces, mesh.num_entities(Jali::FACE, Jali::OWNED));
+  CHECK_EQUAL(numcells, mesh.num_entities(Jali::Entity_kind::CELL,
+                                          Jali::Parallel_type::OWNED));
+  CHECK_EQUAL(numnodes, mesh.num_entities(Jali::Entity_kind::NODE,
+                                          Jali::Parallel_type::OWNED));
+  CHECK_EQUAL(numfaces, mesh.num_entities(Jali::Entity_kind::FACE,
+                                          Jali::Parallel_type::OWNED));
 
   // the expected cell volume for each cell
   // the small cell is (4/3)*PI*1.0^3

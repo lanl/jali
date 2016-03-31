@@ -1,3 +1,8 @@
+//
+// Copyright Los Alamos National Security, LLC 2009-2015
+// All rights reserved. See Copyright notice in main directory
+//
+
 #include <iostream>
 #include <vector>
 #include <array>
@@ -18,6 +23,7 @@
 // but illustrate how a real algorithm may be written
 
 using namespace Jali;
+using namespace JaliGeometry;
 
 // Define two variable names that will be used to define state data in
 // the "initialize_data" routine and retrieve it in "main"
@@ -58,14 +64,16 @@ int main(int argc, char *argv[]) {
   std::shared_ptr<Mesh> mymesh;  // Pointer to a mesh object
   if (framework_available(MSTK)) {  // check if framework is available
     mesh_factory.preference(pref);
-
+  
     // Create a 3D mesh from (0.0,0.0,0.0) to (1.0,1.0,1.0) with 10, 5
     // and 5 elements in the X, Y and Z directions. Specify that we
     // did not instantiate a geometric model (NULL). Also, request
-    // faces, edges, wedges and corners (true, true, true, true)
+    // faces, edges, wedges and corners (true, true, true, true).
+    // Finally, request that the mesh be divided into 10 tiles.
 
+    int num_tiles_requested = 10;
     mymesh = mesh_factory(0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 10, 5, 5, NULL,
-                          true, true, true, true);
+                          true, true, true, true, num_tiles_requested);
   }
 
 
@@ -100,7 +108,8 @@ int main(int argc, char *argv[]) {
   // argument for StateVector (in this case it is "double")
 
   StateVector<double> rhovec;
-  bool found = mystate.get(density_name, CELL, &rhovec);
+  bool found = mystate.get(density_name, mymesh, Entity_kind::CELL,
+                           Parallel_type::ALL, &rhovec);
   if (!found) {
     std::cerr << "Could not find state vector on cells with name " <<
         density_name << std::endl;
@@ -109,33 +118,30 @@ int main(int argc, char *argv[]) {
 
   // Compute the average density on cells using all node connected neighbors
 
-  int nc = mymesh->num_entities(CELL, ALL);
+  int nc = mymesh->num_entities(Entity_kind::CELL, Parallel_type::ALL);
   double *ave_density = new double[nc];
   for (int i = 0; i < nc; ++i) ave_density[i] = 0.0;
 
-  auto itc = mymesh->begin_cells();
-  while (itc != mymesh->end_cells()) {
-    auto c = *itc;
+  for (auto const& t : mymesh->tiles()) {
+    for (auto const& c : t->cells()) {
 
-    // Get all (owned or ghost) node connected/adjacent neighbors of a cell
+      // Get all (owned or ghost) node connected/adjacent neighbors of a cell
 
-    Entity_ID_List nbrs;
-    mymesh->cell_get_node_adj_cells(c, ALL, &nbrs);
+      Entity_ID_List nbrs;
+      mymesh->cell_get_node_adj_cells(c, Parallel_type::ALL, &nbrs);
 
-    auto itc2 = nbrs.begin();
-    while (itc2 != nbrs.end()) {
-      auto c = *itc2;
-      ave_density[c] += rhovec[c];
-      ++itc2;
+      for (auto const & nc : nbrs)
+        ave_density[c] += rhovec[nc];
+      ave_density[c] /= nbrs.size();
     }
-    ave_density[c] /= nbrs.size();
-
-    ++itc;
   }
 
   // Add the average density data as a new state vector
 
-  StateVector<double> &rhobarvec = mystate.add("rhobar", CELL, ave_density);
+  StateVector<double>& rhobarvec = mystate.add("rhobar", mymesh,
+                                               Entity_kind::CELL,
+                                               Parallel_type::ALL,
+                                               ave_density);
 
   delete [] ave_density;
 
@@ -143,8 +149,9 @@ int main(int argc, char *argv[]) {
 
   // Retrieve the vector of velocities
 
-  StateVector<std::array<double, 3>> vels;
-  found = mystate.get(velocity_name, NODE, &vels);
+  StateVector<std::array<double, 3>, Mesh> vels;
+  found = mystate.get(velocity_name, mymesh, Entity_kind::NODE,
+                      Parallel_type::ALL, &vels);
   if (!found) {
     std::cerr << "Could not find state vector on nodes with name " <<
         velocity_name << std::endl;
@@ -154,33 +161,30 @@ int main(int argc, char *argv[]) {
   // Update them to be the average of the centroids of the connected
   // cells weighted by the average cell density
 
-  auto itn = mymesh->begin_nodes();
-  while (itn != mymesh->end_nodes()) {
-    auto n = *itn;
+  for (auto const& t : mymesh->tiles()) {
+    for (auto const n : t->nodes()) {
 
-    // Get the cells using (connected to) this node
+      // Get the cells using (connected to) this node
 
-    Entity_ID_List nodecells;
-    mymesh->node_get_cells(n, ALL, &nodecells);
+      Entity_ID_List nodecells;
+      mymesh->node_get_cells(n, Parallel_type::ALL, &nodecells);
 
-    std::array<double, 3> tmpvels;
-    for (int i = 0; i < 3; ++i) tmpvels[i] = 0.0;
+      std::array<double, 3> tmpvels;
+      for (int i = 0; i < 3; ++i) tmpvels[i] = 0.0;
 
-    auto itc2 = nodecells.begin();
-    while (itc2 != nodecells.end()) {
-      auto c = *itc2;
+      for (auto c : nodecells) {
 
-      // Get cell centroid - this is computed once and cached unless the
-      // mesh changes or the routine is explicitly asked to recompute it
-      // to help understand the effect of a temporary change
+        // Get cell centroid - this is computed once and cached unless the
+        // mesh changes or the routine is explicitly asked to recompute it
+        // to help understand the effect of a temporary change
 
-      JaliGeometry::Point ccen = mymesh->cell_centroid(c);
-      for (int i = 0; i < 3; ++i) tmpvels[i] += rhobarvec[c]*ccen[i];
-      ++itc2;
+        JaliGeometry::Point ccen = mymesh->cell_centroid(c);
+        for (int i = 0; i < 3; ++i) tmpvels[i] += rhobarvec[c]*ccen[i];
+
+      }
+
+      vels[n] = tmpvels;
     }
-
-    vels[n] = tmpvels;
-    ++itn;
   }
 
 
@@ -189,16 +193,12 @@ int main(int argc, char *argv[]) {
 
   std::cerr << "Average densities at cell centers:" << std::endl;
 
-  itc = mymesh->begin_cells();
-  while (itc != mymesh->end_cells()) {
-    auto c = *itc;
-
-    JaliGeometry::Point ccen = mymesh->cell_centroid(c);
-
+  for (auto c : mymesh->cells<Parallel_type::OWNED>()) {
+    Point ccen = mymesh->cell_centroid(c);
+    
     std::cerr << "Cell " << c << "    Centroid (" <<
-        ccen[0] << "," << ccen[1] << "," << ccen[2] <<
+        ccen[0] << ", " << ccen[1] << ", " << ccen[2] <<
         ")    Ave density " << rhobarvec[c] << std::endl;
-    ++itc;
   }
   std::cerr << std::endl << std::endl;
 
@@ -207,18 +207,14 @@ int main(int argc, char *argv[]) {
 
   std::cerr << "Computed velocities at nodes:" << std::endl;
 
-  itn = mymesh->begin_nodes();
-  while (itn != mymesh->end_nodes()) {
-    auto n = *itn;
-
-    JaliGeometry::Point npnt;
+  for (auto n : mymesh->nodes<Parallel_type::OWNED>()) {
+    Point npnt;
     mymesh->node_get_coordinates(n, &npnt);
 
     std::cerr << "Node " << n << "    Coord (" <<
-        npnt[0] << "," << npnt[1] << "," << npnt[2] <<
-        ")    Velocity (" << vels[n][0] << "," << vels[n][1] <<
-        "," << vels[n][2] << ")" << std::endl << std::endl;
-    ++itn;
+        npnt[0] << ", " << npnt[1] << ", " << npnt[2] <<
+        ")    Velocity (" << vels[n][0] << ", " << vels[n][1] <<
+        ", " << vels[n][2] << ")" << std::endl << std::endl;
   }
 
 
@@ -233,22 +229,18 @@ int main(int argc, char *argv[]) {
 // Routine for initialization of state data
 
 
-void initialize_data(const std::shared_ptr<Mesh> mesh,
-                     State& state) {
+void initialize_data(const std::shared_ptr<Mesh> mesh, State& state) {
 
   // number of cells in the mesh - ALL means OWNED+GHOST
-  int nc = mesh->num_entities(CELL, ALL);
+  int nc = mesh->num_cells<Parallel_type::ALL>();
 
   // Create a density vector that will be used to initialize a state
   // variable called 'rho99' on cells
 
   std::vector<double> density(nc);
-  auto itc = mesh->begin_cells();
-  while (itc != mesh->end_cells()) {
-    auto c = *itc;
-    JaliGeometry::Point ccen = mesh->cell_centroid(c);
+  for (auto c : mesh->cells<Parallel_type::OWNED>()) {
+    Point ccen = mesh->cell_centroid(c);
     density[c] = ccen[0]+ccen[1]+ccen[2];
-    ++itc;
   }
 
   // Create a state vector of densities on cells using the
@@ -257,13 +249,14 @@ void initialize_data(const std::shared_ptr<Mesh> mesh,
   // data. Since density is a std::vector<double> we have to send in
   // the address of the first element.  as &(density[0]).
 
-  state.add(density_name, CELL, &(density[0]));
+  state.add(density_name, mesh, Entity_kind::CELL, Parallel_type::ALL,
+            &(density[0]));
 
 
   // Create a velocity vector
 
   int dim = mesh->space_dimension();
-  int nn = mesh->num_entities(NODE, ALL);
+  int nn = mesh->num_nodes<Parallel_type::ALL>();
 
   // Initialize to zero
 
@@ -274,6 +267,7 @@ void initialize_data(const std::shared_ptr<Mesh> mesh,
 
   // Add it to the state manager
 
-  state.add(velocity_name, NODE, &(vels[0]));
+  state.add(velocity_name, mesh, Entity_kind::NODE, Parallel_type::ALL,
+            &(vels[0]));
 }
 

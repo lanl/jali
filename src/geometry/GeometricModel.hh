@@ -3,10 +3,10 @@
  * @file   GeometricModel.hh
  * @author Rao Garimella
  * @date   Sep 15, 2011
- * 
+ *
  * @brief  Declaration of the GeometricModel class
- * 
- * 
+ *
+ *
  */
 
 #ifndef _GeometricModel_hh_
@@ -22,7 +22,7 @@ namespace JaliGeometry {
 // -------------------------------------------------------------
 //  class GeometricModel
 // -------------------------------------------------------------
-// A class that represent a geometric model or more specifically, 
+// A class that represent a geometric model or more specifically,
 // a particular decomposition of the domain into subdomains
 /**
  * The geometric model is an object that contains a list of
@@ -36,7 +36,7 @@ public:
 
   GeometricModel(const unsigned int dim);
 
-  // Copy constructor 
+  // Copy constructor
 
   GeometricModel(const GeometricModel& old);
 
@@ -49,7 +49,7 @@ public:
 
   // Constructor from a list of regions
 
-  GeometricModel(const unsigned int dim, 
+  GeometricModel(const unsigned int dim,
                  const std::vector<RegionPtr>& in_Regions);
 
 
@@ -89,7 +89,7 @@ public:
   RegionPtr FindRegion(const std::string name) const;
 
 
-  // Check if regions cover the domain extents.  
+  // Check if regions cover the domain extents.
   // This will work perfectly for domains with rectangular regions
   // but not so for other types of regions
 

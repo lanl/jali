@@ -3,10 +3,10 @@
  * @file   test_mesh_file.cc
  * @author William A. Perkins
  * @date Mon May 16 14:03:23 2011
- * 
- * @brief  
- * 
- * 
+ *
+ * @brief
+ *
+ *
  */
 // -------------------------------------------------------------
 // -------------------------------------------------------------
@@ -33,7 +33,7 @@ SUITE (MeshFileType)
   TEST (ExodusII)
   {
     // EXODUS_TEST_FILE is macro defined by cmake
-    std::string fname(EXODUS_TEST_FILE); 
+    std::string fname(EXODUS_TEST_FILE);
 
     Jali::Format f;
     try {
@@ -45,14 +45,14 @@ SUITE (MeshFileType)
     CHECK(f == Jali::ExodusII);
   }
 
-  TEST (Nemesis) 
+  TEST (Nemesis)
   {
     int nproc;
     MPI_Comm_size(MPI_COMM_WORLD,&nproc);
 
     // NEMESIS_TEST_FILE is macro defined by cmake
-    std::string fname(NEMESIS_TEST_FILE); 
-    
+    std::string fname(NEMESIS_TEST_FILE);
+
     Jali::Format f;
     if (nproc > 1 && nproc <= 4) {
       int ierr[1];
@@ -65,15 +65,15 @@ SUITE (MeshFileType)
 
       CHECK(f == Jali::Nemesis);
     } else {
-      CHECK_THROW(f = Jali::file_format(MPI_COMM_WORLD, fname), 
+      CHECK_THROW(f = Jali::file_format(MPI_COMM_WORLD, fname),
                   Jali::FileMessage);
-    }  
+    }
   }
-   
-  TEST (MOABHD5) 
+
+  TEST (MOABHD5)
   {
     // MOAB_TEST_FILE is macro defined by cmake
-    std::string fname(MOAB_TEST_FILE); 
+    std::string fname(MOAB_TEST_FILE);
 
     Jali::Format f;
     try {
@@ -85,25 +85,25 @@ SUITE (MeshFileType)
     CHECK(f == Jali::MOABHDF5);
   }
 
-  TEST (PathFailure) 
+  TEST (PathFailure)
   {
-    std::string fname("/some/bogus/path.exo"); 
+    std::string fname("/some/bogus/path.exo");
 
     Jali::Format f;
 
-    CHECK_THROW(Jali::file_format(MPI_COMM_WORLD, fname), 
+    CHECK_THROW(Jali::file_format(MPI_COMM_WORLD, fname),
                 Jali::FileMessage);
-  }    
+  }
 
   TEST (MagicNumberFailure)
   {
-    std::string fname(BOGUS_TEST_FILE); 
+    std::string fname(BOGUS_TEST_FILE);
 
     Jali::Format f;
 
-    CHECK_THROW(Jali::file_format(MPI_COMM_WORLD, fname), 
+    CHECK_THROW(Jali::file_format(MPI_COMM_WORLD, fname),
                 Jali::FileMessage);
   }
-    
+
 }
-    
+

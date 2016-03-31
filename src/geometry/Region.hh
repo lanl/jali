@@ -3,10 +3,10 @@
  * @file   Region.hh
  * @author William A. Perkins
  * @date Mon Aug  1 09:57:42 2011
- * 
- * @brief  Declaration of the abstract Region class 
- * 
- * 
+ *
+ * @brief  Declaration of the abstract Region class
+ *
+ *
  */
 
 #ifndef _Region_hh_
@@ -19,30 +19,27 @@
 namespace JaliGeometry {
 
 
-typedef enum {
-  BOX=0,
-  PLANE,
-  LABELEDSET,
-  LAYER,
-  SURFACE,
-  POINT,
-  COLORFUNCTION,  
-  LOGICAL,
-  POLYGON
-} RegionType;
+enum class Region_type {
+    BOX = 0,
+    PLANE,
+    LABELEDSET,
+    LAYER,
+    SURFACE,
+    POINT,
+    COLORFUNCTION,
+    LOGICAL,
+    POLYGON
+};
 
-typedef enum {
-  PERMANENT=0,
-  TEMPORARY
-} LifeCycleType;
+enum class LifeCycle_type {PERMANENT = 0, TEMPORARY};
 
-typedef enum {
-  NOBOOLEAN=-1,
-  COMPLEMENT,
-  UNION,
-  INTERSECT,
-  SUBTRACT
-} BoolOpType;
+enum class Bool_type {
+    NOBOOLEAN = -1,
+    COMPLEMENT,
+    UNION,
+    INTERSECT,
+    SUBTRACT
+};
 
 // -------------------------------------------------------------
 //  class Region
@@ -55,10 +52,10 @@ typedef enum {
  * be added later.
  *
  * The region class does not use a constructor based on the XML parameter
- * list because it has to create derived region classes based on the shape 
+ * list because it has to create derived region classes based on the shape
  * parameter of the region specification.
  *
- * 
+ *
  */
 
 class Region {
@@ -68,12 +65,12 @@ public:
   Region(void);
 
   /// Constructor with name and ID
-  Region(const std::string name, const unsigned int id, 
-         const unsigned int dim=3, const LifeCycleType lifecycle=PERMANENT);
-  Region(const char *name, const unsigned int id, const unsigned int dim=3, 
-         const LifeCycleType lifecycle=PERMANENT);
+  Region(const std::string name, const unsigned int id,
+         const unsigned int dim=3, const LifeCycle_type lifecycle = LifeCycle_type::PERMANENT);
+  Region(const char *name, const unsigned int id, const unsigned int dim=3,
+         const LifeCycle_type lifecycle = LifeCycle_type::PERMANENT);
 
-  /// Copy constructor 
+  /// Copy constructor
   Region(const Region& old);
 
   /// Destructor
@@ -102,7 +99,7 @@ public:
   }
 
   // Topological dimension of region (0 - point, 1 - curve, 2 - surface, 3 - volume)
-  inline 
+  inline
   unsigned int dimension(void) const
   {
     return topo_dimension_;
@@ -111,15 +108,15 @@ public:
   // Get the Lifecycle of this region - Do mesh entity sets derived from
   // it have to be kept around or are they temporary and can be destroyed
   // as soon as they are used?
-  
+
   inline
-  LifeCycleType lifecycle(void) const 
+  LifeCycle_type lifecycle(void) const
   {
     return lifecycle_;
   }
 
   // Type of the region
-  virtual RegionType type() const = 0;
+  virtual Region_type type() const = 0;
 
   /// Is the specified point inside the Region
   /// Does being on the boundary count as inside or not?
@@ -133,8 +130,8 @@ private:
 
   // Lifecycle (Temporary or Permanent)
 
-  LifeCycleType lifecycle_;
-  
+  LifeCycle_type lifecycle_;
+
   // Topological dimension of region (0, 1, 2, 3)
 
   unsigned int topo_dimension_;
@@ -152,7 +149,7 @@ private:
   // Point min_pnt;
 
   // Upper/right/front corner or max xyz
- 
+
   // Point max_pnt;
 
 };

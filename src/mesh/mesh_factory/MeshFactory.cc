@@ -14,9 +14,10 @@
 
 static const char* SCCS_ID = "$Id$ Battelle PNL";
 
+#include "MeshFactory.hh"
+
 #include <boost/format.hpp>
 
-#include "MeshFactory.hh"
 #include "MeshFileType.hh"
 #include "FrameworkTraits.hh"
 #include "Geometry.hh"
@@ -83,7 +84,8 @@ MeshFactory::create(const std::string& filename,
                     const bool request_faces,
                     const bool request_edges,
                     const bool request_wedges,
-                    const bool request_corners) {
+                    const bool request_corners,
+                    const int num_tiles) {
 
   // check the file format
   Format fmt = file_format(my_comm, filename);
@@ -108,9 +110,10 @@ MeshFactory::create(const std::string& filename,
        i != my_preference.end(); i++) {
     if (framework_reads(*i, fmt, numproc > 1)) {
       try {
-        result = framework_read(my_comm, *i, filename,
-                                gm, request_faces, request_edges,
-                                request_wedges, request_corners);
+        result = framework_read(my_comm, *i, filename, gm,
+                                request_faces, request_edges,
+                                request_wedges, request_corners,
+                                num_tiles);
         if (gm && (gm->dimension() != result->space_dimension())) {
           Errors::Message
               mesg("Geometric model and mesh dimension do not match");
@@ -162,7 +165,8 @@ MeshFactory::create(double x0, double y0, double z0,
                     const bool request_faces,
                     const bool request_edges,
                     const bool request_wedges,
-                    const bool request_corners) {
+                    const bool request_corners,
+                    const int num_tiles) {
 
   std::shared_ptr<Mesh> result;
   Message e("MeshFactory::create: error: ");
@@ -179,7 +183,8 @@ MeshFactory::create(double x0, double y0, double z0,
 
   if (nx <= 0 || ny <= 0 || nz <= 0) {
     ierr[0] += 1;
-    e.add_data(boost::str(boost::format("invalid mesh cells requested: %d x %d x %d") %
+    e.add_data(boost::str(
+        boost::format("invalid mesh cells requested: %d x %d x %d") %
                           nx % ny % nz).c_str());
   }
   MPI_Allreduce(&ierr, &aerr, 1, MPI_INT, MPI_SUM, my_comm);
@@ -187,7 +192,8 @@ MeshFactory::create(double x0, double y0, double z0,
 
   if (x1 - x0 <= 0.0 || y1 - y0 <= 0.0 || z1 - z0 <= 0.0) {
     ierr[0] += 1;
-    e.add_data(boost::str(boost::format("invalid mesh dimensions requested: %.6g x %.6g x %.6g") %
+    e.add_data(boost::str(
+        boost::format("invalid mesh dimensions requested: %.6g x %.6g x %.6g") %
                           (x1 - x0) % (y1 - y0) % (z1 - z0)).c_str());
   }
   MPI_Allreduce(&ierr, &aerr, 1, MPI_INT, MPI_SUM, my_comm);
@@ -203,7 +209,8 @@ MeshFactory::create(double x0, double y0, double z0,
         result = framework_generate(my_comm, *i,
                                     x0, y0, z0, x1, y1, z1, nx, ny, nz, gm,
                                     request_faces, request_edges,
-                                    request_wedges, request_corners);
+                                    request_wedges, request_corners,
+                                    num_tiles);
         return result;
       } catch (const Message& msg) {
         ierr[0] += 1;
@@ -247,7 +254,8 @@ MeshFactory::create(double x0, double y0,
                     const bool request_faces,
                     const bool request_edges,
                     const bool request_wedges,
-                    const bool request_corners) {
+                    const bool request_corners,
+                    const int num_tiles) {
 
   std::shared_ptr<Mesh> result;
   Message e("MeshFactory::create: error: ");
@@ -264,7 +272,8 @@ MeshFactory::create(double x0, double y0,
 
   if (nx <= 0 || ny <= 0) {
     ierr[0] += 1;
-    e.add_data(boost::str(boost::format("invalid mesh cells requested: %d x %d") %
+    e.add_data(boost::str(
+        boost::format("invalid mesh cells requested: %d x %d") %
                           nx % ny).c_str());
   }
   MPI_Allreduce(&ierr, &aerr, 1, MPI_INT, MPI_SUM, my_comm);
@@ -272,7 +281,8 @@ MeshFactory::create(double x0, double y0,
 
   if (x1 - x0 <= 0.0 || y1 - y0 <= 0.0) {
     ierr[0] += 1;
-    e.add_data(boost::str(boost::format("invalid mesh dimensions requested: %.6g x %.6g") %
+    e.add_data(boost::str(
+        boost::format("invalid mesh dimensions requested: %.6g x %.6g") %
                           (x1 - x0) % (y1 - y0)).c_str());
   }
 
@@ -289,7 +299,8 @@ MeshFactory::create(double x0, double y0,
         result = framework_generate(my_comm, *i,
                                     x0, y0, x1, y1, nx, ny, gm,
                                     request_faces, request_edges,
-                                    request_wedges, request_corners);
+                                    request_wedges, request_corners,
+                                    num_tiles);
         return result;
       } catch (const Message& msg) {
         ierr[0] += 1;
@@ -328,6 +339,7 @@ MeshFactory::create(std::vector<double> x,
                     const bool request_edges,
                     const bool request_wedges,
                     const bool request_corners,
+                    const int num_tiles,
                     const JaliGeometry::Geom_type geom_type) {
   std::shared_ptr<Mesh> result;
   Message e("MeshFactory::create: error: ");
@@ -370,7 +382,7 @@ MeshFactory::create(std::vector<double> x,
                                     gm,
                                     request_faces, request_edges,
                                     request_wedges, request_corners,
-                                    geom_type);
+                                    num_tiles, geom_type);
         return result;
       } catch (const Message& msg) {
         ierr[0] += 1;
@@ -409,7 +421,8 @@ MeshFactory::create(const std::shared_ptr<Mesh> inmesh,
                     const bool request_faces,
                     const bool request_edges,
                     const bool request_wedges,
-                    const bool request_corners) {
+                    const bool request_corners,
+                    const int num_tiles) {
 
   std::shared_ptr<Mesh> result;
   Message e("MeshFactory::create: error: ");
@@ -429,7 +442,8 @@ MeshFactory::create(const std::shared_ptr<Mesh> inmesh,
                                    setnames, setkind,
                                    flatten, extrude,
                                    request_faces, request_edges,
-                                   request_wedges, request_corners);
+                                   request_wedges, request_corners,
+                                   num_tiles);
         return result;
       } catch (const Message& msg) {
         ierr[0] += 1;

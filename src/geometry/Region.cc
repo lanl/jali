@@ -3,10 +3,10 @@
  * @file   Region.cc
  * @author William A. Perkins
  * @date Mon Aug  1 10:05:25 2011
- * 
- * @brief  
- * 
- * 
+ *
+ * @brief
+ *
+ *
  */
 
 #include "Region.hh"
@@ -20,7 +20,7 @@ namespace JaliGeometry {
 // -------------------------------------------------------------
 // Region:: constructors / destructor
 // -------------------------------------------------------------
-Region::Region() 
+Region::Region()
 {
   name_ = "";
   id_ = 0;
@@ -34,15 +34,15 @@ Region::Region(const Region& old) :
 }
 
 
-Region::Region(const std::string name, const unsigned int id, 
-               const unsigned int dim, const LifeCycleType lifecycle) :
+Region::Region(const std::string name, const unsigned int id,
+               const unsigned int dim, const LifeCycle_type lifecycle) :
   name_(name), id_(id), topo_dimension_(dim), lifecycle_(lifecycle)
 {
 }
-  
-  
+
+
 Region::Region(const char *name, const unsigned int id, const unsigned int dim,
-               const LifeCycleType lifecycle) :
+               const LifeCycle_type lifecycle) :
   name_(name), id_(id), topo_dimension_(dim), lifecycle_(lifecycle)
 {
 }

@@ -21,7 +21,7 @@ TEST(Point)
   CHECK_EQUAL(y,p0.y());
 
   JaliGeometry::Point p1(2);
-  p1.set(2,xyz); 
+  p1.set(2,xyz);
   CHECK_EQUAL(xyz[0],p1.x());
   CHECK_EQUAL(xyz[1],p1.y());
 
@@ -79,7 +79,7 @@ TEST(Point)
   delete points3[16];
   delete points3[18];
   delete points3[17];
-  
+
 
 
   // Create a bunch of mixed dim points
@@ -99,12 +99,12 @@ TEST(Point)
     y = y + 0.5;
     z = z + 2.0;
   }
-  
+
 
   // Don't bother deleting other points. They will get deleted when exiting
 
 
   // we should test the mathematical operations as well here
 
-}  
+}
 

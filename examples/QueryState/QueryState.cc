@@ -1,3 +1,8 @@
+//
+// Copyright Los Alamos National Security, LLC 2009-2015
+// All rights reserved. See Copyright notice in main directory
+//
+
 #include <iostream>
 
 #include "mpi.h"
@@ -13,7 +18,7 @@
 using namespace Jali;
 
 // Fire up Jali, create a mesh and a state manager
-// Add and retrieve state data
+// Add and retrieve state data on meshes and meshtiles
 
 //**************************************************************************
 //
@@ -29,7 +34,7 @@ using namespace Jali;
 //
 // So, as an example:
 //
-// Jali::StateVector<int> v1("vec1",Jali::CELL,data);
+// Jali::StateVector<int> v1("vec1", Jali::CELL, data);
 //
 // Jali::StateVector<int> & v1_ref = v1; - both point to SAME data
 //
@@ -50,9 +55,9 @@ using namespace Jali;
 
 int main(int argc, char *argv[]) {
 
-  // Jali depends on MPI 
+  // Jali depends on MPI
 
-  MPI_Init(&argc,&argv);
+  MPI_Init(&argc, &argv);
 
   // Create a mesh factory object - this object has methods for
   // specifying the preference of mesh frameworks and unified
@@ -70,28 +75,34 @@ int main(int argc, char *argv[]) {
 
   std::shared_ptr<Mesh> mymesh;  // Pointer to a mesh object
   if (framework_available(MSTK)) {  // check if framework is available
-    mesh_factory.preference(pref);  
-  
-    // Create a 2D mesh from (0.0,0.0) to (1.0,1.0)
-    // with 3, 3 and 3 elements in the X, Y directions. Specify
-    // that we did not instantiate a geometric model (NULL). Also,
-    // request faces, edges, wedges and corners (true, true, true,
-    // true)
+    mesh_factory.preference(pref);
 
-    mymesh = mesh_factory(0.0,0.0,1.0,1.0,2,2,NULL,true,true,true,true);
+    // Create a 2D mesh from (0.0, 0.0) to (1.0, 1.0)
+    // with 4 and 4 elements in the X, Y directions. Specify
+    // that we did not instantiate a geometric model (NULL). Also,
+    // request faces, edges, wedges and corners. Finally, request
+    // four tiles in the mesh (with 4 elements each)
+
+    int num_tiles = 4;
+    bool request_faces = true;
+    bool request_edges = true;
+    bool request_wedges = true;
+    bool request_corners = true;
+    mymesh = mesh_factory(0.0, 0.0, 1.0, 1.0, 4, 4, NULL,
+                          request_faces, request_edges, request_wedges,
+                          request_corners, num_tiles);
   }
 
 
-  
   // Print out the number of cells in the mesh
 
-  std::cerr << "Number of mesh cells: " << mymesh->num_entities(CELL,ALL) 
-            << std::endl;
+  std::cerr << "Number of mesh cells: " <<
+    mymesh->num_cells<Parallel_type::ALL>() << std::endl;
 
   // Print out the number of nodes in the mesh
 
-  std::cerr << "Number of mesh nodes: " << mymesh->num_entities(NODE,ALL)
-            << std::endl;
+  std::cerr << "Number of mesh nodes: " <<
+    mymesh->num_nodes<Parallel_type::ALL>() << std::endl;
 
 
   // Create a Jali State Manager
@@ -101,40 +112,52 @@ int main(int argc, char *argv[]) {
 
   // Create some CELL-based data
 
-  double data[4] = {0.0,1.0,2.0,3.0};
+  double data[16] = {0.0, 1.0, 2.0, 3.0, 5.5, -1.0, 2.0, 3.0,
+                     2.2, 3.0, 9.0, 0.0, -7, -10, 4.2, 1.1};
 
   // Add it to state and get back a reference
   //
-  // DON'T DO
-  //   Jali::StateVector<double> myvec = mystate.add()
+  // DO
+  //   StateVector<double>& myvec = mystate.add(...)
   //
+  // DON'T DO
+  //   StateVector<double> myvec = mystate.add(...)
   // This will do a copy construction and myvec data space will be different
   // from the state vector data space!!
 
-  Jali::StateVector<double> & myvec = mystate.add("myzonevar",Jali::CELL,data);
+  // NOTE that there is an implicit second template parameter "Mesh" here
+  // that is figured out from the arguments to the add function. 
+
+  StateVector<double> & myvec = mystate.add("myzonevar", mymesh,
+                                            Entity_kind::CELL,
+                                            Parallel_type::ALL, data);
 
 
   // Try to retrieve it through a get function
 
-  Jali::StateVector<double> myvec_copy;
-  bool found = mystate.get("myzonevar",Jali::CELL,&myvec_copy);
+  StateVector<double, Jali::Mesh> myvec_copy;
+  bool found = mystate.get("myzonevar", mymesh, Entity_kind::CELL,
+                           Parallel_type::ALL, &myvec_copy);
 
   int ndata = myvec_copy.size();
   if (myvec.size() != myvec_copy.size()) {
-    std::cerr << "Stored and retrieved vectors have different sizes?" << std::endl;
+    std::cerr << "Stored and retrieved vectors have different sizes?" <<
+      std::endl;
     exit(-1);
   }
    
   for (int i = 0; i < ndata; i++) {
     if (myvec[i] != myvec_copy[i]) {
-      std::cerr << "Stored and retrieved vectors differ at element " << i << std::endl;
+      std::cerr << "Stored and retrieved vectors differ at element " << i <<
+        std::endl;
     }
   }
 
 
-  // Assign to another state vector - should be a shallow copy
+  // Assign to another state vector AFTER creating the vector as a
+  // default vector. Should be a shallow copy
 
-  Jali::StateVector<double> myvec_copy2;
+  StateVector<double> myvec_copy2;
   myvec_copy2 = myvec;
 
 
@@ -155,7 +178,8 @@ int main(int argc, char *argv[]) {
 
 
   if (myvec[3] != myvec_copy2[3]) {
-    std::cerr << "Original and assigned vectors don't point to the same data?" <<
+    std::cerr <<
+        "Original and assigned vectors don't point to the same data?" <<
         std::endl;
     std::cerr << "A change in one was not reflected in the other" << std::endl;
     exit(-1);
@@ -164,7 +188,7 @@ int main(int argc, char *argv[]) {
 
   // Make a new state vector using a copy constructor - DEEP COPY OF DATA
 
-  Jali::StateVector<double> newvec = myvec; // Also note: newvec is not in mystate!
+  StateVector<double> newvec = myvec;  // Also note: newvec is not in mystate!
 
 
 
@@ -182,31 +206,75 @@ int main(int argc, char *argv[]) {
 
 
   // Print out myvec
-  
+
   std::cerr << "StateVector " << myvec.name() << ":" << std::endl;
   std::cerr << myvec << std::endl;
 
 
-  // Define a more complicated StateVector and print it
-  // Note: This vector is not added to the state
+  // Define a more complicated StateVector and print it.
 
-  // 
+  // Note: This is a standalone vector that is not added to the
+  // state. Such vectors could be used as temporaries in a calculation
 
-  std::array<double,3> arrdata[9] = {{0.0,1.0,2.0},
-                                     {3.0,4.0,5.0},
-                                     {6.0,7.0,8.0},
-                                     {9.0,10.0,11.0},
-                                     {12.0,13.0,14.0},
-                                     {15.0,16.0,17.0},
-                                     {18.0,19.0,20.0},
-                                     {21.0,22.0,23.0},
-                                     {24.0,25.0,26.0}};
+  std::array<double, 3> arrdata[25] = {{0.0, 1.0, 2.0},    {3.0, 4.0, 5.0},
+                                       {6.0, 7.0, 8.0},    {9.0, 10.0, 11.0},
+                                       {12.0, 13.0, 14.0}, {15.0, 16.0, 17.0},
+                                       {18.0, 19.0, 20.0}, {21.0, 22.0, 23.0},
+                                       {24.0, 25.0, 26.0}, {3.0, 4.0, 2.2},
+                                       {18.0, 19.0, 20.0}, {21.0, 22.0, 23.0},
+                                       {-1.0, 2.2, 9.8},   {99, 3.7, -1.0},
+                                       {0.0, 0.0, 8.9},    {-9.2, -1.0, 4.2},
+                                       {12.0, 13.0, 14.0}, {15.0, 16.0, 17.0},
+                                       {21.5, -2.4, -1},   {30.0, 21.1, 2.2},
+                                       {24.0, 25.0, 26.0}, {3.0, 4.0, 2.2},
+                                       {-1.0, 2.2, 9.8},   {99, 3.7, -1.0},
+                                       {21.5, -2.4, -1}};
 
 
-  Jali::StateVector<std::array<double,3>> pntvec("vec3",Jali::NODE,mymesh,&(arrdata[0]));
+  StateVector<std::array<double, 3>> vec2d("vec3", mymesh, Entity_kind::NODE,
+                                           Parallel_type::OWNED,
+                                           &(arrdata[0]));
 
-  std::cerr << pntvec << std::endl;
+  std::cerr << vec2d << std::endl;
 
+
+
+  // Define data on meshtiles and later print it
+
+  int i = 0;
+  for (auto const& meshtile : mymesh->tiles()) {
+    auto tilevec_put = mystate.add("vector_on_tile", meshtile,
+                                   Entity_kind::CELL, Parallel_type::OWNED,
+                                   &(data[4*i]));
+    
+    auto tilevec2d_put = mystate.add("2Darray_on_tile", meshtile,
+                                     Entity_kind::CORNER, Parallel_type::OWNED,
+                                     &(arrdata[0]));
+    i++;
+  }
+
+
+  // Retrieve it and print it
+
+  i = 0;
+  for (auto const& meshtile : mymesh->tiles()) {
+    StateVector<double, MeshTile> tilevec_get;
+    found = mystate.get("vector_on_tile", meshtile, Entity_kind::CELL,
+                        Parallel_type::OWNED, &tilevec_get);
+
+    std::cerr << "1D vector on tile cells: " << std::endl;
+    std::cerr << tilevec_get << std::endl;
+    std::cerr << std::endl;
+
+    StateVector<std::array<double, 3>, MeshTile> tilevec2d_get;
+    found = mystate.get("2Darray_on_tile", meshtile, Entity_kind::CORNER,
+                        Parallel_type::OWNED, &tilevec2d_get);
+
+
+    std::cerr << "2D vector on tile cells: " << std::endl;
+    std::cerr << tilevec2d_get << std::endl;
+    std::cerr << std::endl;
+  }
 
   // Clean up and exit
 

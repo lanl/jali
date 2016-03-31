@@ -15,13 +15,13 @@ TEST(MSTK_HEX_3x3x3_PAR_READ_4P)
 
   int initialized;
   MPI_Initialized(&initialized);
-  
-  if (!initialized)
-    MPI_Init(NULL,NULL);
 
-  MPI_Comm_rank(MPI_COMM_WORLD,&rank);
-  MPI_Comm_size(MPI_COMM_WORLD,&size);
-  CHECK_EQUAL(4,size);
+  if (!initialized)
+    MPI_Init(NULL, NULL);
+
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  MPI_Comm_size(MPI_COMM_WORLD, &size);
+  CHECK_EQUAL(4, size);
 
   if (size != 4) {
     std::cerr << "Test must be run with 4 processors" << std::endl;
@@ -30,7 +30,8 @@ TEST(MSTK_HEX_3x3x3_PAR_READ_4P)
 
   // Load a single hex from the hex1.exo file
 
-  Jali::Mesh *mesh(new Jali::Mesh_MSTK("test/hex_3x3x3_split.par",MPI_COMM_WORLD,3));
+  Jali::Mesh *mesh(new Jali::Mesh_MSTK("test/hex_3x3x3_split.par",
+                                       MPI_COMM_WORLD, 3));
 
 }
 

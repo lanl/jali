@@ -25,10 +25,40 @@ include_directories(${ATK_SOURCE_DIR})
 
 include_directories(${Boost_INCLUDE_DIRS})
 
+
+# Check which partitioners are enabled and set some variables that
+# can be checked in the code with an ifdef statement. ENABLE_METIS,
+# ENABLE_ZOLTAN, METIS_DIR and ZOLTAN_DIR are all from Jali-tpl-config.cmake
+
+if (ENABLE_METIS)
+  message(STATUS "Adding definition Jali_HAVE_METIS")
+  add_definitions(-DJali_HAVE_METIS)
+  include_directories(${METIS_DIR}/include)
+endif ()
+
+if (ENABLE_ZOLTAN)
+  message(STATUS "Adding definition Jali_HAVE_ZOLTAN")
+  add_definitions(-DJali_HAVE_ZOLTAN)
+  include_directories(${ZOLTAN_DIR}/include)
+endif ()
+if ((NOT ENABLE_METIS) AND (NOT ENABLE_ZOLTAN))
+  message(STATUS "No partitioner enabled?")
+endif()
+
+
+
 #
 # Library: mesh
 #
-add_Jali_library(mesh SOURCE Mesh.cc LINK_LIBS geometry)
+set(mesh_link_libs geometry)
+if (ENABLE_METIS)
+  list(APPEND mesh_link_libs ${METIS_LIBRARIES})
+endif (ENABLE_METIS)
+if (ENABLE_ZOLTAN)
+  list(APPEND mesh_link_libs ${ZOLTAN_LIBRARIES})
+endif (ENABLE_ZOLTAN)
+
+add_Jali_library(mesh SOURCE Mesh.cc MeshTile.cc LINK_LIBS ${mesh_link_libs})
 
 #
 # Library: mesh_audit
@@ -65,6 +95,7 @@ if (ENABLE_MSTK_Mesh)
 endif(ENABLE_MSTK_Mesh)    
 
 
+
 # Factory class
 
 add_subdirectory(mesh_factory)
@@ -87,7 +118,7 @@ if (BUILD_TESTS)
     endif()
 
     # Test link libraries
-    set(test_link_libs geometry simple_mesh mesh_factory ${UnitTest_LIBRARIES})
+    set(test_link_libs geometry ${mesh_link_libs} simple_mesh mesh_factory ${UnitTest_LIBRARIES})
 
     # STK (Trilinos Package)
    if (ENABLE_STK_Mesh)
@@ -133,5 +164,24 @@ if (BUILD_TESTS)
                   KIND unit
 		  SOURCE test/Main.cc test/test_corners.cc
                   LINK_LIBS ${test_link_libs})
+
+    # Test mesh tiles
+
+    add_Jali_test(tile_tests test_one_tile
+                  KIND unit
+		  SOURCE test/Main.cc test/test_one_tile.cc
+		  LINK_LIBS ${test_link_libs})
+
+    add_Jali_test(mesh_tile_tests_serial test_meshtiles_serial
+                  KIND unit
+		  SOURCE test/Main.cc test/test_meshtiles.cc
+		  LINK_LIBS ${test_link_libs})
+
+    add_Jali_test(mesh_tile_tests_parallel test_meshtiles_parallel
+                  KIND unit
+		  NPROCS 4
+		  SOURCE test/Main.cc test/test_meshtiles.cc
+		  LINK_LIBS ${test_link_libs})
+
 endif()
   
