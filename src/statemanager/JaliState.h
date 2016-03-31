@@ -273,7 +273,8 @@ class State {
   }
 
   /*! 
-    @brief Retrieve a state vector by name
+    @brief Retrieve a state vector by name given the domain and entity type it
+    is defined on
     @tparam T  Data type
     @tparam DomainType Type of domain data is defined on (Mesh, MeshTile)
     @param name  String identifier for vector
@@ -312,7 +313,8 @@ class State {
   }
 
   /*! 
-    @brief Retrieve a state vector by integer identifier
+    @brief Retrieve a state vector by integer identifier given the domain and
+    entity type it is defined on
     @tparam T  Data type
     @tparam DomainType Type of domain data is defined on (Mesh, MeshTile)
     @param identifier  Integer identifier for vector
@@ -353,24 +355,24 @@ class State {
 
 
   /*! 
-    @brief Retrieve a state vector by name
+    @brief Retrieve a state vector on the mesh by name (regardless of what
+    type of entity it is on)
     @tparam T           Data type
     @tparam DomainType  Type of domain data is defined on (Mesh, MeshTile)
     @param name         String identifier for vector
-    @param domain       Shared pointer to the domain
     @param vector       Raw pointer to the state vector
 
     @todo MUST GET RID OF THIS AND FORCE USAGE OF SHARED POINTER VERSION
   
-    Get a statevector with the given name without regard to what kind
-    of entity it is defined on. The function returns true if such a
-    vector was found; false otherwise. The caller must know the type
-    of elements in the state vector, int, double, std::array<double,
-    3> or whatever else. The calling routine must declare the state
-    vector as "T vector" where T is StateVector<int> or
-    StateVector<double> or StateVector<some_other_type>. Even though
-    this is a copy into *vector, its an inexpensive shallow copy of
-    the meta data only
+    Get a statevector on the mesh with the given name without regard
+    to what kind of entity it is defined on. The function returns true
+    if such a vector was found; false otherwise. The caller must know
+    the type of elements in the state vector, int, double,
+    std::array<double, 3> or whatever else. The calling routine must
+    declare the state vector as "T vector" where T is StateVector<int>
+    or StateVector<double> or StateVector<some_other_type>. Even
+    though this is a copy into *vector, its an inexpensive shallow
+    copy of the meta data only
    */
 
   template <class T, class DomainType>
@@ -381,7 +383,8 @@ class State {
   
 
   /*! 
-    @brief Retrieve a shared pointer to a state vector by name
+    @brief Retrieve a shared pointer to a state vector by name given the domain
+    and type of entity it is defined on
     @tparam T            Data type
     @tparam DomainType   Type of domain data is defined on (Mesh, MeshTile)
     @param name          String identifier for vector
@@ -390,15 +393,15 @@ class State {
     @param parallel_type What type of parallel entity data is defined on (OWNED, GHOST, etc.)
     @param vector_ptr    Shared pointer to the state vector
 
-    Get a statevector with the given name, particular entity kind
-    and parallel type of entity it is defined on. The function returns
-    true if such a vector was found; false otherwise. The caller must
-    know the type of elements in the state vector, int, double,
-    std::array<double, 3> or whatever else. The calling routine must
-    declare the state vector as "T vector" where T is StateVector<int>
-    or StateVector<double> or StateVector<some_other_type>. Even
-    though this is a copy into *vector, its an inexpensive shallow
-    copy of the meta data only
+    Get a statevector on given domain with the given name, particular
+    entity kind and parallel type of entity it is defined on The
+    function returns true if such a vector was found; false
+    otherwise. The caller must know the type of elements in the state
+    vector, int, double, std::array<double, 3> or whatever else. The
+    calling routine must declare the state vector as "T vector" where
+    T is StateVector<int> or StateVector<double> or
+    StateVector<some_other_type>. Even though this is a copy into
+    *vector, its an inexpensive shallow copy of the meta data only
    */
 
   template <class T, class DomainType>
@@ -419,7 +422,8 @@ class State {
   }
 
   /*! 
-    @brief Retrieve a shared pointer to a state vector by name
+    @brief Retrieve a shared pointer to a state vector by integer identifier
+    given the domain and type of entity it is defined on
     @tparam T            Data type
     @tparam DomainType   Type of domain data is defined on (Mesh, MeshTile)
     @param identifier    Integer identifier for vector
@@ -428,14 +432,14 @@ class State {
     @param parallel_type What type of parallel entity data is defined on (OWNED, GHOST, etc.)
     @param vector_ptr    Shared pointer to the state vector
 
-    Get a statevector with the given integer identifier, particular
-    entity kind and parallel type of entity it is defined on. The
-    function returns true if such a vector was found; false
-    otherwise. The caller must know the type of elements in the state
-    vector, int, double, std::array<double, 3> or whatever else. The
-    calling routine must declare the state vector as "T vector" where
-    T is StateVector<int> or StateVector<double> or
-    StateVector<some_other_type>. Even though this is a copy into
+    Get a statevector on given domain with the given integer
+    identifier, particular entity kind and parallel type of entity it
+    is defined on. The function returns true if such a vector was
+    found; false otherwise. The caller must know the type of elements
+    in the state vector, int, double, std::array<double, 3> or
+    whatever else. The calling routine must declare the state vector
+    as "T vector" where T is StateVector<int> or StateVector<double>
+    or StateVector<some_other_type>. Even though this is a copy into
     *vector, its an inexpensive shallow copy of the meta data only
    */
 
@@ -452,7 +456,8 @@ class State {
 
 
   /*! 
-    @brief Retrieve a shared pointer to a state vector by name
+    @brief Retrieve a shared pointer to a state vector by name given the 
+    domain it is defined on (regardless of entity type it is on)
     @tparam T           Data type
     @tparam DomainType  Type of domain data is defined on (Mesh, MeshTile)
     @param name         String identifier for vector
@@ -481,7 +486,8 @@ class State {
 
 
   /*! 
-    @brief Retrieve a shared pointer to a state vector by name
+    @brief Retrieve a shared pointer to a state vector by integer identifier
+    given the domain it is defined on (regardless of entity type it is on)
     @tparam T           Data type
     @tparam DomainType  Type of domain data is defined on (Mesh, MeshTile)
     @param identifier   Integer identifier for vector
@@ -500,9 +506,9 @@ class State {
    */
 
   template <class T, class DomainType>
-    bool get(int const identifier,
-             std::shared_ptr<DomainType> const domain,
-             std::shared_ptr<StateVector<T, DomainType>> *vector_ptr) {
+  bool get(int const identifier,
+           std::shared_ptr<DomainType> const domain,
+           std::shared_ptr<StateVector<T, DomainType>> *vector_ptr) {
 
     return get(BaseStateVector::int_to_string(identifier), domain, vector_ptr);
   }
