@@ -284,7 +284,7 @@ void Mesh::cache_wedge_info() const {
               wedgeids_ghost_[ighost++] = wedgeid;
             
             
-            // Whethter the fixed ordering of coordinates (n,e,f,c)
+            // Whether the fixed ordering of coordinates (n,e,f,c)
             // gives a +ve or -ve volume depends also on cell dimension
             // (2D or 3D). If all dirs (cell-to-face) and (face-to-edge)
             // are +ve, the triangle formed by n,e,c where n is node
