@@ -23,7 +23,7 @@ namespace JaliGeometry {
 // -------------------------------------------------------------
 BoxRegion::BoxRegion(const std::string name, const unsigned int id,
                      const Point& p0, const Point& p1,
-                     const LifeCycleType lifecycle)
+                     const LifeCycle_type lifecycle)
   : Region(name,id,p0.dim(),lifecycle), p0_(p0), p1_(p1)
 {
 
@@ -46,7 +46,7 @@ BoxRegion::BoxRegion(const std::string name, const unsigned int id,
 
 BoxRegion::BoxRegion(const char *name, const unsigned int id,
                      const Point& p0, const Point& p1,
-                     const LifeCycleType lifecycle)
+                     const LifeCycle_type lifecycle)
   : Region(name,id,p0.dim(),lifecycle), p0_(p0), p1_(p1)
 {
 

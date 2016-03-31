@@ -24,13 +24,13 @@ namespace JaliGeometry {
 PointRegion::PointRegion(const std::string name,
 			 const unsigned int id,
 			 const Point& p,
-                         const LifeCycleType lifecycle)
+                         const LifeCycle_type lifecycle)
   : Region(name,id,0,lifecycle), p_(p)
 {
 }
 
 PointRegion::PointRegion(const char *name, const unsigned int id,
-			 const Point& p, const LifeCycleType lifecycle)
+			 const Point& p, const LifeCycle_type lifecycle)
   : Region(name,id,0,lifecycle), p_(p)
 {
 }

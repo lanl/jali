@@ -6,6 +6,7 @@
  * @file   MeshDefs.hh
  * @brief  Various definitions needed by Mesh
  * @author Originally by Bill Perkins (PNNL), Enhanced by Rao Garimella (LANL)
+ *
  */
 
 #ifndef _MeshDefs_hh_
@@ -30,16 +31,6 @@ enum class Mesh_type {
   RECTANGULAR,   // Equivalent of structured but can't use i,j,k notation
   GENERAL        // general unstructured
 };
-
-// Mesh Geometry Type
-
-enum class Geom_type {
-  CARTESIAN,
-  CYLINDRICAL,
-  SPHERICAL
-};
-
-
 
 // Cells (aka zones/elements) are the highest dimension entities in a mesh
 // Nodes (aka vertices) are lowest dimension entities in a mesh

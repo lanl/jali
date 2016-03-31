@@ -37,14 +37,14 @@ public:
                 const unsigned int id,
                 const std::string operation_str,
                 const std::vector<std::string> region_names,
-                const LifeCycleType lifecycle=PERMANENT);
+                const LifeCycle_type lifecycle = LifeCycle_type::PERMANENT);
 
 
   LogicalRegion(const char *name,
                 const unsigned int id,
                 const std::string operation_str,
                 const std::vector<std::string> region_names,
-                const LifeCycleType lifecycle=PERMANENT);
+                const LifeCycle_type lifecycle = LifeCycle_type::PERMANENT);
 
 
   /// Protected copy constructor to avoid unwanted copies.
@@ -54,10 +54,10 @@ public:
   ~LogicalRegion(void);
 
   // Type of the region
-  inline RegionType type() const { return LOGICAL; }
+  inline Region_type type() const { return Region_type::LOGICAL; }
 
   // Label in the file
-  inline BoolOpType operation() const { return operation_; }
+  inline JaliGeometry::Bool_type operation() const { return operation_; }
 
   /// Is the the specified point inside this region
   bool inside(const Point& p) const;
@@ -67,7 +67,7 @@ public:
 
 
 protected:
-  BoolOpType operation_; // what logical operation should be performed
+  JaliGeometry::Bool_type operation_; // what logical operation should be performed
   const std::vector<std::string> region_names_; // names of regions in operation
 };
 

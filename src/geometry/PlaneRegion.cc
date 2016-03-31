@@ -24,7 +24,7 @@ namespace JaliGeometry {
 PlaneRegion::PlaneRegion(const std::string name,
 			 const unsigned int id,
 			 const Point& p, const Point& normal,
-                         const LifeCycleType lifecycle)
+                         const LifeCycle_type lifecycle)
   : Region(name,id,p.dim()-1,lifecycle), p_(p), n_(normal)
 {
 
@@ -39,7 +39,7 @@ PlaneRegion::PlaneRegion(const std::string name,
 
 PlaneRegion::PlaneRegion(const char *name, const unsigned int id,
 			 const Point& p, const Point& normal,
-                         const LifeCycleType lifecycle)
+                         const LifeCycle_type lifecycle)
   : Region(name,id,p.dim()-1,lifecycle), p_(p), n_(normal)
 {
 

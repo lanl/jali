@@ -19,6 +19,7 @@ static const char* SCCS_ID = "$Id$ Battelle PNL";
 #include "MeshFactory.hh"
 #include "MeshFileType.hh"
 #include "FrameworkTraits.hh"
+#include "Geometry.hh"
 
 namespace Jali {
 
@@ -316,6 +317,87 @@ MeshFactory::create(double x0, double y0,
   Exceptions::Jali_throw(e);
 }
 
+
+/**
+ * Collective
+ *
+ * This creates a mesh by generating a block of 1d cells.
+ *
+ * Hopefully, if any one process has an error, all processes will
+ * throw an Mesh::Message exception.
+ *
+ * @param x vector of spatial coordinates of nodes
+ *
+ * @return mesh instance
+ */
+
+std::shared_ptr<Mesh>
+MeshFactory::create(std::vector<double> x,
+                    const JaliGeometry::GeometricModelPtr &gm,
+                    const bool request_faces,
+                    const bool request_edges,
+                    const bool request_wedges,
+                    const bool request_corners,
+                    const int num_tiles,
+                    const JaliGeometry::Geom_type geom_type) {
+  std::shared_ptr<Mesh> result;
+  Message e("MeshFactory::create: error: ");
+  int ierr[1], aerr[1];
+  ierr[0] = 0;
+  aerr[0] = 0;
+
+  unsigned int dim = 1;
+
+  if (gm && (gm->dimension() != 1)) {
+    Errors::Message mesg("Geometric model and mesh dimension do not match");
+    Exceptions::Jali_throw(mesg);
+  }
+
+  if (x.size() < 2) {
+    ierr[0] += 1;
+    e.add_data(boost::str(boost::format("invalid num nodes requested: %d") %
+                          x.size()).c_str());
+  }
+  MPI_Allreduce(&ierr, &aerr, 1, MPI_INT, MPI_SUM, my_comm);
+  if (aerr[0] > 0) Exceptions::Jali_throw(e);
+
+  double delta = x.back() - x.front();
+  if (delta <= 0.0) {
+    ierr[0] += 1;
+    e.add_data(boost::str(boost::format("invalid mesh coors requested: %.6g") %
+                          delta).c_str());
+  }
+  MPI_Allreduce(ierr, aerr, 1, MPI_INT, MPI_SUM, my_comm);
+  if (aerr[0] > 0) Exceptions::Jali_throw(e);
+  int numprocs;
+  MPI_Comm_size(my_comm, &numprocs);
+
+  for (FrameworkPreference::const_iterator i = my_preference.begin();
+       i != my_preference.end(); i++) {
+    if (framework_generates(*i, numprocs > 1, dim)) {
+      try {
+        result = framework_generate(my_comm, *i,
+                                    x,
+                                    gm,
+                                    request_faces, request_edges,
+                                    request_wedges, request_corners,
+                                    num_tiles, geom_type);
+        return result;
+      } catch (const Message& msg) {
+        ierr[0] += 1;
+        e.add_data(msg.what());
+      } catch (const std::exception& stde) {
+        ierr[0] += 1;
+        e.add_data("internal error: ");
+        e.add_data(stde.what());
+      }
+      MPI_Allreduce(ierr, aerr, 1, MPI_INT, MPI_SUM, my_comm);
+      if (aerr[0] > 0) Exceptions::Jali_throw(e);
+    }
+  }
+  e.add_data("unable to generate mesh");
+  Exceptions::Jali_throw(e);
+}
 
 /**
  * This creates a mesh by extracting subsets of entities from an existing

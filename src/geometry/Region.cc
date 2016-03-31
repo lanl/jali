@@ -35,14 +35,14 @@ Region::Region(const Region& old) :
 
 
 Region::Region(const std::string name, const unsigned int id,
-               const unsigned int dim, const LifeCycleType lifecycle) :
+               const unsigned int dim, const LifeCycle_type lifecycle) :
   name_(name), id_(id), topo_dimension_(dim), lifecycle_(lifecycle)
 {
 }
 
 
 Region::Region(const char *name, const unsigned int id, const unsigned int dim,
-               const LifeCycleType lifecycle) :
+               const LifeCycle_type lifecycle) :
   name_(name), id_(id), topo_dimension_(dim), lifecycle_(lifecycle)
 {
 }

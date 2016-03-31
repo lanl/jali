@@ -19,6 +19,8 @@
 #include "Point.hh"
 #include "GeometricModel.hh"
 #include "Region.hh"
+#include "Geometry.hh"
+
 #include "MeshTile.hh"
 
 //! \mainpage Jali
@@ -63,29 +65,29 @@
 
 namespace Jali {
 
-//! \class Mesh.hh
-//! \brief Base mesh class
-//!
-//! Use the associated mesh factory to create an instance of a
-//! derived class based on a particular mesh framework (like MSTK,
-//! STKmesh etc.)
-//!
-//! **** IMPORTANT NOTE ABOUT CONSTANTNESS OF THIS CLASS ****
-//! Instantiating a const version of this class only guarantees that
-//! the underlying mesh topology and geometry does not change (the
-//! public interfaces conforms strictly to this definition). However,
-//! for purposes of memory savings we use lazy initialization and
-//! caching of face data, edge data, geometry quantities, columns
-//! etc., which means that these data may still change. We also
-//! cannot initialize the cached quantities in the constructor since
-//! they depend on initialization of data structures in the derived
-//! class - however, the base class gets constructed before the
-//! derived class gets constructed so it is not possible without more
-//! obscure acrobatics. This is why some of the caching data
-//! declarations are declared with the keyword 'mutable' and routines
-//! that modify the mutable data are declared with a constant
-//! qualifier.
-//!
+  //! \class Mesh.hh
+  //! \brief Base mesh class
+  //!
+  //! Use the associated mesh factory to create an instance of a
+  //! derived class based on a particular mesh framework (like MSTK,
+  //! STKmesh etc.)
+  //!
+  //! **** IMPORTANT NOTE ABOUT CONSTANTNESS OF THIS CLASS ****
+  //! Instantiating a const version of this class only guarantees that
+  //! the underlying mesh topology and geometry does not change (the
+  //! public interfaces conforms strictly to this definition). However,
+  //! for purposes of memory savings we use lazy initialization and
+  //! caching of face data, edge data, geometry quantities, columns
+  //! etc., which means that these data may still change. We also
+  //! cannot initialize the cached quantities in the constructor since
+  //! they depend on initialization of data structures in the derived
+  //! class - however, the base class gets constructed before the
+  //! derived class gets constructed so it is not possible without more
+  //! obscure acrobatics. This is why some of the caching data
+  //! declarations are declared with the keyword 'mutable' and routines
+  //! that modify the mutable data are declared with a constant
+  //! qualifier.
+  //!
 
 
 class Mesh {
@@ -105,7 +107,9 @@ class Mesh {
        const bool request_wedges = false,
        const bool request_corners = false,
        const int num_tiles_ini = 0,
-       const MPI_Comm incomm = MPI_COMM_WORLD) :
+       const MPI_Comm incomm = MPI_COMM_WORLD,
+       const JaliGeometry::Geom_type geom_type =
+       JaliGeometry::Geom_type::CARTESIAN) :
       spacedim(3), celldim(3), mesh_type_(Mesh_type::GENERAL),
       cell_geometry_precomputed(false), face_geometry_precomputed(false),
       edge_geometry_precomputed(false), wedge_geometry_precomputed(false),
@@ -116,7 +120,8 @@ class Mesh {
       cell2face_info_cached(false), face2cell_info_cached(false),
       cell2edge_info_cached(false), face2edge_info_cached(false),
       wedge_info_cached(false), corner_info_cached(false),
-      geometric_model_(NULL), comm(incomm) {
+      geometric_model_(NULL), comm(incomm),
+      geomtype(geom_type) {
     
     if (corners_requested)  // corners are defined in terms of wedges
       wedges_requested = true;
@@ -140,6 +145,12 @@ class Mesh {
   inline
   MPI_Comm get_comm() const {
     return comm;
+  }
+
+  // Geometric type for the mesh - CARTESIAN, CYLINDRICAL, or SPHERICAL
+  inline
+  JaliGeometry::Geom_type geom_type() const {
+    return geomtype;
   }
 
   //! Set the spatial dimension of points in the mesh - typically
@@ -222,15 +233,12 @@ class Mesh {
       const;
 
 
-  //! Cell type - UNKNOWN, TRI, QUAD, POLYGON, TET, PRISM, PYRAMID, HEX, POLYHED
+  //! Get cell type - UNKNOWN, TRI, QUAD, POLYGON, TET, PRISM, PYRAMID, HEX,
+  //! POLYHED
   //! See MeshDefs.hh
 
   virtual
   Cell_type cell_get_type(const Entity_ID cellid) const = 0;
-
-  //! Cell type name
-
-  //  std::string cell_type_to_name(const Cell_type type);
 
   //
   // General mesh information
@@ -411,13 +419,11 @@ class Mesh {
                                   Entity_ID_List *edgeids,
                                   std::vector<int> *edge_dirs) const;
 
-
   //! Get nodes of a cell (in no particular order)
 
   virtual
   void cell_get_nodes(const Entity_ID cellid,
                       Entity_ID_List *nodeids) const = 0;
-
 
   //! Get edges of a face and directions in which the face uses the edges
   //!
@@ -467,8 +473,6 @@ class Mesh {
   void edge_get_nodes(const Entity_ID edgeid,
                       Entity_ID *nodeid0, Entity_ID *nodeid1) const = 0;
 
-
-
   //! Get wedges of cell
 
   void cell_get_wedges(const Entity_ID cellid,
@@ -509,9 +513,8 @@ class Mesh {
   //! Face get facets (or should we return a vector of standard pairs
   //! containing the wedge and a facet index?)
 
-  void face_get_facets(const Entity_ID faceid,
-                       Entity_ID_List *facetids) const;
-
+  void face_get_facets (const Entity_ID faceid,
+                        Entity_ID_List *facetids) const;
 
   // Upward adjacencies
   //-------------------
@@ -709,7 +712,12 @@ class Mesh {
                           std::vector<std::array<Entity_ID, 2>> *facetpoints)
       const;
 
-
+// "facets" (points - node and cell center) describing a corner in 1D :)
+  
+  void corner_get_facetization(const Entity_ID cornerid,
+                               std::vector<JaliGeometry::Point> *pointcoords,
+                               std::vector<std::array<Entity_ID, 1>> 
+                               *facetpoints) const; 
   // Mesh entity geometry
   //--------------
   //
@@ -952,7 +960,6 @@ class Mesh {
                                       Entity_ID_List *edgeids,
                                       std::vector<int> *edge_dirs) const = 0;
 
-
   //! \brief Get info about mesh fields on a particular type of entity
 
   //! Get info about the number of fields, their names and their types
@@ -1017,7 +1024,6 @@ class Mesh {
   bool store_field(std::string field_name, Entity_kind on_what,
                    std::array<double, (std::size_t)6> *data) {return false;}
 
-
  protected:   // ??? shouldn't this private? We have two protected sections?
 
   // The following methods are declared const since they do not modify the
@@ -1080,10 +1086,10 @@ class Mesh {
                                 int const tileid) {}
 
 
-
   // Data
 
   unsigned int celldim, spacedim;
+  JaliGeometry::Geom_type geomtype = JaliGeometry::Geom_type::CARTESIAN;
 
   MPI_Comm comm;
 

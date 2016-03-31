@@ -26,21 +26,21 @@ LogicalRegion::LogicalRegion(const std::string name,
                              const unsigned int id,
                              const std::string operation_str,
                              const std::vector<std::string> region_names,
-                             const LifeCycleType lifecycle)
-  : Region(name,id,3,lifecycle), operation_(NOBOOLEAN),
+                             const LifeCycle_type lifecycle)
+    : Region(name,id,3,lifecycle), operation_(Bool_type::NOBOOLEAN),
     region_names_(region_names)
 {
   // Region dimension is set arbitrarily as 3 since the set of
   // entities in the mesh will determine the dimension
 
   if (operation_str == "Complement")
-    operation_ = COMPLEMENT;
+    operation_ = Bool_type::COMPLEMENT;
   else if (operation_str == "Union")
-    operation_ = UNION;
+    operation_ = Bool_type::UNION;
   else if (operation_str == "Intersect")
-    operation_ = INTERSECT;
+    operation_ = Bool_type::INTERSECT;
   else if (operation_str == "Subtract")
-    operation_ = SUBTRACT;
+    operation_ = Bool_type::SUBTRACT;
   else {
     Errors::Message mesg("Unknown logical operation type requested on regions");
     Exceptions::Jali_throw(mesg);
@@ -52,8 +52,8 @@ LogicalRegion::LogicalRegion(const char *name,
                              const unsigned int id,
                              const std::string operation_str,
                              const std::vector<std::string> region_names,
-                             const LifeCycleType lifecycle)
-  : Region(name,id,3,lifecycle), operation_(NOBOOLEAN),
+                             const LifeCycle_type lifecycle)
+    : Region(name,id,3,lifecycle), operation_(Bool_type::NOBOOLEAN),
     region_names_(region_names)
 {
   // Region dimension is set arbitrarily as 3 since the set of
@@ -61,13 +61,13 @@ LogicalRegion::LogicalRegion(const char *name,
 
 
   if (operation_str == "Complement")
-    operation_ = COMPLEMENT;
+    operation_ = Bool_type::COMPLEMENT;
   else if (operation_str == "Union")
-    operation_ = UNION;
+    operation_ = Bool_type::UNION;
   else if (operation_str == "Intersect")
-    operation_ = INTERSECT;
+    operation_ = Bool_type::INTERSECT;
   else if (operation_str == "Subtract")
-    operation_ = SUBTRACT;
+    operation_ = Bool_type::SUBTRACT;
   else {
     Errors::Message mesg("Unknown logical operation type requested on regions");
     Exceptions::Jali_throw(mesg);

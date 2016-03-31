@@ -29,9 +29,11 @@ public:
   /// Default constructor uses two corner points (order not important).
 
   BoxRegion(const std::string name, const unsigned int id, const Point& p0,
-            const Point& p1, const LifeCycleType lifecycle=PERMANENT);
+            const Point& p1,
+            const LifeCycle_type lifecycle = LifeCycle_type::PERMANENT);
   BoxRegion(const char *name, const unsigned int id, const Point& p0,
-            const Point& p1, const LifeCycleType lifecycle=PERMANENT);
+            const Point& p1,
+            const LifeCycle_type lifecycle = LifeCycle_type::PERMANENT);
 
   /// Protected copy constructor to avoid unwanted copies.
   BoxRegion(const BoxRegion& old);
@@ -42,7 +44,7 @@ public:
 
   // Type of the region
   inline
-  RegionType type() const { return BOX; }
+  Region_type type() const { return Region_type::BOX; }
 
   /// Get the first point defining the region
   inline

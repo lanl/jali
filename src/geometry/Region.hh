@@ -19,30 +19,27 @@
 namespace JaliGeometry {
 
 
-typedef enum {
-  BOX=0,
-  PLANE,
-  LABELEDSET,
-  LAYER,
-  SURFACE,
-  POINT,
-  COLORFUNCTION,
-  LOGICAL,
-  POLYGON
-} RegionType;
+enum class Region_type {
+    BOX = 0,
+    PLANE,
+    LABELEDSET,
+    LAYER,
+    SURFACE,
+    POINT,
+    COLORFUNCTION,
+    LOGICAL,
+    POLYGON
+};
 
-typedef enum {
-  PERMANENT=0,
-  TEMPORARY
-} LifeCycleType;
+enum class LifeCycle_type {PERMANENT = 0, TEMPORARY};
 
-typedef enum {
-  NOBOOLEAN=-1,
-  COMPLEMENT,
-  UNION,
-  INTERSECT,
-  SUBTRACT
-} BoolOpType;
+enum class Bool_type {
+    NOBOOLEAN = -1,
+    COMPLEMENT,
+    UNION,
+    INTERSECT,
+    SUBTRACT
+};
 
 // -------------------------------------------------------------
 //  class Region
@@ -69,9 +66,9 @@ public:
 
   /// Constructor with name and ID
   Region(const std::string name, const unsigned int id,
-         const unsigned int dim=3, const LifeCycleType lifecycle=PERMANENT);
+         const unsigned int dim=3, const LifeCycle_type lifecycle = LifeCycle_type::PERMANENT);
   Region(const char *name, const unsigned int id, const unsigned int dim=3,
-         const LifeCycleType lifecycle=PERMANENT);
+         const LifeCycle_type lifecycle = LifeCycle_type::PERMANENT);
 
   /// Copy constructor
   Region(const Region& old);
@@ -113,13 +110,13 @@ public:
   // as soon as they are used?
 
   inline
-  LifeCycleType lifecycle(void) const
+  LifeCycle_type lifecycle(void) const
   {
     return lifecycle_;
   }
 
   // Type of the region
-  virtual RegionType type() const = 0;
+  virtual Region_type type() const = 0;
 
   /// Is the specified point inside the Region
   /// Does being on the boundary count as inside or not?
@@ -133,7 +130,7 @@ private:
 
   // Lifecycle (Temporary or Permanent)
 
-  LifeCycleType lifecycle_;
+  LifeCycle_type lifecycle_;
 
   // Topological dimension of region (0, 1, 2, 3)
 

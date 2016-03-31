@@ -24,7 +24,7 @@ namespace JaliGeometry {
 PolygonRegion::PolygonRegion(const std::string name, const unsigned int id,
                              const unsigned int num_points,
                              const std::vector<Point>& points,
-                             const LifeCycleType lifecycle)
+                             const LifeCycle_type lifecycle)
   : Region(name,id,points[0].dim(),lifecycle), num_points_(num_points),
     points_(points),normal_(points[0].dim()),elim_dir_(0)
 {
@@ -34,7 +34,7 @@ PolygonRegion::PolygonRegion(const std::string name, const unsigned int id,
 PolygonRegion::PolygonRegion(const char *name, const unsigned int id,
                              const unsigned int num_points,
                              const std::vector<Point>& points,
-                             const LifeCycleType lifecycle)
+                             const LifeCycle_type lifecycle)
   : Region(name,id,points[0].dim(),lifecycle), num_points_(num_points),
     points_(points),normal_(points[0].dim()),elim_dir_(0)
 {

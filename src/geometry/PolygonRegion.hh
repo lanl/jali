@@ -29,12 +29,12 @@ public:
   PolygonRegion(const std::string name, const unsigned int id,
                 const unsigned int npolypoints,
                 const std::vector<Point>& polypoints,
-                const LifeCycleType lifecycle=PERMANENT);
+                const LifeCycle_type lifecycle = LifeCycle_type::PERMANENT);
 
   PolygonRegion(const char *name, const unsigned int id,
                 const unsigned int npolypoints,
                 const std::vector<Point>& polypoints,
-                const LifeCycleType lifecycle=PERMANENT);
+                const LifeCycle_type lifecycle = LifeCycle_type::PERMANENT);
 
 
   /// Protected copy constructor to avoid unwanted copies.
@@ -46,7 +46,7 @@ public:
 
   // Type of the region
   inline
-  RegionType type() const { return POLYGON; }
+  Region_type type() const { return Region_type::POLYGON; }
 
   inline
   unsigned int num_points() const { return num_points_; }

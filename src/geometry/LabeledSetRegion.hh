@@ -46,7 +46,7 @@ public:
                    const std::string file,
                    const std::string format,
                    const std::string label,
-                   const LifeCycleType lifecycle=PERMANENT);
+                   const LifeCycle_type lifecycle = LifeCycle_type::PERMANENT);
 
   LabeledSetRegion(const char *name,
                    const unsigned int id,
@@ -54,7 +54,7 @@ public:
                    const std::string file,
                    const std::string format,
                    const std::string label,
-                   const LifeCycleType lifecycle=PERMANENT);
+                   const LifeCycle_type lifecycle = LifeCycle_type::PERMANENT);
 
 
   /// Protected copy constructor to avoid unwanted copies.
@@ -64,7 +64,7 @@ public:
   ~LabeledSetRegion(void);
 
   // Type of the region
-  inline RegionType type() const { return LABELEDSET; }
+  inline Region_type type() const { return Region_type::LABELEDSET; }
 
   // Label in the file
   inline std::string label() const { return label_; }

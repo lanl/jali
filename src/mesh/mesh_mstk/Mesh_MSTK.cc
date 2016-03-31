@@ -596,7 +596,7 @@ Mesh_MSTK::internal_name_of_set(const JaliGeometry::RegionPtr r,
 
   std::string internal_name;
 
-  if (r->type() == JaliGeometry::LABELEDSET) {
+  if (r->type() == JaliGeometry::Region_type::LABELEDSET) {
 
     JaliGeometry::LabeledSetRegionPtr lsrgn =
       dynamic_cast<JaliGeometry::LabeledSetRegionPtr> (r);
@@ -633,7 +633,7 @@ Mesh_MSTK::other_internal_name_of_set(const JaliGeometry::RegionPtr r,
 
   std::string internal_name;
 
-  if (r->type() == JaliGeometry::LABELEDSET && entity_kind == Entity_kind::CELL) {
+  if (r->type() == JaliGeometry::Region_type::LABELEDSET && entity_kind == Entity_kind::CELL) {
 
     JaliGeometry::LabeledSetRegionPtr lsrgn =
       dynamic_cast<JaliGeometry::LabeledSetRegionPtr> (r);
@@ -2511,8 +2511,8 @@ MSet_ptr Mesh_MSTK::build_set(const JaliGeometry::RegionPtr region,
     enttype = (celldim == 3) ? MREGION : MFACE;
     mset = MSet_New(mesh, internal_name.c_str(), enttype);
 
-    if (region->type() == JaliGeometry::BOX ||
-        region->type() == JaliGeometry::COLORFUNCTION) {
+    if (region->type() == JaliGeometry::Region_type::BOX ||
+        region->type() == JaliGeometry::Region_type::COLORFUNCTION) {
 
       int ncell = Mesh::num_entities(Entity_kind::CELL, Parallel_type::ALL);
 
@@ -2520,7 +2520,7 @@ MSet_ptr Mesh_MSTK::build_set(const JaliGeometry::RegionPtr region,
         if (region->inside(cell_centroid(icell)))
           MSet_Add(mset, cell_id_to_handle[icell]);
 
-    } else if (region->type() == JaliGeometry::POINT) {
+    } else if (region->type() == JaliGeometry::Region_type::POINT) {
       JaliGeometry::Point vpnt(spacedim);
       JaliGeometry::Point rgnpnt(spacedim);
 
@@ -2557,7 +2557,7 @@ MSet_ptr Mesh_MSTK::build_set(const JaliGeometry::RegionPtr region,
           MSet_Add(mset, cell_id_to_handle[icell]);
       }
 
-    } else if (region->type() == JaliGeometry::PLANE) {
+    } else if (region->type() == JaliGeometry::Region_type::PLANE) {
 
       if (celldim == 2) {
 
@@ -2581,9 +2581,9 @@ MSet_ptr Mesh_MSTK::build_set(const JaliGeometry::RegionPtr region,
         }
       }
 
-    } else if (region->type() == JaliGeometry::LOGICAL) {
+    } else if (region->type() == JaliGeometry::Region_type::LOGICAL) {
       // will process later in this subroutine
-    } else if (region->type() == JaliGeometry::LABELEDSET) {
+    } else if (region->type() == JaliGeometry::Region_type::LABELEDSET) {
       // Just retrieve and return the set
 
       JaliGeometry::LabeledSetRegionPtr lsrgn =
@@ -2643,7 +2643,7 @@ MSet_ptr Mesh_MSTK::build_set(const JaliGeometry::RegionPtr region,
     enttype = (celldim == 3) ? MFACE : MEDGE;
     mset = MSet_New(mesh, internal_name.c_str(), enttype);
 
-    if (region->type() == JaliGeometry::BOX)  {
+    if (region->type() == JaliGeometry::Region_type::BOX)  {
 
       int nface = Mesh::num_entities(Entity_kind::FACE, Parallel_type::ALL);
 
@@ -2652,8 +2652,8 @@ MSet_ptr Mesh_MSTK::build_set(const JaliGeometry::RegionPtr region,
           MSet_Add(mset, face_id_to_handle[iface]);
 
       }
-    } else if (region->type() == JaliGeometry::PLANE ||
-               region->type() == JaliGeometry::POLYGON) {
+    } else if (region->type() == JaliGeometry::Region_type::PLANE ||
+               region->type() == JaliGeometry::Region_type::POLYGON) {
 
       int nface = Mesh::num_entities(Entity_kind::FACE, Parallel_type::ALL);
 
@@ -2674,7 +2674,7 @@ MSet_ptr Mesh_MSTK::build_set(const JaliGeometry::RegionPtr region,
           MSet_Add(mset, face_id_to_handle[iface]);
       }
 
-    } else if (region->type() == JaliGeometry::LABELEDSET) {
+    } else if (region->type() == JaliGeometry::Region_type::LABELEDSET) {
       // Just retrieve and return the set
 
       JaliGeometry::LabeledSetRegionPtr lsrgn =
@@ -2688,7 +2688,7 @@ MSet_ptr Mesh_MSTK::build_set(const JaliGeometry::RegionPtr region,
       }
 
       mset = MESH_MSetByName(mesh, internal_name.c_str());
-    } else if (region->type() == JaliGeometry::LOGICAL) {
+    } else if (region->type() == JaliGeometry::Region_type::LOGICAL) {
       // Will handle it later in the routine
     } else {
       Errors::Message mesg("Region type not applicable/supported for face sets");
@@ -2701,10 +2701,10 @@ MSet_ptr Mesh_MSTK::build_set(const JaliGeometry::RegionPtr region,
     enttype = MVERTEX;
     mset = MSet_New(mesh, internal_name.c_str(), enttype);
 
-    if (region->type() == JaliGeometry::BOX ||
-        region->type() == JaliGeometry::PLANE ||
-        region->type() == JaliGeometry::POLYGON ||
-        region->type() == JaliGeometry::POINT) {
+    if (region->type() == JaliGeometry::Region_type::BOX ||
+        region->type() == JaliGeometry::Region_type::PLANE ||
+        region->type() == JaliGeometry::Region_type::POLYGON ||
+        region->type() == JaliGeometry::Region_type::POINT) {
 
       int nnode = Mesh::num_entities(Entity_kind::NODE, Parallel_type::ALL);
 
@@ -2717,11 +2717,11 @@ MSet_ptr Mesh_MSTK::build_set(const JaliGeometry::RegionPtr region,
           MSet_Add(mset, vtx_id_to_handle[inode]);
 
           // Only one node per point region
-          if (region->type() == JaliGeometry::POINT)
+          if (region->type() == JaliGeometry::Region_type::POINT)
             break;
         }
       }
-    } else if (region->type() == JaliGeometry::LABELEDSET) {
+    } else if (region->type() == JaliGeometry::Region_type::LABELEDSET) {
       // Just retrieve and return the set
 
       JaliGeometry::LabeledSetRegionPtr lsrgn =
@@ -2735,7 +2735,7 @@ MSet_ptr Mesh_MSTK::build_set(const JaliGeometry::RegionPtr region,
       }
 
       mset = MESH_MSetByName(mesh, internal_name.c_str());
-    } else if (region->type() == JaliGeometry::LOGICAL) {
+    } else if (region->type() == JaliGeometry::Region_type::LOGICAL) {
       // We will handle it later in the routine
     } else {
       Errors::Message mesg("Region type not applicable/supported for node sets");
@@ -2746,7 +2746,7 @@ MSet_ptr Mesh_MSTK::build_set(const JaliGeometry::RegionPtr region,
   }
 
 
-  if (region->type() == JaliGeometry::LOGICAL) {
+  if (region->type() == JaliGeometry::Region_type::LOGICAL) {
     JaliGeometry::LogicalRegionPtr boolregion =
         (JaliGeometry::LogicalRegionPtr) region;
     std::vector<std::string> region_names = boolregion->component_regions();
@@ -2788,7 +2788,7 @@ MSet_ptr Mesh_MSTK::build_set(const JaliGeometry::RegionPtr region,
 
     int mkid = MSTK_GetMarker();
 
-    if (boolregion->operation() == JaliGeometry::COMPLEMENT) {
+    if (boolregion->operation() == JaliGeometry::Bool_type::COMPLEMENT) {
 
       for (int ms = 0; ms < msets.size(); ms++)
         MSet_Mark(msets[ms], mkid);
@@ -2823,7 +2823,7 @@ MSet_ptr Mesh_MSTK::build_set(const JaliGeometry::RegionPtr region,
       for (int ms = 0; ms < msets.size(); ms++)
         MSet_Unmark(msets[ms], mkid);
 
-    } else if (boolregion->operation() == JaliGeometry::UNION) {
+    } else if (boolregion->operation() == JaliGeometry::Bool_type::UNION) {
 
       for (int ms = 0; ms < msets.size(); ms++) {
         MEntity_ptr ment;
@@ -2836,7 +2836,7 @@ MSet_ptr Mesh_MSTK::build_set(const JaliGeometry::RegionPtr region,
       }
       MSet_Unmark(mset, mkid);
 
-    } else if (boolregion->operation() == JaliGeometry::SUBTRACT) {
+    } else if (boolregion->operation() == JaliGeometry::Bool_type::SUBTRACT) {
 
       /* Mark entities in all sets except the first */
 
@@ -2856,7 +2856,7 @@ MSet_ptr Mesh_MSTK::build_set(const JaliGeometry::RegionPtr region,
       for (int ms = 1; ms < msets.size(); ms++)
         MSet_Unmark(msets[ms], mkid);
 
-    } else if (boolregion->operation() == JaliGeometry::INTERSECT) {
+    } else if (boolregion->operation() == JaliGeometry::Bool_type::INTERSECT) {
 
       /* Can't do this using markers alone - need attributes */
 
@@ -2906,7 +2906,7 @@ MSet_ptr Mesh_MSTK::build_set(const JaliGeometry::RegionPtr region,
 
     for (int ms = 0; ms < msets.size(); ms++) {
       MSet_Unmark(msets[ms], mkid);
-      if (regions[ms]->lifecycle() == JaliGeometry::TEMPORARY)
+      if (regions[ms]->lifecycle() == JaliGeometry::LifeCycle_type::TEMPORARY)
         MSet_Delete(msets[ms]);
     }
 
@@ -2955,7 +2955,7 @@ void Mesh_MSTK::get_set_entities(const std::string setname,
   // If region is of type labeled set and a mesh set should have been
   // initialized from the input file
 
-  if (rgn->type() == JaliGeometry::LABELEDSET) {
+  if (rgn->type() == JaliGeometry::Region_type::LABELEDSET) {
     JaliGeometry::LabeledSetRegionPtr lsrgn =
         dynamic_cast<JaliGeometry::LabeledSetRegionPtr> (rgn);
     std::string label = lsrgn->label();
@@ -3044,7 +3044,7 @@ void Mesh_MSTK::get_set_entities(const std::string setname,
 
   // All attempts to find the set failed so it must not exist - build it
 
-  if (mset1 == NULL && rgn->type() != JaliGeometry::LABELEDSET)
+  if (mset1 == NULL && rgn->type() != JaliGeometry::Region_type::LABELEDSET)
     mset1 = build_set(rgn, kind);
 
   /* Check if no processor got any mesh entities */
@@ -3970,7 +3970,7 @@ void Mesh_MSTK::init_set_info() {
     JaliGeometry::RegionPtr rgn = gm->Region_i(i);
 
     MType entdim;
-    if (rgn->type() == JaliGeometry::LABELEDSET) {
+    if (rgn->type() == JaliGeometry::Region_type::LABELEDSET) {
 
       JaliGeometry::LabeledSetRegionPtr lsrgn =
         dynamic_cast<JaliGeometry::LabeledSetRegionPtr> (rgn);
@@ -4795,7 +4795,7 @@ void Mesh_MSTK::inherit_labeled_sets(MAttrib_ptr copyatt) {
   for (int i = 0; i < ngr; ++i) {
     JaliGeometry::RegionPtr rgn = gm->Region_i(i);
 
-    if (rgn->type() == JaliGeometry::LABELEDSET) {
+    if (rgn->type() == JaliGeometry::Region_type::LABELEDSET) {
 
       // Get the set from the parent mesh
 
