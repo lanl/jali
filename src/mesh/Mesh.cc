@@ -14,13 +14,14 @@
 #include <math.h>
 #include <cmath>
 
+#include "Mesh.hh"
+#include "MeshTile.hh"
+
 #include "Geometry.hh"
 #include "dbc.hh"
 #include "errors.hh"
 #include "LabeledSetRegion.hh"
 
-#include "Mesh.hh"
-#include "MeshTile.hh"  // Always include MeshTile.hh after Mesh.hh
 
 #define CACHE_VARS 1
 
