@@ -362,7 +362,7 @@ class Mesh_MSTK : public Mesh {
   //! variable type sent in was the wrong type (int instead of double
   //! or double instead of std::array<double,2> or
   //! std::array<double,2> instead of std::array<double,3> etc -
-  //! DESIGNED TO BE CParallel_type::ALLED ONLY BY THE JALI STATE MANAGER FOR
+  //! DESIGNED TO BE CALLED ONLY BY THE JALI STATE MANAGER FOR
   //! INITIALIZATION OF MESH STATE FROM THE MESH FILE
 
   bool get_field(std::string field_name, Entity_kind on_what, int *data) const;
@@ -373,7 +373,7 @@ class Mesh_MSTK : public Mesh {
   //! variable type sent in was the wrong type (int instead of double
   //! or double instead of std::array<double,2> or
   //! std::array<double,2> instead of std::array<double,3> etc -
-  //! DESIGNED TO BE CParallel_type::ALLED ONLY BY THE JALI STATE MANAGER FOR
+  //! DESIGNED TO BE CALLED ONLY BY THE JALI STATE MANAGER FOR
   //! INITIALIZATION OF MESH STATE FROM THE MESH FILE
 
   bool get_field(std::string field_name, Entity_kind on_what,
@@ -385,7 +385,7 @@ class Mesh_MSTK : public Mesh {
   //! variable type sent in was the wrong type (int instead of double
   //! or double instead of std::array<double,2> or
   //! std::array<double,2> instead of std::array<double,3> etc -
-  //! DESIGNED TO BE CParallel_type::ALLED ONLY BY THE JALI STATE MANAGER FOR
+  //! DESIGNED TO BE CALLED ONLY BY THE JALI STATE MANAGER FOR
   //! INITIALIZATION OF MESH STATE FROM THE MESH FILE
 
   //! HAVE TO DO THIS WONKY THING BECAUSE COMPILER COMPLAINS THAT IT
