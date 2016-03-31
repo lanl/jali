@@ -132,11 +132,6 @@ class bogus_mesh : public Jali::Mesh {
   cell_get_type(const Jali::Entity_ID cellid) const
   { return Jali::Cell_type::CELLTYPE_UNKNOWN; }
 
-  //  unsigned int
-  //  num_entities (const Jali::Entity_kind kind,
-  //                const Jali::Parallel_type ptype) const
-  //  { return 0; }
-
   Jali::Entity_ID
   GID(const Jali::Entity_ID lid,
       const Jali::Entity_kind kind) const
