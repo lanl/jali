@@ -63,7 +63,7 @@ TEST(MESH_TILES_MPI) {
 
     int ierr = 0;
     int aerr = 0;
-    int num_tiles_requested = 8;  // number of tiles in mesh on each processor
+    int num_tiles_requested = 7;  // number of tiles in mesh on each processor
     try {
       Jali::FrameworkPreference prefs(factory.preference());
       prefs.clear();
