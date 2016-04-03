@@ -5,10 +5,12 @@
 // -------------------------------------------------------------
 // Battelle Memorial Institute
 // Pacific Northwest Laboratory
+// and
+// Los Alamos National Laboratory
 // -------------------------------------------------------------
 // -------------------------------------------------------------
 // Created March 10, 2011 by William A. Perkins
-// Last Change: Mon Aug  1 13:46:30 2011 by William A. Perkins <d3g096@PE10900.pnl.gov>
+// Updated: Rao Garimella, LANL
 // -------------------------------------------------------------
 
 
@@ -33,10 +35,42 @@ namespace Jali {
 // MeshFactory:: constructors / destructor
 // -------------------------------------------------------------
 MeshFactory::MeshFactory(const MPI_Comm& communicator)
-  : my_comm(communicator),
-    my_preference(default_preference()) {}
+  : my_comm_(communicator),
+    my_preference_(default_preference()) {
+  reset_options();   // Reset to defaults
+}
 
 MeshFactory::~MeshFactory(void) {}
+
+
+// Reset mesh constructor options to their default values
+void MeshFactory::reset_options(void) {
+  // What type of entities to include/exclude in the meshes to be created
+  // (nodes must ALWAYS be present)
+  request_edges_ = false;
+  request_faces_ = true;  // always needed (for now) to compute cell geom
+  request_cells_ = true;
+  request_wedges_ = false;
+  request_corners_ = false;
+
+  /// Number of on-node mesh tiles
+  num_tiles_ = 0;
+
+  /// Number of ghost/halo layers at the tile level on compute node
+  num_ghost_layers_tile_ = 0;
+
+  /// Number of ghost/halo layers for mesh partitions across compute nodes
+  num_ghost_layers_distmesh_ = 1;
+
+  /// Partitioner type
+  partitioner_ = Partitioner_type::METIS;
+
+  /// Geometry type
+  geom_type_ = JaliGeometry::Geom_type::CARTESIAN;
+
+  /// Geometric model
+  geometric_model_ = nullptr;
+}
 
 // -------------------------------------------------------------
 // MeshFactory::preference
@@ -53,9 +87,9 @@ MeshFactory::~MeshFactory(void) {}
  */
 void
 MeshFactory::preference(const FrameworkPreference& pref) {
-  my_preference.clear();
-  my_preference = available_preference(pref);
-  if (my_preference.empty()) {
+  my_preference_.clear();
+  my_preference_ = available_preference(pref);
+  if (my_preference_.empty()) {
     Message e("specified framework(s) not available: ");
     for (FrameworkPreference::const_iterator i = pref.begin();
          i != pref.end(); i++) {
@@ -79,16 +113,10 @@ MeshFactory::preference(const FrameworkPreference& pref) {
  * @return mesh instance
  */
 std::shared_ptr<Mesh>
-MeshFactory::create(const std::string& filename,
-                    const JaliGeometry::GeometricModelPtr &gm,
-                    const bool request_faces,
-                    const bool request_edges,
-                    const bool request_wedges,
-                    const bool request_corners,
-                    const int num_tiles) {
+MeshFactory::create(const std::string& filename) {
 
   // check the file format
-  Format fmt = file_format(my_comm, filename);
+  Format fmt = file_format(my_comm_, filename);
 
   if (fmt == UnknownFormat) {
     FileMessage
@@ -103,18 +131,23 @@ MeshFactory::create(const std::string& filename,
   aerr[0] = 0;
 
   int numproc;
-  MPI_Comm_size(my_comm, &numproc);
+  MPI_Comm_size(my_comm_, &numproc);
 
   std::shared_ptr<Mesh> result;
-  for (FrameworkPreference::const_iterator i = my_preference.begin();
-       i != my_preference.end(); i++) {
+  for (FrameworkPreference::const_iterator i = my_preference_.begin();
+       i != my_preference_.end(); i++) {
     if (framework_reads(*i, fmt, numproc > 1)) {
       try {
-        result = framework_read(my_comm, *i, filename, gm,
-                                request_faces, request_edges,
-                                request_wedges, request_corners,
-                                num_tiles);
-        if (gm && (gm->dimension() != result->space_dimension())) {
+        result = framework_read(my_comm_, *i, filename, geometric_model_,
+                                request_faces_, request_edges_,
+                                request_wedges_, request_corners_,
+                                num_tiles_,
+                                num_ghost_layers_tile_,
+                                num_ghost_layers_distmesh_,
+                                partitioner_,
+                                geom_type_);
+        if (geometric_model_ &&
+            (geometric_model_->dimension() != result->space_dimension())) {
           Errors::Message
               mesg("Geometric model and mesh dimension do not match");
           Exceptions::Jali_throw(mesg);
@@ -128,7 +161,7 @@ MeshFactory::create(const std::string& filename,
         e.add_data("internal error: ");
         e.add_data(stde.what());
       }
-      MPI_Allreduce(ierr, aerr, 1, MPI_INT, MPI_SUM, my_comm);
+      MPI_Allreduce(ierr, aerr, 1, MPI_INT, MPI_SUM, my_comm_);
       if (aerr[0] > 0) Exceptions::Jali_throw(e);
     }
   }
@@ -160,14 +193,7 @@ MeshFactory::create(const std::string& filename,
 std::shared_ptr<Mesh>
 MeshFactory::create(double x0, double y0, double z0,
                     double x1, double y1, double z1,
-                    int nx, int ny, int nz,
-                    const JaliGeometry::GeometricModelPtr &gm,
-                    const bool request_faces,
-                    const bool request_edges,
-                    const bool request_wedges,
-                    const bool request_corners,
-                    const int num_tiles) {
-
+                    int nx, int ny, int nz) {
   std::shared_ptr<Mesh> result;
   Message e("MeshFactory::create: error: ");
   int ierr[1], aerr[1];
@@ -176,7 +202,7 @@ MeshFactory::create(double x0, double y0, double z0,
 
   unsigned int dim = 3;
 
-  if (gm && (gm->dimension() != 3)) {
+  if (geometric_model_ && (geometric_model_->dimension() != 3)) {
     Errors::Message mesg("Geometric model and mesh dimension do not match");
     Exceptions::Jali_throw(mesg);
   }
@@ -187,7 +213,7 @@ MeshFactory::create(double x0, double y0, double z0,
         boost::format("invalid mesh cells requested: %d x %d x %d") %
                           nx % ny % nz).c_str());
   }
-  MPI_Allreduce(&ierr, &aerr, 1, MPI_INT, MPI_SUM, my_comm);
+  MPI_Allreduce(&ierr, &aerr, 1, MPI_INT, MPI_SUM, my_comm_);
   if (aerr[0] > 0) Exceptions::Jali_throw(e);
 
   if (x1 - x0 <= 0.0 || y1 - y0 <= 0.0 || z1 - z0 <= 0.0) {
@@ -196,21 +222,25 @@ MeshFactory::create(double x0, double y0, double z0,
         boost::format("invalid mesh dimensions requested: %.6g x %.6g x %.6g") %
                           (x1 - x0) % (y1 - y0) % (z1 - z0)).c_str());
   }
-  MPI_Allreduce(&ierr, &aerr, 1, MPI_INT, MPI_SUM, my_comm);
+  MPI_Allreduce(&ierr, &aerr, 1, MPI_INT, MPI_SUM, my_comm_);
   if (aerr[0] > 0) Exceptions::Jali_throw(e);
 
   int numprocs;
-  MPI_Comm_size(my_comm, &numprocs);
+  MPI_Comm_size(my_comm_, &numprocs);
 
-  for (FrameworkPreference::const_iterator i = my_preference.begin();
-       i != my_preference.end(); i++) {
+  for (FrameworkPreference::const_iterator i = my_preference_.begin();
+       i != my_preference_.end(); i++) {
     if (framework_generates(*i, numprocs > 1, dim)) {
       try {
-        result = framework_generate(my_comm, *i,
-                                    x0, y0, z0, x1, y1, z1, nx, ny, nz, gm,
-                                    request_faces, request_edges,
-                                    request_wedges, request_corners,
-                                    num_tiles);
+        result = framework_generate(my_comm_, *i,
+                                    x0, y0, z0, x1, y1, z1, nx, ny, nz,
+                                    geometric_model_,
+                                    request_faces_, request_edges_,
+                                    request_wedges_, request_corners_,
+                                    num_tiles_,
+                                    num_ghost_layers_tile_,
+                                    num_ghost_layers_distmesh_,
+                                    partitioner_);
         return result;
       } catch (const Message& msg) {
         ierr[0] += 1;
@@ -220,7 +250,7 @@ MeshFactory::create(double x0, double y0, double z0,
         e.add_data("internal error: ");
         e.add_data(stde.what());
       }
-      MPI_Allreduce(ierr, aerr, 1, MPI_INT, MPI_SUM, my_comm);
+      MPI_Allreduce(ierr, aerr, 1, MPI_INT, MPI_SUM, my_comm_);
       if (aerr[0] > 0) Exceptions::Jali_throw(e);
     }
   }
@@ -249,14 +279,7 @@ MeshFactory::create(double x0, double y0, double z0,
 std::shared_ptr<Mesh>
 MeshFactory::create(double x0, double y0,
                     double x1, double y1,
-                    int nx, int ny,
-                    const JaliGeometry::GeometricModelPtr &gm,
-                    const bool request_faces,
-                    const bool request_edges,
-                    const bool request_wedges,
-                    const bool request_corners,
-                    const int num_tiles) {
-
+                    int nx, int ny) {
   std::shared_ptr<Mesh> result;
   Message e("MeshFactory::create: error: ");
   int ierr[1], aerr[1];
@@ -265,7 +288,7 @@ MeshFactory::create(double x0, double y0,
 
   unsigned int dim = 2;
 
-  if (gm && (gm->dimension() != 2)) {
+  if (geometric_model_ && (geometric_model_->dimension() != 2)) {
     Errors::Message mesg("Geometric model and mesh dimension do not match");
     Exceptions::Jali_throw(mesg);
   }
@@ -276,7 +299,7 @@ MeshFactory::create(double x0, double y0,
         boost::format("invalid mesh cells requested: %d x %d") %
                           nx % ny).c_str());
   }
-  MPI_Allreduce(&ierr, &aerr, 1, MPI_INT, MPI_SUM, my_comm);
+  MPI_Allreduce(&ierr, &aerr, 1, MPI_INT, MPI_SUM, my_comm_);
   if (aerr[0] > 0) Exceptions::Jali_throw(e);
 
   if (x1 - x0 <= 0.0 || y1 - y0 <= 0.0) {
@@ -286,21 +309,26 @@ MeshFactory::create(double x0, double y0,
                           (x1 - x0) % (y1 - y0)).c_str());
   }
 
-  MPI_Allreduce(ierr, aerr, 1, MPI_INT, MPI_SUM, my_comm);
+  MPI_Allreduce(ierr, aerr, 1, MPI_INT, MPI_SUM, my_comm_);
   if (aerr[0] > 0) Exceptions::Jali_throw(e);
 
   int numprocs;
-  MPI_Comm_size(my_comm, &numprocs);
+  MPI_Comm_size(my_comm_, &numprocs);
 
-  for (FrameworkPreference::const_iterator i = my_preference.begin();
-       i != my_preference.end(); i++) {
+  for (FrameworkPreference::const_iterator i = my_preference_.begin();
+       i != my_preference_.end(); i++) {
     if (framework_generates(*i, numprocs > 1, dim)) {
       try {
-        result = framework_generate(my_comm, *i,
-                                    x0, y0, x1, y1, nx, ny, gm,
-                                    request_faces, request_edges,
-                                    request_wedges, request_corners,
-                                    num_tiles);
+        result = framework_generate(my_comm_, *i,
+                                    x0, y0, x1, y1, nx, ny,
+                                    geometric_model_,
+                                    request_faces_, request_edges_,
+                                    request_wedges_, request_corners_,
+                                    num_tiles_,
+                                    num_ghost_layers_tile_,
+                                    num_ghost_layers_distmesh_,
+                                    partitioner_,
+                                    geom_type_);
         return result;
       } catch (const Message& msg) {
         ierr[0] += 1;
@@ -310,7 +338,7 @@ MeshFactory::create(double x0, double y0,
         e.add_data("internal error: ");
         e.add_data(stde.what());
       }
-      MPI_Allreduce(ierr, aerr, 1, MPI_INT, MPI_SUM, my_comm);
+      MPI_Allreduce(ierr, aerr, 1, MPI_INT, MPI_SUM, my_comm_);
       if (aerr[0] > 0) Exceptions::Jali_throw(e);
     }
   }
@@ -333,14 +361,7 @@ MeshFactory::create(double x0, double y0,
  */
 
 std::shared_ptr<Mesh>
-MeshFactory::create(std::vector<double> x,
-                    const JaliGeometry::GeometricModelPtr &gm,
-                    const bool request_faces,
-                    const bool request_edges,
-                    const bool request_wedges,
-                    const bool request_corners,
-                    const int num_tiles,
-                    const JaliGeometry::Geom_type geom_type) {
+MeshFactory::create(std::vector<double> x) {
   std::shared_ptr<Mesh> result;
   Message e("MeshFactory::create: error: ");
   int ierr[1], aerr[1];
@@ -349,7 +370,7 @@ MeshFactory::create(std::vector<double> x,
 
   unsigned int dim = 1;
 
-  if (gm && (gm->dimension() != 1)) {
+  if (geometric_model_ && (geometric_model_->dimension() != 1)) {
     Errors::Message mesg("Geometric model and mesh dimension do not match");
     Exceptions::Jali_throw(mesg);
   }
@@ -359,7 +380,7 @@ MeshFactory::create(std::vector<double> x,
     e.add_data(boost::str(boost::format("invalid num nodes requested: %d") %
                           x.size()).c_str());
   }
-  MPI_Allreduce(&ierr, &aerr, 1, MPI_INT, MPI_SUM, my_comm);
+  MPI_Allreduce(&ierr, &aerr, 1, MPI_INT, MPI_SUM, my_comm_);
   if (aerr[0] > 0) Exceptions::Jali_throw(e);
 
   double delta = x.back() - x.front();
@@ -368,21 +389,25 @@ MeshFactory::create(std::vector<double> x,
     e.add_data(boost::str(boost::format("invalid mesh coors requested: %.6g") %
                           delta).c_str());
   }
-  MPI_Allreduce(ierr, aerr, 1, MPI_INT, MPI_SUM, my_comm);
+  MPI_Allreduce(ierr, aerr, 1, MPI_INT, MPI_SUM, my_comm_);
   if (aerr[0] > 0) Exceptions::Jali_throw(e);
   int numprocs;
-  MPI_Comm_size(my_comm, &numprocs);
+  MPI_Comm_size(my_comm_, &numprocs);
 
-  for (FrameworkPreference::const_iterator i = my_preference.begin();
-       i != my_preference.end(); i++) {
+  for (FrameworkPreference::const_iterator i = my_preference_.begin();
+       i != my_preference_.end(); i++) {
     if (framework_generates(*i, numprocs > 1, dim)) {
       try {
-        result = framework_generate(my_comm, *i,
+        result = framework_generate(my_comm_, *i,
                                     x,
-                                    gm,
-                                    request_faces, request_edges,
-                                    request_wedges, request_corners,
-                                    num_tiles, geom_type);
+                                    geometric_model_,
+                                    request_faces_, request_edges_,
+                                    request_wedges_, request_corners_,
+                                    num_tiles_,
+                                    num_ghost_layers_tile_,
+                                    num_ghost_layers_distmesh_,
+                                    partitioner_,
+                                    geom_type_);
         return result;
       } catch (const Message& msg) {
         ierr[0] += 1;
@@ -392,7 +417,7 @@ MeshFactory::create(std::vector<double> x,
         e.add_data("internal error: ");
         e.add_data(stde.what());
       }
-      MPI_Allreduce(ierr, aerr, 1, MPI_INT, MPI_SUM, my_comm);
+      MPI_Allreduce(ierr, aerr, 1, MPI_INT, MPI_SUM, my_comm_);
       if (aerr[0] > 0) Exceptions::Jali_throw(e);
     }
   }
@@ -417,13 +442,7 @@ std::shared_ptr<Mesh>
 MeshFactory::create(const std::shared_ptr<Mesh> inmesh,
                     const std::vector<std::string> setnames,
                     const Entity_kind setkind,
-                    const bool flatten, const bool extrude,
-                    const bool request_faces,
-                    const bool request_edges,
-                    const bool request_wedges,
-                    const bool request_corners,
-                    const int num_tiles) {
-
+                    const bool flatten, const bool extrude) {
   std::shared_ptr<Mesh> result;
   Message e("MeshFactory::create: error: ");
   int ierr[1], aerr[1];
@@ -432,18 +451,22 @@ MeshFactory::create(const std::shared_ptr<Mesh> inmesh,
 
   int dim = inmesh->cell_dimension();
   int numprocs;
-  MPI_Comm_size(my_comm, &numprocs);
+  MPI_Comm_size(my_comm_, &numprocs);
 
-  for (FrameworkPreference::const_iterator i = my_preference.begin();
-       i != my_preference.end(); i++) {
+  for (FrameworkPreference::const_iterator i = my_preference_.begin();
+       i != my_preference_.end(); i++) {
     if (framework_extracts(*i, numprocs > 1, dim)) {
       try {
-        result = framework_extract(my_comm, *i, inmesh,
+        result = framework_extract(my_comm_, *i, inmesh,
                                    setnames, setkind,
                                    flatten, extrude,
-                                   request_faces, request_edges,
-                                   request_wedges, request_corners,
-                                   num_tiles);
+                                   request_faces_, request_edges_,
+                                   request_wedges_, request_corners_,
+                                   num_tiles_,
+                                   num_ghost_layers_tile_,
+                                   num_ghost_layers_distmesh_,
+                                   partitioner_,
+                                   geom_type_);
         return result;
       } catch (const Message& msg) {
         ierr[0] += 1;
@@ -453,7 +476,7 @@ MeshFactory::create(const std::shared_ptr<Mesh> inmesh,
         e.add_data("internal error: ");
         e.add_data(stde.what());
       }
-      MPI_Allreduce(ierr, aerr, 1, MPI_INT, MPI_SUM, my_comm);
+      MPI_Allreduce(ierr, aerr, 1, MPI_INT, MPI_SUM, my_comm_);
       if (aerr[0] > 0) Exceptions::Jali_throw(e);
     }
   }

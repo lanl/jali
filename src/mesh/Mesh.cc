@@ -458,16 +458,14 @@ void Mesh::build_tiles() {
   std::vector<std::vector<int>> partitions;
   partitions.resize(num_tiles_ini_);
 
-  Partitioner_type partitioner_pref = Partitioner_type::METIS;
-  std::cerr << "Calling partitioner " << static_cast<int>(partitioner_pref) <<
-      "\n";
-  get_partitioning(num_tiles_ini_, partitioner_pref, &partitions);
+  std::cerr << "Calling partitioner " << partitioner_pref_ << "\n";
+  get_partitioning(num_tiles_ini_, partitioner_pref_, &partitions);
 
   // Make the tiles - make mesh tile will also call a routine of this mesh
   // to add the tile to the mesh's list of tiles
 
   for (int i = 0; i < num_tiles_ini_; ++i)
-    make_meshtile(*this, partitions[i], num_halo_layers_, faces_requested,
+    make_meshtile(*this, partitions[i], num_ghost_layers_tile_, faces_requested,
                   edges_requested, wedges_requested, corners_requested);
 }
 
@@ -2194,7 +2192,8 @@ Mesh::get_partitioning(int const num_parts,
      get_partitioning_by_index_space(num_parts, partitions);
 
 #endif
-  } else if (partitioner == Partitioner_type::ZOLTAN &&
+  } else if ((partitioner == Partitioner_type::ZOLTAN_GRAPH ||
+              partitioner == Partitioner_type::ZOLTAN_RCB) &&
              space_dimension() != 1) {
 
 // #ifdef Jali_HAVE_ZOLTAN

@@ -41,11 +41,13 @@ int main(int argc, char *argv[]) {
   if (framework_available(MSTK)) {  // check if framework is available
     mesh_factory.preference(pref);
   
-    // Read in an exodus file. Specify that we did not instantiate a
-    // geometric model (NULL). Also, request faces, edges, wedges and
-    // corners (true, true, true, true)
+    // Read in an exodus file.
+    // request faces, edges, wedges and corners
 
-    mymesh = mesh_factory("test.exo", NULL, true, true, true, true);
+    mesh_factory.included_entities({Entity_kind::EDGE, Entity_kind::FACE,
+            Entity_kind::WEDGE, Entity_kind::CORNER});
+
+    mymesh = mesh_factory("test.exo");
   }
 
 

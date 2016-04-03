@@ -165,10 +165,19 @@ int main(int argc, char *argv[]) {
     mesh_factory.preference(pref);
   
     // Read in an exodus file. Request faces, edges, wedges and
-    // corners (true, true, true, true). MAKE SURE TO SPECIFY THE
-    // GEOMETRIC MODEL
+    // corners
 
-    mymesh = mesh_factory(exofilename, gm, true, true, true, true);
+    std::vector<Entity_kind> entitylist = {Entity_kind::EDGE,
+                                           Entity_kind::FACE,
+                                           Entity_kind::WEDGE,
+                                           Entity_kind::CORNER};
+    mesh_factory.included_entities(entitylist);
+
+    // MAKE SURE TO SPECIFY THE GEOMETRIC MODEL
+    
+    mesh_factory.geometric_model(gm);
+
+    mymesh = mesh_factory(exofilename);
   }
 
   //---------------------------------------------------------------------------

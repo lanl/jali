@@ -47,14 +47,16 @@ int main(int argc, char *argv[]) {
     mesh_factory.preference(pref);
   
     // Create a 3D mesh from (0.0, 0.0, 0.0) to (1.0, 1.0, 1.0)
-    // with 3, 3 and 3 elements in the X, Y and Z directions. Specify
-    // that we did not instantiate a geometric model (NULL). Also,
-    // request faces, edges, wedges and corners (true, true, true,
-    // true)
+    // with 3, 3 and 3 elements in the X, Y and Z directions.
+    // request faces, edges, wedges and corners and tiles
 
-    int num_tiles_requested = 4;
-    mymesh = mesh_factory(0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 3, 3, 3, NULL,
-                          true, true, true, true, num_tiles_requested);
+    mesh_factory.included_entities({Entity_kind::EDGE, Entity_kind::FACE,
+            Entity_kind::WEDGE, Entity_kind::CORNER});
+
+    mesh_factory.num_tiles(4);
+    mesh_factory.num_ghost_layers_tile(1);
+
+    mymesh = mesh_factory(0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 3, 3, 3);
   }
 
   int rank, nprocs;

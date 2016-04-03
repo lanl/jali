@@ -78,19 +78,21 @@ int main(int argc, char *argv[]) {
     mesh_factory.preference(pref);
 
     // Create a 2D mesh from (0.0, 0.0) to (1.0, 1.0)
-    // with 4 and 4 elements in the X, Y directions. Specify
-    // that we did not instantiate a geometric model (NULL). Also,
+    // with 4 and 4 elements in the X, Y directions. Also,
     // request faces, edges, wedges and corners. Finally, request
     // four tiles in the mesh (with 4 elements each)
 
     int num_tiles = 4;
-    bool request_faces = true;
-    bool request_edges = true;
-    bool request_wedges = true;
-    bool request_corners = true;
-    mymesh = mesh_factory(0.0, 0.0, 1.0, 1.0, 4, 4, NULL,
-                          request_faces, request_edges, request_wedges,
-                          request_corners, num_tiles);
+
+    std::vector<Entity_kind> entitylist = {Entity_kind::EDGE,
+                                           Entity_kind::FACE,
+                                           Entity_kind::WEDGE,
+                                           Entity_kind::CORNER};
+    mesh_factory.included_entities(entitylist);
+
+    mesh_factory.num_tiles(num_tiles);
+
+    mymesh = mesh_factory(0.0, 0.0, 1.0, 1.0, 4, 4);
   }
 
 

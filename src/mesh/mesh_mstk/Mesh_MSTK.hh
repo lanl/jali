@@ -51,7 +51,12 @@ class Mesh_MSTK : public Mesh {
             const bool request_edges = false,
             const bool request_wedges = false,
             const bool request_corners = false,
-            const int num_tiles = 0);
+            const int num_tiles = 0,
+            const int num_ghost_layers_tile = 0,
+            const int num_ghost_layers_distmesh = 1,
+            const Partitioner_type partitioner = Partitioner_type::METIS,
+            const JaliGeometry::Geom_type geom_type =
+            JaliGeometry::Geom_type::CARTESIAN);
   
   Mesh_MSTK(const char *filename, const MPI_Comm& incomm,
             int space_dimension,
@@ -61,7 +66,12 @@ class Mesh_MSTK : public Mesh {
             const bool request_edges = false,
             const bool request_wedges = false,
             const bool request_corners = false,
-            const int num_tiles = 0);
+            const int num_tiles = 0,
+            const int num_ghost_layers_tile = 0,
+            const int num_ghost_layers_distmesh = 1,
+            const Partitioner_type partitioner = Partitioner_type::METIS,
+            const JaliGeometry::Geom_type geom_type =
+            JaliGeometry::Geom_type::CARTESIAN);
 
   // Constructors that generate a mesh internally (regular hexahedral mesh only)
 
@@ -77,7 +87,10 @@ class Mesh_MSTK : public Mesh {
             const bool request_edges = false,
             const bool request_wedges = false,
             const bool request_corners = false,
-            const int num_tiles = 0);
+            const int num_tiles = 0,
+            const int num_ghost_layers_tile = 0,
+            const int num_ghost_layers_distmesh = 1,
+            const Partitioner_type partitioner = Partitioner_type::METIS);
 
 
   // 2D
@@ -91,7 +104,12 @@ class Mesh_MSTK : public Mesh {
             const bool request_edges = false,
             const bool request_wedges = false,
             const bool request_corners = false,
-            const int num_tiles = 0);
+            const int num_tiles = 0,
+            const int num_ghost_layers_tile = 0,
+            const int num_ghost_layers_distmesh = 1,
+            const Partitioner_type partitioner = Partitioner_type::METIS,
+            const JaliGeometry::Geom_type geom_type =
+            JaliGeometry::Geom_type::CARTESIAN);
 
   // Construct a mesh by extracting a subset of entities from another
   // mesh. The subset may be specified by a setname or a list of
@@ -109,7 +127,12 @@ class Mesh_MSTK : public Mesh {
             const bool request_edges = false,
             const bool request_wedges = false,
             const bool request_corners = false,
-            const int num_tiles = 0);
+            const int num_tiles = 0,
+            const int num_ghost_layers_tile = 0,
+            const int num_ghost_layers_distmesh = 1,
+            const Partitioner_type partitioner = Partitioner_type::METIS,
+            const JaliGeometry::Geom_type geom_type =
+            JaliGeometry::Geom_type::CARTESIAN);
 
   Mesh_MSTK(const Mesh& inmesh,
             const std::vector<std::string>& setnames,
@@ -120,7 +143,12 @@ class Mesh_MSTK : public Mesh {
             const bool request_edges = false,
             const bool request_wedges = false,
             const bool request_corners = false,
-            const int num_tiles = 0);
+            const int num_tiles = 0,
+            const int num_ghost_layers_tile = 0,
+            const int num_ghost_layers_distmesh = 1,
+            const Partitioner_type partitioner = Partitioner_type::METIS,
+            const JaliGeometry::Geom_type geom_type =
+            JaliGeometry::Geom_type::CARTESIAN);
 
   Mesh_MSTK(const Mesh& inmesh,
             const std::vector<int>& entity_list,
@@ -131,7 +159,12 @@ class Mesh_MSTK : public Mesh {
             const bool request_edges = false,
             const bool request_wedges = false,
             const bool request_corners = false,
-            const int num_tiles = 0);
+            const int num_tiles = 0,
+            const int num_ghost_layers_tile = 0,
+            const int num_ghost_layers_distmesh = 1,
+            const Partitioner_type partitioner = Partitioner_type::METIS,
+            const JaliGeometry::Geom_type geom_type =
+            JaliGeometry::Geom_type::CARTESIAN);
 
 
   ~Mesh_MSTK();
@@ -504,7 +537,9 @@ class Mesh_MSTK : public Mesh {
                          const bool extrude = false,
                          const bool request_faces = true,
                          const bool request_edges = false,
-                         const int num_tiles = 0);
+                         const int num_ghost_layers_distmesh = 1,
+                         const Partitioner_type partitioner =
+                         Partitioner_type::METIS);
 
   MSet_ptr build_set(const JaliGeometry::RegionPtr region,
                      const Entity_kind kind) const;

@@ -70,14 +70,19 @@ TEST(MESH_TILES_MPI) {
       prefs.push_back(the_framework);
       factory.preference(prefs);
 
-      // Create a mesh with tiles - RIGHT NOW, THIS IS RELYING ON THE
-      // FACT THAT THE DEFAULT NUMBER OF HALOS IS 1. IN THE NEXT
-      // ITERATION WE WILL MODIFY THE MESH FACTORY INTERFACE SO THAT
-      // IT TAKES THE NUMBER OF HALO LAYERS AS AN ARGUMENT
+      std::vector<Jali::Entity_kind> entitylist;
+      entitylist.push_back(Jali::Entity_kind::FACE);
+      if (edges_requested) entitylist.push_back(Jali::Entity_kind::EDGE);
+      if (wedges_requested) entitylist.push_back(Jali::Entity_kind::WEDGE);
+      if (corners_requested) entitylist.push_back(Jali::Entity_kind::CORNER);
+      factory.included_entities(entitylist);
 
-      mesh = factory(-1.0, -1.0, -1.0, 1.0, 1.0, 1.0, 4, 4, 4, NULL,
-                     faces_requested, edges_requested,
-                     wedges_requested, corners_requested, num_tiles_requested);
+      // Create a mesh with tiles
+
+      factory.num_tiles(num_tiles_requested);
+      factory.num_ghost_layers_tile(1);
+
+      mesh = factory(-1.0, -1.0, -1.0, 1.0, 1.0, 1.0, 4, 4, 4);
 
     } catch (const Jali::Message& e) {
       std::cerr << ": mesh error: " << e.what() << std::endl;

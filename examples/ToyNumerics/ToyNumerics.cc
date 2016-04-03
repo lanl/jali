@@ -72,8 +72,11 @@ int main(int argc, char *argv[]) {
     // Finally, request that the mesh be divided into 10 tiles.
 
     int num_tiles_requested = 10;
-    mymesh = mesh_factory(0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 10, 5, 5, NULL,
-                          true, true, true, true, num_tiles_requested);
+    mesh_factory.included_entities({Entity_kind::EDGE, Entity_kind::FACE,
+            Entity_kind::WEDGE, Entity_kind::CORNER});
+    mesh_factory.num_tiles(num_tiles_requested);
+    mesh_factory.num_ghost_layers_tile(1);
+    mymesh = mesh_factory(0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 10, 5, 5);
   }
 
 

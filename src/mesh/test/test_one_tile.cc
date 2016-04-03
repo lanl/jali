@@ -65,10 +65,15 @@ TEST(ONE_MESH_TILE) {
         prefs.push_back(the_framework);
         factory.preference(prefs);
 
-        // Create a mesh WITHOUT tiles
-        mesh = factory(0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 10, 10, 10, NULL,
-                       faces_requested, edges_requested, wedges_requested,
-                       corners_requested);
+        std::vector<Jali::Entity_kind> entitylist;
+        entitylist.push_back(Jali::Entity_kind::FACE);
+        if (edges_requested) entitylist.push_back(Jali::Entity_kind::EDGE);
+        if (wedges_requested) entitylist.push_back(Jali::Entity_kind::WEDGE);
+        if (corners_requested) entitylist.push_back(Jali::Entity_kind::CORNER);
+        factory.included_entities(entitylist);
+
+        // Create a mesh WITHOUT tiles (factory default is 0)
+        mesh = factory(0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 10, 10, 10);
 
       } catch (const Jali::Message& e) {
         std::cerr << ": mesh error: " << e.what() << std::endl;

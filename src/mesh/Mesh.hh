@@ -107,16 +107,22 @@ class Mesh {
        const bool request_wedges = false,
        const bool request_corners = false,
        const int num_tiles_ini = 0,
-       const MPI_Comm incomm = MPI_COMM_WORLD,
+       const int num_ghost_layers_tile = 0,
+       const int num_ghost_layers_distmesh = 1,
+       const Partitioner_type partitioner = Partitioner_type::METIS,
        const JaliGeometry::Geom_type geom_type =
-       JaliGeometry::Geom_type::CARTESIAN) :
+       JaliGeometry::Geom_type::CARTESIAN,
+       const MPI_Comm incomm = MPI_COMM_WORLD) :
       spacedim(3), celldim(3), mesh_type_(Mesh_type::GENERAL),
       cell_geometry_precomputed(false), face_geometry_precomputed(false),
       edge_geometry_precomputed(false), wedge_geometry_precomputed(false),
       corner_geometry_precomputed(false),
       faces_requested(request_faces), edges_requested(request_edges),
       wedges_requested(request_wedges), corners_requested(request_corners),
-      num_tiles_ini_(num_tiles_ini), num_halo_layers_(1),
+      num_tiles_ini_(num_tiles_ini),
+      num_ghost_layers_tile_(num_ghost_layers_tile),
+      num_ghost_layers_distmesh_(num_ghost_layers_distmesh),
+      partitioner_pref_(partitioner),
       cell2face_info_cached(false), face2cell_info_cached(false),
       cell2edge_info_cached(false), face2edge_info_cached(false),
       wedge_info_cached(false), corner_info_cached(false),
@@ -129,8 +135,6 @@ class Mesh {
       faces_requested = true;
       edges_requested = true;
     }
-
-    std::cerr << "Num tiles requested " << num_tiles_ini_ << std::endl;
   }
 
   //! destructor
@@ -1093,11 +1097,13 @@ class Mesh {
 
   MPI_Comm comm;
 
-  // List of MeshTiles (A meshtile is a list of cell indices that will be
+  // MeshTile data (A meshtile is a list of cell indices that will be
   // processed together)
 
   const int num_tiles_ini_;
-  const int num_halo_layers_;
+  const int num_ghost_layers_tile_;
+  const int num_ghost_layers_distmesh_;
+  const Partitioner_type partitioner_pref_;
   bool tiles_initialized_ = false;
   std::vector<std::shared_ptr<MeshTile>> meshtiles;
   std::vector<int> node_master_tile_ID_, edge_master_tile_ID_;
@@ -1198,7 +1204,7 @@ class Mesh {
   friend
   std::shared_ptr<MeshTile> make_meshtile(Mesh& parent_mesh,
                                           std::vector<Entity_ID> const& cells,
-                                          int const num_halo_layers,
+                                          int const num_ghost_layers_tile,
                                           bool const request_faces,
                                           bool const request_edges,
                                           bool const request_wedges,
