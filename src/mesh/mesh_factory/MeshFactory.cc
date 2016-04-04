@@ -361,7 +361,7 @@ MeshFactory::create(double x0, double y0,
  */
 
 std::shared_ptr<Mesh>
-MeshFactory::create(std::vector<double> x) {
+MeshFactory::create(std::vector<double> const& x) {
   std::shared_ptr<Mesh> result;
   Message e("MeshFactory::create: error: ");
   int ierr[1], aerr[1];

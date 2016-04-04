@@ -62,7 +62,7 @@ public:
                JaliGeometry::Geom_type::CARTESIAN);
 
 
-  Mesh_simple (std::vector<double> x, const MPI_Comm& communicator,
+  Mesh_simple (const std::vector<double>& x, const MPI_Comm& communicator,
                const JaliGeometry::GeometricModelPtr &gm =
                (JaliGeometry::GeometricModelPtr) NULL,
                const bool request_faces = true,

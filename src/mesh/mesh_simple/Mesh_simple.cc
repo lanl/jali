@@ -69,7 +69,7 @@ Mesh_simple::Mesh_simple(double x0, double y0,
 // keeping faces_per_node_aug and cells_per_node_aug to reuse 3d SimpleMesh
 // logic
 
-Mesh_simple::Mesh_simple(std::vector<double> x,
+Mesh_simple::Mesh_simple(const std::vector<double>& x,
                          const MPI_Comm& comm,
                          const JaliGeometry::GeometricModelPtr &gm,
                          const bool request_faces,

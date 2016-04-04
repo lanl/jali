@@ -107,7 +107,7 @@ class bogus_mesh : public Jali::Mesh {
     Exceptions::Jali_throw(Errors::Message("generation not supported"));
   }
   
-  bogus_mesh(const std::vector<double> x,
+  bogus_mesh(const std::vector<double>& x,
              const JaliGeometry::GeometricModelPtr& gm,
              const bool request_faces,
              const bool request_edges,
@@ -493,7 +493,7 @@ struct FrameworkTraits {
       >::type {};
   };
 
-  // Constct/exruct a mesh from a Exodus II file or file set
+  // Construct/extract a mesh from a Exodus II file or file set
   static std::shared_ptr<Mesh>
   read(const MPI_Comm& comm, const std::string& fname,
        const JaliGeometry::GeometricModelPtr& gm,
@@ -614,7 +614,7 @@ struct FrameworkTraits {
   
   /// Generate a 1d mesh from explicit arguments
   static std::shared_ptr<Mesh>
-  generate(const std::vector<double> x,
+  generate(const std::vector<double>& x,
            const MPI_Comm& comm,
            const JaliGeometry::GeometricModelPtr& gm,
            const bool request_faces,
@@ -1141,7 +1141,7 @@ framework_generate(const MPI_Comm& comm, const Framework& f,
 // -------------------------------------------------------------
 std::shared_ptr<Mesh>
 framework_generate(const MPI_Comm& comm, const Framework& f,
-                   const std::vector<double> x,
+                   const std::vector<double>& x,
                    const JaliGeometry::GeometricModelPtr& gm,
                    const bool request_faces, const bool request_edges,
                    const bool request_wedges, const bool request_corners,

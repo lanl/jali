@@ -89,7 +89,7 @@ class MeshFactory {
                                int nx, int ny);
 
   /// Create a 1d mesh
-  std::shared_ptr<Mesh> create(std::vector<double> x);
+  std::shared_ptr<Mesh> create(const std::vector<double>& x);
 
 
 
@@ -253,7 +253,7 @@ class MeshFactory {
   }
 
   /// Create a 1d mesh -- operator
-  std::shared_ptr<Mesh> operator() (std::vector<double> x) {
+  std::shared_ptr<Mesh> operator() (const std::vector<double>& x) {
     return create(x);
   }
 

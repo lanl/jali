@@ -100,7 +100,7 @@ framework_generate(const MPI_Comm& comm, const Framework& f,
 /// Generate a 1d mesh
 extern std::shared_ptr<Mesh>
 framework_generate(const MPI_Comm& comm, const Framework& f,
-                   const std::vector<double> x,
+                   const std::vector<double>& x,
                    const JaliGeometry::GeometricModelPtr& gm,
                    const bool request_faces,
                    const bool request_edges,
