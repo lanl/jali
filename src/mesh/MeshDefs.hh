@@ -191,9 +191,30 @@ bool cell_valid_type(const Cell_type type) {
 }
 
 
-// Types of partitioners 
+// Types of partitioners (partitioning scheme bundled into the name)
 
-enum class Partitioner_type {METIS, ZOLTAN};
+enum class Partitioner_type {INDEX, METIS, ZOLTAN_GRAPH, ZOLTAN_RCB};
+constexpr int NUM_PARTITIONER_TYPES = 4;
+
+// Return an string description for each partitioner type
+inline
+std::string Partitioner_type_string(const Partitioner_type partitioner_type) {
+  static std::string partitioner_type_str[NUM_PARTITIONER_TYPES] =
+      {"Partitioner_type::INDEX", "Partitioner_type::METIS",
+       "Partitioner_type::ZOLTAN_GRAPH", "Partitioner_type::ZOLTAN_RCB"};
+
+  int iptype = static_cast<int>(partitioner_type);
+  return (iptype >= 0 && iptype < NUM_PARTITIONER_TYPES) ?
+      partitioner_type_str[iptype] : "";
+}
+
+// Output operator for Partitioner_type
+inline
+std::ostream& operator<<(std::ostream& os,
+                         const Partitioner_type& partitioner_type) {
+  os << " " << Partitioner_type_string(partitioner_type) << " ";
+  return os;
+}
 
 // Types of partitioning algorithms - Add as needed in the format METIS_RCB etc.
 

@@ -15,9 +15,6 @@
 
 namespace Jali {
 
-char kind_to_string[4][256] = {"Entity_kind::NODE", "Entity_kind::EDGE",
-                               "Entity_kind::FACE", "Entity_kind::CELL"};
-
 //--------------------------------------
 // Constructor - load up mesh from file
 //--------------------------------------
@@ -28,13 +25,18 @@ Mesh_MSTK::Mesh_MSTK(const char *filename, const MPI_Comm& incomm,
                      const bool request_edges,
                      const bool request_wedges,
                      const bool request_corners,
-                     const int num_tiles_ini) :
-    Mesh(request_faces, request_edges, request_wedges, request_corners,
-         num_tiles_ini, incomm),
-    mpicomm(incomm), meshxyz(NULL),
-    faces_initialized(false), edges_initialized(false),
-    target_cell_volumes(NULL), min_cell_volumes(NULL) {
-
+                     const int num_tiles_ini,
+                     const int num_ghost_layers_tile,
+                     const int num_ghost_layers_distmesh,
+                     const Partitioner_type partitioner,
+                     const JaliGeometry::Geom_type geom_type) :
+Mesh(request_faces, request_edges, request_wedges, request_corners,
+     num_tiles_ini, num_ghost_layers_tile, num_ghost_layers_distmesh,
+     partitioner, geom_type, incomm),
+  mpicomm(incomm), meshxyz(NULL),
+  faces_initialized(false), edges_initialized(false),
+  target_cell_volumes(NULL), min_cell_volumes(NULL) {
+  
   int numprocs;
   MPI_Comm_size(mpicomm, &numprocs);
 
@@ -67,9 +69,9 @@ Mesh_MSTK::Mesh_MSTK(const char *filename, const MPI_Comm& incomm,
       int opts[5] = {0, 0, 0, 0, 0};
 
       opts[0] = 1;   // Partition the input mesh
-      opts[1] = 0;   // Use the default method for distributing the mesh
-      opts[2] = 1;   // Number of ghost layers
-      opts[3] = 1;   // Use Zoltan for partitioning if available
+      opts[1] = 0;   // Use the default method for distributing the mesh      
+      opts[2] = num_ghost_layers_distmesh;   // Number of ghost layers
+      opts[3] = static_cast<int>(partitioner) - 1;
 
       ok = MESH_ImportFromExodusII(mesh, filename, opts, mpicomm);
     }
@@ -78,7 +80,7 @@ Mesh_MSTK::Mesh_MSTK(const char *filename, const MPI_Comm& incomm,
     int opts[5] = {0, 0, 0, 0, 0};
 
     opts[0] = 1;     // Parallel weave distributed meshes
-    opts[1] = 1;     // Number of ghost layers
+    opts[1] = num_ghost_layers_distmesh;     // Number of ghost layers
 
     ok = MESH_ImportFromNemesisI(mesh, filename, opts, mpicomm);
   } else {
@@ -156,9 +158,14 @@ Mesh_MSTK::Mesh_MSTK(const char *filename, const MPI_Comm& incomm,
                      const bool request_edges,
                      const bool request_wedges,
                      const bool request_corners,
-                     const int num_tiles) :
+                     const int num_tiles,
+                     const int num_ghost_layers_tile,
+                     const int num_ghost_layers_distmesh,
+                     const Partitioner_type partitioner,
+                     const JaliGeometry::Geom_type geom_type) :
     Mesh(request_faces, request_edges, request_wedges, request_corners,
-         num_tiles, incomm),
+         num_tiles, num_ghost_layers_tile, num_ghost_layers_distmesh,
+         partitioner, geom_type, incomm),
     mpicomm(incomm), meshxyz(NULL),
     faces_initialized(false), edges_initialized(false),
     target_cell_volumes(NULL), min_cell_volumes(NULL) {
@@ -193,8 +200,8 @@ Mesh_MSTK::Mesh_MSTK(const char *filename, const MPI_Comm& incomm,
 
       opts[0] = 1;   // Partition the input mesh
       opts[1] = 0;   // Use the default method for distributing the mesh
-      opts[2] = 1;   // Number of ghost layers
-      opts[3] = 1;   // Use Zoltan for partitioning if available
+      opts[2] = num_ghost_layers_distmesh;   // Number of ghost layers
+      opts[3] = static_cast<int>(partitioner) - 1;  // partitioning method
 
       ok = MESH_ImportFromExodusII(mesh, filename, opts, mpicomm);
     }
@@ -204,7 +211,7 @@ Mesh_MSTK::Mesh_MSTK(const char *filename, const MPI_Comm& incomm,
     int opts[5] = {0, 0, 0, 0, 0};
 
     opts[0] = 1;     // Parallel weave distributed meshes
-    opts[1] = 1;     // Number of ghost layers
+    opts[1] = num_ghost_layers_distmesh;     // Number of ghost layers
 
     ok = MESH_ImportFromNemesisI(mesh, filename, opts, mpicomm);
 
@@ -259,9 +266,13 @@ Mesh_MSTK::Mesh_MSTK(const double x0, const double y0, const double z0,
                      const bool request_edges,
                      const bool request_wedges,
                      const bool request_corners,
-                     const int num_tiles) :
+                     const int num_tiles,
+                     const int num_ghost_layers_tile,
+                     const int num_ghost_layers_distmesh,
+                     const Partitioner_type partitioner) :
     Mesh(request_faces, request_edges, request_wedges, request_corners,
-         num_tiles, incomm),
+         num_tiles, num_ghost_layers_tile, num_ghost_layers_distmesh,
+         partitioner, JaliGeometry::Geom_type::CARTESIAN, incomm),
     mpicomm(incomm), meshxyz(NULL),
     faces_initialized(false), edges_initialized(false),
     target_cell_volumes(NULL), min_cell_volumes(NULL) {
@@ -288,10 +299,10 @@ Mesh_MSTK::Mesh_MSTK(const double x0, const double y0, const double z0,
   else {
     Mesh_ptr globalmesh;
     int topo_dim = 3;  // What is the topological dimension of the mesh
-    int ring = 1;  // One layer of ghost cells in parallel meshes
+    int ring = num_ghost_layers_distmesh;  // One layer of ghost cells
     int with_attr = 1;  // update of attributes in parallel meshes
     int del_inmesh = 1;  // delete input mesh as soon as possible
-    int method = 1;  // Partition with ZOLTAN
+    int method = static_cast<int>(partitioner) - 1;
 
 
     if (myprocid == 0) {
@@ -343,9 +354,14 @@ Mesh_MSTK::Mesh_MSTK(const double x0, const double y0,
                      const bool request_edges,
                      const bool request_wedges,
                      const bool request_corners,
-                     const int num_tiles) :
+                     const int num_tiles,
+                     const int num_ghost_layers_tile,
+                     const int num_ghost_layers_distmesh,
+                     const Partitioner_type partitioner,
+                     const JaliGeometry::Geom_type geom_type) :
     Mesh(request_faces, request_edges, request_wedges, request_corners,
-         num_tiles, incomm),
+         num_tiles, num_ghost_layers_tile, num_ghost_layers_distmesh,
+         partitioner, geom_type, incomm),
     mpicomm(incomm), meshxyz(NULL),
     faces_initialized(false), edges_initialized(false),
                    target_cell_volumes(NULL), min_cell_volumes(NULL) {
@@ -378,10 +394,10 @@ Mesh_MSTK::Mesh_MSTK(const double x0, const double y0,
   }
   else {
     Mesh_ptr globalmesh;
-    int ring = 1;  // One layer of ghost cells in parallel meshes
+    int ring = num_ghost_layers_distmesh;  // One layer of ghost cells
     int with_attr = 1;  // update of attributes in parallel meshes
     int del_inmesh = 1;  // delete input mesh at the earliest
-    int method = 1;  // Partition with ZOLTAN
+    int method = static_cast<int>(partitioner) - 1;
 
     if (myprocid == 0) {
       globalmesh = MESH_New(F1);
@@ -439,10 +455,15 @@ Mesh_MSTK::Mesh_MSTK(const std::shared_ptr<Mesh> inmesh,
                      const bool request_edges,
                      const bool request_wedges,
                      const bool request_corners,
-                     const int num_tiles) :
+                     const int num_tiles,
+                     const int num_ghost_layers_tile,
+                     const int num_ghost_layers_distmesh,
+                     const Partitioner_type partitioner,
+                     const JaliGeometry::Geom_type geom_type) :
     mpicomm(inmesh->get_comm()),
     Mesh(request_faces, request_edges, request_wedges, request_corners,
-         num_tiles) {
+         num_tiles, num_ghost_layers_tile, num_ghost_layers_distmesh,
+         partitioner, geom_type, inmesh->get_comm()) {
 
   Mesh_MSTK *inmesh_mstk = dynamic_cast<Mesh_MSTK *>(inmesh.get());
   Mesh_ptr mstk_source_mesh = inmesh_mstk->mesh;
@@ -465,7 +486,7 @@ Mesh_MSTK::Mesh_MSTK(const std::shared_ptr<Mesh> inmesh,
 
     std::string internal_name = internal_name_of_set(rgn, setkind);
 
-    mset = MESH_MSetByName(mstk_source_mesh,internal_name.c_str());
+    mset = MESH_MSetByName(mstk_source_mesh, internal_name.c_str());
 
     if (mset) {
       int idx = 0;
@@ -482,7 +503,8 @@ Mesh_MSTK::Mesh_MSTK(const std::shared_ptr<Mesh> inmesh,
   MType entity_dim = inmesh_mstk->entity_kind_to_mtype(setkind);
 
   extract_mstk_mesh(*inmesh_mstk, src_ents, entity_dim,
-                    flatten, extrude, request_faces, request_edges, num_tiles);
+                    flatten, extrude, request_faces, request_edges,
+                    num_ghost_layers_distmesh, partitioner);
 
   List_Delete(src_ents);
 }
@@ -496,10 +518,15 @@ Mesh_MSTK::Mesh_MSTK(const Mesh& inmesh,
                      const bool request_edges,
                      const bool request_wedges,
                      const bool request_corners,
-                     const int num_tiles) :
+                     const int num_tiles,
+                     const int num_ghost_layers_tile,
+                     const int num_ghost_layers_distmesh,
+                     const Partitioner_type partitioner,
+                     const JaliGeometry::Geom_type geom_type) :
   mpicomm(inmesh.get_comm()),
   Mesh(request_faces, request_edges, request_wedges, request_corners,
-       num_tiles) {
+       num_tiles, num_ghost_layers_tile, num_ghost_layers_distmesh,
+       partitioner, geom_type, inmesh.get_comm()) {
 
   Mesh_ptr inmesh_mstk = ((Mesh_MSTK&) inmesh).mesh;
 
@@ -540,7 +567,8 @@ Mesh_MSTK::Mesh_MSTK(const Mesh& inmesh,
   MType entity_dim = ((Mesh_MSTK&) inmesh).entity_kind_to_mtype(setkind);
 
   extract_mstk_mesh((Mesh_MSTK&) inmesh, src_ents, entity_dim, flatten, extrude,
-                    request_faces, request_edges, num_tiles);
+                    request_faces, request_edges, num_ghost_layers_distmesh,
+                    partitioner);
 
   List_Delete(src_ents);
 }
@@ -560,10 +588,15 @@ Mesh_MSTK::Mesh_MSTK(const Mesh& inmesh,
                      const bool request_edges,
                      const bool request_wedges,
                      const bool request_corners,
-                     const int num_tiles) :
+                     const int num_tiles,
+                     const int num_ghost_layers_tile,
+                     const int num_ghost_layers_distmesh,
+                     const Partitioner_type partitioner,
+                     const JaliGeometry::Geom_type geom_type) :
     mpicomm(inmesh.get_comm()),
     Mesh(request_faces, request_edges, request_wedges, request_corners,
-         num_tiles) {
+         num_tiles, num_ghost_layers_tile, num_ghost_layers_distmesh,
+         partitioner, geom_type, inmesh.get_comm()) {
 
   // store pointers to the MESH_XXXFromID functions so that they can
   // be called without a switch statement
@@ -583,7 +616,8 @@ Mesh_MSTK::Mesh_MSTK(const Mesh& inmesh,
   }
 
   extract_mstk_mesh((Mesh_MSTK&) inmesh, src_ents, entity_dim, flatten, extrude,
-                    request_faces, request_edges, num_tiles);
+                    request_faces, request_edges, num_ghost_layers_distmesh,
+                    partitioner);
 
   List_Delete(src_ents);
 }
@@ -659,7 +693,8 @@ void Mesh_MSTK::extract_mstk_mesh(const Mesh_MSTK& inmesh,
                                   const bool extrude,
                                   const bool request_faces,
                                   const bool request_edges,
-                                  const int num_tiles) {
+                                  const int num_ghost_layers_distmesh,
+                                  const Partitioner_type partitioner) {
   int ok, ival, idx;
   double rval, xyz[3];
   void *pval;
@@ -944,10 +979,10 @@ void Mesh_MSTK::extract_mstk_mesh(const Mesh_MSTK& inmesh,
   if (!serial_run) {
     // Have to assign global IDs and build ghost entities
 
-    int num_ghost_layers = 1;
     int input_type = 0; /* No parallel info is given */
     int status = MSTK_Weave_DistributedMeshes(mesh, cell_dimension(),
-                                              num_ghost_layers, input_type,
+                                              num_ghost_layers_distmesh,
+                                              input_type,
                                               mpicomm);
 
     // Now we have to build parent information for global entities

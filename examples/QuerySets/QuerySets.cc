@@ -164,11 +164,16 @@ int main(int argc, char *argv[]) {
   if (framework_available(MSTK)) {  // check if framework is available
     mesh_factory.preference(pref);
   
-    // Read in an exodus file. Request faces, edges, wedges and
-    // corners (true, true, true, true). MAKE SURE TO SPECIFY THE
-    // GEOMETRIC MODEL
+    // Read in an exodus file. Request faces (in addition to the
+    // default cells and nodes)
 
-    mymesh = mesh_factory(exofilename, gm, true, true, true, true);
+    mesh_factory.included_entities(Entity_kind::FACE);
+
+    // MAKE SURE TO SPECIFY THE GEOMETRIC MODEL
+    
+    mesh_factory.geometric_model(gm);
+
+    mymesh = mesh_factory(exofilename);
   }
 
   //---------------------------------------------------------------------------

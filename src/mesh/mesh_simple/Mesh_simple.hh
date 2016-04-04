@@ -32,40 +32,49 @@ public:
   // we could "delete" the illegal version of the call effectively
   // blocking the implicit conversion.
   Mesh_simple (double x0, double y0, double z0,
-	       double x1, double y1, double z1,
-	       int nx, int ny, int nz, const MPI_Comm& communicator,
-	       const JaliGeometry::GeometricModelPtr gm =
+               double x1, double y1, double z1,
+               int nx, int ny, int nz, const MPI_Comm& communicator,
+               const JaliGeometry::GeometricModelPtr gm =
                (JaliGeometry::GeometricModelPtr) NULL,
-	       const bool request_faces = true,
-	       const bool request_edges = false,
-               const bool request_wedges = false,
-               const bool request_corners = false,
-               const int num_tiles_ini = 0);
-
-  Mesh_simple (double x0, double y0,
-	       double x1, double y1,
-	       int nx, int ny, const MPI_Comm& communicator,
-	       const JaliGeometry::GeometricModelPtr &gm =
-               (JaliGeometry::GeometricModelPtr) NULL,
-	       const bool request_faces = true,
-	       const bool request_edges = false,
+               const bool request_faces = true,
+               const bool request_edges = false,
                const bool request_wedges = false,
                const bool request_corners = false,
                const int num_tiles_ini = 0,
+               const int num_ghost_layers_tile = 0,
+               const int num_ghost_layers_distmesh = 0,
+               const Partitioner_type partitioner = Partitioner_type::METIS);
+
+  Mesh_simple (double x0, double y0,
+               double x1, double y1,
+               int nx, int ny, const MPI_Comm& communicator,
+               const JaliGeometry::GeometricModelPtr &gm =
+               (JaliGeometry::GeometricModelPtr) NULL,
+               const bool request_faces = true,
+               const bool request_edges = false,
+               const bool request_wedges = false,
+               const bool request_corners = false,
+               const int num_tiles_ini = 0,
+               const int num_ghost_layers_tile = 0,
+               const int num_ghost_layers_distmesh = 0,
+               const Partitioner_type partitioner = Partitioner_type::METIS,
                const JaliGeometry::Geom_type geom_type =
                JaliGeometry::Geom_type::CARTESIAN);
 
 
-  Mesh_simple (std::vector<double> x, const MPI_Comm& communicator,
-	       const JaliGeometry::GeometricModelPtr &gm =
+  Mesh_simple (const std::vector<double>& x, const MPI_Comm& communicator,
+               const JaliGeometry::GeometricModelPtr &gm =
                (JaliGeometry::GeometricModelPtr) NULL,
-	       const bool request_faces = true,
-	       const bool request_edges = false,
+               const bool request_faces = true,
+               const bool request_edges = false,
                const bool request_wedges = false,
                const bool request_corners = false,
                const int num_tiles_ini = 0,
-               const JaliGeometry::Geom_type
-               geom_type = JaliGeometry::Geom_type::CARTESIAN);
+               const int num_ghost_layers_tile = 0,
+               const int num_ghost_layers_distmesh = 0,
+               const Partitioner_type partitioner = Partitioner_type::METIS,
+               const JaliGeometry::Geom_type geom_type =
+               JaliGeometry::Geom_type::CARTESIAN);
 
   // Construct a mesh by extracting a subset of entities from another
   // mesh. In some cases like extracting a surface mesh from a volume
@@ -78,22 +87,32 @@ public:
               const Entity_kind setkind,
               const bool flatten = false,
               const bool extrude = false,
-	      const bool request_faces = true,
-	      const bool request_edges = false,
+              const bool request_faces = true,
+              const bool request_edges = false,
               const bool request_wedges = false,
               const bool request_corners = false,
-              const int num_tiles = 0);
+              const int num_tiles = 0,
+              const int num_ghost_layers_tile = 0,
+               const int num_ghost_layers_distmesh = 0,
+              const Partitioner_type partitioner = Partitioner_type::METIS,
+              const JaliGeometry::Geom_type geom_type =
+              JaliGeometry::Geom_type::CARTESIAN);
 
   Mesh_simple(const Mesh& inmesh,
               const std::vector<std::string>& setnames,
               const Entity_kind setkind,
               const bool flatten = false,
               const bool extrude = false,
-	      const bool request_faces = true,
-	      const bool request_edges = false,
+              const bool request_faces = true,
+              const bool request_edges = false,
               const bool request_wedges = false,
               const bool request_corners = false,
-              const int num_tiles = 0);
+              const int num_tiles = 0,
+              const int num_ghost_layers_tile = 0,
+              const int num_ghost_layers_distmesh = 0,
+              const Partitioner_type partitioner = Partitioner_type::METIS,
+              const JaliGeometry::Geom_type geom_type =
+              JaliGeometry::Geom_type::CARTESIAN);
 
   Mesh_simple(const Mesh& inmesh,
               const std::vector<int>& entity_id_list,
@@ -104,13 +123,18 @@ public:
               const bool request_edges = false,
               const bool request_wedges = false,
               const bool request_corners = false,
-              const int num_tiles = 0);
+              const int num_tiles = 0,
+              const int num_ghost_layers_tile = 0,
+              const int num_ghost_layers_distmesh = 0,
+              const Partitioner_type partitioner = Partitioner_type::METIS,
+              const JaliGeometry::Geom_type geom_type =
+              JaliGeometry::Geom_type::CARTESIAN);
 
   virtual ~Mesh_simple ();
 
   // Get parallel type of entity
   Parallel_type entity_get_ptype(const Entity_kind kind,
-				 const Entity_ID entid) const;
+                                 const Entity_ID entid) const;
 
 
   // Get cell type
@@ -197,16 +221,16 @@ public:
   // faces given by cell_get_faces
 
   void cell_get_face_adj_cells(const Entity_ID cellid,
-			       const Parallel_type ptype,
-			       std::vector<Entity_ID> *fadj_cellids) const;
+                               const Parallel_type ptype,
+                               std::vector<Entity_ID> *fadj_cellids) const;
 
   // Node connected neighboring cells of given cell
   // (a hex in a structured mesh has 26 node connected neighbors)
   // The cells are returned in no particular order
 
   void cell_get_node_adj_cells(const Entity_ID cellid,
-			       const Parallel_type ptype,
-			       std::vector<Entity_ID> *nadj_cellids) const;
+                               const Parallel_type ptype,
+                               std::vector<Entity_ID> *nadj_cellids) const;
 
   //
   // Mesh entity geometry
@@ -268,7 +292,7 @@ public:
   // this should be used with extreme caution:
   // modify coordinates
   void set_coordinate(Entity_ID local_node_id,
-		      double* source_begin, double* source_end);
+                      double* source_begin, double* source_end);
 
 
   void write_to_exodus_file(const std::string exodusfilename,

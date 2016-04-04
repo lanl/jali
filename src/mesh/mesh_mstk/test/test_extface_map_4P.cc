@@ -11,11 +11,11 @@
 #include "Epetra_Vector.h"
 
 
-TEST(MSTK_EXTEntity_kind::FACE_MAP_4P)
+TEST(MSTK_EXTFACE_MAP_4P)
 {
 
   int i, j, k, err, nc, nf, nv;
-  std::vector<Jali::Jali::Entity_ID> faces(6), nodes(8);
+  std::vector<Jali::Entity_ID> faces(6), nodes(8);
   std::vector<int> facedirs(6);
   std::vector<Jali::JaliGeometry::Point> ccoords(8), fcoords(4);
 
@@ -34,7 +34,7 @@ TEST(MSTK_EXTEntity_kind::FACE_MAP_4P)
   MPI_Comm_size(MPI_COMM_WORLD, &size);
   CHECK_EQUAL(4, size);
 
-  Teuchos::RCP<Jali::Jali::Mesh> mesh(new Jali::Jali::Mesh_MSTK("test/hex_3x3x3_sets.exo", comm.get(), 3));
+  Teuchos::RCP<Jali::Mesh> mesh(new Jali::Mesh_MSTK("test/hex_3x3x3_sets.exo", comm.get(), 3));
 
   Epetra_Map face_map(mesh->face_map(false));
   Epetra_Map extface_map(mesh->exterior_face_map());
@@ -48,8 +48,8 @@ TEST(MSTK_EXTEntity_kind::FACE_MAP_4P)
 
       CHECK_EQUAL(face_map.GID(f2), gid);
 
-      Jali::Jali::Entity_ID_List fcells;
-      mesh->face_get_cells(f2, Jali::Jali::Parallel_type::OWNED, &fcells);
+      Jali::Entity_ID_List fcells;
+      mesh->face_get_cells(f2, Jali::Parallel_type::OWNED, &fcells);
       CHECK_EQUAL(1, fcells.size());
     }
 

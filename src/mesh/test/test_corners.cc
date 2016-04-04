@@ -48,8 +48,9 @@ TEST(MESH_CORNERS_2D) {
       prefs.clear();
       prefs.push_back(the_framework);
       factory.preference(prefs);
-
-      mesh = factory(0.0, 0.0, 1.0, 1.0, 2, 2, NULL, true, true, true, true);
+      factory.included_entities({Jali::Entity_kind::EDGE, Jali::Entity_kind::FACE,
+              Jali::Entity_kind::WEDGE, Jali::Entity_kind::CORNER});
+      mesh = factory(0.0, 0.0, 1.0, 1.0, 2, 2);
 
     } catch (const Jali::Message& e) {
       std::cerr << ": mesh error: " << e.what() << std::endl;
@@ -234,9 +235,10 @@ TEST(MESH_CORNERS_3D) {
       prefs.push_back(the_framework);
 
       factory.preference(prefs);
+      factory.included_entities({Jali::Entity_kind::EDGE,
+              Jali::Entity_kind::FACE, Jali::Entity_kind::CORNER});
 
-      mesh = factory(0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 2, 2, 2, NULL, true, true,
-                     true, true);
+      mesh = factory(0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 2, 2, 2);
 
     } catch (const Jali::Message& e) {
       std::cerr << ": mesh error: " << e.what() << std::endl;

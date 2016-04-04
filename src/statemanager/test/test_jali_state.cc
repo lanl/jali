@@ -465,7 +465,7 @@ TEST(Jali_State_Define_Mesh_Enum) {
 TEST(Jali_State_Define_MeshTiles) {
 
   // Create a 6x6 mesh and ask for 4 tiles on it so that each tile has
-  // 9 owned cells. Right now since we are defaulting to 1 halo layer,
+  // 9 owned cells. Right now since we are asking for 1 halo layer,
   // each tile will also have 16 ghost cells
 
   constexpr int NXY = 6;  // cells in any direction
@@ -476,8 +476,16 @@ TEST(Jali_State_Define_MeshTiles) {
   constexpr int MAX_CORNERS_PER_TILE_ALL = MAX_CELLS_PER_TILE_ALL*4;
 
   Jali::MeshFactory mf(MPI_COMM_WORLD);
-  std::shared_ptr<Jali::Mesh> mymesh = mf(0.0, 0.0, 1.0, 1.0, NXY, NXY, nullptr,
-                                        true, true, true, true, NTILES);
+  std::vector<Jali::Entity_kind> entitylist = {Jali::Entity_kind::EDGE,
+                                               Jali::Entity_kind::FACE,
+                                               Jali::Entity_kind::WEDGE,
+                                               Jali::Entity_kind::CORNER};
+  mf.included_entities(entitylist);
+
+  mf.num_tiles(NTILES);
+  mf.num_ghost_layers_tile(1);
+
+  std::shared_ptr<Jali::Mesh> mymesh = mf(0.0, 0.0, 1.0, 1.0, NXY, NXY);
 
   CHECK(mymesh);
 
