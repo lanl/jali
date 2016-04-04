@@ -50,8 +50,7 @@ int main(int argc, char *argv[]) {
     // with 3, 3 and 3 elements in the X, Y and Z directions.
     // request faces, edges, wedges and corners and tiles
 
-    mesh_factory.included_entities({Entity_kind::EDGE, Entity_kind::FACE,
-            Entity_kind::WEDGE, Entity_kind::CORNER});
+    mesh_factory.included_entities(Entity_kind::ALL_KIND);
 
     mesh_factory.num_tiles(4);
     mesh_factory.num_ghost_layers_tile(1);

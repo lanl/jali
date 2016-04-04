@@ -84,11 +84,7 @@ int main(int argc, char *argv[]) {
 
     int num_tiles = 4;
 
-    std::vector<Entity_kind> entitylist = {Entity_kind::EDGE,
-                                           Entity_kind::FACE,
-                                           Entity_kind::WEDGE,
-                                           Entity_kind::CORNER};
-    mesh_factory.included_entities(entitylist);
+    mesh_factory.included_entities(Entity_kind::ALL_KIND);
 
     mesh_factory.num_tiles(num_tiles);
 

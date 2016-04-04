@@ -183,7 +183,21 @@ class MeshFactory {
   /// Set the type of entities that are explicitly INCLUDED/REQUESTED in the
   /// meshes to be created
   void included_entities(std::vector<Entity_kind> const& list) {
-    for (auto const& e : list) {
+    for (auto const& e : list)
+      included_entities(e);
+  }
+
+  /// Set the type of entities that are explicitly INCLUDED/REQUESTED in the
+  /// meshes to be created
+  void included_entities(Entity_kind const e) {
+    if (e == Entity_kind::ALL_KIND) {
+      request_edges_ = true;
+      request_faces_ = true;
+      request_wedges_ = true;
+      request_corners_ = true;
+      request_cells_ = true;
+    }
+    else {
       switch (e) {
         case Entity_kind::NODE: break;  // included by default - nothing to do
         case Entity_kind::EDGE: request_edges_ = true; break;

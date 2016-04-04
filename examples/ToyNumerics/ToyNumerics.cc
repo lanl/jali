@@ -67,13 +67,12 @@ int main(int argc, char *argv[]) {
   
     // Create a 3D mesh from (0.0,0.0,0.0) to (1.0,1.0,1.0) with 10, 5
     // and 5 elements in the X, Y and Z directions. Specify that we
-    // did not instantiate a geometric model (NULL). Also, request
-    // faces, edges, wedges and corners (true, true, true, true).
-    // Finally, request that the mesh be divided into 10 tiles.
+    // want all kinds of entities (faces, edges, wedges and corners)
+    // to be present. Finally, request that the mesh be divided into 10
+    // tiles.
 
     int num_tiles_requested = 10;
-    mesh_factory.included_entities({Entity_kind::EDGE, Entity_kind::FACE,
-            Entity_kind::WEDGE, Entity_kind::CORNER});
+    mesh_factory.included_entities(Entity_kind::ALL_KIND);
     mesh_factory.num_tiles(num_tiles_requested);
     mesh_factory.num_ghost_layers_tile(1);
     mymesh = mesh_factory(0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 10, 5, 5);

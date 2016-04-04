@@ -363,13 +363,29 @@ SUITE (MeshFramework)
     mesh = mesh_factory(0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 4, 4, 4);
     CHECK(mesh);
     CHECK(mesh->num_faces());
-    CHECK(mesh->num_edges());  
+    CHECK(mesh->num_edges());
     CHECK(mesh->num_wedges());
     CHECK(mesh->num_corners());
     mesh.reset();
     mesh_factory.reset_options();
 
+
+    // Turn on all entities using Entity_kind::ALL_KIND and check that
+    // they are present
+
+    mesh_factory.included_entities(Jali::Entity_kind::ALL_KIND);
     
+    mesh = mesh_factory(0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 4, 4, 4);
+    CHECK(mesh);    
+    CHECK(mesh->num_faces());
+    CHECK(mesh->num_edges());
+    CHECK(mesh->num_wedges());
+    CHECK(mesh->num_corners());
+    CHECK(mesh->num_cells());
+    mesh.reset();
+    mesh_factory.reset_options();
+
+
     // Generate 1D meshes with CARTESIAN and record the volume of the
     // cell farthest away from the origin (since it is a 5 cell mesh,
     // this would be cell 4)

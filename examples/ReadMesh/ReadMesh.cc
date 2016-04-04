@@ -44,10 +44,9 @@ int main(int argc, char *argv[]) {
     // Read in an exodus file.
     // request faces, edges, wedges and corners
 
-    mesh_factory.included_entities({Entity_kind::EDGE, Entity_kind::FACE,
-            Entity_kind::WEDGE, Entity_kind::CORNER});
+    mesh_factory.included_entities(Entity_kind::ALL_KIND);
 
-    mymesh = mesh_factory("test.exo");
+    mymesh = mesh_factory("quadtri.exo");
   }
 
 

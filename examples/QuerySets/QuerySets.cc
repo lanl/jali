@@ -164,14 +164,10 @@ int main(int argc, char *argv[]) {
   if (framework_available(MSTK)) {  // check if framework is available
     mesh_factory.preference(pref);
   
-    // Read in an exodus file. Request faces, edges, wedges and
-    // corners
+    // Read in an exodus file. Request faces (in addition to the
+    // default cells and nodes)
 
-    std::vector<Entity_kind> entitylist = {Entity_kind::EDGE,
-                                           Entity_kind::FACE,
-                                           Entity_kind::WEDGE,
-                                           Entity_kind::CORNER};
-    mesh_factory.included_entities(entitylist);
+    mesh_factory.included_entities(Entity_kind::FACE);
 
     // MAKE SURE TO SPECIFY THE GEOMETRIC MODEL
     
