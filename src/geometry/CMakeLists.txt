@@ -22,9 +22,6 @@ project(GEOMETRY)
 # Jali include directories
 include_directories(${DBC_SOURCE_DIR} ${FUNCS_SOURCE_DIR} ${ATK_SOURCE_DIR})
 
-# External (TPL) include directories
-include_directories(${Teuchos_INCLUDE_DIRS})
-
 #
 # geometry library
 #
@@ -63,7 +60,7 @@ if (BUILD_TESTS)
    add_Jali_test(geometry-operators test_geomops
                    KIND unit
                    SOURCE test/Main.cc test/test_geometric_ops.cc
-                   LINK_LIBS geometry ${Teuchos_LIBRARIES} ${UnitTest_LIBRARIES})
+                   LINK_LIBS geometry ${UnitTest_LIBRARIES})
 
    # Test: test region creation
 #   add_Jali_test(geometry-region test_region
