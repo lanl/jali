@@ -118,6 +118,7 @@ endif()
 set(Trilinos_CMAKE_EXTRA_ARGS
     "-DTrilinos_VERBOSE_CONFIGURE:BOOL=ON"
     "-DTrilinos_ENABLE_TESTS:BOOL=OFF"
+    "-DTrilinos_ENABLE_Gtest:BOOL=OFF"
     "-DCMAKE_VERBOSE_MAKEFILE:BOOL=ON"
     )
 if ( CMAKE_BUILD_TYPE )
