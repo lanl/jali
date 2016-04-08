@@ -43,6 +43,10 @@ class State {
 
   ~State() {}
 
+  /// Mesh
+
+  std::shared_ptr<Jali::Mesh> mesh() {return mymesh_;}
+
   //! Typedefs for iterators for going through all the state vectors
 
   typedef
