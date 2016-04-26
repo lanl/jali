@@ -138,6 +138,7 @@ int check_block_partitioning(int const dim, double const * const domain,
               "," << block_face_coords[0][2] << "), (" <<
               block_face_coords[1][0] << "," << block_face_coords[1][1] <<
               "," << block_face_coords[1][2] << ")]\n";
+          return 0;
         }
       }
     }
