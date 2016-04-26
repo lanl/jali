@@ -282,53 +282,92 @@ Mesh_MSTK::Mesh_MSTK(const double x0, const double y0, const double z0,
   int space_dimension = 3;
   pre_create_steps_(space_dimension, mpicomm, gm);
 
-// Discretizations can use this info if they want
+  // Discretizations can use this info if they want
   Mesh::set_mesh_type(Mesh_type::RECTANGULAR);
 
-
+  mesh = MESH_New(F1);
   if (serial_run) {
-    // Load serial mesh
+    // Generate serial mesh
 
-    mesh = MESH_New(F1);
     ok = generate_regular_mesh(mesh, x0, y0, z0, x1, y1, z1, nx, ny, nz);
 
     set_cell_dimension(3);
 
     myprocid = 0;
-  }
-  else {
-    Mesh_ptr globalmesh;
+  } else {
+    int numprocs;
+    MPI_Comm_size(mpicomm, &numprocs);
+    MPI_Comm_rank(mpicomm, &myprocid);
+    
     int topo_dim = 3;  // What is the topological dimension of the mesh
-    int ring = num_ghost_layers_distmesh;  // One layer of ghost cells
-    int with_attr = 1;  // update of attributes in parallel meshes
-    int del_inmesh = 1;  // delete input mesh as soon as possible
-    int method = static_cast<int>(partitioner) - 1;
 
+    // Get a block partitioning of the domain without actually
+    // creating the mesh.  Run this on every processor as its cheap
+    // enough.
 
-    if (myprocid == 0) {
-      globalmesh = MESH_New(F1);
+    double domain[6];
+    domain[0] = x0; domain[1] = x1;
+    domain[2] = y0; domain[3] = y1;
+    domain[4] = z0; domain[5] = z1;
+    int num_cells_in_dir[3];
+    num_cells_in_dir[0] = nx;
+    num_cells_in_dir[1] = ny;
+    num_cells_in_dir[2] = nz;
 
-      ok = generate_regular_mesh(globalmesh, x0, y0, z0, x1, y1, z1,
-                                 nx, ny, nz);
-
-      topo_dim = (MESH_Num_Regions(globalmesh) == 0) ? 2 : 3;
+    std::vector<std::array<double, 6>> blocklimits;
+    std::vector<std::array<int, 3>> blocknumcells;
+    
+    int ok = block_partition_regular_mesh(topo_dim, domain, num_cells_in_dir,
+                                          numprocs,
+                                          &blocklimits, &blocknumcells);
+  
+    if (!ok) {
+      std::stringstream mesg_stream;
+      mesg_stream << "Failed to block partition domain on processor " <<
+          myprocid;
+      Errors::Message mesg(mesg_stream.str());
+      Exceptions::Jali_throw(mesg);
     }
-    else {
-      globalmesh = NULL;
-      ok = 1;
+
+    // Generate a regular mesh for part of the domain corresponding to this
+    // processor
+
+    ok = generate_regular_mesh(mesh,
+                               blocklimits[myprocid][0],
+                               blocklimits[myprocid][2],
+                               blocklimits[myprocid][4],
+                               blocklimits[myprocid][1],
+                               blocklimits[myprocid][3],
+                               blocklimits[myprocid][5],
+                               blocknumcells[myprocid][0],
+                               blocknumcells[myprocid][1],
+                               blocknumcells[myprocid][2]);
+
+    if (!ok) {
+      std::stringstream mesg_stream;
+      mesg_stream << "Failed to generate mesh on processor " << myprocid;
+      Errors::Message mesg(mesg_stream.str());
+      Exceptions::Jali_throw(mesg);
     }
 
-    ok = ok & MSTK_Mesh_Distribute(globalmesh, &mesh, &topo_dim, ring,
-                                   with_attr, method, del_inmesh, mpicomm);
+
+    int input_type = 0;  // No parallel info is given - figure it all out
+
+    // Establish interprocessor connectivity and ghost layers
+
+    ok = MSTK_Weave_DistributedMeshes(mesh, topo_dim, num_ghost_layers_distmesh,
+                                      input_type, mpicomm);
+
+    if (!ok) {
+      std::stringstream mesg_stream;
+      mesg_stream <<
+          "Failed to establish interprocessor connectivity for meshes" <<
+          myprocid;
+      Errors::Message mesg(mesg_stream.str());
+      Exceptions::Jali_throw(mesg);
+    }
 
     set_cell_dimension(topo_dim);
-  }
-
-  if (!ok) {
-    std::stringstream mesg_stream;
-    mesg_stream << "Failed to generate mesh on processor " << myprocid;
-    Errors::Message mesg(mesg_stream.str());
-    Exceptions::Jali_throw(mesg);
   }
 
 
@@ -370,13 +409,6 @@ Mesh_MSTK::Mesh_MSTK(const double x0, const double y0,
   int space_dim = 2;
   pre_create_steps_(space_dim, incomm, gm);
 
-
-  if (myprocid == 0) {
-    int DebugWait = 0;
-    while (DebugWait) {}
-  }
-
-
   // Discretizations can use this info if they want
   Mesh::set_mesh_type(Mesh_type::RECTANGULAR);
 
@@ -384,60 +416,91 @@ Mesh_MSTK::Mesh_MSTK(const double x0, const double y0,
   int topo_dim = space_dim;  // What is the topological dimension of the mesh
   set_cell_dimension(topo_dim);
 
+  mesh = MESH_New(F1);
   if (serial_run) {
-    // Load serial mesh
+    // Generate serial mesh
 
-    mesh = MESH_New(F1);
     ok = generate_regular_mesh(mesh, x0, y0, x1, y1, nx, ny);
 
     myprocid = 0;
-  }
-  else {
-    Mesh_ptr globalmesh;
-    int ring = num_ghost_layers_distmesh;  // One layer of ghost cells
-    int with_attr = 1;  // update of attributes in parallel meshes
-    int del_inmesh = 1;  // delete input mesh at the earliest
-    int method = static_cast<int>(partitioner) - 1;
+  } else {
+    int numprocs;
+    MPI_Comm_size(mpicomm, &numprocs);
+    MPI_Comm_rank(mpicomm, &myprocid);
+    
+    int topo_dim = 2;  // What is the topological dimension of the mesh
 
-    if (myprocid == 0) {
-      globalmesh = MESH_New(F1);
+    // Get a block partitioning of the domain without actually
+    // creating the mesh.  Run this on every processor as its cheap
+    // enough.
 
-      ok = generate_regular_mesh(globalmesh, x0, y0, x1, y1, nx, ny);
+    double domain[6];
+    domain[0] = x0; domain[1] = x1;
+    domain[2] = y0; domain[3] = y1;
+    domain[4] = 0.0; domain[5] = 0.0;
+    int num_cells_in_dir[3];
+    num_cells_in_dir[0] = nx;
+    num_cells_in_dir[1] = ny;
+    num_cells_in_dir[2] = 0;
 
-      topo_dim = (MESH_Num_Regions(globalmesh) == 0) ? 2 : 3;
+    std::vector<std::array<double, 6>> blocklimits;
+    std::vector<std::array<int, 3>> blocknumcells;
+    
+    int ok = block_partition_regular_mesh(topo_dim, domain, num_cells_in_dir,
+                                          numprocs,
+                                          &blocklimits, &blocknumcells);
+  
+    if (!ok) {
+      std::stringstream mesg_stream;
+      mesg_stream << "Failed to block partition domain on processor " <<
+          myprocid;
+      Errors::Message mesg(mesg_stream.str());
+      Exceptions::Jali_throw(mesg);
     }
-    else {
-      globalmesh = NULL;
-      ok = 1;
+
+    // Generate a regular mesh for part of the domain corresponding to this
+    // processor
+
+    ok = generate_regular_mesh(mesh,
+                               blocklimits[myprocid][0],
+                               blocklimits[myprocid][2],
+                               blocklimits[myprocid][1],
+                               blocklimits[myprocid][3],
+                               blocknumcells[myprocid][0],
+                               blocknumcells[myprocid][1]);
+
+    if (!ok) {
+      std::stringstream mesg_stream;
+      mesg_stream << "Failed to generate mesh on processor " << myprocid;
+      Errors::Message mesg(mesg_stream.str());
+      Exceptions::Jali_throw(mesg);
     }
 
-    ok = ok & MSTK_Mesh_Distribute(globalmesh, &mesh, &topo_dim, ring,
-                                   with_attr, method, del_inmesh, mpicomm);
+
+    int input_type = 0;  // No parallel info is given - figure it all out
+
+    // Establish interprocessor connectivity and ghost layers
+
+    ok = MSTK_Weave_DistributedMeshes(mesh, topo_dim, num_ghost_layers_distmesh,
+                                      input_type, mpicomm);
+
+    if (!ok) {
+      std::stringstream mesg_stream;
+      mesg_stream <<
+          "Failed to establish interprocessor connectivity for meshes" <<
+          myprocid;
+      Errors::Message mesg(mesg_stream.str());
+      Exceptions::Jali_throw(mesg);
+    }
+
+    set_cell_dimension(topo_dim);
   }
-
-  if (!ok) {
-    std::stringstream mesg_stream;
-    mesg_stream << "Failed to generate mesh on processor " << myprocid;
-    Errors::Message mesg(mesg_stream.str());
-    Exceptions::Jali_throw(mesg);
-  }
-
-
 
 
   // Do all the processing required for setting up the mesh for Jali
 
   post_create_steps_();
 
-  // WHY IS THIS HERE SEPARATELY WHEN ITS NOT IN ANY OTHER CONSTRUCTOR??
-  // IT SHOULD HAVE BEEN DONE AS PART OF THE POST_CREATE_STEPS
-
-  if (request_wedges) {
-    cache_corner_info();
-    cache_wedge_info();
-    compute_face_geometric_quantities();
-    compute_cell_geometric_quantities();
-  }
 }
 
 
@@ -668,7 +731,8 @@ Mesh_MSTK::other_internal_name_of_set(const JaliGeometry::RegionPtr r,
 
   std::string internal_name;
 
-  if (r->type() == JaliGeometry::Region_type::LABELEDSET && entity_kind == Entity_kind::CELL) {
+  if (r->type() == JaliGeometry::Region_type::LABELEDSET &&
+      entity_kind == Entity_kind::CELL) {
 
     JaliGeometry::LabeledSetRegionPtr lsrgn =
       dynamic_cast<JaliGeometry::LabeledSetRegionPtr> (r);
@@ -1185,7 +1249,8 @@ void Mesh_MSTK::extract_mstk_mesh(const Mesh_MSTK& inmesh,
 // Destructor with cleanup
 
 Mesh_MSTK::~Mesh_MSTK() {
-  delete [] faceflip;
+  if (Mesh::faces_requested) delete [] faceflip;
+  if (Mesh::edges_requested) delete [] edgeflip;
 
   if (OwnedVerts) MSet_Delete(OwnedVerts);
   if (NotOwnedVerts) MSet_Delete(NotOwnedVerts);
@@ -5232,16 +5297,20 @@ int Mesh_MSTK::block_partition_regular_mesh(int dim, double *domain,
   for (int i = 0; i < nblocks_in_dir[0]; i++) {
     for (int j = 0; j < nblocks_in_dir[1]; j++) {
       for (int k = 0; k < nblocks_in_dir[2]; k++) {
-        for (int dir = 0; dir < 3; dir++) {
-          blimits[partnum][2*dir] = blimits[partnum][2*dir+1] = 0.0;
-          bnumcells[partnum][dir] = 0;
-        }
-        for (int dir = 0; dir < dim; dir++) {
-          blimits[partnum][2*dir] = domain[2*dir] + i*delta[dir];
-          blimits[partnum][2*dir+1] = (i < nblocks_in_dir[dir]-1) ?
-              domain[2*dir] + (i+1)*delta[dir] : domain[2*dir+1];
-          bnumcells[partnum][dir] = nblockcells_in_dir[dir];
-        }
+        blimits[partnum][0] = domain[0] + i*delta[0];
+        blimits[partnum][1] = (i < nblocks_in_dir[0]-1) ?
+            domain[0] + (i+1)*delta[0] : domain[1];
+        bnumcells[partnum][0] = nblockcells_in_dir[0];
+
+        blimits[partnum][2] = domain[2] + j*delta[1];
+        blimits[partnum][3] = (j < nblocks_in_dir[1]-1) ?
+            domain[2] + (j+1)*delta[1] : domain[3];
+        bnumcells[partnum][1] = nblockcells_in_dir[1];
+
+        blimits[partnum][4] = domain[4] + k*delta[2];
+        blimits[partnum][5] = (k < nblocks_in_dir[2]-1) ?
+            domain[4] + (k+1)*delta[2] : domain[5];
+        bnumcells[partnum][2] = nblockcells_in_dir[2];
         partnum++;
       }
     }
