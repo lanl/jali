@@ -142,6 +142,8 @@ int check_block_partitioning(int const dim, double const * const domain,
       }
     }
   }
+
+  return 1;
 }
 
 TEST(BLOCK_PARTITION) {
