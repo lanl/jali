@@ -75,6 +75,7 @@ if (BUILD_TESTS)
                          test/test_hex_gen_3x3x3.cc
                          test/test_quad_gen_3x3.cc
 			 test/test_write_read_fields.cc
+			 test/test_block_partition.cc
                     LINK_LIBS mstk_mesh ${UnitTest_LIBRARIES}) 
 
     # Test: mstk_mesh_parallel
