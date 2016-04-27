@@ -1,3 +1,5 @@
+/* Copyright 2016, Los Alamos National Laboratory */
+
 #include <UnitTest++.h>
 
 #include <iostream>
@@ -84,7 +86,38 @@ int check_block_partitioning(int const dim, double const * const domain,
 
 
 
-  // Extended check
+  // Extended checks
+
+  // Make sure that no block overlaps another
+
+  for (int ib = 0; ib < num_blocks; ib++) {
+    bool found_overlap = false;
+    for (int ib2 = 0; ib2 < num_blocks; ib2++) {
+      if (ib2 == ib) continue;
+      int noverlapdir = 0;
+      for (int dir = 0; dir < dim; dir++)
+        if ((blocklimits[ib][2*dir] < blocklimits[ib2][2*dir+1] &&
+             blocklimits[ib][2*dir] > blocklimits[ib2][2*dir]) ||
+            (blocklimits[ib][2*dir+1] > blocklimits[ib2][2*dir] &&
+             blocklimits[ib][2*dir+1] < blocklimits[ib2][2*dir]))
+          noverlapdir++;
+      if (noverlapdir == dim) {
+        found_overlap = true;
+        std::cerr << "Blocks " << ib << " and " << ib2 << " overlap \n";
+        std::cerr << " Block " << ib << " extents are (";
+        for (int dir1 = 0; dir1 < dim-1; dir1++)
+          std::cerr << blocklimits[ib][2*dir1] << ",";
+        std::cerr << blocklimits[ib][2*(dim-1)] << ") ";
+        for (int dir1 = 0; dir1 < dim-1; dir1++)
+          std::cerr << blocklimits[ib][2*dir1+1] << ",";
+        std::cerr << blocklimits[ib][2*dim-1] << ") ";
+        break;
+      }
+      CHECK(!found_overlap);
+    }
+  }
+
+
   // Make sure that each block has neighbors on the interior side
 
   for (int ib = 0; ib < num_blocks; ib++) {
