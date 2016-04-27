@@ -282,53 +282,92 @@ Mesh_MSTK::Mesh_MSTK(const double x0, const double y0, const double z0,
   int space_dimension = 3;
   pre_create_steps_(space_dimension, mpicomm, gm);
 
-// Discretizations can use this info if they want
+  // Discretizations can use this info if they want
   Mesh::set_mesh_type(Mesh_type::RECTANGULAR);
 
-
+  mesh = MESH_New(F1);
   if (serial_run) {
-    // Load serial mesh
+    // Generate serial mesh
 
-    mesh = MESH_New(F1);
     ok = generate_regular_mesh(mesh, x0, y0, z0, x1, y1, z1, nx, ny, nz);
 
     set_cell_dimension(3);
 
     myprocid = 0;
-  }
-  else {
-    Mesh_ptr globalmesh;
+  } else {
+    int numprocs;
+    MPI_Comm_size(mpicomm, &numprocs);
+    MPI_Comm_rank(mpicomm, &myprocid);
+    
     int topo_dim = 3;  // What is the topological dimension of the mesh
-    int ring = num_ghost_layers_distmesh;  // One layer of ghost cells
-    int with_attr = 1;  // update of attributes in parallel meshes
-    int del_inmesh = 1;  // delete input mesh as soon as possible
-    int method = static_cast<int>(partitioner) - 1;
 
+    // Get a block partitioning of the domain without actually
+    // creating the mesh.  Run this on every processor as its cheap
+    // enough.
 
-    if (myprocid == 0) {
-      globalmesh = MESH_New(F1);
+    double domain[6];
+    domain[0] = x0; domain[1] = x1;
+    domain[2] = y0; domain[3] = y1;
+    domain[4] = z0; domain[5] = z1;
+    int num_cells_in_dir[3];
+    num_cells_in_dir[0] = nx;
+    num_cells_in_dir[1] = ny;
+    num_cells_in_dir[2] = nz;
 
-      ok = generate_regular_mesh(globalmesh, x0, y0, z0, x1, y1, z1,
-                                 nx, ny, nz);
-
-      topo_dim = (MESH_Num_Regions(globalmesh) == 0) ? 2 : 3;
+    std::vector<std::array<double, 6>> blocklimits;
+    std::vector<std::array<int, 3>> blocknumcells;
+    
+    int ok = block_partition_regular_mesh(topo_dim, domain, num_cells_in_dir,
+                                          numprocs,
+                                          &blocklimits, &blocknumcells);
+  
+    if (!ok) {
+      std::stringstream mesg_stream;
+      mesg_stream << "Failed to block partition domain on processor " <<
+          myprocid;
+      Errors::Message mesg(mesg_stream.str());
+      Exceptions::Jali_throw(mesg);
     }
-    else {
-      globalmesh = NULL;
-      ok = 1;
+
+    // Generate a regular mesh for part of the domain corresponding to this
+    // processor
+
+    ok = generate_regular_mesh(mesh,
+                               blocklimits[myprocid][0],
+                               blocklimits[myprocid][2],
+                               blocklimits[myprocid][4],
+                               blocklimits[myprocid][1],
+                               blocklimits[myprocid][3],
+                               blocklimits[myprocid][5],
+                               blocknumcells[myprocid][0],
+                               blocknumcells[myprocid][1],
+                               blocknumcells[myprocid][2]);
+
+    if (!ok) {
+      std::stringstream mesg_stream;
+      mesg_stream << "Failed to generate mesh on processor " << myprocid;
+      Errors::Message mesg(mesg_stream.str());
+      Exceptions::Jali_throw(mesg);
     }
 
-    ok = ok & MSTK_Mesh_Distribute(globalmesh, &mesh, &topo_dim, ring,
-                                   with_attr, method, del_inmesh, mpicomm);
+
+    int input_type = 0;  // No parallel info is given - figure it all out
+
+    // Establish interprocessor connectivity and ghost layers
+
+    ok = MSTK_Weave_DistributedMeshes(mesh, topo_dim, num_ghost_layers_distmesh,
+                                      input_type, mpicomm);
+
+    if (!ok) {
+      std::stringstream mesg_stream;
+      mesg_stream <<
+          "Failed to establish interprocessor connectivity for meshes" <<
+          myprocid;
+      Errors::Message mesg(mesg_stream.str());
+      Exceptions::Jali_throw(mesg);
+    }
 
     set_cell_dimension(topo_dim);
-  }
-
-  if (!ok) {
-    std::stringstream mesg_stream;
-    mesg_stream << "Failed to generate mesh on processor " << myprocid;
-    Errors::Message mesg(mesg_stream.str());
-    Exceptions::Jali_throw(mesg);
   }
 
 
@@ -370,13 +409,6 @@ Mesh_MSTK::Mesh_MSTK(const double x0, const double y0,
   int space_dim = 2;
   pre_create_steps_(space_dim, incomm, gm);
 
-
-  if (myprocid == 0) {
-    int DebugWait = 0;
-    while (DebugWait) {}
-  }
-
-
   // Discretizations can use this info if they want
   Mesh::set_mesh_type(Mesh_type::RECTANGULAR);
 
@@ -384,60 +416,91 @@ Mesh_MSTK::Mesh_MSTK(const double x0, const double y0,
   int topo_dim = space_dim;  // What is the topological dimension of the mesh
   set_cell_dimension(topo_dim);
 
+  mesh = MESH_New(F1);
   if (serial_run) {
-    // Load serial mesh
+    // Generate serial mesh
 
-    mesh = MESH_New(F1);
     ok = generate_regular_mesh(mesh, x0, y0, x1, y1, nx, ny);
 
     myprocid = 0;
-  }
-  else {
-    Mesh_ptr globalmesh;
-    int ring = num_ghost_layers_distmesh;  // One layer of ghost cells
-    int with_attr = 1;  // update of attributes in parallel meshes
-    int del_inmesh = 1;  // delete input mesh at the earliest
-    int method = static_cast<int>(partitioner) - 1;
+  } else {
+    int numprocs;
+    MPI_Comm_size(mpicomm, &numprocs);
+    MPI_Comm_rank(mpicomm, &myprocid);
+    
+    int topo_dim = 2;  // What is the topological dimension of the mesh
 
-    if (myprocid == 0) {
-      globalmesh = MESH_New(F1);
+    // Get a block partitioning of the domain without actually
+    // creating the mesh.  Run this on every processor as its cheap
+    // enough.
 
-      ok = generate_regular_mesh(globalmesh, x0, y0, x1, y1, nx, ny);
+    double domain[6];
+    domain[0] = x0; domain[1] = x1;
+    domain[2] = y0; domain[3] = y1;
+    domain[4] = 0.0; domain[5] = 0.0;
+    int num_cells_in_dir[3];
+    num_cells_in_dir[0] = nx;
+    num_cells_in_dir[1] = ny;
+    num_cells_in_dir[2] = 0;
 
-      topo_dim = (MESH_Num_Regions(globalmesh) == 0) ? 2 : 3;
+    std::vector<std::array<double, 6>> blocklimits;
+    std::vector<std::array<int, 3>> blocknumcells;
+    
+    int ok = block_partition_regular_mesh(topo_dim, domain, num_cells_in_dir,
+                                          numprocs,
+                                          &blocklimits, &blocknumcells);
+  
+    if (!ok) {
+      std::stringstream mesg_stream;
+      mesg_stream << "Failed to block partition domain on processor " <<
+          myprocid;
+      Errors::Message mesg(mesg_stream.str());
+      Exceptions::Jali_throw(mesg);
     }
-    else {
-      globalmesh = NULL;
-      ok = 1;
+
+    // Generate a regular mesh for part of the domain corresponding to this
+    // processor
+
+    ok = generate_regular_mesh(mesh,
+                               blocklimits[myprocid][0],
+                               blocklimits[myprocid][2],
+                               blocklimits[myprocid][1],
+                               blocklimits[myprocid][3],
+                               blocknumcells[myprocid][0],
+                               blocknumcells[myprocid][1]);
+
+    if (!ok) {
+      std::stringstream mesg_stream;
+      mesg_stream << "Failed to generate mesh on processor " << myprocid;
+      Errors::Message mesg(mesg_stream.str());
+      Exceptions::Jali_throw(mesg);
     }
 
-    ok = ok & MSTK_Mesh_Distribute(globalmesh, &mesh, &topo_dim, ring,
-                                   with_attr, method, del_inmesh, mpicomm);
+
+    int input_type = 0;  // No parallel info is given - figure it all out
+
+    // Establish interprocessor connectivity and ghost layers
+
+    ok = MSTK_Weave_DistributedMeshes(mesh, topo_dim, num_ghost_layers_distmesh,
+                                      input_type, mpicomm);
+
+    if (!ok) {
+      std::stringstream mesg_stream;
+      mesg_stream <<
+          "Failed to establish interprocessor connectivity for meshes" <<
+          myprocid;
+      Errors::Message mesg(mesg_stream.str());
+      Exceptions::Jali_throw(mesg);
+    }
+
+    set_cell_dimension(topo_dim);
   }
-
-  if (!ok) {
-    std::stringstream mesg_stream;
-    mesg_stream << "Failed to generate mesh on processor " << myprocid;
-    Errors::Message mesg(mesg_stream.str());
-    Exceptions::Jali_throw(mesg);
-  }
-
-
 
 
   // Do all the processing required for setting up the mesh for Jali
 
   post_create_steps_();
 
-  // WHY IS THIS HERE SEPARATELY WHEN ITS NOT IN ANY OTHER CONSTRUCTOR??
-  // IT SHOULD HAVE BEEN DONE AS PART OF THE POST_CREATE_STEPS
-
-  if (request_wedges) {
-    cache_corner_info();
-    cache_wedge_info();
-    compute_face_geometric_quantities();
-    compute_cell_geometric_quantities();
-  }
 }
 
 
@@ -668,7 +731,8 @@ Mesh_MSTK::other_internal_name_of_set(const JaliGeometry::RegionPtr r,
 
   std::string internal_name;
 
-  if (r->type() == JaliGeometry::Region_type::LABELEDSET && entity_kind == Entity_kind::CELL) {
+  if (r->type() == JaliGeometry::Region_type::LABELEDSET &&
+      entity_kind == Entity_kind::CELL) {
 
     JaliGeometry::LabeledSetRegionPtr lsrgn =
       dynamic_cast<JaliGeometry::LabeledSetRegionPtr> (r);
@@ -1185,7 +1249,8 @@ void Mesh_MSTK::extract_mstk_mesh(const Mesh_MSTK& inmesh,
 // Destructor with cleanup
 
 Mesh_MSTK::~Mesh_MSTK() {
-  delete [] faceflip;
+  if (Mesh::faces_requested) delete [] faceflip;
+  if (Mesh::edges_requested) delete [] edgeflip;
 
   if (OwnedVerts) MSet_Delete(OwnedVerts);
   if (NotOwnedVerts) MSet_Delete(NotOwnedVerts);
@@ -5144,5 +5209,209 @@ bool Mesh_MSTK::store_field(std::string field_name, Entity_kind on_what,
   return true;
 }  // Mesh_MSTK::store_mesh_field
 
+
+
+// @brief Get the partitioning of a regular mesh such that each
+// partition is a rectangular block
+//
+// @param dim Dimension of problem - 1, 2 or 3
+// @param domain 2*dim values for min/max of domain
+//  (xmin, xmax, ymin, ymax, zmin, zmax)
+// @param num_cells_in_dir  number of cells in each direction
+// @param num_blocks_requested number of blocks requested
+// @param blocklimits min/max limits for each block
+// @param blocknumcells num cells in each direction for blocks
+//
+// Returns 1 if successful, 0 otherwise
+
+int Mesh_MSTK::block_partition_regular_mesh(int const dim,
+                                            double const * const domain,
+                                            int const * const num_cells_in_dir,
+                                            int const num_blocks_requested,
+                                            std::vector<std::array<double, 6>> *blocklimits,
+                                            std::vector<std::array<int, 3>> *blocknumcells) {
+
+  // Create local block arrays that are larger than the requested number of
+  // blocks. The extra storage is for temporary blocks while we are subdividing
+
+  std::vector<std::array<double, 6>> blimits(2*num_blocks_requested);
+  std::vector<std::array<int, 3>> bnumcells(2*num_blocks_requested);
+  int nblocks = 1;
+  int nblocks_in_dir[3] = {1, 1, 1};
+  int nblockcells_in_dir[3] = {0, 0, 0};
+  for (int i = 0; i < dim; i++)
+    nblockcells_in_dir[i] = num_cells_in_dir[i];
+
+
+  // First try bisection
+
+  bool done = false;
+  while (!done) {
+    bool bisected = false;
+    if (nblockcells_in_dir[0]%2 == 0) {  // even number of cells in x
+      nblockcells_in_dir[0] /= 2;
+      nblocks *= 2;
+      nblocks_in_dir[0] *= 2;
+      bisected = true;
+
+      if (nblocks == num_blocks_requested) {
+        done = 1;
+        continue;
+      }
+    }
+    if (dim > 1 && nblockcells_in_dir[1]%2 == 0) {  // even number of cells in y
+      nblockcells_in_dir[1] /= 2;
+      nblocks *= 2;
+      nblocks_in_dir[1] *= 2;
+
+      bisected = true;
+      if (nblocks == num_blocks_requested) {
+        done = 1;
+        continue;
+      }
+    }
+    if (dim > 2 && nblockcells_in_dir[2]%2 == 0) {  // even number of cells in z
+      nblockcells_in_dir[2] /= 2;
+      nblocks *= 2;
+      nblocks_in_dir[2] *= 2;
+      bisected = true;
+
+      if (nblocks == num_blocks_requested) {
+        done = 1;
+        continue;
+      }
+    }
+    if (!bisected) {
+      // Reached a state where we cannot evenly subdivide the number
+      // of elements in any one direction
+      done = 1;
+    }
+  }
+
+  // Populate the block details
+
+  double delta[3] = {0.0, 0.0, 0.0};
+  for (int dir = 0; dir < dim; dir++)
+    delta[dir] = (domain[2*dir+1]-domain[2*dir])/nblocks_in_dir[dir];
+
+  int partnum = 0;
+  for (int i = 0; i < nblocks_in_dir[0]; i++) {
+    for (int j = 0; j < nblocks_in_dir[1]; j++) {
+      for (int k = 0; k < nblocks_in_dir[2]; k++) {
+        blimits[partnum][0] = domain[0] + i*delta[0];
+        blimits[partnum][1] = (i < nblocks_in_dir[0]-1) ?
+            domain[0] + (i+1)*delta[0] : domain[1];
+        bnumcells[partnum][0] = nblockcells_in_dir[0];
+
+        blimits[partnum][2] = domain[2] + j*delta[1];
+        blimits[partnum][3] = (j < nblocks_in_dir[1]-1) ?
+            domain[2] + (j+1)*delta[1] : domain[3];
+        bnumcells[partnum][1] = nblockcells_in_dir[1];
+
+        blimits[partnum][4] = domain[4] + k*delta[2];
+        blimits[partnum][5] = (k < nblocks_in_dir[2]-1) ?
+            domain[4] + (k+1)*delta[2] : domain[5];
+        bnumcells[partnum][2] = nblockcells_in_dir[2];
+        partnum++;
+      }
+    }
+  }
+
+  if (nblocks != num_blocks_requested) {
+
+    // Start dividing the blocks as unevenly to get the number of
+    // partitions we need
+    
+    done = false;
+    while (!done) {
+      for (int dir = 0; dir < dim; dir++) {  // split blocks in x dir, then y etc
+        int nnewblocks = 0;
+        for (int ib = 0; ib < nblocks; ib++) {
+          if (bnumcells[ib][0] == 0 && bnumcells[ib][1] == 0 &&
+              bnumcells[ib][2] == 0) continue;  // Blanked out block
+          
+          double diff = blimits[ib][2*dir+1] - blimits[ib][2*dir];
+          double delta = diff/bnumcells[ib][dir];
+          int ncells1 = bnumcells[ib][dir]/2;
+          int ncells2 = bnumcells[ib][dir] - ncells1;
+          if (ncells1 == 0 || ncells2 == 0) continue;
+          
+          // Make two new partitions at the end of the list
+          
+          // Copy the original block details over
+          int ib1 = nblocks + nnewblocks;
+          for (int dir1 = 0; dir1 < dim; dir1++) {
+            bnumcells[ib1][dir1] = bnumcells[ib][dir1];
+            blimits[ib1][2*dir1] = blimits[ib][2*dir1];
+            blimits[ib1][2*dir1+1] = blimits[ib][2*dir1+1];
+          }
+          /* overwrite the data in the direction of the refinement */
+          bnumcells[ib1][dir] = ncells1;
+          blimits[ib1][2*dir] = blimits[ib][2*dir];
+          blimits[ib1][2*dir+1] = blimits[ib][2*dir] + ncells1*delta;
+          
+          // copy the initial block details over
+          int ib2 = nblocks + nnewblocks + 1;
+          for (int dir1 = 0; dir1 < dim; dir1++) {
+            bnumcells[ib2][dir1] = bnumcells[ib][dir1];
+            blimits[ib2][2*dir1] = blimits[ib][2*dir1];
+            blimits[ib2][2*dir1+1] = blimits[ib][2*dir1+1];
+          }
+          /* overwrite the data in the direction of the refinement */
+          bnumcells[ib2][dir] = ncells2;
+          blimits[ib2][2*dir] = blimits[ib][2*dir] + ncells1*delta;
+          blimits[ib2][2*dir+1] = blimits[ib][2*dir+1];
+          
+          // Blank out the original block
+          bnumcells[ib][0] = bnumcells[ib][1] =
+              bnumcells[ib][2] = 0;
+          nnewblocks += 2;
+          
+          // Check if we reached the requested number of blocks. Each
+          // block that was split into two will cause the loss of one
+          // block and gain of two new blocks, so the net gain is just
+          // nnewblocks/2
+          
+          if (nblocks + nnewblocks/2 >= num_blocks_requested) {
+            done = 1;
+            break;
+          }
+        }
+        
+        // Squeeze out the blocks that were split and dummied out
+        for (int ib = nblocks-1; ib >= 0; ib--) {
+          if (bnumcells[ib][0] == 0 && bnumcells[ib][1] == 0 &&
+              bnumcells[ib][2] == 0) {  // dummy block
+            for (int ib1 = ib; ib1 < nblocks+nnewblocks-1; ib1++) {
+              for (int dir1 = 0; dir1 < 3; dir1++) {
+                bnumcells[ib1][dir1] = bnumcells[ib1+1][dir1];
+                blimits[ib1][2*dir1] = blimits[ib1+1][2*dir1];
+                blimits[ib1][2*dir1+1] = blimits[ib1+1][2*dir1+1];
+              }
+            }
+            // Blank out the last block
+            bnumcells[nblocks+nnewblocks-1][0] =
+                bnumcells[nblocks+nnewblocks-1][1] =
+                bnumcells[nblocks+nnewblocks-1][2] = 0;
+            nblocks--;
+          }
+        }
+        nblocks += nnewblocks;
+        if (done)
+          break;
+      }
+    }
+  }  // if (nblocks != num_blocks_requested)
+
+  blimits.resize(nblocks);
+  bnumcells.resize(nblocks);
+
+  blocklimits->resize(nblocks);
+  blocknumcells->resize(nblocks);
+  std::copy(blimits.begin(), blimits.end(), blocklimits->begin());
+  std::copy(bnumcells.begin(), bnumcells.end(), blocknumcells->begin());
+
+  return 1;
+}
 
 }  // close namespace Jali
