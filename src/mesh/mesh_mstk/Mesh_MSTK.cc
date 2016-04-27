@@ -5224,9 +5224,10 @@ bool Mesh_MSTK::store_field(std::string field_name, Entity_kind on_what,
 //
 // Returns 1 if successful, 0 otherwise
 
-int Mesh_MSTK::block_partition_regular_mesh(int dim, double *domain,
-                                            int *num_cells_in_dir,
-                                            int num_blocks_requested,
+int Mesh_MSTK::block_partition_regular_mesh(int const dim,
+                                            double const * const domain,
+                                            int const * const num_cells_in_dir,
+                                            int const num_blocks_requested,
                                             std::vector<std::array<double, 6>> *blocklimits,
                                             std::vector<std::array<int, 3>> *blocknumcells) {
 
