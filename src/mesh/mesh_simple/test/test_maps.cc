@@ -82,7 +82,7 @@ SUITE(MeshSimple) {
     // Make a 1 cell, 1d cartesian mesh
     std::vector<double> node_pts = {0.0, 1.0};
     Jali::Mesh_simple Mm(node_pts, MPI_COMM_WORLD, NULL,
-                         true, true, true, true);
+                         true, true, true, true, true);
 
     // Move one of the nodes
     double xc[] = { 2.0 };
@@ -106,7 +106,7 @@ SUITE(MeshSimple) {
                                    Jali::Parallel_type::OWNED));
     CHECK_EQUAL(2, Mm.num_entities(Jali::Entity_kind::NODE,
                                    Jali::Parallel_type::OWNED));
-    CHECK_EQUAL(2, Mm.num_entities(Jali::Entity_kind::WEDGE,
+    CHECK_EQUAL(4, Mm.num_entities(Jali::Entity_kind::WEDGE,
                                    Jali::Parallel_type::OWNED));
     CHECK_EQUAL(2, Mm.num_entities(Jali::Entity_kind::CORNER,
                                    Jali::Parallel_type::OWNED));
