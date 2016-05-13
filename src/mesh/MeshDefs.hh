@@ -14,6 +14,7 @@
 
 #include <vector>
 #include <string>
+#include <cstdint>
 
 namespace Jali {
 
@@ -60,29 +61,31 @@ enum class Mesh_type {
 //
 
 
-enum class Entity_kind {
+enum class Entity_kind : std::int8_t {
   ALL_KIND = -3,
   ANY_KIND = -2,
   UNKNOWN_KIND = -1,
-  NODE,
-  EDGE,
-  FACE,
-  CELL,
-  WEDGE,
-  CORNER,
-  FACET,
-  BOUNDARY_FACE
+  NODE = 0,
+  EDGE = 1,
+  FACE = 2,
+  CELL = 3,
+  SIDE = 4,
+  WEDGE = 5,
+  CORNER = 6,
+  FACET = 7,
+  BOUNDARY_FACE = 8
 };
 
-const int NUM_ENTITY_KINDS = 8;  // Don't want to count the 3 catch-all types
+const int NUM_ENTITY_KINDS = 9;  // Don't want to count the 3 catch-all types
 
 // Return a string describing the entity kind that can be printed out
 inline
 std::string Entity_kind_string(Entity_kind kind) {
-  static const std::string entity_kind_string[8] =
+  static const std::string entity_kind_string[9] =
       {"Entity_kind::NODE", "Entity_kind::EDGE", "Entity_kind::FACE",
-       "Entity_kind::CELL", "Entity_kind::WEDGE", "Entity_kind::CORNER",
-       "Entity_kind::FACET", "Entity_kind::BOUNDARY_FACE"};
+       "Entity_kind::CELL", "Entity_kind::SIDE", "Entity_kind::WEDGE",
+       "Entity_kind::CORNER", "Entity_kind::FACET",
+       "Entity_kind::BOUNDARY_FACE"};
 
   int ikind = static_cast<int>(kind);
   return (ikind >= 0 && ikind < NUM_ENTITY_KINDS) ?
@@ -108,7 +111,7 @@ bool entity_valid_kind(const Entity_kind kind) {
 
 // Parallel status of entity
 
-enum class Parallel_type {
+enum class Parallel_type :  std::uint8_t {
   PTYPE_UNKNOWN = 0,  // Initializer
   OWNED = 1,         // Owned by this processor
   GHOST = 2,         // Owned by another processor
@@ -149,7 +152,7 @@ bool entity_valid_ptype(const Parallel_type ptype) {
 
 // Standard element types and catchall (POLYGON/POLYHED)
 
-enum class Cell_type {
+enum class Cell_type : std::uint8_t {
   CELLTYPE_UNKNOWN = 0,
   TRI = 1,
   QUAD,
@@ -193,7 +196,12 @@ bool cell_valid_type(const Cell_type type) {
 
 // Types of partitioners (partitioning scheme bundled into the name)
 
-enum class Partitioner_type {INDEX, METIS, ZOLTAN_GRAPH, ZOLTAN_RCB};
+enum class Partitioner_type : std::uint8_t {
+    INDEX,
+    METIS,
+    ZOLTAN_GRAPH,
+    ZOLTAN_RCB
+};
 constexpr int NUM_PARTITIONER_TYPES = 4;
 
 // Return an string description for each partitioner type
