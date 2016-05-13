@@ -1,6 +1,9 @@
-#include <UnitTest++.h>
+/* Copyright 2016, Los Alamos National Laboratory */
 
 #include <iostream>
+#include <cstdint>
+
+#include <UnitTest++.h>
 
 #include "../Mesh_MSTK.hh"
 
@@ -9,7 +12,7 @@ TEST(MSTK_HEX_2x2x1)
 
   int i, j, k, err, nc, nf, nv;
   std::vector<Jali::Entity_ID> faces(6), cnodes(8), fnodes(6), expfacenodes(4);
-  std::vector<int> facedirs(6);
+  std::vector<std::int8_t> facedirs(6);
   std::vector<JaliGeometry::Point> ccoords(8), fcoords(4);
 
   int NV = 18;
