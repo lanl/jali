@@ -236,7 +236,8 @@ void Mesh::cache_side_info() const {
   side_face_id.resize(num_sides_all, -1);
   side_cell_id.resize(num_sides_all, -1);
   side_opp_side_id.resize(num_sides_all, -1);
-  side_node_ids.resize(num_sides_all, {-1, -1});
+  //  side_node_ids.resize(num_sides_all, {-1, -1});  // intel does not like this
+  side_node_ids.resize(num_sides_all);
 
   if (celldim == 1) {
     for (auto const& c : cells()) {
