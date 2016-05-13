@@ -58,6 +58,7 @@ TEST(MESH_TILES_MPI) {
 
     bool faces_requested = true;
     bool edges_requested = (the_framework == Jali::MSTK) ? true : false;
+    bool sides_requested = (the_framework == Jali::MSTK) ? true : false;
     bool wedges_requested = (the_framework == Jali::MSTK) ? true : false;
     bool corners_requested = (the_framework == Jali::MSTK) ? true : false;
 
@@ -73,6 +74,7 @@ TEST(MESH_TILES_MPI) {
       std::vector<Jali::Entity_kind> entitylist;
       entitylist.push_back(Jali::Entity_kind::FACE);
       if (edges_requested) entitylist.push_back(Jali::Entity_kind::EDGE);
+      if (sides_requested) entitylist.push_back(Jali::Entity_kind::SIDE);
       if (wedges_requested) entitylist.push_back(Jali::Entity_kind::WEDGE);
       if (corners_requested) entitylist.push_back(Jali::Entity_kind::CORNER);
       factory.included_entities(entitylist);
@@ -193,6 +195,32 @@ TEST(MESH_TILES_MPI) {
       }
     }
 
+
+    // Check that each side has one and only one owner
+
+    if (sides_requested) {
+      std::vector<int> side_owner(mesh->num_sides(), -1);
+      std::vector<int> side_num_owners(mesh->num_sides(), 0);
+      for (auto const& t : meshtiles) {
+        int tileID = t->ID();
+        for (auto const& s : t->sides<Jali::Parallel_type::OWNED>()) {
+          side_owner[s] = tileID;
+          side_num_owners[s]++;
+        }
+      }
+      for (auto const& s : mesh->sides()) {
+        CHECK(side_owner[s] >= 0 && side_owner[s] < num_tiles_requested);
+        CHECK_EQUAL(1, side_num_owners[s]);
+      }
+
+      // Check that the master tile of a ghost side really owns the side
+      
+      for (auto const& t : meshtiles) {
+        int tileID = t->ID();
+        for (auto const& s : t->sides<Jali::Parallel_type::GHOST>())
+          CHECK_EQUAL(side_owner[s], mesh->master_tile_ID_of_side(s));
+      }
+    }
 
     // Check that each wedge has one and only one owner
 

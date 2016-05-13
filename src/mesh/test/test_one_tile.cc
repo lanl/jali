@@ -55,6 +55,7 @@ TEST(ONE_MESH_TILE) {
       bool faces_requested = true;
       bool edges_requested = (the_framework == Jali::MSTK) ? true : false;
       bool wedges_requested = (the_framework == Jali::MSTK) ? true : false;
+      bool sides_requested = (the_framework == Jali::MSTK) ? true : false;
       bool corners_requested = (the_framework == Jali::MSTK) ? true : false;
 
       int ierr = 0;
@@ -68,6 +69,7 @@ TEST(ONE_MESH_TILE) {
         std::vector<Jali::Entity_kind> entitylist;
         entitylist.push_back(Jali::Entity_kind::FACE);
         if (edges_requested) entitylist.push_back(Jali::Entity_kind::EDGE);
+        if (sides_requested) entitylist.push_back(Jali::Entity_kind::SIDE);
         if (wedges_requested) entitylist.push_back(Jali::Entity_kind::WEDGE);
         if (corners_requested) entitylist.push_back(Jali::Entity_kind::CORNER);
         factory.included_entities(entitylist);
@@ -122,7 +124,8 @@ TEST(ONE_MESH_TILE) {
 
       auto tile = make_meshtile(*mesh, expected_owned_cells, num_halo_layers,
                                 faces_requested, edges_requested,
-                                wedges_requested, corners_requested);
+                                sides_requested, wedges_requested,
+                                corners_requested);
 
 
 
@@ -436,6 +439,86 @@ TEST(ONE_MESH_TILE) {
       }
 
 
+
+      if (sides_requested) {
+
+        std::vector<int> expected_owned_sides;
+        std::vector<int> expected_ghost_sides;
+        std::vector<int> expected_all_sides;
+        for (auto const & s : mesh->sides()) {
+          std::vector<JaliGeometry::Point> spnts;
+          mesh->side_get_coordinates(s, &spnts);
+          auto scen = (spnts[0] + spnts[1] + spnts[2] + spnts[3])/4.0;
+          if (scen[0] > min_all && scen[0] < max_all &&
+              scen[1] > min_all && scen[1] < max_all &&
+              scen[2] > min_all && scen[2] < max_all) {
+
+            expected_all_sides.push_back(s);
+
+            if (scen[0] > min_owned && scen[0] < max_owned &&
+                scen[1] > min_owned && scen[1] < max_owned &&
+                scen[2] > min_owned && scen[2] < max_owned)
+              expected_owned_sides.push_back(s);
+            else
+              expected_ghost_sides.push_back(s);
+          }
+        }
+
+
+        // Are the expected owned sides in the tile? All the sides
+        // of owned cells will be owned. This list will remain the
+        // same regardless of the number of halo layers requested, so
+        // check only only if num_halo_layers == 0
+
+        if (num_halo_layers == 0) {
+          nent = tile->num_sides<Jali::Parallel_type::OWNED>();
+          CHECK_EQUAL(expected_owned_sides.size(), nent);
+
+          auto const& tile_owned_sides = tile->sides<Jali::Parallel_type::OWNED>();
+          j = 0;
+          for (auto const& s : expected_owned_sides) {
+            if (std::find(tile_owned_sides.begin(), tile_owned_sides.end(), s) !=
+                tile_owned_sides.end())
+              j++;
+            else
+              std::cerr << "Tile does not contain owned side " << s << "\n";
+          }
+          CHECK_EQUAL(j, nent);
+        }
+
+        // Are the expected ghost sides in the tile?
+
+        nent = tile->num_sides<Jali::Parallel_type::GHOST>();
+        CHECK_EQUAL(expected_ghost_sides.size(), nent);
+
+        auto const& tile_ghost_sides = tile->sides<Jali::Parallel_type::GHOST>();
+        j = 0;
+        for (auto const& s : expected_ghost_sides) {
+          if (std::find(tile_ghost_sides.begin(), tile_ghost_sides.end(), s)
+              != tile_ghost_sides.end())
+            j++;
+          else
+            std::cerr << "Tile does not contain ghost side " << s << "\n";
+        }
+        CHECK_EQUAL(j, nent);
+
+        // Are the expected owned+ghost sides in the tile?
+
+        nent = tile->num_sides();
+        CHECK_EQUAL(expected_all_sides.size(), nent);
+
+        auto const& tile_all_sides = tile->sides();
+        j = 0;
+        for (auto const& s : expected_all_sides) {
+          if (std::find(tile_all_sides.begin(), tile_all_sides.end(), s) !=
+              tile_all_sides.end())
+            j++;
+          else
+            std::cerr << "Tile does not contain owned or ghost side " << s <<
+                "\n";
+        }
+        CHECK_EQUAL(j, nent);
+      }
 
 
       if (wedges_requested) {
