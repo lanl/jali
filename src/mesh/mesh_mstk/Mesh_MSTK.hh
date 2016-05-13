@@ -3,6 +3,7 @@
 
 #include "MSTK.h"
 
+#include <cstdint>
 #include <memory>
 #include <vector>
 #include <sstream>
@@ -49,6 +50,7 @@ class Mesh_MSTK : public Mesh {
             (JaliGeometry::GeometricModelPtr) NULL,
             const bool request_faces = true,
             const bool request_edges = false,
+            const bool request_sides = false,
             const bool request_wedges = false,
             const bool request_corners = false,
             const int num_tiles = 0,
@@ -64,6 +66,7 @@ class Mesh_MSTK : public Mesh {
             (JaliGeometry::GeometricModelPtr) NULL,
             const bool request_faces = true,
             const bool request_edges = false,
+            const bool request_sides = false,
             const bool request_wedges = false,
             const bool request_corners = false,
             const int num_tiles = 0,
@@ -85,6 +88,7 @@ class Mesh_MSTK : public Mesh {
             (JaliGeometry::GeometricModelPtr) NULL,
             const bool request_faces = true,
             const bool request_edges = false,
+            const bool request_sides = false,
             const bool request_wedges = false,
             const bool request_corners = false,
             const int num_tiles = 0,
@@ -102,6 +106,7 @@ class Mesh_MSTK : public Mesh {
             (JaliGeometry::GeometricModelPtr) NULL,
             const bool request_faces = true,
             const bool request_edges = false,
+            const bool request_sides = false,
             const bool request_wedges = false,
             const bool request_corners = false,
             const int num_tiles = 0,
@@ -125,6 +130,7 @@ class Mesh_MSTK : public Mesh {
             const bool extrude = false,
             const bool request_faces = true,
             const bool request_edges = false,
+            const bool request_sides = false,
             const bool request_wedges = false,
             const bool request_corners = false,
             const int num_tiles = 0,
@@ -141,6 +147,7 @@ class Mesh_MSTK : public Mesh {
             const bool extrude = false,
             const bool request_faces = true,
             const bool request_edges = false,
+            const bool request_sides = false,
             const bool request_wedges = false,
             const bool request_corners = false,
             const int num_tiles = 0,
@@ -157,6 +164,7 @@ class Mesh_MSTK : public Mesh {
             const bool extrude = false,
             const bool request_faces = true,
             const bool request_edges = false,
+            const bool request_sides = false,
             const bool request_wedges = false,
             const bool request_corners = false,
             const int num_tiles = 0,
@@ -172,8 +180,8 @@ class Mesh_MSTK : public Mesh {
 
   // Get parallel type of entity
 
-  Parallel_type entity_get_ptype(const Entity_kind kind,
-                                 const Entity_ID entid) const;
+  //  Parallel_type entity_get_ptype(const Entity_kind kind,
+  //                                 const Entity_ID entid) const;
 
 
   // Get cell type
@@ -232,8 +240,8 @@ class Mesh_MSTK : public Mesh {
   // Get nodes of edge On a distributed mesh all nodes (Parallel_type::OWNED or
   // Parallel_type::GHOST) of the face are returned
 
-  void edge_get_nodes(const Entity_ID edgeid, Entity_ID *point0,
-                      Entity_ID *point1) const;
+  void edge_get_nodes_internal(const Entity_ID edgeid, Entity_ID *point0,
+                               Entity_ID *point1) const;
 
   // Upward adjacencies
   //-------------------
@@ -587,16 +595,16 @@ class Mesh_MSTK : public Mesh {
 
   void cell_get_faces_and_dirs_internal(const Entity_ID cellid,
                                         Entity_ID_List *faceids,
-                                        std::vector<int> *face_dirs,
+                                        std::vector<std::int8_t> *face_dirs,
                                         const bool ordered = false) const;
 
   void cell_get_faces_and_dirs_ordered(const Entity_ID cellid,
                                        Entity_ID_List *faceids,
-                                       std::vector<int> *face_dirs) const;
+                                       std::vector<std::int8_t> *face_dirs) const;
 
   void cell_get_faces_and_dirs_unordered(const Entity_ID cellid,
                                          Entity_ID_List *faceids,
-                                         std::vector<int> *face_dirs) const;
+                                         std::vector<std::int8_t> *face_dirs) const;
 
 
   // Cells connected to a face
@@ -615,13 +623,13 @@ class Mesh_MSTK : public Mesh {
 
   void cell_2D_get_edges_and_dirs_internal(const Entity_ID cellid,
                                            Entity_ID_List *edgeids,
-                                           std::vector<int> *edgedirs) const;
+                                           std::vector<std::int8_t> *edgedirs) const;
 
   // Edges and edge directions of a face
 
   void face_get_edges_and_dirs_internal(const Entity_ID cellid,
                                         Entity_ID_List *edgeids,
-                                        std::vector<int> *edgedirs,
+                                        std::vector<std::int8_t> *edgedirs,
                                         bool ordered = true) const;
 
   // Map from Jali's mesh entity kind to MSTK's mesh type.
@@ -640,10 +648,10 @@ class Mesh_MSTK : public Mesh {
     // type, and cells are MFACE type
 
     static MType const
-      kind2mtype[4][4] = {{MVERTEX, MVERTEX, MVERTEX, MVERTEX},  // 0d meshes
-                          {MVERTEX, MVERTEX, MVERTEX, MEDGE},    // 1d meshes
-                          {MVERTEX, MEDGE,   MEDGE,   MFACE},    // 2d meshes
-                          {MVERTEX, MEDGE,   MFACE,   MREGION}}; // 3d meshes
+      kind2mtype[4][4] = {{MVERTEX, MVERTEX, MVERTEX, MVERTEX},   // 0d meshes
+                          {MVERTEX, MVERTEX, MVERTEX, MEDGE},     // 1d meshes
+                          {MVERTEX, MEDGE,   MEDGE,   MFACE},     // 2d meshes
+                          {MVERTEX, MEDGE,   MFACE,   MREGION}};  // 3d meshes
 
     return kind2mtype[cell_dimension()][(int)kind];
   }
@@ -739,27 +747,39 @@ class Mesh_MSTK : public Mesh {
 
 
 
-inline Parallel_type Mesh_MSTK::entity_get_ptype(const Entity_kind kind,
-                                                 const Entity_ID entid) const {
-  MEntity_ptr ment;
+// inline Parallel_type Mesh_MSTK::entity_get_ptype(const Entity_kind kind,
+//                                                  const Entity_ID entid) const {
+//   MEntity_ptr ment;
 
-  switch (kind) {
-    case Entity_kind::CELL:
-      ment = (MEntity_ptr) cell_id_to_handle[entid];
-      break;
-    case Entity_kind::FACE:
-      ment = (MEntity_ptr) face_id_to_handle[entid];
-      break;
-    case Entity_kind::NODE:
-      ment = (MEntity_ptr) vtx_id_to_handle[entid];
-      break;
-  }
-
-  if (MEnt_PType(ment) == PGHOST)
-    return Parallel_type::GHOST;
-  else
-    return Parallel_type::OWNED;
-}
+//   switch (kind) {
+//     case Entity_kind::CELL:
+//       ment = (MEntity_ptr) cell_id_to_handle[entid];
+//       return MEnt_PType(ment) == PGHOST ? Parallel_type::GHOST :
+//           Parallel_type::OWNED;
+//       break;
+//     case Entity_kind::FACE:
+//       ment = (MEntity_ptr) face_id_to_handle[entid];
+//       return MEnt_PType(ment) == PGHOST ? Parallel_type::GHOST :
+//           Parallel_type::OWNED;
+//       break;
+//     case Entity_kind::NODE:
+//       ment = (MEntity_ptr) vtx_id_to_handle[entid];
+//       return MEnt_PType(ment) == PGHOST ? Parallel_type::GHOST :
+//           Parallel_type::OWNED;
+//       break;
+//     case Entity_kind::SIDE:
+//       return side_parallel_type[entid];  // from base class
+//       break;
+//     case Entity_kind::WEDGE:
+//       return side_parallel_type[static_cast<int>(entid/2)];  // from base class
+//       break;
+//     case Entity_kind::CORNER:
+//       return corner_parallel_type[entid];
+//       break;
+//     default:
+//       return Parallel_type::PTYPE_UNKNOWN;
+//   }
+// }
 
 
 // Retrieve field data from the mesh - special implementation for
