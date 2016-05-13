@@ -151,6 +151,13 @@ if (BUILD_TESTS)
                   SOURCE test/Main.cc test/test_entity_iterators.cc
 		  LINK_LIBS ${test_link_libs})
 
+    # Test side entities
+
+    add_Jali_test(side_tests test_sides
+                  KIND unit
+		  SOURCE test/Main.cc test/test_sides.cc
+                  LINK_LIBS ${test_link_libs})
+
     # Test wedge entities
 
     add_Jali_test(wedge_tests test_wedges
