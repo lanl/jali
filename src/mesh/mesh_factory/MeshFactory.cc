@@ -50,6 +50,7 @@ void MeshFactory::reset_options(void) {
   request_edges_ = false;
   request_faces_ = true;  // always needed (for now) to compute cell geom
   request_cells_ = true;
+  request_sides_ = false;
   request_wedges_ = false;
   request_corners_ = false;
 
@@ -140,7 +141,8 @@ MeshFactory::create(const std::string& filename) {
       try {
         result = framework_read(my_comm_, *i, filename, geometric_model_,
                                 request_faces_, request_edges_,
-                                request_wedges_, request_corners_,
+                                request_sides_, request_wedges_,
+                                request_corners_,
                                 num_tiles_,
                                 num_ghost_layers_tile_,
                                 num_ghost_layers_distmesh_,
@@ -236,7 +238,8 @@ MeshFactory::create(double x0, double y0, double z0,
                                     x0, y0, z0, x1, y1, z1, nx, ny, nz,
                                     geometric_model_,
                                     request_faces_, request_edges_,
-                                    request_wedges_, request_corners_,
+                                    request_sides_, request_wedges_,
+                                    request_corners_,
                                     num_tiles_,
                                     num_ghost_layers_tile_,
                                     num_ghost_layers_distmesh_,
@@ -323,7 +326,8 @@ MeshFactory::create(double x0, double y0,
                                     x0, y0, x1, y1, nx, ny,
                                     geometric_model_,
                                     request_faces_, request_edges_,
-                                    request_wedges_, request_corners_,
+                                    request_sides_, request_wedges_,
+                                    request_corners_,
                                     num_tiles_,
                                     num_ghost_layers_tile_,
                                     num_ghost_layers_distmesh_,
@@ -402,7 +406,8 @@ MeshFactory::create(std::vector<double> const& x) {
                                     x,
                                     geometric_model_,
                                     request_faces_, request_edges_,
-                                    request_wedges_, request_corners_,
+                                    request_sides_, request_wedges_,
+                                    request_corners_,
                                     num_tiles_,
                                     num_ghost_layers_tile_,
                                     num_ghost_layers_distmesh_,
@@ -461,7 +466,8 @@ MeshFactory::create(const std::shared_ptr<Mesh> inmesh,
                                    setnames, setkind,
                                    flatten, extrude,
                                    request_faces_, request_edges_,
-                                   request_wedges_, request_corners_,
+                                   request_sides_, request_wedges_,
+                                   request_corners_,
                                    num_tiles_,
                                    num_ghost_layers_tile_,
                                    num_ghost_layers_distmesh_,
