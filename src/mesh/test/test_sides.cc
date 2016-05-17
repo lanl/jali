@@ -73,6 +73,25 @@ TEST(MESH_SIDES_2D) {
     MPI_Allreduce(&ierr, &aerr, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
     CHECK_EQUAL(aerr, 0);
 
+    int nsides_owned = mesh->num_entities(Jali::Entity_kind::SIDE,
+                                          Jali::Parallel_type::OWNED);
+    int nsides_ghost = mesh->num_entities(Jali::Entity_kind::SIDE,
+                                          Jali::Parallel_type::GHOST);
+    CHECK(nsides_owned > 0);
+    if (nproc > 1)
+      CHECK(nsides_ghost);
+    else
+      CHECK(!nsides_ghost);
+
+    nsides_owned = mesh->num_sides<Jali::Parallel_type::OWNED>();
+    nsides_ghost = mesh->num_sides<Jali::Parallel_type::GHOST>();
+    CHECK(nsides_owned > 0);
+    if (nproc > 1)
+      CHECK(nsides_ghost);
+    else
+      CHECK(!nsides_ghost);
+
+
     double dp;
 
     for (auto const & c : mesh->cells()) {
