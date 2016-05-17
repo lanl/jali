@@ -25,9 +25,6 @@
 #include "LabeledSetRegion.hh"
 
 
-#define CACHE_VARS 1
-
-
 namespace Jali {
 
 // Gather and cache parallel type info for cells, faces, edges and nodes.
@@ -570,7 +567,7 @@ Entity_ID Mesh::entity_get_parent(const Entity_kind kind,
 
 
 unsigned int Mesh::cell_get_num_faces(const Entity_ID cellid) const {
-#if CACHE_VARS != 0
+#if JALI_CACHE_VARS != 0
 
   //
   // Cached version - turn off for profiling or to save memory
@@ -599,7 +596,7 @@ void Mesh::cell_get_faces_and_dirs(const Entity_ID cellid,
                                    Entity_ID_List *faceids,
                                    std::vector<dir_t> *face_dirs,
                                    const bool ordered) const {
-#if CACHE_VARS != 0
+#if JALI_CACHE_VARS != 0
 
   //
   // Cached version - turn off for profiling or to save memory
@@ -637,7 +634,7 @@ void Mesh::cell_get_faces_and_dirs(const Entity_ID cellid,
 
 void Mesh::face_get_cells(const Entity_ID faceid, const Parallel_type ptype,
                           Entity_ID_List *cellids) const {
-#if CACHE_VARS != 0
+#if JALI_CACHE_VARS != 0
 
   //
   // Cached version - turn off for profiling or to save memory
@@ -708,7 +705,7 @@ void Mesh::face_get_edges_and_dirs(const Entity_ID faceid,
                                    Entity_ID_List *edgeids,
                                    std::vector<dir_t> *edge_dirs,
                                    const bool ordered) const {
-#if CACHE_VARS != 0
+#if JALI_CACHE_VARS != 0
 
   //
   // Cached version - turn off for profiling or to save memory
@@ -741,7 +738,7 @@ void Mesh::face_get_edges_and_dirs(const Entity_ID faceid,
 void Mesh::face_to_cell_edge_map(const Entity_ID faceid,
                                  const Entity_ID cellid,
                                  std::vector<int> *map) const {
-#if CACHE_VARS != 0
+#if JALI_CACHE_VARS != 0
 
   //
   // Cached version - turn off for profiling or to save memory
@@ -787,7 +784,7 @@ void Mesh::face_to_cell_edge_map(const Entity_ID faceid,
 
 void Mesh::cell_get_edges(const Entity_ID cellid,
                           Entity_ID_List *edgeids) const {
-#if CACHE_VARS != 0
+#if JALI_CACHE_VARS != 0
 
   //
   // Cached version - turn off for profiling
@@ -814,7 +811,7 @@ void Mesh::cell_get_edges(const Entity_ID cellid,
 void Mesh::cell_2D_get_edges_and_dirs(const Entity_ID cellid,
                                       Entity_ID_List *edgeids,
                                       std::vector<dir_t> *edgedirs) const {
-#if CACHE_VARS != 0
+#if JALI_CACHE_VARS != 0
 
   //
   // Cached version - turn off for profiling

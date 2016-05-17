@@ -23,6 +23,8 @@
 
 #include "MeshTile.hh"
 
+#define JALI_CACHE_VARS 1  // Switch to 0 to turn caching off
+
 //! \mainpage Jali
 //!
 //! Jali is a parallel unstructured mesh infrastructure library for
@@ -1745,7 +1747,7 @@ void Mesh::cell_get_faces(const Entity_ID cellid, Entity_ID_List *faceids,
 inline
 void Mesh::edge_get_nodes(const Entity_ID edgeid, Entity_ID *nodeid0,
                           Entity_ID *nodeid1) const {
-#ifdef USE_CACHE
+#ifdef JALI_CACHE_VARS
   *nodeid0 = edge_node_ids[edgeid][0];
   *nodeid1 = edge_node_ids[edgeid][1];
 #else
