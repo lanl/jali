@@ -244,6 +244,12 @@ public:
   void node_get_coordinates(const Entity_ID nodeid,
                             JaliGeometry::Point *ncoord) const;
 
+  // Node coordinates - 3D points
+  void node_get_coordinates(const Entity_ID nodeid,
+                            std::array<double, 3> *ncoord) const;
+  // Node coordinates - 1D points
+  void node_get_coordinates(const Entity_ID nodeid, double *ncoord) const;
+
   // Face coordinates - conventions same as face_to_nodes call
   // Number of nodes is the vector size divided by number of spatial dimensions
   void face_get_coordinates(const Entity_ID faceid,
