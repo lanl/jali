@@ -23,6 +23,7 @@ Mesh_MSTK::Mesh_MSTK(const char *filename, const MPI_Comm& incomm,
                      const JaliGeometry::GeometricModelPtr& gm,
                      const bool request_faces,
                      const bool request_edges,
+                     const bool request_sides,
                      const bool request_wedges,
                      const bool request_corners,
                      const int num_tiles_ini,
@@ -30,9 +31,9 @@ Mesh_MSTK::Mesh_MSTK(const char *filename, const MPI_Comm& incomm,
                      const int num_ghost_layers_distmesh,
                      const Partitioner_type partitioner,
                      const JaliGeometry::Geom_type geom_type) :
-Mesh(request_faces, request_edges, request_wedges, request_corners,
-     num_tiles_ini, num_ghost_layers_tile, num_ghost_layers_distmesh,
-     partitioner, geom_type, incomm),
+Mesh(request_faces, request_edges, request_sides, request_wedges,
+     request_corners, num_tiles_ini, num_ghost_layers_tile,
+     num_ghost_layers_distmesh, partitioner, geom_type, incomm),
   mpicomm(incomm), meshxyz(NULL),
   faces_initialized(false), edges_initialized(false),
   target_cell_volumes(NULL), min_cell_volumes(NULL) {
@@ -156,6 +157,7 @@ Mesh_MSTK::Mesh_MSTK(const char *filename, const MPI_Comm& incomm,
                      const JaliGeometry::GeometricModelPtr& gm,
                      const bool request_faces,
                      const bool request_edges,
+                     const bool request_sides,
                      const bool request_wedges,
                      const bool request_corners,
                      const int num_tiles,
@@ -163,9 +165,9 @@ Mesh_MSTK::Mesh_MSTK(const char *filename, const MPI_Comm& incomm,
                      const int num_ghost_layers_distmesh,
                      const Partitioner_type partitioner,
                      const JaliGeometry::Geom_type geom_type) :
-    Mesh(request_faces, request_edges, request_wedges, request_corners,
-         num_tiles, num_ghost_layers_tile, num_ghost_layers_distmesh,
-         partitioner, geom_type, incomm),
+Mesh(request_faces, request_edges, request_sides, request_wedges,
+     request_corners, num_tiles, num_ghost_layers_tile,
+     num_ghost_layers_distmesh, partitioner, geom_type, incomm),
     mpicomm(incomm), meshxyz(NULL),
     faces_initialized(false), edges_initialized(false),
     target_cell_volumes(NULL), min_cell_volumes(NULL) {
@@ -264,15 +266,17 @@ Mesh_MSTK::Mesh_MSTK(const double x0, const double y0, const double z0,
                      const JaliGeometry::GeometricModelPtr& gm,
                      const bool request_faces,
                      const bool request_edges,
+                     const bool request_sides,
                      const bool request_wedges,
                      const bool request_corners,
                      const int num_tiles,
                      const int num_ghost_layers_tile,
                      const int num_ghost_layers_distmesh,
                      const Partitioner_type partitioner) :
-    Mesh(request_faces, request_edges, request_wedges, request_corners,
-         num_tiles, num_ghost_layers_tile, num_ghost_layers_distmesh,
-         partitioner, JaliGeometry::Geom_type::CARTESIAN, incomm),
+Mesh(request_faces, request_edges, request_sides, request_wedges,
+     request_corners, num_tiles, num_ghost_layers_tile,
+     num_ghost_layers_distmesh, partitioner,
+     JaliGeometry::Geom_type::CARTESIAN, incomm),
     mpicomm(incomm), meshxyz(NULL),
     faces_initialized(false), edges_initialized(false),
     target_cell_volumes(NULL), min_cell_volumes(NULL) {
@@ -391,6 +395,7 @@ Mesh_MSTK::Mesh_MSTK(const double x0, const double y0,
                      const JaliGeometry::GeometricModelPtr& gm,
                      const bool request_faces,
                      const bool request_edges,
+                     const bool request_sides,
                      const bool request_wedges,
                      const bool request_corners,
                      const int num_tiles,
@@ -398,9 +403,9 @@ Mesh_MSTK::Mesh_MSTK(const double x0, const double y0,
                      const int num_ghost_layers_distmesh,
                      const Partitioner_type partitioner,
                      const JaliGeometry::Geom_type geom_type) :
-    Mesh(request_faces, request_edges, request_wedges, request_corners,
-         num_tiles, num_ghost_layers_tile, num_ghost_layers_distmesh,
-         partitioner, geom_type, incomm),
+Mesh(request_faces, request_edges, request_sides, request_wedges,
+     request_corners, num_tiles, num_ghost_layers_tile,
+     num_ghost_layers_distmesh, partitioner, geom_type, incomm),
     mpicomm(incomm), meshxyz(NULL),
     faces_initialized(false), edges_initialized(false),
                    target_cell_volumes(NULL), min_cell_volumes(NULL) {
@@ -516,6 +521,7 @@ Mesh_MSTK::Mesh_MSTK(const std::shared_ptr<Mesh> inmesh,
                      const bool extrude,
                      const bool request_faces,
                      const bool request_edges,
+                     const bool request_sides,
                      const bool request_wedges,
                      const bool request_corners,
                      const int num_tiles,
@@ -524,9 +530,9 @@ Mesh_MSTK::Mesh_MSTK(const std::shared_ptr<Mesh> inmesh,
                      const Partitioner_type partitioner,
                      const JaliGeometry::Geom_type geom_type) :
     mpicomm(inmesh->get_comm()),
-    Mesh(request_faces, request_edges, request_wedges, request_corners,
-         num_tiles, num_ghost_layers_tile, num_ghost_layers_distmesh,
-         partitioner, geom_type, inmesh->get_comm()) {
+  Mesh(request_faces, request_edges, request_sides, request_wedges,
+       request_corners, num_tiles, num_ghost_layers_tile,
+       num_ghost_layers_distmesh, partitioner, geom_type, inmesh->get_comm()) {
 
   Mesh_MSTK *inmesh_mstk = dynamic_cast<Mesh_MSTK *>(inmesh.get());
   Mesh_ptr mstk_source_mesh = inmesh_mstk->mesh;
@@ -579,6 +585,7 @@ Mesh_MSTK::Mesh_MSTK(const Mesh& inmesh,
                      const bool extrude,
                      const bool request_faces,
                      const bool request_edges,
+                     const bool request_sides,
                      const bool request_wedges,
                      const bool request_corners,
                      const int num_tiles,
@@ -587,9 +594,9 @@ Mesh_MSTK::Mesh_MSTK(const Mesh& inmesh,
                      const Partitioner_type partitioner,
                      const JaliGeometry::Geom_type geom_type) :
   mpicomm(inmesh.get_comm()),
-  Mesh(request_faces, request_edges, request_wedges, request_corners,
-       num_tiles, num_ghost_layers_tile, num_ghost_layers_distmesh,
-       partitioner, geom_type, inmesh.get_comm()) {
+  Mesh(request_faces, request_edges, request_sides, request_wedges,
+       request_corners, num_tiles, num_ghost_layers_tile,
+       num_ghost_layers_distmesh, partitioner, geom_type, inmesh.get_comm()) {
 
   Mesh_ptr inmesh_mstk = ((Mesh_MSTK&) inmesh).mesh;
 
@@ -649,6 +656,7 @@ Mesh_MSTK::Mesh_MSTK(const Mesh& inmesh,
                      const bool extrude,
                      const bool request_faces,
                      const bool request_edges,
+                     const bool request_sides,
                      const bool request_wedges,
                      const bool request_corners,
                      const int num_tiles,
@@ -656,10 +664,10 @@ Mesh_MSTK::Mesh_MSTK(const Mesh& inmesh,
                      const int num_ghost_layers_distmesh,
                      const Partitioner_type partitioner,
                      const JaliGeometry::Geom_type geom_type) :
-    mpicomm(inmesh.get_comm()),
-    Mesh(request_faces, request_edges, request_wedges, request_corners,
-         num_tiles, num_ghost_layers_tile, num_ghost_layers_distmesh,
-         partitioner, geom_type, inmesh.get_comm()) {
+mpicomm(inmesh.get_comm()),
+  Mesh(request_faces, request_edges, request_sides, request_wedges,
+       request_corners, num_tiles, num_ghost_layers_tile,
+       num_ghost_layers_distmesh, partitioner, geom_type, inmesh.get_comm()) {
 
   // store pointers to the MESH_XXXFromID functions so that they can
   // be called without a switch statement
@@ -1312,7 +1320,7 @@ Cell_type Mesh_MSTK::cell_get_type(const Entity_ID cellid) const {
 
 void Mesh_MSTK::cell_get_faces_and_dirs_ordered(const Entity_ID cellid,
                                                 Entity_ID_List *faceids,
-                                                std::vector<int> *face_dirs)
+                                                std::vector<dir_t> *face_dirs)
     const {
 
   MEntity_ptr cell;
@@ -1391,7 +1399,7 @@ void Mesh_MSTK::cell_get_faces_and_dirs_ordered(const Entity_ID cellid,
               if (face_dirs) {
                 int fdir = (MR_FaceDir_i((MRegion_ptr)cell, i) == 1) ? 1 : -1;
                 if (faceflip[lid-1]) fdir *= -1;
-                (*face_dirs)[nf] = fdir;
+                (*face_dirs)[nf] = static_cast<dir_t>(fdir);
               }
 
               MEnt_Mark(fadj, mkid);
@@ -1411,7 +1419,7 @@ void Mesh_MSTK::cell_get_faces_and_dirs_ordered(const Entity_ID cellid,
       if (face_dirs) {
         fdir0 = fdir0 ? 1 : -1;
         if (faceflip[lid-1]) fdir0 *= -1;
-        (*face_dirs)[nf] = fdir0;
+        (*face_dirs)[nf] = static_cast<dir_t>(fdir0);
       }
       nf++;
 
@@ -1429,7 +1437,7 @@ void Mesh_MSTK::cell_get_faces_and_dirs_ordered(const Entity_ID cellid,
           if (face_dirs) {
             int fdir = (MR_FaceDir_i((MRegion_ptr)cell, i) == 1) ? 1 : -1;
             if (faceflip[lid-1]) fdir *= -1;
-            (*face_dirs)[nf] = fdir;
+            (*face_dirs)[nf] = static_cast<dir_t>(fdir);
           }
           nf++;
           break;
@@ -1453,7 +1461,7 @@ void Mesh_MSTK::cell_get_faces_and_dirs_ordered(const Entity_ID cellid,
 
 void Mesh_MSTK::cell_get_faces_and_dirs_unordered(const Entity_ID cellid,
                                                   Entity_ID_List *faceids,
-                                                  std::vector<int> *face_dirs)
+                                                  std::vector<dir_t> *face_dirs)
     const {
 
   MEntity_ptr cell;
@@ -1495,12 +1503,12 @@ void Mesh_MSTK::cell_get_faces_and_dirs_unordered(const Entity_ID cellid,
     if (face_dirs) {
       face_dirs->resize(nrf);
 
-      std::vector<int>::iterator itd = face_dirs->begin();
+      std::vector<dir_t>::iterator itd = face_dirs->begin();
       for (int i = 0; i < nrf; ++i) {
         int lid = (*faceids)[i];
         int fdir = 2*MR_FaceDir_i((MRegion_ptr)cell, i) - 1;
         fdir = faceflip[lid] ? -fdir : fdir;
-        *itd = fdir;  // assign to next spot by dereferencing iterator
+        *itd = static_cast<dir_t>(fdir);  // assign to next spot by dereferencing iterator
         ++itd;
       }
     }
@@ -1538,12 +1546,12 @@ void Mesh_MSTK::cell_get_faces_and_dirs_unordered(const Entity_ID cellid,
 
     if (face_dirs) {
       face_dirs->resize(nfe);
-      std::vector<int>::iterator itd = face_dirs->begin();
+      std::vector<dir_t>::iterator itd = face_dirs->begin();
       for (int i = 0; i < nfe; ++i) {
         int lid = (*faceids)[i];
         int fdir = 2*MF_EdgeDir_i((MFace_ptr)cell, i) - 1;
         fdir = faceflip[lid] ? -fdir : fdir;
-        *itd = fdir;  // assign to next spot by dereferencing iterator
+        *itd = static_cast<dir_t>(fdir);  // assign to next spot by dereferencing iterator
         itd++;
       }
     }
@@ -1554,7 +1562,7 @@ void Mesh_MSTK::cell_get_faces_and_dirs_unordered(const Entity_ID cellid,
 
 void Mesh_MSTK::cell_get_faces_and_dirs_internal(const Entity_ID cellid,
                                                  Entity_ID_List *faceids,
-                                                 std::vector<int> *face_dirs,
+                                                 std::vector<dir_t> *face_dirs,
                                                  const bool ordered) const {
   ASSERT(faces_initialized);
 
@@ -1644,7 +1652,7 @@ void Mesh_MSTK::cell_get_edges_internal(const Entity_ID cellid,
 
 void Mesh_MSTK::cell_2D_get_edges_and_dirs_internal(const Entity_ID cellid,
                                                     Entity_ID_List *edgeids,
-                                                    std::vector<int> *edgedirs)
+                                                    std::vector<dir_t> *edgedirs)
     const {
 
   ASSERT(cell_dimension() == 2);
@@ -1671,13 +1679,14 @@ void Mesh_MSTK::cell_2D_get_edges_and_dirs_internal(const Entity_ID cellid,
     edgedirs->resize(nfe);
 
     Entity_ID_List::iterator ite = edgeids->begin();
-    std::vector<int>::iterator itd = edgedirs->begin();
+    std::vector<dir_t>::iterator itd = edgedirs->begin();
     for (int i = 0; i < nfe; ++i) {
       MEdge_ptr edge = List_Entry(fedges, i);
       int lid = MEnt_ID(edge);
       *ite = lid-1;  // assign to next spot by dereferencing iterator
       ++ite;
-      *itd = 2*MF_EdgeDir_i((MFace_ptr)cell, i) - 1;  // convert [0,1] to [-1,1]
+      int dir = 2*MF_EdgeDir_i((MFace_ptr)cell, i) - 1;  // convert [0,1] to [-1,1]
+      *itd = static_cast<dir_t>(dir);
       ++itd;
     }
 
@@ -1771,7 +1780,7 @@ void Mesh_MSTK::cell_get_nodes(const Entity_ID cellid,
 
 void Mesh_MSTK::face_get_edges_and_dirs_internal(const Entity_ID faceid,
                                                  Entity_ID_List *edgeids,
-                                                 std::vector<int> *edge_dirs,
+                                                 std::vector<dir_t> *edge_dirs,
                                                  bool ordered) const {
 
   ASSERT(edgeids != NULL);
@@ -1816,12 +1825,12 @@ void Mesh_MSTK::face_get_edges_and_dirs_internal(const Entity_ID faceid,
     if (edge_dirs) {
       edge_dirs->resize(nfe);
 
-      std::vector<int>::iterator itd = edge_dirs->begin();
+      std::vector<dir_t>::iterator itd = edge_dirs->begin();
       for (int i = 0; i < nfe; ++i) {
         int lid = (*edgeids)[i];
         int edir = 2*MF_EdgeDir_i((MFace_ptr)face, i) - 1;
         edir = edgeflip[lid] ? -edir : edir;
-        *itd = edir;  // assign to next spot by dereferencing iterator
+        *itd = static_cast<dir_t>(edir);  // assign to next spot by dereferencing iterator
         ++itd;
       }
     }
@@ -1904,8 +1913,9 @@ void Mesh_MSTK::face_get_nodes(const Entity_ID faceid,
 
 // Get nodes of an edge
 
-void Mesh_MSTK::edge_get_nodes(const Entity_ID edgeid,
-                               Entity_ID *nodeid0, Entity_ID *nodeid1) const {
+void Mesh_MSTK::edge_get_nodes_internal(const Entity_ID edgeid,
+                                        Entity_ID *nodeid0,
+                                        Entity_ID *nodeid1) const {
   ASSERT(edges_initialized);
 
   MEdge_ptr edge = (MEdge_ptr) edge_id_to_handle[edgeid];

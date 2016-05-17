@@ -16,6 +16,7 @@ Mesh_simple::Mesh_simple(double x0, double y0, double z0,
                          const JaliGeometry::GeometricModelPtr gm,
                          const bool request_faces,
                          const bool request_edges,
+                         const bool request_sides,
                          const bool request_wedges,
                          const bool request_corners,
                          const int num_tiles_ini,
@@ -28,9 +29,10 @@ Mesh_simple::Mesh_simple(double x0, double y0, double z0,
     z0_(z0), z1_(z1),
     nodes_per_face_(4), faces_per_cell_(6), nodes_per_cell_(8),
     faces_per_node_aug_(13), cells_per_node_aug_(9),
-  Mesh(request_faces, request_edges, request_wedges, request_corners,
-       num_tiles_ini, num_ghost_layers_tile, num_ghost_layers_distmesh,
-       partitioner, JaliGeometry::Geom_type::CARTESIAN, comm) {
+  Mesh(request_faces, request_edges, request_sides, request_wedges,
+       request_corners, num_tiles_ini, num_ghost_layers_tile,
+       num_ghost_layers_distmesh, partitioner,
+       JaliGeometry::Geom_type::CARTESIAN, comm) {
 
   Mesh::set_mesh_type(Mesh_type::RECTANGULAR);
   if (gm != (JaliGeometry::GeometricModelPtr) NULL)
@@ -38,6 +40,8 @@ Mesh_simple::Mesh_simple(double x0, double y0, double z0,
 
   clear_internals_3d_();
   update_internals_3d_();
+
+  cache_extra_variables();
 
   if (Mesh::num_tiles_ini_)
     Mesh::build_tiles();
@@ -55,6 +59,7 @@ Mesh_simple::Mesh_simple(double x0, double y0,
                          const JaliGeometry::GeometricModelPtr &gm,
                          const bool request_faces,
                          const bool request_edges,
+                         const bool request_sides,
                          const bool request_wedges,
                          const bool request_corners,
                          const int num_tiles_ini,
@@ -74,6 +79,7 @@ Mesh_simple::Mesh_simple(const std::vector<double>& x,
                          const JaliGeometry::GeometricModelPtr &gm,
                          const bool request_faces,
                          const bool request_edges,
+                         const bool request_sides,
                          const bool request_wedges,
                          const bool request_corners,
                          const int num_tiles_ini,
@@ -81,13 +87,13 @@ Mesh_simple::Mesh_simple(const std::vector<double>& x,
                          const int num_ghost_layers_distmesh,
                          const Partitioner_type partitioner,
                          const JaliGeometry::Geom_type geom_type) :
-    nx_(x.size()-1), ny_(-3), nz_(-3),
-    coordinates_(x),
-    nodes_per_face_(1), faces_per_cell_(2), nodes_per_cell_(2),
-    faces_per_node_aug_(2), cells_per_node_aug_(3),
-    Mesh(request_faces, request_edges, request_wedges, request_corners,
-         num_tiles_ini, num_ghost_layers_tile, num_ghost_layers_distmesh,
-         partitioner, geom_type, comm) {
+  nx_(x.size()-1), ny_(-3), nz_(-3),
+  coordinates_(x),
+  nodes_per_face_(1), faces_per_cell_(2), nodes_per_cell_(2),
+  faces_per_node_aug_(2), cells_per_node_aug_(3),
+  Mesh(request_faces, request_edges, request_sides, request_wedges,
+       request_corners, num_tiles_ini, num_ghost_layers_tile,
+       num_ghost_layers_distmesh, partitioner, geom_type, comm) {
   set_space_dimension(1);
   set_cell_dimension(1);
 
@@ -112,6 +118,7 @@ Mesh_simple::Mesh_simple(const std::shared_ptr<Mesh> inmesh,
                          const bool request_faces,
                          const bool request_edges,
                          const bool request_wedges,
+                         const bool request_sides,
                          const bool request_corners,
                          const int num_tiles_ini,
                          const int num_ghost_layers_tile,
@@ -130,6 +137,7 @@ Mesh_simple::Mesh_simple(const Mesh& inmesh,
                          const bool extrude,
                          const bool request_faces,
                          const bool request_edges,
+                         const bool request_sides,
                          const bool request_wedges,
                          const bool request_corners,
                          const int num_tiles_ini,
@@ -149,6 +157,7 @@ Mesh_simple::Mesh_simple(const Mesh& inmesh,
                          const bool extrude,
                          const bool request_faces,
                          const bool request_edges,
+                         const bool request_sides,
                          const bool request_wedges,
                          const bool request_corners,
                          const int num_tiles_ini,
@@ -573,14 +582,6 @@ void Mesh_simple::update_internals_3d_() {
 }
 
 
-Parallel_type Mesh_simple::entity_get_ptype(const Entity_kind kind,
-                                            const Entity_ID entid) const {
-  return Parallel_type::OWNED;  // Its a serial code
-}
-
-
-
-
 // Get cell type
 Jali::Cell_type Mesh_simple::cell_get_type(const Jali::Entity_ID cellid) const {
   return Cell_type::HEX;
@@ -597,7 +598,7 @@ Entity_ID Mesh_simple::GID(const Jali::Entity_ID lid,
 void Mesh_simple::cell_get_faces_and_dirs_internal(const Jali::Entity_ID cellid,
                                                    Jali::Entity_ID_List
                                                    *faceids,
-                                                   std::vector<int> *cfacedirs,
+                                                   std::vector<dir_t> *cfacedirs,
                                                    const bool ordered) const {
   unsigned int offset = (unsigned int) faces_per_cell_*cellid;
 

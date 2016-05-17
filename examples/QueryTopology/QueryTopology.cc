@@ -4,6 +4,7 @@
 //
 
 #include <iostream>
+#include <cstdint>
 
 #include "mpi.h"
 
@@ -56,7 +57,7 @@ int main(int argc, char *argv[]) {
   for (auto c : mymesh->cells<Parallel_type::OWNED>()) {
 
     Entity_ID_List cfaces;   // Entity_ID_List is just a std::vector<Entity_ID>
-    std::vector<int> cfdirs;
+    std::vector<dir_t> cfdirs;
 
     mymesh->cell_get_faces_and_dirs(c, &cfaces, &cfdirs);
 

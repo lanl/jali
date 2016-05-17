@@ -48,11 +48,17 @@ TEST(ENTITY_ITERATORS) {
       prefs.push_back(the_framework);
       factory.preference(prefs);
 
-      std::vector<Jali::Entity_kind> entitylist = {Jali::Entity_kind::EDGE,
-                                                   Jali::Entity_kind::FACE,
-                                                   Jali::Entity_kind::WEDGE,
-                                                   Jali::Entity_kind::CORNER};
-      factory.included_entities(entitylist);
+      if (the_framework == Jali::MSTK) {
+        std::vector<Jali::Entity_kind> entitylist = {Jali::Entity_kind::EDGE,
+                                                     Jali::Entity_kind::FACE,
+                                                     Jali::Entity_kind::SIDE,
+                                                     Jali::Entity_kind::WEDGE,
+                                                     Jali::Entity_kind::CORNER};
+        factory.included_entities(entitylist);
+      } else {
+        std::vector<Jali::Entity_kind> entitylist = {Jali::Entity_kind::FACE};
+        factory.included_entities(entitylist);
+      }
 
       mesh = factory(0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 2, 2, 2);
 
@@ -105,35 +111,36 @@ TEST(ENTITY_ITERATORS) {
 
 
 
-    id1 = 0;
-    for (auto const & edgeid : mesh->edges<Jali::Parallel_type::OWNED>()) {
-      CHECK_EQUAL(id1, edgeid);
-      ++id1;
+    if (the_framework == Jali::MSTK) {
+      id1 = 0;
+      for (auto const & edgeid : mesh->edges<Jali::Parallel_type::OWNED>()) {
+        CHECK_EQUAL(id1, edgeid);
+        ++id1;
+      }
+      CHECK_EQUAL(id1, mesh->num_entities(Jali::Entity_kind::EDGE,
+                                          Jali::Parallel_type::OWNED));
+      nent = mesh->num_edges<Jali::Parallel_type::OWNED>();
+      CHECK_EQUAL(id1, nent);
+      
+      id2 = 0;
+      for (auto const & edgeid : mesh->edges<Jali::Parallel_type::GHOST>()) {
+        CHECK_EQUAL(id2, edgeid);
+        ++id2;
+      }
+      CHECK_EQUAL(id2, mesh->num_entities(Jali::Entity_kind::EDGE,
+                                          Jali::Parallel_type::GHOST));
+      CHECK_EQUAL(id2, mesh->num_edges<Jali::Parallel_type::GHOST>());
+      
+      id3 = 0;
+      for (auto const & edgeid : mesh->edges<Jali::Parallel_type::ALL>()) {
+        CHECK_EQUAL(id3, edgeid);
+        ++id3;
+      }
+      CHECK_EQUAL(id1 + id2, mesh->num_entities(Jali::Entity_kind::EDGE,
+                                                Jali::Parallel_type::ALL));
+      CHECK_EQUAL(id1+id2, mesh->num_edges<Jali::Parallel_type::ALL>());
+      CHECK_EQUAL(id3, mesh->num_edges<Jali::Parallel_type::ALL>());
     }
-    CHECK_EQUAL(id1, mesh->num_entities(Jali::Entity_kind::EDGE,
-                                        Jali::Parallel_type::OWNED));
-    nent = mesh->num_edges<Jali::Parallel_type::OWNED>();
-    CHECK_EQUAL(id1, nent);
-
-    id2 = 0;
-    for (auto const & edgeid : mesh->edges<Jali::Parallel_type::GHOST>()) {
-      CHECK_EQUAL(id2, edgeid);
-      ++id2;
-    }
-    CHECK_EQUAL(id2, mesh->num_entities(Jali::Entity_kind::EDGE,
-                                        Jali::Parallel_type::GHOST));
-    CHECK_EQUAL(id2, mesh->num_edges<Jali::Parallel_type::GHOST>());
-
-    id3 = 0;
-    for (auto const & edgeid : mesh->edges<Jali::Parallel_type::ALL>()) {
-      CHECK_EQUAL(id3, edgeid);
-      ++id3;
-    }
-    CHECK_EQUAL(id1 + id2, mesh->num_entities(Jali::Entity_kind::EDGE,
-                                              Jali::Parallel_type::ALL));
-    CHECK_EQUAL(id1+id2, mesh->num_edges<Jali::Parallel_type::ALL>());
-    CHECK_EQUAL(id3, mesh->num_edges<Jali::Parallel_type::ALL>());
-
 
 
 
@@ -167,65 +174,95 @@ TEST(ENTITY_ITERATORS) {
 
 
 
-    id1 = 0;
-    for (auto const & wedgeid : mesh->wedges<Jali::Parallel_type::OWNED>()) {
-      CHECK_EQUAL(id1, wedgeid);
+    if (the_framework == Jali::MSTK) {
+      id1 = 0;
+      for (auto const & sideid : mesh->sides<Jali::Parallel_type::OWNED>()) {
+        CHECK_EQUAL(id1, sideid);
+        ++id1;
+      }
+      CHECK_EQUAL(id1, mesh->num_entities(Jali::Entity_kind::SIDE,
+                                          Jali::Parallel_type::OWNED));
+      CHECK_EQUAL(id1, mesh->num_sides<Jali::Parallel_type::OWNED>());
+      
+      id2 = 0;
+      for (auto const & sideid : mesh->sides<Jali::Parallel_type::GHOST>()) {
+        CHECK_EQUAL(id2, sideid);
+        ++id2;
+      }
+      CHECK_EQUAL(id2, mesh->num_entities(Jali::Entity_kind::SIDE,
+                                          Jali::Parallel_type::GHOST));
+      CHECK_EQUAL(id2, mesh->num_sides<Jali::Parallel_type::GHOST>());
+      
+      id3 = 0;
+      for (auto const & sideid : mesh->sides<Jali::Parallel_type::ALL>()) {
+        CHECK_EQUAL(id3, sideid);
+        ++id3;
+      }
+      CHECK_EQUAL(id1 + id2, mesh->num_entities(Jali::Entity_kind::SIDE,
+                                                Jali::Parallel_type::ALL));
+      CHECK_EQUAL(id1+id2, mesh->num_sides<Jali::Parallel_type::ALL>());
+      CHECK_EQUAL(id3, mesh->num_sides<Jali::Parallel_type::ALL>());
+
+      
+      
+      id1 = 0;
+      for (auto const & wedgeid : mesh->wedges<Jali::Parallel_type::OWNED>()) {
+        CHECK_EQUAL(id1, wedgeid);
       ++id1;
+      }
+      CHECK_EQUAL(id1, mesh->num_entities(Jali::Entity_kind::WEDGE,
+                                          Jali::Parallel_type::OWNED));
+      CHECK_EQUAL(id1, mesh->num_wedges<Jali::Parallel_type::OWNED>());
+      
+      id2 = 0;
+      for (auto const & wedgeid : mesh->wedges<Jali::Parallel_type::GHOST>()) {
+        CHECK_EQUAL(id2, wedgeid);
+        ++id2;
+      }
+      CHECK_EQUAL(id2, mesh->num_entities(Jali::Entity_kind::WEDGE,
+                                          Jali::Parallel_type::GHOST));
+      CHECK_EQUAL(id2, mesh->num_wedges<Jali::Parallel_type::GHOST>());
+      
+      id3 = 0;
+      for (auto const & wedgeid : mesh->wedges<Jali::Parallel_type::ALL>()) {
+        CHECK_EQUAL(id3, wedgeid);
+        ++id3;
+      }
+      CHECK_EQUAL(id1 + id2, mesh->num_entities(Jali::Entity_kind::WEDGE,
+                                                Jali::Parallel_type::ALL));
+      CHECK_EQUAL(id1+id2, mesh->num_wedges<Jali::Parallel_type::ALL>());
+      CHECK_EQUAL(id3, mesh->num_wedges<Jali::Parallel_type::ALL>());
+      
+      
+
+      id1 = 0;
+      for (auto const & cornerid : mesh->corners<Jali::Parallel_type::OWNED>()) {
+        CHECK_EQUAL(id1, cornerid);
+        ++id1;
+      }
+      CHECK_EQUAL(id1, mesh->num_entities(Jali::Entity_kind::CORNER,
+                                          Jali::Parallel_type::OWNED));
+      CHECK_EQUAL(id1, mesh->num_corners<Jali::Parallel_type::OWNED>());
+      
+      id2 = 0;
+      for (auto const & cornerid : mesh->corners<Jali::Parallel_type::GHOST>()) {
+        CHECK_EQUAL(id2, cornerid);
+        ++id2;
+      }
+      CHECK_EQUAL(id2, mesh->num_entities(Jali::Entity_kind::CORNER,
+                                          Jali::Parallel_type::GHOST));
+      CHECK_EQUAL(id2, mesh->num_corners<Jali::Parallel_type::GHOST>());
+      
+      id3 = 0;
+      for (auto const & cornerid : mesh->corners<Jali::Parallel_type::ALL>()) {
+        CHECK_EQUAL(id3, cornerid);
+        ++id3;
+      }
+      CHECK_EQUAL(id1 + id2, mesh->num_entities(Jali::Entity_kind::CORNER,
+                                                Jali::Parallel_type::ALL));
+      CHECK_EQUAL(id1 + id2, mesh->num_corners<Jali::Parallel_type::ALL>());
+      CHECK_EQUAL(id3, mesh->num_corners<Jali::Parallel_type::ALL>());
     }
-    CHECK_EQUAL(id1, mesh->num_entities(Jali::Entity_kind::WEDGE,
-                                        Jali::Parallel_type::OWNED));
-    CHECK_EQUAL(id1, mesh->num_wedges<Jali::Parallel_type::OWNED>());
-
-    id2 = 0;
-    for (auto const & wedgeid : mesh->wedges<Jali::Parallel_type::GHOST>()) {
-      CHECK_EQUAL(id2, wedgeid);
-      ++id2;
-    }
-    CHECK_EQUAL(id2, mesh->num_entities(Jali::Entity_kind::WEDGE,
-                                        Jali::Parallel_type::GHOST));
-    CHECK_EQUAL(id2, mesh->num_wedges<Jali::Parallel_type::GHOST>());
-
-    id3 = 0;
-    for (auto const & wedgeid : mesh->wedges<Jali::Parallel_type::ALL>()) {
-      CHECK_EQUAL(id3, wedgeid);
-      ++id3;
-    }
-    CHECK_EQUAL(id1 + id2, mesh->num_entities(Jali::Entity_kind::WEDGE,
-                                              Jali::Parallel_type::ALL));
-    CHECK_EQUAL(id1+id2, mesh->num_wedges<Jali::Parallel_type::ALL>());
-    CHECK_EQUAL(id3, mesh->num_wedges<Jali::Parallel_type::ALL>());
-
-
-
-
-    id1 = 0;
-    for (auto const & cornerid : mesh->corners<Jali::Parallel_type::OWNED>()) {
-      CHECK_EQUAL(id1, cornerid);
-      ++id1;
-    }
-    CHECK_EQUAL(id1, mesh->num_entities(Jali::Entity_kind::CORNER,
-                                        Jali::Parallel_type::OWNED));
-    CHECK_EQUAL(id1, mesh->num_corners<Jali::Parallel_type::OWNED>());
-
-    id2 = 0;
-    for (auto const & cornerid : mesh->corners<Jali::Parallel_type::GHOST>()) {
-      CHECK_EQUAL(id2, cornerid);
-      ++id2;
-    }
-    CHECK_EQUAL(id2, mesh->num_entities(Jali::Entity_kind::CORNER,
-                                        Jali::Parallel_type::GHOST));
-    CHECK_EQUAL(id2, mesh->num_corners<Jali::Parallel_type::GHOST>());
-
-    id3 = 0;
-    for (auto const & cornerid : mesh->corners<Jali::Parallel_type::ALL>()) {
-      CHECK_EQUAL(id3, cornerid);
-      ++id3;
-    }
-    CHECK_EQUAL(id1 + id2, mesh->num_entities(Jali::Entity_kind::CORNER,
-                                              Jali::Parallel_type::ALL));
-    CHECK_EQUAL(id1 + id2, mesh->num_corners<Jali::Parallel_type::ALL>());
-    CHECK_EQUAL(id3, mesh->num_corners<Jali::Parallel_type::ALL>());
-
 
 
     id1 = 0;

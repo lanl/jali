@@ -33,6 +33,8 @@ TEST(MESH_GEOMETRY) {
   mesh.node_set_coordinates(23, {3.0, 1.0, 2.0});
   mesh.node_set_coordinates(26, {3.0, 2.0, 2.0});
 
+  mesh.update_geometric_quantities();  // volumes etc have to be recomputed
+
   // the expected cell volume for each cell
   // the small cells are 1.0^3
   // the big cells are 1.0x1.0x2.0
@@ -77,7 +79,7 @@ TEST(MESH_GEOMETRY) {
                                                         {1, 1, -1, -1, -1, 1}};
   // check the cell volume and direction of faces for each cell
   Jali::Entity_ID_List faces;
-  std::vector<int> face_dirs;
+  std::vector<Jali::dir_t> face_dirs;
   for (Jali::Entity_ID c = 0; c < numcells; ++c) {
     CHECK_EQUAL(exp_cell_vol[c], mesh.cell_volume(c));
 
@@ -103,7 +105,7 @@ TEST(MESH_GEOMETRY_1D) {
   const int num_ghost_layers_distmesh = 0;
   std::vector<double> node_pts = {0.0, 1.0, 3.0};
   Jali::Mesh_simple mesh(node_pts, MPI_COMM_WORLD, NULL,
-                         true, true, true, true, num_tiles,
+                         true, true, true, true, true, num_tiles,
                          num_ghost_layers_tile, num_ghost_layers_distmesh,
                          Jali::Partitioner_type::INDEX,
                          JaliGeometry::Geom_type::CARTESIAN);
@@ -133,7 +135,7 @@ TEST(MESH_GEOMETRY_1D) {
 
   // check the cell volume and direction of faces for each cell
   Jali::Entity_ID_List faces;
-  std::vector<int> face_dirs;
+  std::vector<Jali::dir_t> face_dirs;
   for (Jali::Entity_ID c = 0; c < numcells; ++c) {
     CHECK_EQUAL(exp_cell_vol[c], mesh.cell_volume(c));
 
@@ -162,7 +164,7 @@ TEST(MESH_GEOMETRY_1D_SPHERICAL) {
   const int num_ghost_layers_distmesh = 0;
   std::vector<double> node_pts = {0.0, 1.0, 3.0};
   Jali::Mesh_simple mesh(node_pts, MPI_COMM_WORLD, NULL,
-                         true, true, true, true, num_tiles,
+                         true, true, true, true, true, num_tiles,
                          num_ghost_layers_tile, num_ghost_layers_distmesh,
                          Jali::Partitioner_type::INDEX,
                          JaliGeometry::Geom_type::SPHERICAL);
@@ -195,7 +197,7 @@ TEST(MESH_GEOMETRY_1D_SPHERICAL) {
 
   // check the cell volume and direction of faces for each cell
   Jali::Entity_ID_List faces;
-  std::vector<int> face_dirs;
+  std::vector<Jali::dir_t> face_dirs;
   for (Jali::Entity_ID c = 0; c < numcells; ++c) {
     CHECK_CLOSE(exp_cell_vol[c], mesh.cell_volume(c), tolerance);
 

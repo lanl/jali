@@ -70,6 +70,7 @@ class MeshTile {
            int const num_halo_layers = 0,
            bool const request_faces = true,
            bool const request_edges = false,
+           bool const request_sides = false,
            bool const request_wedges = false,
            bool const request_corners = false);
 
@@ -133,6 +134,13 @@ class MeshTile {
   unsigned int num_faces() const;
 
   /*! 
+    @brief Number of sides of parallel type
+    @tparam ptype Parallel type (Parallel_type::OWNED, Parallel_type::GHOST, Parallel_type::ALL)
+  */
+  template<Parallel_type ptype = Parallel_type::ALL>
+  unsigned int num_sides() const;
+
+  /*! 
     @brief Number of wedges of parallel type
     @tparam ptype Parallel type (Parallel_type::OWNED, Parallel_type::GHOST, Parallel_type::ALL)
   */
@@ -175,6 +183,13 @@ class MeshTile {
   const & faces() const;
 
   /*! 
+    @brief Side list
+    @tparam ptype   Parallel type (Parallel_type::OWNED, Parallel_type::GHOST, Parallel_type::ALL)
+  */
+  template<Parallel_type ptype = Parallel_type::ALL> std::vector<Entity_ID>
+  const & sides() const;
+
+  /*! 
     @brief Wedge list
     @tparam ptype   Parallel type (Parallel_type::OWNED, Parallel_type::GHOST, Parallel_type::ALL)
   */
@@ -206,6 +221,7 @@ class MeshTile {
   std::vector<Entity_ID> nodeids_owned_, nodeids_ghost_, nodeids_all_;
   std::vector<Entity_ID> edgeids_owned_, edgeids_ghost_, edgeids_all_;
   std::vector<Entity_ID> faceids_owned_, faceids_ghost_, faceids_all_;
+  std::vector<Entity_ID> sideids_owned_, sideids_ghost_, sideids_all_;
   std::vector<Entity_ID> wedgeids_owned_, wedgeids_ghost_, wedgeids_all_;
   std::vector<Entity_ID> cornerids_owned_, cornerids_ghost_, cornerids_all_;
   std::vector<Entity_ID> cellids_owned_, cellids_ghost_, cellids_all_;
@@ -286,6 +302,27 @@ template<> inline
 unsigned int MeshTile::num_faces<Parallel_type::ALL>() const {
   return (num_faces<Parallel_type::OWNED>() +
           num_faces<Parallel_type::GHOST>());
+}
+
+template<Parallel_type ptype> inline
+unsigned int MeshTile::num_sides() const {
+  std::cerr << "MeshTile::num_sides() - " <<
+      "Meaningless to query for list of sides of kind parallel type " <<
+      ptype << "\n";
+  return 0;
+}
+template<> inline
+unsigned int MeshTile::num_sides<Parallel_type::OWNED>() const {
+return sideids_owned_.size();
+}
+template<> inline
+unsigned int MeshTile::num_sides<Parallel_type::GHOST>() const {
+  return sideids_ghost_.size();
+}
+template<> inline
+unsigned int MeshTile::num_sides<Parallel_type::ALL>() const {
+  return (num_sides<Parallel_type::OWNED>() +
+          num_sides<Parallel_type::GHOST>());
 }
 
 template<Parallel_type ptype> inline
@@ -376,6 +413,13 @@ unsigned int MeshTile::num_entities(const Entity_kind kind,
         case Parallel_type::OWNED: return num_faces<Parallel_type::OWNED>();
         case Parallel_type::GHOST: return num_faces<Parallel_type::GHOST>();
         case Parallel_type::ALL: return num_faces<Parallel_type::ALL>();
+        default: return 0;
+      }
+    case Entity_kind::SIDE:
+      switch (ptype) {
+        case Parallel_type::OWNED: return num_sides<Parallel_type::OWNED>();
+        case Parallel_type::GHOST: return num_sides<Parallel_type::GHOST>();
+        case Parallel_type::ALL: return num_sides<Parallel_type::ALL>();
         default: return 0;
       }
     case Entity_kind::WEDGE:
@@ -472,6 +516,27 @@ const std::vector<Entity_ID> & MeshTile::faces<Parallel_type::ALL>() const {
 
 
 template<Parallel_type ptype> inline
+const std::vector<Entity_ID> & MeshTile::sides() const {
+  std::cerr << "MeshTile::sides() - " <<
+      "Meaningless to query for list of sides of parallel type " <<
+      ptype << "\n";
+  return dummy_list_;
+}
+template<> inline
+const std::vector<Entity_ID> & MeshTile::sides<Parallel_type::OWNED>() const {
+  return sideids_owned_;
+}
+template<> inline
+const std::vector<Entity_ID> & MeshTile::sides<Parallel_type::GHOST>() const {
+  return sideids_ghost_;
+}
+template<> inline
+const std::vector<Entity_ID> & MeshTile::sides<Parallel_type::ALL>() const {
+  return sideids_all_;
+}
+
+
+template<Parallel_type ptype> inline
 const std::vector<Entity_ID> & MeshTile::wedges() const {
   std::cerr << "MeshTile::wedges() - " <<
       "Meaningless to query for list of wedges of parallel type " <<
@@ -544,6 +609,7 @@ std::shared_ptr<MeshTile> make_meshtile(Mesh& parent_mesh,
                                         int const num_halo_layers,
                                         bool const request_faces,
                                         bool const request_edges,
+                                        bool const request_sides,
                                         bool const request_wedges,
                                         bool const request_corners);
 

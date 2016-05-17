@@ -5,6 +5,7 @@
 #ifndef _MESH_SIMPLE_H_
 #define _MESH_SIMPLE_H_
 
+#include <cstdint>
 #include <memory>
 #include <vector>
 #include "mpi.h"
@@ -38,6 +39,7 @@ public:
                (JaliGeometry::GeometricModelPtr) NULL,
                const bool request_faces = true,
                const bool request_edges = false,
+               const bool request_sides = false,
                const bool request_wedges = false,
                const bool request_corners = false,
                const int num_tiles_ini = 0,
@@ -52,6 +54,7 @@ public:
                (JaliGeometry::GeometricModelPtr) NULL,
                const bool request_faces = true,
                const bool request_edges = false,
+               const bool request_sides = false,
                const bool request_wedges = false,
                const bool request_corners = false,
                const int num_tiles_ini = 0,
@@ -67,6 +70,7 @@ public:
                (JaliGeometry::GeometricModelPtr) NULL,
                const bool request_faces = true,
                const bool request_edges = false,
+               const bool request_sides = false,
                const bool request_wedges = false,
                const bool request_corners = false,
                const int num_tiles_ini = 0,
@@ -89,6 +93,7 @@ public:
               const bool extrude = false,
               const bool request_faces = true,
               const bool request_edges = false,
+              const bool request_sides = false,
               const bool request_wedges = false,
               const bool request_corners = false,
               const int num_tiles = 0,
@@ -105,6 +110,7 @@ public:
               const bool extrude = false,
               const bool request_faces = true,
               const bool request_edges = false,
+              const bool request_sides = false,
               const bool request_wedges = false,
               const bool request_corners = false,
               const int num_tiles = 0,
@@ -121,6 +127,7 @@ public:
               const bool extrude = false,
               const bool request_faces = true,
               const bool request_edges = false,
+              const bool request_sides = false,
               const bool request_wedges = false,
               const bool request_corners = false,
               const int num_tiles = 0,
@@ -131,10 +138,6 @@ public:
               JaliGeometry::Geom_type::CARTESIAN);
 
   virtual ~Mesh_simple ();
-
-  // Get parallel type of entity
-  Parallel_type entity_get_ptype(const Entity_kind kind,
-                                 const Entity_ID entid) const;
 
 
   // Get cell type
@@ -175,14 +178,14 @@ public:
 
   // Get nodes of edge
 
-  void edge_get_nodes(const Entity_ID edgeid, Entity_ID *nodeid0,
-                      Entity_ID *nodeid1) const {
+  void edge_get_nodes_internal(const Entity_ID edgeid, Entity_ID *nodeid0,
+                               Entity_ID *nodeid1) const {
     if (spacedim == 1) {
-      std::vector<Entity_ID> cell_nodes;
-      // edgeid and cellid are the same in 1d
-      cell_get_nodes(edgeid, &cell_nodes);
-      *nodeid0 = cell_nodes[0];
-      *nodeid1 = cell_nodes[1];
+      // In 1D will define faces, edges and nodes to be the same
+      // So the edge will be degenerate
+      // edgeid and nodeid are the same in 1d
+      *nodeid0 = edgeid;
+      *nodeid1 = edgeid;
     } else {
       Errors::Message mesg("Edges not implemented in this framework. Use MSTK");
       Exceptions::Jali_throw(mesg);
@@ -340,7 +343,7 @@ private:
 
   // Local-id tables of entities
   std::vector<Entity_ID> cell_to_face_;
-  std::vector<int> cell_to_face_dirs_;
+  std::vector<dir_t> cell_to_face_dirs_;
   std::vector<Entity_ID> cell_to_node_;
   std::vector<Entity_ID> face_to_node_;
   std::vector<Entity_ID> face_to_cell_;
@@ -379,7 +382,7 @@ private:
 
   void cell_get_faces_and_dirs_internal(const Entity_ID cellid,
                                         Entity_ID_List *faceids,
-                                        std::vector<int> *face_dirs,
+                                        std::vector<dir_t> *face_dirs,
                                         const bool ordered=false) const;
 
   // Cells connected to a face
@@ -406,7 +409,7 @@ private:
 
   void cell_2D_get_edges_and_dirs_internal(const Entity_ID cellid,
                                            Entity_ID_List *edgeids,
-                                           std::vector<int> *edge_dirs) const {
+                                           std::vector<dir_t> *edge_dirs) const {
     Errors::Message mesg("Edges not implemented in this framework. Use MSTK");
     Exceptions::Jali_throw(mesg);
   }
@@ -417,7 +420,7 @@ private:
 
   void face_get_edges_and_dirs_internal(const Entity_ID cellid,
                                         Entity_ID_List *edgeids,
-                                        std::vector<int> *edgedirs,
+                                        std::vector<dir_t> *edgedirs,
                                         bool ordered=true) const {
     if (spacedim == 1) {
       edgeids->clear();

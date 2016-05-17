@@ -42,7 +42,8 @@ MeshTile::MeshTile(Mesh& parent_mesh,
                    std::vector<Entity_ID> const& meshcells_owned,
                    int const num_halo_layers,
                    bool const request_faces, bool const request_edges,
-                   bool const request_wedges, bool const request_corners) :
+                   bool const request_sides, bool const request_wedges,
+                   bool const request_corners) :
     mesh_(parent_mesh),
     mytileid_(parent_mesh.tiles().size()) {
 
@@ -205,6 +206,26 @@ MeshTile::MeshTile(Mesh& parent_mesh,
 
   if (request_wedges) {
     for (auto const& c : cellids_owned_) {
+      std::vector<int> csides;
+      mesh_.cell_get_sides(c, &csides);
+      for (auto const& s : csides)
+        sideids_owned_.emplace_back(s);
+    }
+
+    for (auto const& c : cellids_ghost_) {
+      std::vector<int> csides;
+      mesh_.cell_get_sides(c, &csides);
+      for (auto const& s : csides)
+        sideids_ghost_.emplace_back(s);
+    }
+
+    sideids_all_ = sideids_owned_;
+    sideids_all_.insert(sideids_all_.end(),
+                        sideids_ghost_.begin(), sideids_ghost_.end());
+  }
+
+  if (request_wedges) {
+    for (auto const& c : cellids_owned_) {
       std::vector<int> cwedges;
       mesh_.cell_get_wedges(c, &cwedges);
       for (auto const& w : cwedges)
@@ -253,6 +274,7 @@ std::shared_ptr<MeshTile> make_meshtile(Mesh& parent_mesh,
                                         int const num_halo_layers,
                                         bool const request_faces,
                                         bool const request_edges,
+                                        bool const request_sides,
                                         bool const request_wedges,
                                         bool const request_corners) {
   if (parent_mesh.num_tiles() == 0)
@@ -270,6 +292,7 @@ std::shared_ptr<MeshTile> make_meshtile(Mesh& parent_mesh,
                                           num_halo_layers,
                                           request_faces,
                                           request_edges,
+                                          request_sides,
                                           request_wedges,
                                           request_corners);
   

@@ -1,6 +1,9 @@
-#include <UnitTest++.h>
+/* Copyright 2016, Los Alamos National Laboratory */
 
+#include <cstdint>
 #include <iostream>
+
+#include <UnitTest++.h>
 
 #include "../Mesh_MSTK.hh"
 
@@ -49,7 +52,7 @@ TEST(MSTK_EDGES_2D)
 
   for (int c = 0; c < nc_owned; ++c) {
     Jali::Entity_ID_List cedges, cfaces, fedges;
-    std::vector<int> cfdirs, fedirs, cedirs;
+    std::vector<Jali::dir_t> cfdirs, fedirs, cedirs;
 
     mesh->cell_get_edges(c, &cedges);
     mesh->cell_get_faces_and_dirs(c, &cfaces, &cfdirs);
@@ -145,7 +148,7 @@ TEST(MSTK_EDGES_3D)
 
   for (int c = 0; c < nc_owned; ++c) {
     Jali::Entity_ID_List cedges, cfaces, fedges;
-    std::vector<int> cfdirs, fedirs;
+    std::vector<Jali::dir_t> cfdirs, fedirs;
 
     mesh->cell_get_edges(c, &cedges);
     mesh->cell_get_faces_and_dirs(c, &cfaces, &cfdirs);
