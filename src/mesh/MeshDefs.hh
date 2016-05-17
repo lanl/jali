@@ -25,6 +25,7 @@ typedef int Set_ID;
 typedef std::string Set_Name;
 typedef std::vector<Entity_ID> Entity_ID_List;
 typedef std::vector<Set_ID> Set_ID_List;
+typedef std::int8_t dir_t;
 
 // Mesh Type
 

@@ -347,7 +347,7 @@ private:
 
   // Local-id tables of entities
   std::vector<Entity_ID> cell_to_face_;
-  std::vector<std::int8_t> cell_to_face_dirs_;
+  std::vector<dir_t> cell_to_face_dirs_;
   std::vector<Entity_ID> cell_to_node_;
   std::vector<Entity_ID> face_to_node_;
   std::vector<Entity_ID> face_to_cell_;
@@ -386,7 +386,7 @@ private:
 
   void cell_get_faces_and_dirs_internal(const Entity_ID cellid,
                                         Entity_ID_List *faceids,
-                                        std::vector<std::int8_t> *face_dirs,
+                                        std::vector<dir_t> *face_dirs,
                                         const bool ordered=false) const;
 
   // Cells connected to a face
@@ -413,7 +413,7 @@ private:
 
   void cell_2D_get_edges_and_dirs_internal(const Entity_ID cellid,
                                            Entity_ID_List *edgeids,
-                                           std::vector<std::int8_t> *edge_dirs) const {
+                                           std::vector<dir_t> *edge_dirs) const {
     Errors::Message mesg("Edges not implemented in this framework. Use MSTK");
     Exceptions::Jali_throw(mesg);
   }
@@ -424,7 +424,7 @@ private:
 
   void face_get_edges_and_dirs_internal(const Entity_ID cellid,
                                         Entity_ID_List *edgeids,
-                                        std::vector<std::int8_t> *edgedirs,
+                                        std::vector<dir_t> *edgedirs,
                                         bool ordered=true) const {
     if (spacedim == 1) {
       edgeids->clear();

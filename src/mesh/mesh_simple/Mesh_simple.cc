@@ -606,7 +606,7 @@ Entity_ID Mesh_simple::GID(const Jali::Entity_ID lid,
 void Mesh_simple::cell_get_faces_and_dirs_internal(const Jali::Entity_ID cellid,
                                                    Jali::Entity_ID_List
                                                    *faceids,
-                                                   std::vector<std::int8_t> *cfacedirs,
+                                                   std::vector<dir_t> *cfacedirs,
                                                    const bool ordered) const {
   unsigned int offset = (unsigned int) faces_per_cell_*cellid;
 

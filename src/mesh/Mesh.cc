@@ -211,7 +211,7 @@ void Mesh::cache_side_info() const {
       int numsides_in_cell = 0;
       for (auto const & f : cfaces) {
         std::vector<Entity_ID> fedges;
-        std::vector<std::int8_t> fedirs;
+        std::vector<dir_t> fedirs;
         face_get_edges_and_dirs(f, &fedges, &fedirs);
         
         int nfedges = fedges.size();
@@ -278,21 +278,21 @@ void Mesh::cache_side_info() const {
     int iall = 0, iown = 0, ighost = 0;
     for (auto const & c : cells()) {
       std::vector<Entity_ID> cfaces;
-      std::vector<std::int8_t> cfdirs;
+      std::vector<dir_t> cfdirs;
       cell_get_faces_and_dirs(c, &cfaces, &cfdirs);
       
       Entity_ID_List::iterator itf = cfaces.begin();
-      std::vector<std::int8_t>::iterator itfd = cfdirs.begin();
+      std::vector<dir_t>::iterator itfd = cfdirs.begin();
       while (itf != cfaces.end()) {
         Entity_ID f = *itf;
         int fdir = *itfd;  // -1/1
         
         Entity_ID_List fedges;
-        std::vector<std::int8_t> fedirs;
+        std::vector<dir_t> fedirs;
         face_get_edges_and_dirs(f, &fedges, &fedirs);
         
         Entity_ID_List::iterator ite = fedges.begin();
-        std::vector<std::int8_t>::iterator ited = fedirs.begin();
+        std::vector<dir_t>::iterator ited = fedirs.begin();
         while (ite != fedges.end()) {
           Entity_ID e = *ite;
           int edir = *ited;  // -1/1
@@ -584,7 +584,7 @@ unsigned int Mesh::cell_get_num_faces(const Entity_ID cellid) const {
   // Non-cached version
 
   Entity_ID_List cfaceids;
-  std::vector<std::int8_t> cfacedirs;
+  std::vector<dir_t> cfacedirs;
 
   cell_get_faces_and_dirs_internal(cellid, &cfaceids, &cfacedirs, false);
 
@@ -597,7 +597,7 @@ unsigned int Mesh::cell_get_num_faces(const Entity_ID cellid) const {
 
 void Mesh::cell_get_faces_and_dirs(const Entity_ID cellid,
                                    Entity_ID_List *faceids,
-                                   std::vector<std::int8_t> *face_dirs,
+                                   std::vector<dir_t> *face_dirs,
                                    const bool ordered) const {
 #if CACHE_VARS != 0
 
@@ -614,7 +614,7 @@ void Mesh::cell_get_faces_and_dirs(const Entity_ID cellid,
     *faceids = cfaceids;  // copy operation
 
     if (face_dirs) {
-      std::vector<std::int8_t> &cfacedirs = cell_face_dirs[cellid];
+      std::vector<dir_t> &cfacedirs = cell_face_dirs[cellid];
       *face_dirs = cfacedirs;  // copy operation
     }
   }
@@ -706,7 +706,7 @@ void Mesh::face_get_cells(const Entity_ID faceid, const Parallel_type ptype,
 
 void Mesh::face_get_edges_and_dirs(const Entity_ID faceid,
                                    Entity_ID_List *edgeids,
-                                   std::vector<std::int8_t> *edge_dirs,
+                                   std::vector<dir_t> *edge_dirs,
                                    const bool ordered) const {
 #if CACHE_VARS != 0
 
@@ -719,7 +719,7 @@ void Mesh::face_get_edges_and_dirs(const Entity_ID faceid,
   *edgeids = face_edge_ids[faceid];  // copy operation
 
   if (edge_dirs) {
-    std::vector<std::int8_t> &fedgedirs = face_edge_dirs[faceid];
+    std::vector<dir_t> &fedgedirs = face_edge_dirs[faceid];
     *edge_dirs = fedgedirs;  // copy operation
   }
 
@@ -764,7 +764,7 @@ void Mesh::face_to_cell_edge_map(const Entity_ID faceid,
 #else
 
   Entity_ID_List fedgeids, cedgeids;
-  std::vector<std::int8_t> fedgedirs;
+  std::vector<dir_t> fedgedirs;
 
   face_get_edges_and_dirs(faceid, &fedgeids, &fedgedirs, true);
   cell_get_edges(cellid, &cedgeids);
@@ -813,7 +813,7 @@ void Mesh::cell_get_edges(const Entity_ID cellid,
 
 void Mesh::cell_2D_get_edges_and_dirs(const Entity_ID cellid,
                                       Entity_ID_List *edgeids,
-                                      std::vector<std::int8_t> *edgedirs) const {
+                                      std::vector<dir_t> *edgedirs) const {
 #if CACHE_VARS != 0
 
   //
@@ -1064,7 +1064,7 @@ int Mesh::compute_cell_geometry(const Entity_ID cellid, double *volume,
 
     Entity_ID_List faces;
     std::vector<unsigned int> nfnodes;
-    std::vector<std::int8_t> fdirs;
+    std::vector<dir_t> fdirs;
     std::vector<JaliGeometry::Point> ccoords, cfcoords, fcoords;
 
     cell_get_faces_and_dirs(cellid, &faces, &fdirs);
@@ -1143,8 +1143,8 @@ int Mesh::compute_face_geometry(const Entity_ID faceid, double *area,
 
     for (int i = 0; i < cellids.size(); i++) {
       Entity_ID_List cellfaceids;
-      std::vector<std::int8_t> cellfacedirs;
-      std::int8_t dir = 1;
+      std::vector<dir_t> cellfacedirs;
+      dir_t dir = 1;
 
       cell_get_faces_and_dirs(cellids[i], &cellfaceids, &cellfacedirs);
 
@@ -1184,8 +1184,8 @@ int Mesh::compute_face_geometry(const Entity_ID faceid, double *area,
 
       for (int i = 0; i < cellids.size(); i++) {
         Entity_ID_List cellfaceids;
-        std::vector<std::int8_t> cellfacedirs;
-        std::int8_t dir = 1;
+        std::vector<dir_t> cellfacedirs;
+        dir_t dir = 1;
 
         cell_get_faces_and_dirs(cellids[i], &cellfaceids, &cellfacedirs);
 
@@ -1223,8 +1223,8 @@ int Mesh::compute_face_geometry(const Entity_ID faceid, double *area,
 
       for (int i = 0; i < cellids.size(); i++) {
         Entity_ID_List cellfaceids;
-        std::vector<std::int8_t> cellfacedirs;
-        std::int8_t dir = 1;
+        std::vector<dir_t> cellfacedirs;
+        dir_t dir = 1;
 
         cell_get_faces_and_dirs(cellids[i], &cellfaceids, &cellfacedirs);
 
@@ -1269,8 +1269,8 @@ int Mesh::compute_face_geometry(const Entity_ID faceid, double *area,
 
     for (int i = 0; i < cellids.size(); i++) {
       Entity_ID_List cellfaceids;
-      std::vector<std::int8_t> cellfacedirs;
-      std::int8_t dir = 1;
+      std::vector<dir_t> cellfacedirs;
+      dir_t dir = 1;
 
       cell_get_faces_and_dirs(cellids[i], &cellfaceids, &cellfacedirs);
 
@@ -1643,13 +1643,13 @@ JaliGeometry::Point Mesh::face_normal(const Entity_ID faceid,
     }
   } else {
     Entity_ID_List faceids;
-    std::vector<std::int8_t> face_dirs;
+    std::vector<dir_t> face_dirs;
 
     cell_get_faces_and_dirs(cellid, &faceids, &face_dirs);
 
     int nf = faceids.size();
     bool found = false;
-    std::int8_t dir = 1;
+    dir_t dir = 1;
     for (int i = 0; i < nf; i++)
       if (faceids[i] == faceid) {
         dir = face_dirs[i];
@@ -2277,7 +2277,7 @@ bool Mesh::point_in_cell(const JaliGeometry::Point &p,
     int nf;
     Entity_ID_List faces;
     std::vector<unsigned int> nfnodes;
-    std::vector<std::int8_t> fdirs;
+    std::vector<dir_t> fdirs;
     std::vector<JaliGeometry::Point> cfcoords;
 
     cell_get_faces_and_dirs(cellid, &faces, &fdirs);

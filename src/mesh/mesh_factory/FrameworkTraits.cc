@@ -202,7 +202,7 @@ class bogus_mesh : public Jali::Mesh {
 
   void cell_get_faces_and_dirs_internal(const Jali::Entity_ID cellid,
                                         Jali::Entity_ID_List *faceids,
-                                        std::vector<std::int8_t> *face_dirs,
+                                        std::vector<Jali::dir_t> *face_dirs,
                                         const bool ordered = false) const {}
 
   void cell_get_edges_internal(const Jali::Entity_ID cellid,
@@ -210,7 +210,7 @@ class bogus_mesh : public Jali::Mesh {
 
   void cell_2D_get_edges_and_dirs_internal(const Jali::Entity_ID cellid,
                                            Jali::Entity_ID_List *edgeids,
-                                           std::vector<std::int8_t> *edge_dirs) const
+                                           std::vector<Jali::dir_t> *edge_dirs) const
   {}
 
   void cell_get_nodes(const Jali::Entity_ID cellid,
@@ -219,7 +219,7 @@ class bogus_mesh : public Jali::Mesh {
 
   void face_get_edges_and_dirs_internal(const Jali::Entity_ID faceid,
                                         Jali::Entity_ID_List *edgeids,
-                                        std::vector<std::int8_t> *edge_dirs,
+                                        std::vector<Jali::dir_t> *edge_dirs,
                                         const bool ordered = true) const {}
 
   void face_get_nodes(const Jali::Entity_ID faceid,

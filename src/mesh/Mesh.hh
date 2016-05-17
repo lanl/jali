@@ -422,7 +422,7 @@ class Mesh {
 
   void cell_get_faces_and_dirs(const Entity_ID cellid,
                                Entity_ID_List *faceids,
-                               std::vector<std::int8_t> *facedirs,
+                               std::vector<dir_t> *facedirs,
                                const bool ordered = false) const;
 
 
@@ -439,7 +439,7 @@ class Mesh {
 
   void cell_2D_get_edges_and_dirs(const Entity_ID cellid,
                                   Entity_ID_List *edgeids,
-                                  std::vector<std::int8_t> *edge_dirs) const;
+                                  std::vector<dir_t> *edge_dirs) const;
 
   //! Get nodes of a cell (in no particular order)
 
@@ -462,7 +462,7 @@ class Mesh {
 
   void face_get_edges_and_dirs(const Entity_ID faceid,
                                Entity_ID_List *edgeids,
-                               std::vector<std::int8_t> *edgedirs,
+                               std::vector<dir_t> *edgedirs,
                                const bool ordered = false) const;
 
 
@@ -1043,7 +1043,7 @@ class Mesh {
   virtual
   void cell_get_faces_and_dirs_internal(const Entity_ID cellid,
                                         Entity_ID_List *faceids,
-                                        std::vector<std::int8_t> *face_dirs,
+                                        std::vector<dir_t> *face_dirs,
                                         const bool ordered = false) const = 0;
 
   // Cells connected to a face - this function is implemented in each
@@ -1061,7 +1061,7 @@ class Mesh {
   virtual
   void face_get_edges_and_dirs_internal(const Entity_ID faceid,
                                         Entity_ID_List *edgeids,
-                                        std::vector<std::int8_t> *edge_dirs,
+                                        std::vector<dir_t> *edge_dirs,
                                         const bool ordered = true) const = 0;
 
   // edges of a cell - this function is implemented in each mesh
@@ -1078,7 +1078,7 @@ class Mesh {
   void
   cell_2D_get_edges_and_dirs_internal(const Entity_ID cellid,
                                       Entity_ID_List *edgeids,
-                                      std::vector<std::int8_t> *edge_dirs) const = 0;
+                                      std::vector<dir_t> *edge_dirs) const = 0;
 
 
   // get nodes of an edge - virtual function that will be implemented
@@ -1278,17 +1278,17 @@ class Mesh {
   // are computed on the fly or obtained from the derived class
 
   mutable std::vector<Entity_ID_List> cell_face_ids;
-  mutable std::vector<std::vector<std::int8_t>> cell_face_dirs;
+  mutable std::vector<std::vector<dir_t>> cell_face_dirs;
   mutable std::vector<Entity_ID_List> face_cell_ids;
   mutable std::vector<Entity_ID_List> cell_edge_ids;
   mutable std::vector<Entity_ID_List> face_edge_ids;
-  mutable std::vector<std::vector<std::int8_t>> face_edge_dirs;
+  mutable std::vector<std::vector<dir_t>> face_edge_dirs;
   mutable std::vector<std::array<Entity_ID, 2>> edge_node_ids;
 
   // cell_2D_edge_dirs is an unusual topological relationship
   // requested by MHD discretization - It has no equivalent in 3D
 
-  mutable std::vector<std::vector<std::int8_t>> cell_2D_edge_dirs;
+  mutable std::vector<std::vector<dir_t>> cell_2D_edge_dirs;
 
 
   // Topological relationships involving standard and non-standard

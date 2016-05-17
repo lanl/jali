@@ -67,7 +67,7 @@ TEST(NUMBERING) {
   //  Jali::Entity_ID cface[6];
   //  int fdir[6];
   Jali::Entity_ID_List cface;
-  std::vector<std::int8_t> fdir;
+  std::vector<Jali::dir_t> fdir;
   mesh->cell_get_faces_and_dirs(0, &cface, &fdir);
   CHECK_ARRAY_EQUAL(expcellfaces, cface, 6);
   CHECK_ARRAY_EQUAL(expfacedirs, fdir, 6);
@@ -121,7 +121,7 @@ TEST(NUMBERING_1D) {
 
   // Write cell face-node connectivity
   Jali::Entity_ID_List cface;
-  std::vector<std::int8_t> fdir;
+  std::vector<Jali::dir_t> fdir;
   mesh->cell_get_faces_and_dirs(0, &cface, &fdir);
   CHECK_ARRAY_EQUAL(expcellfaces, cface, 2);
   CHECK_ARRAY_EQUAL(expfacedirs, fdir, 2);

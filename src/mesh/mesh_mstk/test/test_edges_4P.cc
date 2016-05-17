@@ -52,7 +52,7 @@ TEST(MSTK_EDGES_2D)
 
   for (int c = 0; c < nc_owned; ++c) {
     Jali::Entity_ID_List cedges, cfaces, fedges;
-std::vector<std::int8_t> cfdirs, fedirs, cedirs;
+    std::vector<Jali::dir_t> cfdirs, fedirs, cedirs;
 
     mesh->cell_get_edges(c, &cedges);
     mesh->cell_get_faces_and_dirs(c, &cfaces, &cfdirs);
@@ -148,7 +148,7 @@ TEST(MSTK_EDGES_3D)
 
   for (int c = 0; c < nc_owned; ++c) {
     Jali::Entity_ID_List cedges, cfaces, fedges;
-    std::vector<std::int8_t> cfdirs, fedirs;
+    std::vector<Jali::dir_t> cfdirs, fedirs;
 
     mesh->cell_get_edges(c, &cedges);
     mesh->cell_get_faces_and_dirs(c, &cfaces, &cfdirs);

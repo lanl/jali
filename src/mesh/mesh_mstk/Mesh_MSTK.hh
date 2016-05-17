@@ -595,16 +595,16 @@ class Mesh_MSTK : public Mesh {
 
   void cell_get_faces_and_dirs_internal(const Entity_ID cellid,
                                         Entity_ID_List *faceids,
-                                        std::vector<std::int8_t> *face_dirs,
+                                        std::vector<dir_t> *face_dirs,
                                         const bool ordered = false) const;
 
   void cell_get_faces_and_dirs_ordered(const Entity_ID cellid,
                                        Entity_ID_List *faceids,
-                                       std::vector<std::int8_t> *face_dirs) const;
+                                       std::vector<dir_t> *face_dirs) const;
 
   void cell_get_faces_and_dirs_unordered(const Entity_ID cellid,
                                          Entity_ID_List *faceids,
-                                         std::vector<std::int8_t> *face_dirs) const;
+                                         std::vector<dir_t> *face_dirs) const;
 
 
   // Cells connected to a face
@@ -623,13 +623,13 @@ class Mesh_MSTK : public Mesh {
 
   void cell_2D_get_edges_and_dirs_internal(const Entity_ID cellid,
                                            Entity_ID_List *edgeids,
-                                           std::vector<std::int8_t> *edgedirs) const;
+                                           std::vector<dir_t> *edgedirs) const;
 
   // Edges and edge directions of a face
 
   void face_get_edges_and_dirs_internal(const Entity_ID cellid,
                                         Entity_ID_List *edgeids,
-                                        std::vector<std::int8_t> *edgedirs,
+                                        std::vector<dir_t> *edgedirs,
                                         bool ordered = true) const;
 
   // Map from Jali's mesh entity kind to MSTK's mesh type.

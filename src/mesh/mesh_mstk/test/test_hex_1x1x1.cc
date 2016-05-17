@@ -16,7 +16,7 @@ TEST(MSTK_HEX1)
   int i, j, k, err, nc, nv;
   std::vector<Jali::Entity_ID> faces(6), facenodes(4), cellnodes(8),
       expfacenodes(4);
-  std::vector<std::int8_t> facedirs(6);
+  std::vector<Jali::dir_t> facedirs(6);
   std::vector<JaliGeometry::Point> ccoords(8), fcoords(4);
 
   int NV = 8;

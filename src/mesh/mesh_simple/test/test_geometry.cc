@@ -79,7 +79,7 @@ TEST(MESH_GEOMETRY) {
                                                         {1, 1, -1, -1, -1, 1}};
   // check the cell volume and direction of faces for each cell
   Jali::Entity_ID_List faces;
-  std::vector<std::int8_t> face_dirs;
+  std::vector<Jali::dir_t> face_dirs;
   for (Jali::Entity_ID c = 0; c < numcells; ++c) {
     CHECK_EQUAL(exp_cell_vol[c], mesh.cell_volume(c));
 
@@ -135,7 +135,7 @@ TEST(MESH_GEOMETRY_1D) {
 
   // check the cell volume and direction of faces for each cell
   Jali::Entity_ID_List faces;
-  std::vector<int8_t> face_dirs;
+  std::vector<Jali::dir_t> face_dirs;
   for (Jali::Entity_ID c = 0; c < numcells; ++c) {
     CHECK_EQUAL(exp_cell_vol[c], mesh.cell_volume(c));
 
@@ -197,7 +197,7 @@ TEST(MESH_GEOMETRY_1D_SPHERICAL) {
 
   // check the cell volume and direction of faces for each cell
   Jali::Entity_ID_List faces;
-  std::vector<int8_t> face_dirs;
+  std::vector<Jali::dir_t> face_dirs;
   for (Jali::Entity_ID c = 0; c < numcells; ++c) {
     CHECK_CLOSE(exp_cell_vol[c], mesh.cell_volume(c), tolerance);
 

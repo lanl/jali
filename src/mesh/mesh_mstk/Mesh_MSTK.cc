@@ -1320,7 +1320,7 @@ Cell_type Mesh_MSTK::cell_get_type(const Entity_ID cellid) const {
 
 void Mesh_MSTK::cell_get_faces_and_dirs_ordered(const Entity_ID cellid,
                                                 Entity_ID_List *faceids,
-                                                std::vector<std::int8_t> *face_dirs)
+                                                std::vector<dir_t> *face_dirs)
     const {
 
   MEntity_ptr cell;
@@ -1399,7 +1399,7 @@ void Mesh_MSTK::cell_get_faces_and_dirs_ordered(const Entity_ID cellid,
               if (face_dirs) {
                 int fdir = (MR_FaceDir_i((MRegion_ptr)cell, i) == 1) ? 1 : -1;
                 if (faceflip[lid-1]) fdir *= -1;
-                (*face_dirs)[nf] = static_cast<std::int8_t>(fdir);
+                (*face_dirs)[nf] = static_cast<dir_t>(fdir);
               }
 
               MEnt_Mark(fadj, mkid);
@@ -1419,7 +1419,7 @@ void Mesh_MSTK::cell_get_faces_and_dirs_ordered(const Entity_ID cellid,
       if (face_dirs) {
         fdir0 = fdir0 ? 1 : -1;
         if (faceflip[lid-1]) fdir0 *= -1;
-        (*face_dirs)[nf] = static_cast<std::int8_t>(fdir0);
+        (*face_dirs)[nf] = static_cast<dir_t>(fdir0);
       }
       nf++;
 
@@ -1437,7 +1437,7 @@ void Mesh_MSTK::cell_get_faces_and_dirs_ordered(const Entity_ID cellid,
           if (face_dirs) {
             int fdir = (MR_FaceDir_i((MRegion_ptr)cell, i) == 1) ? 1 : -1;
             if (faceflip[lid-1]) fdir *= -1;
-            (*face_dirs)[nf] = static_cast<std::int8_t>(fdir);
+            (*face_dirs)[nf] = static_cast<dir_t>(fdir);
           }
           nf++;
           break;
@@ -1461,7 +1461,7 @@ void Mesh_MSTK::cell_get_faces_and_dirs_ordered(const Entity_ID cellid,
 
 void Mesh_MSTK::cell_get_faces_and_dirs_unordered(const Entity_ID cellid,
                                                   Entity_ID_List *faceids,
-                                                  std::vector<std::int8_t> *face_dirs)
+                                                  std::vector<dir_t> *face_dirs)
     const {
 
   MEntity_ptr cell;
@@ -1503,12 +1503,12 @@ void Mesh_MSTK::cell_get_faces_and_dirs_unordered(const Entity_ID cellid,
     if (face_dirs) {
       face_dirs->resize(nrf);
 
-      std::vector<std::int8_t>::iterator itd = face_dirs->begin();
+      std::vector<dir_t>::iterator itd = face_dirs->begin();
       for (int i = 0; i < nrf; ++i) {
         int lid = (*faceids)[i];
         int fdir = 2*MR_FaceDir_i((MRegion_ptr)cell, i) - 1;
         fdir = faceflip[lid] ? -fdir : fdir;
-        *itd = static_cast<std::int8_t>(fdir);  // assign to next spot by dereferencing iterator
+        *itd = static_cast<dir_t>(fdir);  // assign to next spot by dereferencing iterator
         ++itd;
       }
     }
@@ -1546,12 +1546,12 @@ void Mesh_MSTK::cell_get_faces_and_dirs_unordered(const Entity_ID cellid,
 
     if (face_dirs) {
       face_dirs->resize(nfe);
-      std::vector<std::int8_t>::iterator itd = face_dirs->begin();
+      std::vector<dir_t>::iterator itd = face_dirs->begin();
       for (int i = 0; i < nfe; ++i) {
         int lid = (*faceids)[i];
         int fdir = 2*MF_EdgeDir_i((MFace_ptr)cell, i) - 1;
         fdir = faceflip[lid] ? -fdir : fdir;
-        *itd = static_cast<std::int8_t>(fdir);  // assign to next spot by dereferencing iterator
+        *itd = static_cast<dir_t>(fdir);  // assign to next spot by dereferencing iterator
         itd++;
       }
     }
@@ -1562,7 +1562,7 @@ void Mesh_MSTK::cell_get_faces_and_dirs_unordered(const Entity_ID cellid,
 
 void Mesh_MSTK::cell_get_faces_and_dirs_internal(const Entity_ID cellid,
                                                  Entity_ID_List *faceids,
-                                                 std::vector<std::int8_t> *face_dirs,
+                                                 std::vector<dir_t> *face_dirs,
                                                  const bool ordered) const {
   ASSERT(faces_initialized);
 
@@ -1652,7 +1652,7 @@ void Mesh_MSTK::cell_get_edges_internal(const Entity_ID cellid,
 
 void Mesh_MSTK::cell_2D_get_edges_and_dirs_internal(const Entity_ID cellid,
                                                     Entity_ID_List *edgeids,
-                                                    std::vector<std::int8_t> *edgedirs)
+                                                    std::vector<dir_t> *edgedirs)
     const {
 
   ASSERT(cell_dimension() == 2);
@@ -1679,14 +1679,14 @@ void Mesh_MSTK::cell_2D_get_edges_and_dirs_internal(const Entity_ID cellid,
     edgedirs->resize(nfe);
 
     Entity_ID_List::iterator ite = edgeids->begin();
-    std::vector<std::int8_t>::iterator itd = edgedirs->begin();
+    std::vector<dir_t>::iterator itd = edgedirs->begin();
     for (int i = 0; i < nfe; ++i) {
       MEdge_ptr edge = List_Entry(fedges, i);
       int lid = MEnt_ID(edge);
       *ite = lid-1;  // assign to next spot by dereferencing iterator
       ++ite;
       int dir = 2*MF_EdgeDir_i((MFace_ptr)cell, i) - 1;  // convert [0,1] to [-1,1]
-      *itd = static_cast<std::int8_t>(dir);
+      *itd = static_cast<dir_t>(dir);
       ++itd;
     }
 
@@ -1780,7 +1780,7 @@ void Mesh_MSTK::cell_get_nodes(const Entity_ID cellid,
 
 void Mesh_MSTK::face_get_edges_and_dirs_internal(const Entity_ID faceid,
                                                  Entity_ID_List *edgeids,
-                                                 std::vector<std::int8_t> *edge_dirs,
+                                                 std::vector<dir_t> *edge_dirs,
                                                  bool ordered) const {
 
   ASSERT(edgeids != NULL);
@@ -1825,12 +1825,12 @@ void Mesh_MSTK::face_get_edges_and_dirs_internal(const Entity_ID faceid,
     if (edge_dirs) {
       edge_dirs->resize(nfe);
 
-      std::vector<std::int8_t>::iterator itd = edge_dirs->begin();
+      std::vector<dir_t>::iterator itd = edge_dirs->begin();
       for (int i = 0; i < nfe; ++i) {
         int lid = (*edgeids)[i];
         int edir = 2*MF_EdgeDir_i((MFace_ptr)face, i) - 1;
         edir = edgeflip[lid] ? -edir : edir;
-        *itd = static_cast<std::int8_t>(edir);  // assign to next spot by dereferencing iterator
+        *itd = static_cast<dir_t>(edir);  // assign to next spot by dereferencing iterator
         ++itd;
       }
     }
