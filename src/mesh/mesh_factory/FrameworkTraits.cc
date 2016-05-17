@@ -186,10 +186,6 @@ class bogus_mesh : public Jali::Mesh {
     Exceptions::Jali_throw(Errors::Message("extraction not supported"));
   }
   
-  //  Jali::Parallel_type
-  //  entity_get_ptype(const Jali::Entity_kind kind,
-  //                   const Jali::Entity_ID entid) const
-  //  { return Jali::Parallel_type::OWNED; }
 
   Jali::Cell_type
   cell_get_type(const Jali::Entity_ID cellid) const

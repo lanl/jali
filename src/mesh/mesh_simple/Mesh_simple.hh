@@ -139,10 +139,6 @@ public:
 
   virtual ~Mesh_simple ();
 
-  // Get parallel type of entity
-  //  Parallel_type entity_get_ptype(const Entity_kind kind,
-  //                                 const Entity_ID entid) const;
-
 
   // Get cell type
   Cell_type cell_get_type(const Entity_ID cellid) const;

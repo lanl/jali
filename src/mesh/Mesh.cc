@@ -179,7 +179,7 @@ void Mesh::cache_edge2node_info() const {
   edge2node_info_cached = true;
 }
 
-// Gather and cache wedge information
+// Gather and cache side information
 
 void Mesh::cache_side_info() const {
   int ncells_owned = num_cells<Parallel_type::OWNED>();

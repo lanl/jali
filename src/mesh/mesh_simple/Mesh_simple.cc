@@ -582,14 +582,6 @@ void Mesh_simple::update_internals_3d_() {
 }
 
 
-// Parallel_type Mesh_simple::entity_get_ptype(const Entity_kind kind,
-//                                            const Entity_ID entid) const {
-//  return Parallel_type::OWNED;  // Its a serial code
-// }
-
-
-
-
 // Get cell type
 Jali::Cell_type Mesh_simple::cell_get_type(const Jali::Entity_ID cellid) const {
   return Cell_type::HEX;

@@ -178,12 +178,6 @@ class Mesh_MSTK : public Mesh {
   ~Mesh_MSTK();
 
 
-  // Get parallel type of entity
-
-  //  Parallel_type entity_get_ptype(const Entity_kind kind,
-  //                                 const Entity_ID entid) const;
-
-
   // Get cell type
 
   Cell_type cell_get_type(const Entity_ID cellid) const;
@@ -744,42 +738,6 @@ class Mesh_MSTK : public Mesh {
   double *target_cell_volumes, *min_cell_volumes, *target_weights;
 
 };
-
-
-
-// inline Parallel_type Mesh_MSTK::entity_get_ptype(const Entity_kind kind,
-//                                                  const Entity_ID entid) const {
-//   MEntity_ptr ment;
-
-//   switch (kind) {
-//     case Entity_kind::CELL:
-//       ment = (MEntity_ptr) cell_id_to_handle[entid];
-//       return MEnt_PType(ment) == PGHOST ? Parallel_type::GHOST :
-//           Parallel_type::OWNED;
-//       break;
-//     case Entity_kind::FACE:
-//       ment = (MEntity_ptr) face_id_to_handle[entid];
-//       return MEnt_PType(ment) == PGHOST ? Parallel_type::GHOST :
-//           Parallel_type::OWNED;
-//       break;
-//     case Entity_kind::NODE:
-//       ment = (MEntity_ptr) vtx_id_to_handle[entid];
-//       return MEnt_PType(ment) == PGHOST ? Parallel_type::GHOST :
-//           Parallel_type::OWNED;
-//       break;
-//     case Entity_kind::SIDE:
-//       return side_parallel_type[entid];  // from base class
-//       break;
-//     case Entity_kind::WEDGE:
-//       return side_parallel_type[static_cast<int>(entid/2)];  // from base class
-//       break;
-//     case Entity_kind::CORNER:
-//       return corner_parallel_type[entid];
-//       break;
-//     default:
-//       return Parallel_type::PTYPE_UNKNOWN;
-//   }
-// }
 
 
 // Retrieve field data from the mesh - special implementation for
