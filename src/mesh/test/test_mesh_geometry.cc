@@ -86,6 +86,16 @@ TEST(MESH_GEOMETRY_PLANAR)
     int nfaces = mesh->num_faces<Jali::Parallel_type::ALL>();
     int nnodes = mesh->num_nodes<Jali::Parallel_type::ALL>();
 
+    // Get node coordinates two different ways and compare
+    for (auto const& n : mesh->nodes()) {
+      JaliGeometry::Point ppnt;
+      mesh->node_get_coordinates(n, &ppnt);
+      std::array<double, 2> parr;
+      mesh->node_get_coordinates(n, &parr);
+      CHECK(ppnt[0] == parr[0]);
+      CHECK(ppnt[1] == parr[1]);
+    }
+
     int spacedim = 2;
 
     for (auto const & i : mesh->cells()) {
@@ -268,6 +278,18 @@ TEST(MESH_GEOMETRY_SURFACE) {
     int nnodes = mesh->num_nodes<Jali::Parallel_type::ALL>();
 
     int spacedim = 3;
+
+    // Get node coordinates two different ways and compare
+    for (auto const& n : mesh->nodes()) {
+      JaliGeometry::Point ppnt;
+      mesh->node_get_coordinates(n, &ppnt);
+      std::array<double, 3> parr;
+      mesh->node_get_coordinates(n, &parr);
+      CHECK(ppnt[0] == parr[0]);
+      CHECK(ppnt[1] == parr[1]);
+      CHECK(ppnt[2] == parr[2]);
+    }
+
 
     for (auto const & i : mesh->cells()) {
 
@@ -491,6 +513,17 @@ TEST(MESH_GEOMETRY_SOLID) {
     int nnodes = mesh->num_cells<Jali::Parallel_type::ALL>();
 
     int spacedim = 3;
+
+    // Get node coordinates two different ways and compare
+    for (auto const& n : mesh->nodes()) {
+      JaliGeometry::Point ppnt;
+      mesh->node_get_coordinates(n, &ppnt);
+      std::array<double, 3> parr;
+      mesh->node_get_coordinates(n, &parr);
+      CHECK(ppnt[0] == parr[0]);
+      CHECK(ppnt[1] == parr[1]);
+      CHECK(ppnt[2] == parr[2]);
+    }
 
     for (auto const & i : mesh->cells()) {
 
