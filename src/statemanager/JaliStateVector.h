@@ -108,34 +108,76 @@ class StateVector : public BaseStateVector {
 
   /*!
     @brief Meaningful constructor with data and a string identifier
-    @param name  String identifier of vector
-    @param on_what  Data corresponds to what type of entity in the Domain
-    @param parallel_type Whether data lives on OWNED, GHOST or ALL entities
+    @param name            String identifier of vector
+    @param on_what         Data corresponds to what type of entity in the Domain
+    @param parallel_type   Whether data lives on OWNED, GHOST or ALL entities
+    @param data            Pointer to array data to be used to initialize vector (optional)
   */
   
   StateVector(std::string const name, std::shared_ptr<DomainType> domain,
               Entity_kind const on_what, Parallel_type const parallel_type,
-              T const * const data) :
+              T const * const data = nullptr) :
       BaseStateVector(name, on_what, parallel_type), mydomain_(domain) {
 
     int num = mydomain_->num_entities(on_what, parallel_type);
-    mydata_ = std::make_shared<std::vector<T>>(data, data+num);
+    if (data == nullptr)
+      mydata_ = std::make_shared<std::vector<T>>(num);
+    else
+      mydata_ = std::make_shared<std::vector<T>>(data, data+num);
   }
 
   /*!
     @brief Meaningful constructor with data and a integer identifier
-    @param name  String identifier of vector
-    @param on_what  Data corresponds to what type of entity in the Domain
-    @param parallel_type Whether data lives on OWNED, GHOST or ALL entities
+    @param name            String identifier of vector
+    @param on_what         Data corresponds to what type of entity in the Domain
+    @param parallel_type   Whether data lives on OWNED, GHOST or ALL entities
+    @param data            Pointer to array data to be used to initialize vector (optional)
   */
   
   StateVector(int const identifier, std::shared_ptr<DomainType> domain,
               Entity_kind const on_what, Parallel_type const parallel_type,
-              T const * const data) :
+              T const * const data = nullptr) :
       BaseStateVector(identifier, on_what, parallel_type), mydomain_(domain) {
 
     int num = mydomain_->num_entities(on_what, parallel_type);
-    mydata_ = std::make_shared<std::vector<T>>(data, data+num);
+    if (data == nullptr)
+      mydata_ = std::make_shared<std::vector<T>>(num);
+    else
+      mydata_ = std::make_shared<std::vector<T>>(data, data+num);
+  }
+
+  /*!
+    @brief Meaningful constructor with uniform initializer and a string identifier
+    @param name            String identifier of vector
+    @param on_what         Data corresponds to what type of entity in the Domain
+    @param parallel_type   Whether data lives on OWNED, GHOST or ALL entities
+    @param initval         Value to which all elements should be initialized to 
+  */
+  
+  StateVector(std::string const name, std::shared_ptr<DomainType> domain,
+              Entity_kind const on_what, Parallel_type const parallel_type,
+              T const initval) :
+      BaseStateVector(name, on_what, parallel_type), mydomain_(domain) {
+
+    int num = mydomain_->num_entities(on_what, parallel_type);
+    mydata_ = std::make_shared<std::vector<T>>(num, initval);
+  }
+
+  /*!
+    @brief Meaningful constructor with data and a integer identifier
+    @param name            String identifier of vector
+    @param on_what         Data corresponds to what type of entity in the Domain
+    @param parallel_type   Whether data lives on OWNED, GHOST or ALL entities
+    @param initval         Value to which all elements should be initialized to 
+  */
+  
+  StateVector(int const identifier, std::shared_ptr<DomainType> domain,
+              Entity_kind const on_what, Parallel_type const parallel_type,
+              T const initval) :
+      BaseStateVector(identifier, on_what, parallel_type), mydomain_(domain) {
+
+    int num = mydomain_->num_entities(on_what, parallel_type);
+    mydata_ = std::make_shared<std::vector<T>>(num, initval);
   }
 
   /*! 
