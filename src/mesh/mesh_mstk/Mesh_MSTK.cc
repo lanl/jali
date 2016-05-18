@@ -2471,6 +2471,39 @@ void Mesh_MSTK::node_get_coordinates(const Entity_ID nodeid,
   ncoords->set(spdim, coords);
 }  // Mesh_MSTK::node_get_coordinates
 
+void Mesh_MSTK::node_get_coordinates(const Entity_ID nodeid,
+                                     std::array<double, 3> *ncoords) const {
+  MEntity_ptr vtx;
+  double coords[3];
+  int spdim = space_dimension();
+
+  ASSERT(ncoords != NULL);
+  ASSERT(spdim == 3);
+
+  vtx = vtx_id_to_handle[nodeid];
+
+  MV_Coords(vtx, coords);
+  (*ncoords)[0] = coords[0];
+  (*ncoords)[1] = coords[1];
+  (*ncoords)[2] = coords[2];
+}
+
+void Mesh_MSTK::node_get_coordinates(const Entity_ID nodeid,
+                                     std::array<double, 2> *ncoords) const {
+  MEntity_ptr vtx;
+  double coords[3];
+  int spdim = space_dimension();
+
+  ASSERT(ncoords != NULL);
+  ASSERT(spdim == 2);
+
+  vtx = vtx_id_to_handle[nodeid];
+
+  MV_Coords(vtx, coords);
+  (*ncoords)[0] = coords[0];
+  (*ncoords)[1] = coords[1];
+}
+
 
 // Coordinates of cells in standard order (Exodus II convention)
 // STANDARD CONVENTION WORKS ONLY FOR STANDARD Entity_kind::CELL TYPES IN 3D

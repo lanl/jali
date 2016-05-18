@@ -20,6 +20,8 @@ TEST(JaliStateVector_Cells_Mesh) {
 
   CHECK(mesh);
 
+  // Check array initialization
+
   std::vector<double> data1 = {1.0, 3.0, 2.5, 4.5};
   Jali::StateVector<double> myvec1("var1", mesh, Jali::Entity_kind::CELL,
                                    Jali::Parallel_type::ALL, &(data1[0]));
@@ -32,7 +34,26 @@ TEST(JaliStateVector_Cells_Mesh) {
   CHECK_EQUAL(data1[2], myvec1[2]);
   CHECK_EQUAL(data1[3], myvec1[3]);
 
-  std::cout << myvec1 << std::endl;
+  std::cout << myvec1 << std::endl;  // Just to check ability to print
+
+  // Check constant initialization
+
+  double data2 = -1.33;
+  Jali::StateVector<double> myvec2("var2", mesh, Jali::Entity_kind::CELL,
+                                   Jali::Parallel_type::ALL, data2);
+
+  CHECK_EQUAL(ncells, myvec2.size());
+  CHECK_EQUAL(data2, myvec2[0]);
+  CHECK_EQUAL(data2, myvec2[1]);
+  CHECK_EQUAL(data2, myvec2[2]);
+  CHECK_EQUAL(data2, myvec2[3]);
+
+  // Check no initialization
+
+  Jali::StateVector<double> myvec3("var3", mesh,
+                                   Jali::Entity_kind::CELL,
+                                   Jali::Parallel_type::ALL);                                               
+  CHECK_EQUAL(ncells, myvec3.size());
 }
  
 

@@ -711,10 +711,19 @@ class Mesh {
 
   //! Node coordinates
 
+  // Preferred operator
   virtual
   void node_get_coordinates(const Entity_ID nodeid,
                             JaliGeometry::Point *ncoord) const = 0;
 
+  virtual
+  void node_get_coordinates(const Entity_ID nodeid,
+                            std::array<double, 3> *ncoord) const;
+  virtual
+  void node_get_coordinates(const Entity_ID nodeid,
+                            std::array<double, 2> *ncoord) const;
+  virtual
+  void node_get_coordinates(const Entity_ID nodeid, double *ncoord) const;
 
   //! Face coordinates - conventions same as face_to_nodes call
   //! Number of nodes is the vector size divided by number of spatial dimensions
@@ -1917,6 +1926,44 @@ Entity_ID Mesh::corner_get_cell(const Entity_ID cornerid) const {
   // array
   Entity_ID w0 = corner_wedge_ids[cornerid][0];
   return wedge_get_cell(w0);
+}
+
+// Inefficient fallback implementation - hopefully the derived class
+// has a more direct implementation
+
+inline
+void Mesh::node_get_coordinates(const Entity_ID nodeid,
+                                std::array<double, 3> *ncoord) const {
+  assert(spacedim == 3);
+  JaliGeometry::Point p;
+  node_get_coordinates(nodeid, &p);
+  (*ncoord)[0] = p[0];
+  (*ncoord)[1] = p[1];
+  (*ncoord)[2] = p[2];
+}
+
+// Inefficient fallback implementation - hopefully the derived class
+// has a more direct implementation
+
+inline
+void Mesh::node_get_coordinates(const Entity_ID nodeid,
+                                std::array<double, 2> *ncoord) const {
+  assert(spacedim == 2);
+  JaliGeometry::Point p;
+  node_get_coordinates(nodeid, &p);
+  (*ncoord)[0] = p[0];
+  (*ncoord)[1] = p[1];
+}
+  
+// Inefficient fallback implementation - hopefully the derived class
+// has a more direct implementation
+
+inline
+void Mesh::node_get_coordinates(const Entity_ID nodeid, double *ncoord) const {
+  assert(spacedim == 1);
+  JaliGeometry::Point p;
+  node_get_coordinates(nodeid, &p);
+  *ncoord = p[0];
 }
 
 

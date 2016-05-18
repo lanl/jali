@@ -73,6 +73,24 @@ TEST(MESH_WEDGES_2D) {
     MPI_Allreduce(&ierr, &aerr, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
     CHECK_EQUAL(aerr, 0);
 
+    int nwedges_owned = mesh->num_entities(Jali::Entity_kind::WEDGE,
+                                           Jali::Parallel_type::OWNED);
+    int nwedges_ghost = mesh->num_entities(Jali::Entity_kind::WEDGE,
+                                           Jali::Parallel_type::GHOST);
+    CHECK(nwedges_owned > 0);
+    if (nproc > 1)
+      CHECK(nwedges_ghost);
+    else
+      CHECK(!nwedges_ghost);
+
+    nwedges_owned = mesh->num_wedges<Jali::Parallel_type::OWNED>();
+    nwedges_ghost = mesh->num_wedges<Jali::Parallel_type::GHOST>();
+    CHECK(nwedges_owned > 0);
+    if (nproc > 1)
+      CHECK(nwedges_ghost);
+    else
+      CHECK(!nwedges_ghost);
+
     double dp;
 
     for (auto const & c : mesh->cells()) {

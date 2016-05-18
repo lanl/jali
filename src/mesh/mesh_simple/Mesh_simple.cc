@@ -650,6 +650,20 @@ void Mesh_simple::node_get_coordinates(const Jali::Entity_ID local_node_id,
 
   ncoords->set(Mesh::space_dimension(), &(coordinates_[offset]));
 }
+void Mesh_simple::node_get_coordinates(const Jali::Entity_ID local_node_id,
+                                       std::array<double, 3> *ncoords) const {
+  assert(Mesh::space_dimension() == 3);
+  unsigned int offset = 3*local_node_id;
+  (*ncoords)[0] = coordinates_[offset];
+  (*ncoords)[1] = coordinates_[offset + 1];
+  (*ncoords)[2] = coordinates_[offset + 2];
+}
+void Mesh_simple::node_get_coordinates(const Jali::Entity_ID local_node_id,
+                                       double *ncoords) const {
+  assert(Mesh::space_dimension() == 1);
+  unsigned int offset = 1*local_node_id;
+  *ncoords = coordinates_[offset];
+}
 
 
 void Mesh_simple::face_get_coordinates(Jali::Entity_ID local_face_id,

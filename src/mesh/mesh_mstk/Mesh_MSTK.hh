@@ -294,6 +294,11 @@ class Mesh_MSTK : public Mesh {
 
   void node_get_coordinates(const Entity_ID nodeid,
                             JaliGeometry::Point *ncoord) const;
+  void node_get_coordinates(const Entity_ID nodeid,
+                            std::array<double, 3> *ncoord) const;
+  void node_get_coordinates(const Entity_ID nodeid,
+                            std::array<double, 2> *ncoord) const;
+
 
 
   // Face coordinates - conventions same as face_to_nodes call
