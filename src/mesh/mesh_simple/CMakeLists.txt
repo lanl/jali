@@ -52,6 +52,7 @@ if (BUILD_TESTS)
                           test/test_maps.cc 
                           test/test_cell_numbering.cc 
                           test/test_face_adj_cells.cc 
+                          test/test_node_adj_cells.cc 
                           test/test_node_cell_faces.cc
 			  test/test_geometry.cc
                     LINK_LIBS simple_mesh ${UnitTest_LIBRARIES})
