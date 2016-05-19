@@ -116,7 +116,7 @@ enum class Parallel_type :  std::uint8_t {
   PTYPE_UNKNOWN = 0,  // Initializer
   OWNED = 1,         // Owned by this processor
   GHOST = 2,         // Owned by another processor
-  ALL  = 3           // Parallel_type::OWNED + Parall_type::Parallel_type::GHOST
+  ALL  = 3           // Parallel_type::OWNED + Parallel_type::GHOST
 };
 
 const int NUM_PARALLEL_TYPES = 4;
@@ -199,17 +199,19 @@ bool cell_valid_type(const Cell_type type) {
 
 enum class Partitioner_type : std::uint8_t {
     INDEX,
+    BLOCK,
     METIS,
     ZOLTAN_GRAPH,
     ZOLTAN_RCB
 };
-constexpr int NUM_PARTITIONER_TYPES = 4;
+constexpr int NUM_PARTITIONER_TYPES = 5;
 
 // Return an string description for each partitioner type
 inline
 std::string Partitioner_type_string(const Partitioner_type partitioner_type) {
   static std::string partitioner_type_str[NUM_PARTITIONER_TYPES] =
-      {"Partitioner_type::INDEX", "Partitioner_type::METIS",
+      {"Partitioner_type::INDEX", "Partitioner_type::BLOCK",
+       "Partitioner_type::METIS",
        "Partitioner_type::ZOLTAN_GRAPH", "Partitioner_type::ZOLTAN_RCB"};
 
   int iptype = static_cast<int>(partitioner_type);
