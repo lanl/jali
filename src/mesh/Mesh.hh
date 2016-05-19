@@ -1233,6 +1233,27 @@ class Mesh {
   void set_master_tile_ID_of_corner(Entity_ID const cornerid,
                                     int const tileid) {}
 
+  //! @brief Get the partitioning of a regular mesh such that each
+  //! partition is a rectangular block
+  //!
+  //! @param dim Dimension of problem - 1, 2 or 3
+  //! @param domain 2*dim values for min/max of domain
+  //!  (xmin, xmax, ymin, ymax, zmin, zmax)
+  //! @param num_cells_in_dir  number of cells in each direction
+  //! @param num_blocks_requested number of blocks requested
+  //! @param blocklimits min/max limits for each block
+  //! @param blocknumcells num cells in each direction for blocks
+  //!
+  //! Returns 1 if successful, 0 otherwise
+  
+  int
+  block_partition_regular_mesh(int const dim,
+                               double const * const domain,
+                               int const * const num_cells_in_dir,
+                               int const num_blocks_requested,
+                               std::vector<std::array<double, 6>> *blocklimits,
+                               std::vector<std::array<int, 3>> *blocknumcells);
+
 
   // Data
 
@@ -1398,6 +1419,11 @@ class Mesh {
   /// Method to get crude partitioning by chopping up the index space
 
   void get_partitioning_by_index_space(int const num_parts,
+                                       std::vector<std::vector<int>> *partitions);
+
+  /// Method to get crude partitioning by subdivision into rectangular blocks
+
+  void get_partitioning_by_blocks(int const num_parts,
                                        std::vector<std::vector<int>> *partitions);
 
   /// Method to get partitioning of a mesh into num parts using METIS
