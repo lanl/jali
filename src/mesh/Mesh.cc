@@ -2198,6 +2198,52 @@ Mesh::corner_get_coordinates(const Entity_ID cornerid,
 }  // corner_get_points
 
 
+Parallel_type Mesh::entity_get_ptype(const Entity_kind kind,
+                                     const Entity_ID entid) const {
+  switch (kind) {
+    case Entity_kind::CELL:
+      return cell_parallel_type[entid];
+      break;
+    case Entity_kind::FACE:
+      return faces_requested ? face_parallel_type[entid] :
+          Parallel_type::PTYPE_UNKNOWN;
+      break;
+    case Entity_kind::EDGE:
+      return edges_requested ? edge_parallel_type[entid] :
+          Parallel_type::PTYPE_UNKNOWN;
+      break;
+    case Entity_kind::NODE:
+      return node_parallel_type[entid];
+      break;
+    case Entity_kind::SIDE:
+      if (sides_requested) {
+        Entity_ID cellid = side_cell_id[entid];
+        return cell_parallel_type[cellid];
+      } else
+        return Parallel_type::PTYPE_UNKNOWN;
+      break;
+    case Entity_kind::WEDGE:
+      if (wedges_requested) {
+        Entity_ID sideid = static_cast<int>(entid/2);
+        Entity_ID cellid = side_cell_id[sideid];
+        return cell_parallel_type[cellid];
+      } else
+        return Parallel_type::PTYPE_UNKNOWN;
+      break;
+    case Entity_kind::CORNER:
+      if (corners_requested) {
+        Entity_ID wedgeid = corner_wedge_ids[entid][0];
+        Entity_ID sideid = static_cast<int>(wedgeid/2);
+        Entity_ID cellid = side_cell_id[sideid];
+        return cell_parallel_type[cellid];
+      } else
+        return Parallel_type::PTYPE_UNKNOWN;
+      break;
+    default:
+      return Parallel_type::PTYPE_UNKNOWN;
+  }
+}
+
 
 // Is there a set with this name and entity type
 
@@ -2422,22 +2468,25 @@ void Mesh::get_partitioning_with_metis(int const num_parts,
 
   // Build the adjacency info
 
-  int ncells = num_cells();  // includes ghost cells from adjacent compute nodes
-  int nfaces = num_faces();  // includes ghost faces from adjacent compute nodes
-  idx_t *xadj = new idx_t[ncells+1];  // offset indicator into adjacency array
-  idx_t *adjncy = new idx_t[2*nfaces];  // adjacency array (nbrs of a cell)
-
+  int ncells_owned = num_cells<Parallel_type::OWNED>();
+  int nfaces_owned = num_faces<Parallel_type::OWNED>();
+  int ncells_all = num_cells<Parallel_type::ALL>();
+  int nfaces_all = num_faces<Parallel_type::ALL>();
+  idx_t *xadj = new idx_t[ncells_all+1];  // offset indicator into adjacency
+  //                                      // array - overallocate
+  idx_t *adjncy = new idx_t[2*nfaces_all];  // adjacency array (nbrs of a cell)
+  //                                        // - overallocate
   xadj[0] = 0;  // starting offset
   int ipos = 0;
   int i = 0;
   Entity_ID_List nbrcells;
-  for (auto const& c : cells()) {
-    cell_get_face_adj_cells(c, Parallel_type::ALL, &nbrcells);
+  for (auto const& c : cells<Parallel_type::OWNED>()) {
+    cell_get_face_adj_cells(c, Parallel_type::OWNED, &nbrcells);
     for (auto const& nbr : nbrcells)
       adjncy[ipos++] = nbr;
     xadj[++i] = ipos;
   }
-  if (ipos > 2*nfaces)
+  if (ipos > 2*nfaces_all)
     std::cerr << "Mesh::get_partitioning - Wrote past end of adjncy array" <<
         "Expand adjncy array or expect crashes\n";
 
@@ -2448,7 +2497,7 @@ void Mesh::get_partitioning_with_metis(int const num_parts,
   idx_t *adjwt = nullptr;
 
   int numflag = 0;  // C style numbering of cells (nodes of the dual graph)
-  idx_t ngraphvtx = ncells;
+  idx_t ngraphvtx = ncells_owned;
   idx_t nparts = static_cast<idx_t>(num_parts);
   
   idx_t *idxpart = new idx_t[ngraphvtx];
@@ -2472,7 +2521,7 @@ void Mesh::get_partitioning_with_metis(int const num_parts,
                         adjwt, &nparts, tpwts, ubvec, metisopts,
                         &nedgecut, idxpart);
 
-  for (int i = 0; i < ncells; ++i) {
+  for (int i = 0; i < ncells_owned; ++i) {
     int ipart = idxpart[i];
     (*partitions)[ipart].push_back(i);
   }
@@ -2503,7 +2552,7 @@ void Mesh::get_partitioning_by_blocks(int const num_parts,
     domainlimits[2*d+1] = -1e20;
   }
 
-  for (auto const& c : cells()) {
+  for (auto const& c : cells<Parallel_type::OWNED>()) {
     std::vector<JaliGeometry::Point> cellpnts;
     cell_get_coordinates(c, &cellpnts);
     for (auto const& p : cellpnts) {
@@ -2523,7 +2572,7 @@ void Mesh::get_partitioning_by_blocks(int const num_parts,
  
   Entity_ID c0 = -1;
   bool found = false;
-  for (auto const& c : cells()) {
+  for (auto const& c : cells<Parallel_type::OWNED>()) {
     std::vector<JaliGeometry::Point> cellpnts;
     cell_get_coordinates(c, &cellpnts);
     for (auto const& p : cellpnts) {
@@ -2574,7 +2623,7 @@ void Mesh::get_partitioning_by_blocks(int const num_parts,
           // find the adjacent cell
 
           Entity_ID_List fcells;
-          face_get_cells(f, Parallel_type::ALL, &fcells);
+          face_get_cells(f, Parallel_type::OWNED, &fcells);
 
           if (fcells.size() == 2) {
             c = (fcells[0] == c) ? fcells[1] : fcells[0];
@@ -2620,7 +2669,7 @@ void Mesh::get_partitioning_by_blocks(int const num_parts,
                                &(num_cells_in_dir[0]), num_parts,
                                &blocklimits, &blocknumcells);
 
-  for (auto const& c : cells()) {
+  for (auto const& c : cells<Parallel_type::OWNED>()) {
     JaliGeometry::Point ccen = cell_centroid(c);
     for (int i = 0; i < num_parts; i++) {
       bool inside = true;
@@ -2679,49 +2728,50 @@ int Mesh::block_partition_regular_mesh(int const dim,
   for (int i = 0; i < dim; i++)
     nblockcells_in_dir[i] = num_cells_in_dir[i];
 
-
-  // First try bisection
-
-  bool done = false;
-  while (!done) {
-    bool bisected = false;
-    if (nblockcells_in_dir[0]%2 == 0) {  // even number of cells in x
-      nblockcells_in_dir[0] /= 2;
-      nblocks *= 2;
-      nblocks_in_dir[0] *= 2;
-      bisected = true;
-
-      if (nblocks == num_blocks_requested) {
-        done = 1;
-        continue;
+  if (num_blocks_requested > 1) {
+    // First try bisection
+    
+    bool done = false;
+    while (!done) {
+      bool bisected = false;
+      if (nblockcells_in_dir[0]%2 == 0) {  // even number of cells in x
+        nblockcells_in_dir[0] /= 2;
+        nblocks *= 2;
+        nblocks_in_dir[0] *= 2;
+        bisected = true;
+        
+        if (nblocks == num_blocks_requested) {
+          done = 1;
+          continue;
+        }
       }
-    }
-    if (dim > 1 && nblockcells_in_dir[1]%2 == 0) {  // even number of cells in y
-      nblockcells_in_dir[1] /= 2;
-      nblocks *= 2;
-      nblocks_in_dir[1] *= 2;
-
-      bisected = true;
-      if (nblocks == num_blocks_requested) {
-        done = 1;
-        continue;
+      if (dim > 1 && nblockcells_in_dir[1]%2 == 0) {  // even number of cells in y
+        nblockcells_in_dir[1] /= 2;
+        nblocks *= 2;
+        nblocks_in_dir[1] *= 2;
+        
+        bisected = true;
+        if (nblocks == num_blocks_requested) {
+          done = 1;
+          continue;
+        }
       }
-    }
-    if (dim > 2 && nblockcells_in_dir[2]%2 == 0) {  // even number of cells in z
-      nblockcells_in_dir[2] /= 2;
-      nblocks *= 2;
-      nblocks_in_dir[2] *= 2;
-      bisected = true;
-
-      if (nblocks == num_blocks_requested) {
-        done = 1;
-        continue;
+      if (dim > 2 && nblockcells_in_dir[2]%2 == 0) {  // even number of cells in z
+        nblockcells_in_dir[2] /= 2;
+        nblocks *= 2;
+        nblocks_in_dir[2] *= 2;
+        bisected = true;
+        
+        if (nblocks == num_blocks_requested) {
+          done = 1;
+          continue;
+        }
       }
-    }
-    if (!bisected) {
-      // Reached a state where we cannot evenly subdivide the number
-      // of elements in any one direction
-      done = 1;
+      if (!bisected) {
+        // Reached a state where we cannot evenly subdivide the number
+        // of elements in any one direction
+        done = 1;
+      }
     }
   }
 
@@ -2759,7 +2809,7 @@ int Mesh::block_partition_regular_mesh(int const dim,
     // Start dividing the blocks as unevenly to get the number of
     // partitions we need
     
-    done = false;
+    bool done = false;
     while (!done) {
       for (int dir = 0; dir < dim; dir++) {  // split blocks in x dir, then y etc
         int nnewblocks = 0;
