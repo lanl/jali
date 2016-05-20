@@ -307,10 +307,17 @@ Mesh(request_faces, request_edges, request_sides, request_wedges,
 
     myprocid = 0;
   } else {
+
     int numprocs;
     MPI_Comm_size(mpicomm, &numprocs);
     MPI_Comm_rank(mpicomm, &myprocid);
     
+    if (partitioner != Partitioner_type::BLOCK) {
+      if (myprocid == 0)
+        std::cerr << "Using Partitioner_type::BLOCK for parallel generation " <<
+            "of regular meshes\n";
+    }
+
     int topo_dim = 3;  // What is the topological dimension of the mesh
 
     // Get a block partitioning of the domain without actually
