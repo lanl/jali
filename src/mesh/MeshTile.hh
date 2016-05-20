@@ -30,7 +30,9 @@ namespace Jali {
   
   Meshtiles can have a layer of halo or ghost cells for ease of
   computations.  Note that ghost cells of a meshtile may or may not be
-  an MPI ghost (Parallel_type::GHOST)
+  an MPI ghost (Parallel_type::GHOST).  MPI ghost entities will not
+  have a master tile ID (since they do not belong to any tile on this
+  processor)
 
   **** IMPORTANT NOTE ABOUT CONSTANTNESS OF THIS CLASS ****
   Instantiating a const version of this class only guarantees that
