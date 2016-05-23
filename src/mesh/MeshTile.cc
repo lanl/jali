@@ -30,7 +30,9 @@ namespace Jali {
 
   Meshtiles can have a layer of halo or ghost cells for ease of
   computations.  Note that ghost cells of a meshtile may or may not be
-  an MPI ghost (Parallel_type::GHOST)
+  an MPI ghost (Parallel_type::GHOST). MPI ghost entities will not
+  have a master tile ID (since they do not belong to any tile on this
+  processor)
 */
 
 
@@ -299,6 +301,35 @@ std::shared_ptr<MeshTile> make_meshtile(Mesh& parent_mesh,
   parent_mesh.add_tile(tile);
   return tile;
 }
+
+
+//! Get list of tile entities of type 'kind' and 'ptype' in set ('setname')
+
+void MeshTile::get_set_entities(const Set_Name setname, const Entity_kind kind,
+                                const Parallel_type ptype,
+                                Entity_ID_List *entids) const {
+  entids->clear();
+  Entity_ID_List setents_mesh;
+  mesh_.get_set_entities(setname, kind, ptype, &setents_mesh);
+
+  Entity_ID_List const * const entlist_tile[7][3] = 
+      {{&nodeids_owned_,   &nodeids_ghost_,   &nodeids_all_},
+       {&edgeids_owned_,   &edgeids_ghost_,   &edgeids_all_},
+       {&faceids_owned_,   &faceids_ghost_,   &faceids_all_},
+       {&cellids_owned_,   &cellids_ghost_,   &cellids_all_},
+       {&sideids_owned_,   &sideids_ghost_,   &sideids_all_},
+       {&wedgeids_owned_,  &wedgeids_ghost_,  &wedgeids_all_},
+       {&cornerids_owned_, &cornerids_ghost_, &cornerids_all_}};
+
+  int ikind = static_cast<int>(kind);
+  int iptype = static_cast<int>(ptype)-1;
+  for (auto const& ent : setents_mesh) {
+    if (std::find(entlist_tile[ikind][iptype]->begin(),
+                  entlist_tile[ikind][iptype]->end(),
+                  ent) != entlist_tile[ikind][iptype]->end())
+      entids->push_back(ent);
+  }
+}  // MeshTile::get_set_entities
 
 }  // end namespace Jali
 

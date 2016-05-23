@@ -30,7 +30,9 @@ namespace Jali {
   
   Meshtiles can have a layer of halo or ghost cells for ease of
   computations.  Note that ghost cells of a meshtile may or may not be
-  an MPI ghost (Parallel_type::GHOST)
+  an MPI ghost (Parallel_type::GHOST).  MPI ghost entities will not
+  have a master tile ID (since they do not belong to any tile on this
+  processor)
 
   **** IMPORTANT NOTE ABOUT CONSTANTNESS OF THIS CLASS ****
   Instantiating a const version of this class only guarantees that
@@ -210,6 +212,14 @@ class MeshTile {
   template<Parallel_type ptype = Parallel_type::ALL> std::vector<Entity_ID>
   const & cells() const;
 
+
+  //! Get list of tile entities of type 'kind' and 'ptype' in set ('setname')
+
+  void get_set_entities(const Set_Name setname,
+                        const Entity_kind kind,
+                        const Parallel_type ptype,
+                        Entity_ID_List *entids) const;
+
  private:
 
   // Data
@@ -218,14 +228,14 @@ class MeshTile {
 
   unsigned int const mytileid_;
 
-  std::vector<Entity_ID> nodeids_owned_, nodeids_ghost_, nodeids_all_;
-  std::vector<Entity_ID> edgeids_owned_, edgeids_ghost_, edgeids_all_;
-  std::vector<Entity_ID> faceids_owned_, faceids_ghost_, faceids_all_;
-  std::vector<Entity_ID> sideids_owned_, sideids_ghost_, sideids_all_;
-  std::vector<Entity_ID> wedgeids_owned_, wedgeids_ghost_, wedgeids_all_;
-  std::vector<Entity_ID> cornerids_owned_, cornerids_ghost_, cornerids_all_;
-  std::vector<Entity_ID> cellids_owned_, cellids_ghost_, cellids_all_;
-  std::vector<Entity_ID> dummy_list_;
+  Entity_ID_List nodeids_owned_, nodeids_ghost_, nodeids_all_;
+  Entity_ID_List edgeids_owned_, edgeids_ghost_, edgeids_all_;
+  Entity_ID_List faceids_owned_, faceids_ghost_, faceids_all_;
+  Entity_ID_List sideids_owned_, sideids_ghost_, sideids_all_;
+  Entity_ID_List wedgeids_owned_, wedgeids_ghost_, wedgeids_all_;
+  Entity_ID_List cornerids_owned_, cornerids_ghost_, cornerids_all_;
+  Entity_ID_List cellids_owned_, cellids_ghost_, cellids_all_;
+  Entity_ID_List dummy_list_;
 
   
 
