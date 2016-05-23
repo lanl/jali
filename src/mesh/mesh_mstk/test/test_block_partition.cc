@@ -6,7 +6,8 @@
 
 #include "../Mesh_MSTK.hh"
 
-// Special class just for testing protected functions
+// Special class just for testing protected function of the base mesh
+// class - block_partition_regular_mesh
 
 namespace Jali {
 class Mesh_MSTK_Test_Protected : public Mesh_MSTK {

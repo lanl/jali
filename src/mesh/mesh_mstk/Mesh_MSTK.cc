@@ -313,9 +313,10 @@ Mesh(request_faces, request_edges, request_sides, request_wedges,
     MPI_Comm_rank(mpicomm, &myprocid);
     
     if (partitioner != Partitioner_type::BLOCK) {
-      if (myprocid == 0)
-        std::cerr << "Using Partitioner_type::BLOCK for parallel generation " <<
-            "of regular meshes\n";
+      if (myprocid == 0) 
+        std::cerr << "Partitioner type " << partitioner <<
+            " requested but only Partitioner_type::BLOCK can be used " <<
+            " for parallel generation of regular meshes - Overriding!\n";
     }
 
     int topo_dim = 3;  // What is the topological dimension of the mesh

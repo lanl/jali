@@ -222,13 +222,6 @@ class MeshTile {
 
  private:
 
-  //! Filter a set of entities of 'kind' and 'ptype' to include only
-  //! those that are in this tile
-
-  template<Entity_kind kind, Parallel_type ptype>
-  void filter_tile_entities(Entity_ID_List const& list,
-                            Entity_ID_List *filtered_list) const;
-
   // Data
 
   Mesh& mesh_;
