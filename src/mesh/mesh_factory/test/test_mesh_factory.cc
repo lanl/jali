@@ -419,7 +419,7 @@ SUITE (MeshFramework)
         mesh = mesh_factory(0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 4, 4, 4);
         CHECK(mesh);
         
-        CHECK(mesh->num_cells<Jali::Parallel_type::GHOST>());
+        CHECK(mesh->num_cells<Jali::Entity_type::PARALLEL_GHOST>());
         mesh.reset();
         
         // Make sure we don't have ghost cells if we didn't ask for them
@@ -427,7 +427,7 @@ SUITE (MeshFramework)
         mesh = mesh_factory(0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 4, 4, 4);
         CHECK(mesh);
         
-        CHECK(mesh->num_cells<Jali::Parallel_type::GHOST>() == 0);
+        CHECK(mesh->num_cells<Jali::Entity_type::PARALLEL_GHOST>() == 0);
         mesh.reset();
         mesh_factory.reset_options();
       
@@ -452,7 +452,7 @@ SUITE (MeshFramework)
           if (fnormal[2] == 0.0) continue;  // z-component of normal is 0
           
           Jali::Entity_ID_List fregs;
-          mesh->face_get_cells(f, Jali::Parallel_type::OWNED, &fregs);
+          mesh->face_get_cells(f, Jali::Entity_type::PARALLEL_OWNED, &fregs);
 
           if (fregs.size() == 2) continue;  // Not a face on a mesh boundary
 

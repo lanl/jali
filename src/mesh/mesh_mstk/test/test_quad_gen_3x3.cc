@@ -21,13 +21,13 @@ TEST(MSTK_QUAD_GEN_3x3)
   Jali::Mesh *mesh(new Jali::Mesh_MSTK(0.0, 0.0, 1.0, 1.0, 3, 3,
                                        MPI_COMM_WORLD));
 
-  nv = mesh->num_entities(Jali::Entity_kind::NODE, Jali::Parallel_type::OWNED);
+  nv = mesh->num_entities(Jali::Entity_kind::NODE, Jali::Entity_type::PARALLEL_OWNED);
   CHECK_EQUAL(NV, nv);
 
-  nf = mesh->num_entities(Jali::Entity_kind::FACE, Jali::Parallel_type::OWNED);
+  nf = mesh->num_entities(Jali::Entity_kind::FACE, Jali::Entity_type::PARALLEL_OWNED);
   CHECK_EQUAL(NF, nf);
 
-  nc = mesh->num_entities(Jali::Entity_kind::CELL, Jali::Parallel_type::OWNED);
+  nc = mesh->num_entities(Jali::Entity_kind::CELL, Jali::Entity_type::PARALLEL_OWNED);
   CHECK_EQUAL(NC, nc);
 
 }

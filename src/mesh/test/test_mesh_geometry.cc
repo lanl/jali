@@ -82,9 +82,9 @@ TEST(MESH_GEOMETRY_PLANAR)
                                        {1.0, 0.25}, {0.75, 0.5},
                                        {1.0, 0.75}, {0.75, 1.0}};
 
-    int ncells = mesh->num_cells<Jali::Parallel_type::OWNED>();
-    int nfaces = mesh->num_faces<Jali::Parallel_type::ALL>();
-    int nnodes = mesh->num_nodes<Jali::Parallel_type::ALL>();
+    int ncells = mesh->num_cells<Jali::Entity_type::PARALLEL_OWNED>();
+    int nfaces = mesh->num_faces<Jali::Entity_type::PARALLEL_ALL>();
+    int nnodes = mesh->num_nodes<Jali::Entity_type::PARALLEL_ALL>();
 
     // Get node coordinates two different ways and compare
     for (auto const& n : mesh->nodes()) {
@@ -154,7 +154,7 @@ TEST(MESH_GEOMETRY_PLANAR)
           // Check the normal with respect to each connected cell
 
           Jali::Entity_ID_List cellids;
-          mesh->face_get_cells(i, Jali::Parallel_type::ALL, &cellids);
+          mesh->face_get_cells(i, Jali::Entity_type::PARALLEL_ALL, &cellids);
 
           for (auto const & fc : cellids) {
             int dir;
@@ -273,9 +273,9 @@ TEST(MESH_GEOMETRY_SURFACE) {
                                        {0.5, 0.25, 0.5}, {0.5, 0.5, 0.25},
                                        {0.5, 0.75, 0.5}, {0.5, 1.0, 0.25}};
 
-    int ncells = mesh->num_cells<Jali::Parallel_type::OWNED>();
-    int nfaces = mesh->num_faces<Jali::Parallel_type::ALL>();
-    int nnodes = mesh->num_nodes<Jali::Parallel_type::ALL>();
+    int ncells = mesh->num_cells<Jali::Entity_type::PARALLEL_OWNED>();
+    int nfaces = mesh->num_faces<Jali::Entity_type::PARALLEL_ALL>();
+    int nnodes = mesh->num_nodes<Jali::Entity_type::PARALLEL_ALL>();
 
     int spacedim = 3;
 
@@ -332,7 +332,7 @@ TEST(MESH_GEOMETRY_SURFACE) {
           // Check the normal with respect to each connected cell
 
           Jali::Entity_ID_List cellids;
-          mesh->face_get_cells(i, Jali::Parallel_type::ALL, &cellids);
+          mesh->face_get_cells(i, Jali::Entity_type::PARALLEL_ALL, &cellids);
 
 
           JaliGeometry::Point facecentroid = mesh->face_centroid(i);
@@ -508,9 +508,9 @@ TEST(MESH_GEOMETRY_SOLID) {
     };
 
 
-    int ncells = mesh->num_cells<Jali::Parallel_type::OWNED>();
-    int nfaces = mesh->num_cells<Jali::Parallel_type::ALL>();
-    int nnodes = mesh->num_cells<Jali::Parallel_type::ALL>();
+    int ncells = mesh->num_cells<Jali::Entity_type::PARALLEL_OWNED>();
+    int nfaces = mesh->num_cells<Jali::Entity_type::PARALLEL_ALL>();
+    int nnodes = mesh->num_cells<Jali::Entity_type::PARALLEL_ALL>();
 
     int spacedim = 3;
 
@@ -585,7 +585,7 @@ TEST(MESH_GEOMETRY_SOLID) {
           // Check the normal with respect to each connected cell
 
           Jali::Entity_ID_List cellids;
-          mesh->face_get_cells(i, Jali::Parallel_type::ALL, &cellids);
+          mesh->face_get_cells(i, Jali::Entity_type::PARALLEL_ALL, &cellids);
 
           for (auto const & fc : cellids) {
             int dir;

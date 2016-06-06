@@ -95,12 +95,12 @@ int main(int argc, char *argv[]) {
   // Print out the number of cells in the mesh
 
   std::cerr << "Number of mesh cells: " <<
-    mymesh->num_cells<Parallel_type::ALL>() << std::endl;
+    mymesh->num_cells<Entity_type::PARALLEL_ALL>() << std::endl;
 
   // Print out the number of nodes in the mesh
 
   std::cerr << "Number of mesh nodes: " <<
-    mymesh->num_nodes<Parallel_type::ALL>() << std::endl;
+    mymesh->num_nodes<Entity_type::PARALLEL_ALL>() << std::endl;
 
 
   // Create a Jali State Manager
@@ -128,14 +128,14 @@ int main(int argc, char *argv[]) {
 
   StateVector<double> & myvec = mystate.add("myzonevar", mymesh,
                                             Entity_kind::CELL,
-                                            Parallel_type::ALL, data);
+                                            Entity_type::PARALLEL_ALL, data);
 
 
   // Try to retrieve it through a get function
 
   StateVector<double, Jali::Mesh> myvec_copy;
   bool found = mystate.get("myzonevar", mymesh, Entity_kind::CELL,
-                           Parallel_type::ALL, &myvec_copy);
+                           Entity_type::PARALLEL_ALL, &myvec_copy);
 
   int ndata = myvec_copy.size();
   if (myvec.size() != myvec_copy.size()) {
@@ -230,7 +230,7 @@ int main(int argc, char *argv[]) {
 
 
   StateVector<std::array<double, 3>> vec2d("vec3", mymesh, Entity_kind::NODE,
-                                           Parallel_type::OWNED,
+                                           Entity_type::PARALLEL_OWNED,
                                            &(arrdata[0]));
 
   std::cerr << vec2d << std::endl;
@@ -242,11 +242,11 @@ int main(int argc, char *argv[]) {
   int i = 0;
   for (auto const& meshtile : mymesh->tiles()) {
     auto tilevec_put = mystate.add("vector_on_tile", meshtile,
-                                   Entity_kind::CELL, Parallel_type::OWNED,
+                                   Entity_kind::CELL, Entity_type::PARALLEL_OWNED,
                                    &(data[4*i]));
     
     auto tilevec2d_put = mystate.add("2Darray_on_tile", meshtile,
-                                     Entity_kind::CORNER, Parallel_type::OWNED,
+                                     Entity_kind::CORNER, Entity_type::PARALLEL_OWNED,
                                      &(arrdata[0]));
     i++;
   }
@@ -258,7 +258,7 @@ int main(int argc, char *argv[]) {
   for (auto const& meshtile : mymesh->tiles()) {
     StateVector<double, MeshTile> tilevec_get;
     found = mystate.get("vector_on_tile", meshtile, Entity_kind::CELL,
-                        Parallel_type::OWNED, &tilevec_get);
+                        Entity_type::PARALLEL_OWNED, &tilevec_get);
 
     std::cerr << "1D vector on tile cells: " << std::endl;
     std::cerr << tilevec_get << std::endl;
@@ -266,7 +266,7 @@ int main(int argc, char *argv[]) {
 
     StateVector<std::array<double, 3>, MeshTile> tilevec2d_get;
     found = mystate.get("2Darray_on_tile", meshtile, Entity_kind::CORNER,
-                        Parallel_type::OWNED, &tilevec2d_get);
+                        Entity_type::PARALLEL_OWNED, &tilevec2d_get);
 
 
     std::cerr << "2D vector on tile cells: " << std::endl;

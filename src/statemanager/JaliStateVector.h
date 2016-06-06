@@ -36,14 +36,14 @@ class BaseStateVector {
   
   explicit BaseStateVector(std::string const name,
                            Entity_kind const on_what,
-                           Parallel_type const parallel_type) :
+                           Entity_type const parallel_type) :
       myname_(name), on_what_(on_what), parallel_type_(parallel_type) {}
 
   //! Constructor using int/enum as identifier instead of string
 
   BaseStateVector(int const identifier,
                   Entity_kind const on_what,
-                  Parallel_type const parallel_type) :
+                  Entity_type const parallel_type) :
       myname_(int_to_string(identifier)), on_what_(on_what),
       parallel_type_(parallel_type) {}
 
@@ -75,12 +75,12 @@ class BaseStateVector {
 
   /// What type of parallel entity does it live on (OWNED, GHOST or ALL)?
 
-  Parallel_type parallel_type() const { return parallel_type_; }
+  Entity_type parallel_type() const { return parallel_type_; }
 
  protected:
   std::string myname_;
   Entity_kind on_what_;
-  Parallel_type parallel_type_;
+  Entity_type parallel_type_;
 };
 
 
@@ -104,7 +104,7 @@ class StateVector : public BaseStateVector {
   //! Default constructor
   StateVector() : BaseStateVector("UninitializedVector",
                                   Entity_kind::UNKNOWN_KIND,
-                                  Parallel_type::PTYPE_UNKNOWN) {}
+                                  Entity_type::TYPE_UNKNOWN) {}
 
   /*!
     @brief Meaningful constructor with data and a string identifier
@@ -115,7 +115,7 @@ class StateVector : public BaseStateVector {
   */
   
   StateVector(std::string const name, std::shared_ptr<DomainType> domain,
-              Entity_kind const on_what, Parallel_type const parallel_type,
+              Entity_kind const on_what, Entity_type const parallel_type,
               T const * const data = nullptr) :
       BaseStateVector(name, on_what, parallel_type), mydomain_(domain) {
 
@@ -135,7 +135,7 @@ class StateVector : public BaseStateVector {
   */
   
   StateVector(int const identifier, std::shared_ptr<DomainType> domain,
-              Entity_kind const on_what, Parallel_type const parallel_type,
+              Entity_kind const on_what, Entity_type const parallel_type,
               T const * const data = nullptr) :
       BaseStateVector(identifier, on_what, parallel_type), mydomain_(domain) {
 
@@ -155,7 +155,7 @@ class StateVector : public BaseStateVector {
   */
   
   StateVector(std::string const name, std::shared_ptr<DomainType> domain,
-              Entity_kind const on_what, Parallel_type const parallel_type,
+              Entity_kind const on_what, Entity_type const parallel_type,
               T const initval) :
       BaseStateVector(name, on_what, parallel_type), mydomain_(domain) {
 
@@ -172,7 +172,7 @@ class StateVector : public BaseStateVector {
   */
   
   StateVector(int const identifier, std::shared_ptr<DomainType> domain,
-              Entity_kind const on_what, Parallel_type const parallel_type,
+              Entity_kind const on_what, Entity_type const parallel_type,
               T const initval) :
       BaseStateVector(identifier, on_what, parallel_type), mydomain_(domain) {
 

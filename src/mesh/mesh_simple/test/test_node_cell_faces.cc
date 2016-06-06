@@ -17,7 +17,7 @@ TEST(NODE_CELL_FACES) {
 
       Jali::Entity_ID_List cells;
 
-      Mm.node_get_cells(node, Jali::Parallel_type::OWNED, &cells);
+      Mm.node_get_cells(node, Jali::Entity_type::PARALLEL_OWNED, &cells);
 
       unsigned int ncells = cells.size();
 
@@ -26,7 +26,7 @@ TEST(NODE_CELL_FACES) {
 
         Jali::Entity_ID_List faces;
 
-        Mm.node_get_cell_faces(node, cell, Jali::Parallel_type::OWNED, &faces);
+        Mm.node_get_cell_faces(node, cell, Jali::Entity_type::PARALLEL_OWNED, &faces);
 
         // This is a hex mesh. In any given cell, number of faces
         // connected to a node should be 3
@@ -71,7 +71,7 @@ TEST(NODE_CELL_FACES_1D) {
 
       Jali::Entity_ID_List cells;
 
-      Mm.node_get_cells(node, Jali::Parallel_type::OWNED, &cells);
+      Mm.node_get_cells(node, Jali::Entity_type::PARALLEL_OWNED, &cells);
 
       unsigned int ncells = cells.size();
 
@@ -80,7 +80,7 @@ TEST(NODE_CELL_FACES_1D) {
 
         Jali::Entity_ID_List faces;
 
-        Mm.node_get_cell_faces(node, cell, Jali::Parallel_type::OWNED, &faces);
+        Mm.node_get_cell_faces(node, cell, Jali::Entity_type::PARALLEL_OWNED, &faces);
 
         // In 1d, a node and a face are the same, number of faces connected to a
         // node should be 1

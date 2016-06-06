@@ -55,7 +55,7 @@ int main(int argc, char *argv[]) {
   // Iterate through the cells of the mesh and get their node vertices and
   // their volumes+centroids
   
-  for (auto c : mymesh->cells<Parallel_type::OWNED>()) {
+  for (auto c : mymesh->cells<Entity_type::PARALLEL_OWNED>()) {
     std::cerr << "Cell " << c << ":" << std::endl;
     
     // Get coordinates of nodes of cell

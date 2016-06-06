@@ -30,7 +30,7 @@ namespace Jali {
 
   Meshtiles can have a layer of halo or ghost cells for ease of
   computations.  Note that ghost cells of a meshtile may or may not be
-  an MPI ghost (Parallel_type::GHOST). MPI ghost entities will not
+  an MPI ghost (Entity_type::PARALLEL_GHOST). MPI ghost entities will not
   have a master tile ID (since they do not belong to any tile on this
   processor)
 */
@@ -63,7 +63,7 @@ MeshTile::MeshTile(Mesh& parent_mesh,
 
       for (auto const& c : cellids_all_) {
         Entity_ID_List nbrs;
-        mesh_.cell_get_node_adj_cells(c, Parallel_type::ALL, &nbrs);
+        mesh_.cell_get_node_adj_cells(c, Entity_type::PARALLEL_ALL, &nbrs);
         
         for (auto const& cnbr : nbrs) {
           // Check if the neighbor is already in the all cells list or
@@ -306,7 +306,7 @@ std::shared_ptr<MeshTile> make_meshtile(Mesh& parent_mesh,
 //! Get list of tile entities of type 'kind' and 'ptype' in set ('setname')
 
 void MeshTile::get_set_entities(const Set_Name setname, const Entity_kind kind,
-                                const Parallel_type ptype,
+                                const Entity_type ptype,
                                 Entity_ID_List *entids) const {
   entids->clear();
   Entity_ID_List setents_mesh;

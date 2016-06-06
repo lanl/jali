@@ -231,8 +231,8 @@ class Mesh_MSTK : public Mesh {
                       Entity_ID_List *nodeids) const;
 
 
-  // Get nodes of edge On a distributed mesh all nodes (Parallel_type::OWNED or
-  // Parallel_type::GHOST) of the face are returned
+  // Get nodes of edge On a distributed mesh all nodes (Entity_type::PARALLEL_OWNED or
+  // Entity_type::PARALLEL_GHOST) of the face are returned
 
   void edge_get_nodes_internal(const Entity_ID edgeid, Entity_ID *point0,
                                Entity_ID *point1) const;
@@ -243,13 +243,13 @@ class Mesh_MSTK : public Mesh {
   // Cells of type 'ptype' connected to a node
 
   void node_get_cells(const Entity_ID nodeid,
-                      const Parallel_type ptype,
+                      const Entity_type ptype,
                       Entity_ID_List *cellids) const;
 
   // Faces of type 'ptype' connected to a node
 
   void node_get_faces(const Entity_ID nodeid,
-                      const Parallel_type ptype,
+                      const Entity_type ptype,
                       Entity_ID_List *faceids) const;
 
   // Get faces of ptype of a particular cell that are connected to the
@@ -257,7 +257,7 @@ class Mesh_MSTK : public Mesh {
 
   void node_get_cell_faces(const Entity_ID nodeid,
                            const Entity_ID cellid,
-                           const Parallel_type ptype,
+                           const Entity_type ptype,
                            Entity_ID_List *faceids) const;
 
 
@@ -273,7 +273,7 @@ class Mesh_MSTK : public Mesh {
   // faces given by cell_get_faces
 
   void cell_get_face_adj_cells(const Entity_ID cellid,
-                               const Parallel_type ptype,
+                               const Entity_type ptype,
                                Entity_ID_List *fadj_cellids) const;
 
   // Node connected neighboring cells of given cell
@@ -281,7 +281,7 @@ class Mesh_MSTK : public Mesh {
   // The cells are returned in no particular order
 
   void cell_get_node_adj_cells(const Entity_ID cellid,
-                               const Parallel_type ptype,
+                               const Entity_type ptype,
                                Entity_ID_List *nadj_cellids) const;
 
 
@@ -335,24 +335,24 @@ class Mesh_MSTK : public Mesh {
 
   unsigned int get_set_size(const Set_Name setname,
                             const Entity_kind kind,
-                            const Parallel_type ptype) const;
+                            const Entity_type ptype) const;
 
 
   unsigned int get_set_size(const char *setname,
                             const Entity_kind kind,
-                            const Parallel_type ptype) const;
+                            const Entity_type ptype) const;
 
   // Get list of entities of type 'category' in set
 
   void get_set_entities(const Set_Name setname,
                         const Entity_kind kind,
-                        const Parallel_type ptype,
+                        const Entity_type ptype,
                         std::vector<Entity_ID> *entids) const;
 
 
   void get_set_entities(const char *setname,
                         const Entity_kind kind,
-                        const Parallel_type ptype,
+                        const Entity_type ptype,
                         std::vector<Entity_ID> *entids) const;
 
 
@@ -587,7 +587,7 @@ class Mesh_MSTK : public Mesh {
   // Cells connected to a face
 
   void face_get_cells_internal(const Entity_ID faceid,
-                               const Parallel_type ptype,
+                               const Entity_type ptype,
                                Entity_ID_List *cellids) const;
 
 
@@ -658,11 +658,11 @@ class Mesh_MSTK : public Mesh {
   //
   // There are 2 types of entities relevant to this code - Owned and Ghost
   //
-  // 1. Parallel_type::OWNED - owned by this processor
+  // 1. Entity_type::PARALLEL_OWNED - owned by this processor
   //
-  // 2. Parallel_type::GHOST - not owned by this processor
+  // 2. Entity_type::PARALLEL_GHOST - not owned by this processor
   //
-  // Parallell_type::ALL = Parallel_type::OWNED + Parallel_type::GHOST 
+  // Parallell_type::ALL = Entity_type::PARALLEL_OWNED + Entity_type::PARALLEL_GHOST 
 
   MSet_ptr OwnedVerts, NotOwnedVerts;
 

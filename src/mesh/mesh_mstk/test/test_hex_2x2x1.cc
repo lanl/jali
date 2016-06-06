@@ -51,7 +51,7 @@ TEST(MSTK_HEX_2x2x1)
   Jali::Mesh *mesh(new Jali::Mesh_MSTK("test/hex_2x2x1_ss.exo", MPI_COMM_WORLD, 3));
 
 
-  nv = mesh->num_entities(Jali::Entity_kind::NODE, Jali::Parallel_type::OWNED);
+  nv = mesh->num_entities(Jali::Entity_kind::NODE, Jali::Entity_type::PARALLEL_OWNED);
   CHECK_EQUAL(NV, nv);
 
   for (i = 0; i < nv; i++) {
@@ -66,10 +66,10 @@ TEST(MSTK_HEX_2x2x1)
   }
 
 
-  nf = mesh->num_entities(Jali::Entity_kind::FACE, Jali::Parallel_type::OWNED);
+  nf = mesh->num_entities(Jali::Entity_kind::FACE, Jali::Entity_type::PARALLEL_OWNED);
   CHECK_EQUAL(NF, nf);
 
-  nc = mesh->num_entities(Jali::Entity_kind::CELL, Jali::Parallel_type::OWNED);
+  nc = mesh->num_entities(Jali::Entity_kind::CELL, Jali::Entity_type::PARALLEL_OWNED);
   CHECK_EQUAL(NC, nc);
 
   for (i = 0; i < nc; i++) {

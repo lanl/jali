@@ -47,7 +47,7 @@ TEST(MSTK_HEX1)
 
   // Check number of nodes and their coordinates
 
-  nv = mesh->num_entities(Jali::Entity_kind::NODE, Jali::Parallel_type::OWNED);
+  nv = mesh->num_entities(Jali::Entity_kind::NODE, Jali::Entity_type::PARALLEL_OWNED);
   CHECK_EQUAL(NV, nv);
 
   for (i = 0; i < nv; i++) {
@@ -62,7 +62,7 @@ TEST(MSTK_HEX1)
 
   // Check number of cells and their face nodes and their face coordinates
 
-  nc = mesh->num_entities(Jali::Entity_kind::CELL, Jali::Parallel_type::OWNED);
+  nc = mesh->num_entities(Jali::Entity_kind::CELL, Jali::Entity_type::PARALLEL_OWNED);
   CHECK_EQUAL(NC, nc);
 
 

@@ -71,8 +71,8 @@ int main(int argc, char *argv[]) {
 
     // Cells of the mesh tile
 
-    int ncells_owned = t->num_cells<Parallel_type::OWNED>();
-    int ncells_ghost = t->num_cells<Parallel_type::GHOST>();
+    int ncells_owned = t->num_cells<Entity_type::PARALLEL_OWNED>();
+    int ncells_ghost = t->num_cells<Entity_type::PARALLEL_GHOST>();
 
     std::cerr << "Processor " << rank << "    Tile " << ntiles <<
         "      Num Owned Cells " << ncells_owned << std::endl;
@@ -87,8 +87,8 @@ int main(int argc, char *argv[]) {
 
     // Nodes of the mesh tile
 
-    int nnodes_owned = t->num_nodes<Parallel_type::OWNED>();
-    int nnodes_ghost = t->num_nodes<Parallel_type::GHOST>();
+    int nnodes_owned = t->num_nodes<Entity_type::PARALLEL_OWNED>();
+    int nnodes_ghost = t->num_nodes<Entity_type::PARALLEL_GHOST>();
 
     std::cerr << "Processor " << rank << "    Tile " << ntiles <<
         "      Num Owned Nodes " << nnodes_owned << std::endl;
@@ -103,8 +103,8 @@ int main(int argc, char *argv[]) {
 
     // Edges of the mesh tile
 
-    int nedges_owned = t->num_edges<Parallel_type::OWNED>();
-    int nedges_ghost = t->num_edges<Parallel_type::GHOST>();
+    int nedges_owned = t->num_edges<Entity_type::PARALLEL_OWNED>();
+    int nedges_ghost = t->num_edges<Entity_type::PARALLEL_GHOST>();
 
     std::cerr << "Processor " << rank << "    Tile " << ntiles <<
         "      Num Owned Edges " << nedges_owned << std::endl;
@@ -114,8 +114,8 @@ int main(int argc, char *argv[]) {
 
     // Faces of the mesh tile
 
-    int nfaces_owned = t->num_faces<Parallel_type::OWNED>();
-    int nfaces_ghost = t->num_faces<Parallel_type::GHOST>();
+    int nfaces_owned = t->num_faces<Entity_type::PARALLEL_OWNED>();
+    int nfaces_ghost = t->num_faces<Entity_type::PARALLEL_GHOST>();
 
     std::cerr << "Processor " << rank << "    Tile " << ntiles <<
         "      Num Owned Faces " << nfaces_owned << std::endl;
@@ -125,8 +125,8 @@ int main(int argc, char *argv[]) {
 
     // Wedges of the mesh tile
 
-    int nwedges_owned = t->num_wedges<Parallel_type::OWNED>();
-    int nwedges_ghost = t->num_wedges<Parallel_type::GHOST>();
+    int nwedges_owned = t->num_wedges<Entity_type::PARALLEL_OWNED>();
+    int nwedges_ghost = t->num_wedges<Entity_type::PARALLEL_GHOST>();
 
     std::cerr << "Processor " << rank << "    Tile " << ntiles <<
         "      Num Owned Wedges " << nwedges_owned << std::endl;
@@ -136,8 +136,8 @@ int main(int argc, char *argv[]) {
 
     // Corners of the mesh tile
 
-    int ncorners_owned = t->num_corners<Parallel_type::OWNED>();
-    int ncorners_ghost = t->num_corners<Parallel_type::GHOST>();
+    int ncorners_owned = t->num_corners<Entity_type::PARALLEL_OWNED>();
+    int ncorners_ghost = t->num_corners<Entity_type::PARALLEL_GHOST>();
 
     std::cerr << "Processor " << rank << "    Tile " << ntiles <<
         "      Num Owned Corners " << ncorners_owned << std::endl;

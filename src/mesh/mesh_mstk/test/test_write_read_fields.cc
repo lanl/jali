@@ -139,8 +139,8 @@ TEST(MSTK_WRITE_READ_FIELDS)
   CHECK(inmesh);
 
   int space_dim = inmesh->space_dimension();
-  CHECK_EQUAL(nv,inmesh->num_entities(Jali::Entity_kind::NODE,Jali::Parallel_type::ALL));
-  CHECK_EQUAL(nc,inmesh->num_entities(Jali::Entity_kind::CELL,Jali::Parallel_type::ALL));
+  CHECK_EQUAL(nv,inmesh->num_entities(Jali::Entity_kind::NODE,Jali::Entity_type::PARALLEL_ALL));
+  CHECK_EQUAL(nc,inmesh->num_entities(Jali::Entity_kind::CELL,Jali::Entity_type::PARALLEL_ALL));
 
   // Query the number of mesh fields on each entity type - 2 on cells,
   // 1 on nodes

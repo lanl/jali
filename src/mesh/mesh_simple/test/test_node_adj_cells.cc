@@ -24,12 +24,12 @@ TEST(NODE_ADJ_CELLS) {
                        3, 3, 3, MPI_COMM_WORLD);
 
   CHECK_EQUAL(exp_ncell, Mm.num_entities(Jali::Entity_kind::CELL,
-                                         Jali::Parallel_type::OWNED));
+                                         Jali::Entity_type::PARALLEL_OWNED));
 
   for (int i = 0; i < ntestcells; ++i) {
     Jali::Entity_ID_List adjcells;
     
-    Mm.cell_get_node_adj_cells(test_cells[i], Jali::Parallel_type::OWNED,
+    Mm.cell_get_node_adj_cells(test_cells[i], Jali::Entity_type::PARALLEL_OWNED,
                                &adjcells);
     
     unsigned int nadj = adjcells.size();

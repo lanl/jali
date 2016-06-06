@@ -140,10 +140,10 @@ TEST(ONE_MESH_TILE) {
       int nent, j;
 
       if (num_halo_layers == 0) {
-        nent = tile->num_cells<Jali::Parallel_type::OWNED>();
+        nent = tile->num_cells<Jali::Entity_type::PARALLEL_OWNED>();
         CHECK_EQUAL(expected_owned_cells.size(), nent);
 
-        auto const& tile_owned_cells = tile->cells<Jali::Parallel_type::OWNED>();
+        auto const& tile_owned_cells = tile->cells<Jali::Entity_type::PARALLEL_OWNED>();
 
         j = 0;
         for (auto const& c : expected_owned_cells) {
@@ -158,10 +158,10 @@ TEST(ONE_MESH_TILE) {
 
       // Are the expected ghost cells in the tile?
 
-      nent = tile->num_cells<Jali::Parallel_type::GHOST>();
+      nent = tile->num_cells<Jali::Entity_type::PARALLEL_GHOST>();
       CHECK_EQUAL(expected_ghost_cells.size(), nent);
 
-      auto const& tile_ghost_cells = tile->cells<Jali::Parallel_type::GHOST>();
+      auto const& tile_ghost_cells = tile->cells<Jali::Entity_type::PARALLEL_GHOST>();
 
       j = 0;
       for (auto const& c : expected_ghost_cells) {
@@ -225,10 +225,10 @@ TEST(ONE_MESH_TILE) {
       // many halo layers are requested so check only if num_halo_layers = 0
 
       if (num_halo_layers == 0) {
-        nent = tile->num_nodes<Jali::Parallel_type::OWNED>();
+        nent = tile->num_nodes<Jali::Entity_type::PARALLEL_OWNED>();
         CHECK_EQUAL(expected_owned_nodes.size(), nent);
 
-        auto const& tile_owned_nodes = tile->nodes<Jali::Parallel_type::OWNED>();
+        auto const& tile_owned_nodes = tile->nodes<Jali::Entity_type::PARALLEL_OWNED>();
         j = 0;
         for (auto const& n : expected_owned_nodes) {
           if (std::find(tile_owned_nodes.begin(), tile_owned_nodes.end(), n) !=
@@ -242,10 +242,10 @@ TEST(ONE_MESH_TILE) {
 
       // Are the expected ghost nodes in the tile?
 
-      nent = tile->num_nodes<Jali::Parallel_type::GHOST>();
+      nent = tile->num_nodes<Jali::Entity_type::PARALLEL_GHOST>();
       CHECK_EQUAL(expected_ghost_nodes.size(), nent);
 
-      auto const& tile_ghost_nodes = tile->nodes<Jali::Parallel_type::GHOST>();
+      auto const& tile_ghost_nodes = tile->nodes<Jali::Entity_type::PARALLEL_GHOST>();
       j = 0;
       for (auto const & n : expected_ghost_nodes) {
         if (std::find(tile_ghost_nodes.begin(), tile_ghost_nodes.end(), n) !=
@@ -305,10 +305,10 @@ TEST(ONE_MESH_TILE) {
       // halo layers are requested, so check only if num_halo_layers=0
 
       if (num_halo_layers == 0) {
-        nent = tile->num_faces<Jali::Parallel_type::OWNED>();
+        nent = tile->num_faces<Jali::Entity_type::PARALLEL_OWNED>();
         CHECK_EQUAL(expected_owned_faces.size(), nent);
 
-        auto const& tile_owned_faces = tile->faces<Jali::Parallel_type::OWNED>();
+        auto const& tile_owned_faces = tile->faces<Jali::Entity_type::PARALLEL_OWNED>();
         j = 0;
         for (auto const& f : expected_owned_faces) {
           if (std::find(tile_owned_faces.begin(), tile_owned_faces.end(), f) !=
@@ -322,10 +322,10 @@ TEST(ONE_MESH_TILE) {
 
       // Are the expected ghost faces in the tile?
 
-      nent = tile->num_faces<Jali::Parallel_type::GHOST>();
+      nent = tile->num_faces<Jali::Entity_type::PARALLEL_GHOST>();
       CHECK_EQUAL(expected_ghost_faces.size(), nent);
 
-      auto const& tile_ghost_faces = tile->faces<Jali::Parallel_type::GHOST>();
+      auto const& tile_ghost_faces = tile->faces<Jali::Entity_type::PARALLEL_GHOST>();
       j = 0;
       for (auto const & f : expected_ghost_faces) {
         if (std::find(tile_ghost_faces.begin(), tile_ghost_faces.end(), f) !=
@@ -389,10 +389,10 @@ TEST(ONE_MESH_TILE) {
         // num_halo_layers = 0
 
         if (num_halo_layers == 0) {
-          nent = tile->num_edges<Jali::Parallel_type::OWNED>();
+          nent = tile->num_edges<Jali::Entity_type::PARALLEL_OWNED>();
           CHECK_EQUAL(expected_owned_edges.size(), nent);
 
-          auto const& tile_owned_edges = tile->edges<Jali::Parallel_type::OWNED>();
+          auto const& tile_owned_edges = tile->edges<Jali::Entity_type::PARALLEL_OWNED>();
           j = 0;
           for (auto const & e : expected_owned_edges) {
             if (std::find(tile_owned_edges.begin(), tile_owned_edges.end(), e) !=
@@ -406,7 +406,7 @@ TEST(ONE_MESH_TILE) {
 
         // Are the expected ghost nodes in the tile?
 
-        nent = tile->num_edges<Jali::Parallel_type::GHOST>();
+        nent = tile->num_edges<Jali::Entity_type::PARALLEL_GHOST>();
         CHECK_EQUAL(expected_ghost_edges.size(), nent);
 
         auto const& tile_ghost_edges = tile->edges();
@@ -471,10 +471,10 @@ TEST(ONE_MESH_TILE) {
         // check only only if num_halo_layers == 0
 
         if (num_halo_layers == 0) {
-          nent = tile->num_sides<Jali::Parallel_type::OWNED>();
+          nent = tile->num_sides<Jali::Entity_type::PARALLEL_OWNED>();
           CHECK_EQUAL(expected_owned_sides.size(), nent);
 
-          auto const& tile_owned_sides = tile->sides<Jali::Parallel_type::OWNED>();
+          auto const& tile_owned_sides = tile->sides<Jali::Entity_type::PARALLEL_OWNED>();
           j = 0;
           for (auto const& s : expected_owned_sides) {
             if (std::find(tile_owned_sides.begin(), tile_owned_sides.end(), s) !=
@@ -488,10 +488,10 @@ TEST(ONE_MESH_TILE) {
 
         // Are the expected ghost sides in the tile?
 
-        nent = tile->num_sides<Jali::Parallel_type::GHOST>();
+        nent = tile->num_sides<Jali::Entity_type::PARALLEL_GHOST>();
         CHECK_EQUAL(expected_ghost_sides.size(), nent);
 
-        auto const& tile_ghost_sides = tile->sides<Jali::Parallel_type::GHOST>();
+        auto const& tile_ghost_sides = tile->sides<Jali::Entity_type::PARALLEL_GHOST>();
         j = 0;
         for (auto const& s : expected_ghost_sides) {
           if (std::find(tile_ghost_sides.begin(), tile_ghost_sides.end(), s)
@@ -552,10 +552,10 @@ TEST(ONE_MESH_TILE) {
         // check only only if num_halo_layers == 0
 
         if (num_halo_layers == 0) {
-          nent = tile->num_wedges<Jali::Parallel_type::OWNED>();
+          nent = tile->num_wedges<Jali::Entity_type::PARALLEL_OWNED>();
           CHECK_EQUAL(expected_owned_wedges.size(), nent);
 
-          auto const& tile_owned_wedges = tile->wedges<Jali::Parallel_type::OWNED>();
+          auto const& tile_owned_wedges = tile->wedges<Jali::Entity_type::PARALLEL_OWNED>();
           j = 0;
           for (auto const& w : expected_owned_wedges) {
             if (std::find(tile_owned_wedges.begin(), tile_owned_wedges.end(), w) !=
@@ -569,10 +569,10 @@ TEST(ONE_MESH_TILE) {
 
         // Are the expected ghost wedges in the tile?
 
-        nent = tile->num_wedges<Jali::Parallel_type::GHOST>();
+        nent = tile->num_wedges<Jali::Entity_type::PARALLEL_GHOST>();
         CHECK_EQUAL(expected_ghost_wedges.size(), nent);
 
-        auto const& tile_ghost_wedges = tile->wedges<Jali::Parallel_type::GHOST>();
+        auto const& tile_ghost_wedges = tile->wedges<Jali::Entity_type::PARALLEL_GHOST>();
         j = 0;
         for (auto const& w : expected_ghost_wedges) {
           if (std::find(tile_ghost_wedges.begin(), tile_ghost_wedges.end(), w)
@@ -637,10 +637,10 @@ TEST(ONE_MESH_TILE) {
         // check only if num_halo_layers = 0
 
         if (num_halo_layers == 0) {
-          nent = tile->num_corners<Jali::Parallel_type::OWNED>();
+          nent = tile->num_corners<Jali::Entity_type::PARALLEL_OWNED>();
           CHECK_EQUAL(expected_owned_corners.size(), nent);
 
-          auto const& tile_owned_corners = tile->corners<Jali::Parallel_type::OWNED>();
+          auto const& tile_owned_corners = tile->corners<Jali::Entity_type::PARALLEL_OWNED>();
           j = 0;
           for (auto const & cn : expected_owned_corners) {
             if (std::find(tile_owned_corners.begin(), tile_owned_corners.end(),
@@ -654,10 +654,10 @@ TEST(ONE_MESH_TILE) {
 
         // Are the expected ghost corners in the tile?
 
-        nent = tile->num_corners<Jali::Parallel_type::GHOST>();
+        nent = tile->num_corners<Jali::Entity_type::PARALLEL_GHOST>();
         CHECK_EQUAL(expected_ghost_corners.size(), nent);
 
-        auto const& tile_ghost_corners = tile->corners<Jali::Parallel_type::GHOST>();
+        auto const& tile_ghost_corners = tile->corners<Jali::Entity_type::PARALLEL_GHOST>();
         j = 0;
         for (auto const & cn : expected_ghost_corners) {
           if (std::find(tile_ghost_corners.begin(), tile_ghost_corners.end(),

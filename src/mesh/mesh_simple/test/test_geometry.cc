@@ -16,11 +16,11 @@ TEST(MESH_GEOMETRY) {
   Jali::Mesh_simple mesh(0.0, 0.0, 0.0, 2.0, 2.0, 2.0, 2, 2, 2, MPI_COMM_WORLD);
 
   CHECK_EQUAL(numcells, mesh.num_entities(Jali::Entity_kind::CELL,
-                                          Jali::Parallel_type::OWNED));
+                                          Jali::Entity_type::PARALLEL_OWNED));
   CHECK_EQUAL(numnodes, mesh.num_entities(Jali::Entity_kind::NODE,
-                                          Jali::Parallel_type::OWNED));
+                                          Jali::Entity_type::PARALLEL_OWNED));
   CHECK_EQUAL(numfaces, mesh.num_entities(Jali::Entity_kind::FACE,
-                                          Jali::Parallel_type::OWNED));
+                                          Jali::Entity_type::PARALLEL_OWNED));
 
   // move the one domain boundary's nodes
   mesh.node_set_coordinates(2, {3.0, 0.0, 0.0});
@@ -111,11 +111,11 @@ TEST(MESH_GEOMETRY_1D) {
                          JaliGeometry::Geom_type::CARTESIAN);
 
   CHECK_EQUAL(numcells, mesh.num_entities(Jali::Entity_kind::CELL,
-                                          Jali::Parallel_type::OWNED));
+                                          Jali::Entity_type::PARALLEL_OWNED));
   CHECK_EQUAL(numnodes, mesh.num_entities(Jali::Entity_kind::NODE,
-                                          Jali::Parallel_type::OWNED));
+                                          Jali::Entity_type::PARALLEL_OWNED));
   CHECK_EQUAL(numfaces, mesh.num_entities(Jali::Entity_kind::FACE,
-                                          Jali::Parallel_type::OWNED));
+                                          Jali::Entity_type::PARALLEL_OWNED));
 
   // the expected cell volume for each cell
   // the small cell is 1.0^3
@@ -170,11 +170,11 @@ TEST(MESH_GEOMETRY_1D_SPHERICAL) {
                          JaliGeometry::Geom_type::SPHERICAL);
 
   CHECK_EQUAL(numcells, mesh.num_entities(Jali::Entity_kind::CELL,
-                                          Jali::Parallel_type::OWNED));
+                                          Jali::Entity_type::PARALLEL_OWNED));
   CHECK_EQUAL(numnodes, mesh.num_entities(Jali::Entity_kind::NODE,
-                                          Jali::Parallel_type::OWNED));
+                                          Jali::Entity_type::PARALLEL_OWNED));
   CHECK_EQUAL(numfaces, mesh.num_entities(Jali::Entity_kind::FACE,
-                                          Jali::Parallel_type::OWNED));
+                                          Jali::Entity_type::PARALLEL_OWNED));
 
   // the expected cell volume for each cell
   // the small cell is (4/3)*PI*1.0^3

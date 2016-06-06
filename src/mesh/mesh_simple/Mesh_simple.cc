@@ -732,7 +732,7 @@ void Mesh_simple::node_set_coordinates(const Jali::Entity_ID local_node_id,
 
 
 void Mesh_simple::node_get_cells(const Jali::Entity_ID nodeid,
-                                 const Jali::Parallel_type ptype,
+                                 const Jali::Entity_type ptype,
                                  Jali::Entity_ID_List *cellids) const {
   unsigned int offset = (unsigned int) cells_per_node_aug_*nodeid;
   unsigned int ncells = node_to_cell_[offset];
@@ -746,7 +746,7 @@ void Mesh_simple::node_get_cells(const Jali::Entity_ID nodeid,
 
 // Faces of type 'ptype' connected to a node
 void Mesh_simple::node_get_faces(const Jali::Entity_ID nodeid,
-                                 const Jali::Parallel_type ptype,
+                                 const Jali::Entity_type ptype,
                                  Jali::Entity_ID_List *faceids) const {
   unsigned int offset = (unsigned int) faces_per_node_aug_*nodeid;
   unsigned int nfaces = node_to_face_[offset];
@@ -763,7 +763,7 @@ void Mesh_simple::node_get_faces(const Jali::Entity_ID nodeid,
 
 void Mesh_simple::node_get_cell_faces(const Jali::Entity_ID nodeid,
                                       const Jali::Entity_ID cellid,
-                                      const Jali::Parallel_type ptype,
+                                      const Jali::Entity_type ptype,
                                       Jali::Entity_ID_List *faceids) const {
   unsigned int offset = (unsigned int) faces_per_cell_*cellid;
 
@@ -788,7 +788,7 @@ void Mesh_simple::node_get_cell_faces(const Jali::Entity_ID nodeid,
 
 // Cells connected to a face
 void Mesh_simple::face_get_cells_internal(const Jali::Entity_ID faceid,
-                                          const Jali::Parallel_type ptype,
+                                          const Jali::Entity_type ptype,
                                           Jali::Entity_ID_List *cellids) const {
   unsigned int offset = (unsigned int) 2*faceid;
 
@@ -813,7 +813,7 @@ void Mesh_simple::face_get_cells_internal(const Jali::Entity_ID faceid,
 // faces given by cell_get_faces
 
 void Mesh_simple::cell_get_face_adj_cells(const Jali::Entity_ID cellid,
-                                          const Jali::Parallel_type ptype,
+                                          const Jali::Entity_type ptype,
                                           Jali::Entity_ID_List
                                           *fadj_cellids) const {
   unsigned int offset = (unsigned int) faces_per_cell_*cellid;
@@ -843,7 +843,7 @@ void Mesh_simple::cell_get_face_adj_cells(const Jali::Entity_ID cellid,
 // The cells are returned in no particular order
 
 void Mesh_simple::cell_get_node_adj_cells(const Jali::Entity_ID cellid,
-                                          const Jali::Parallel_type ptype,
+                                          const Jali::Entity_type ptype,
                                           Jali::Entity_ID_List
                                           *nadj_cellids) const {
   unsigned int offset = (unsigned int) nodes_per_cell_*cellid;
@@ -877,7 +877,7 @@ void Mesh_simple::cell_get_node_adj_cells(const Jali::Entity_ID cellid,
 
 unsigned int Mesh_simple::get_set_size(const char *setname,
                                        const Jali::Entity_kind kind,
-                                       const Jali::Parallel_type ptype) const {
+                                       const Jali::Entity_type ptype) const {
   Entity_ID_List setents;
   get_set_entities(setname, kind, ptype, &setents);
 
@@ -886,7 +886,7 @@ unsigned int Mesh_simple::get_set_size(const char *setname,
 
 unsigned int Mesh_simple::get_set_size(const std::string setname,
                                        const Jali::Entity_kind kind,
-                                       const Jali::Parallel_type ptype) const {
+                                       const Jali::Entity_type ptype) const {
   Entity_ID_List setents;
   get_set_entities(setname, kind, ptype, &setents);
 
@@ -896,7 +896,7 @@ unsigned int Mesh_simple::get_set_size(const std::string setname,
 
 void Mesh_simple::get_set_entities(const char *setname,
                                    const Jali::Entity_kind kind,
-                                   const Jali::Parallel_type ptype,
+                                   const Jali::Entity_type ptype,
                                    Jali::Entity_ID_List *setents) const {
   std::string setname1(setname);
   get_set_entities(setname1, kind, ptype, setents);
@@ -904,7 +904,7 @@ void Mesh_simple::get_set_entities(const char *setname,
 
 void Mesh_simple::get_set_entities(const std::string setname,
                                    const Jali::Entity_kind kind,
-                                   const Jali::Parallel_type ptype,
+                                   const Jali::Entity_type ptype,
                                    Jali::Entity_ID_List *setents) const {
   // we ignore ptype since this is a serial implementation
 

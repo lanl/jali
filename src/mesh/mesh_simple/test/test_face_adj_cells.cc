@@ -46,17 +46,17 @@ TEST(FACE_ADJ_CELLS) {
                        3, 3, 3, MPI_COMM_WORLD);
 
   CHECK_EQUAL(exp_ncell, Mm.num_entities(Jali::Entity_kind::CELL,
-                                         Jali::Parallel_type::OWNED));
+                                         Jali::Entity_type::PARALLEL_OWNED));
   CHECK_EQUAL(exp_nface, Mm.num_entities(Jali::Entity_kind::FACE,
-                                         Jali::Parallel_type::OWNED));
+                                         Jali::Entity_type::PARALLEL_OWNED));
   CHECK_EQUAL(exp_nnode, Mm.num_entities(Jali::Entity_kind::NODE,
-                                         Jali::Parallel_type::OWNED));
+                                         Jali::Entity_type::PARALLEL_OWNED));
 
 
   for (int i = 0; i < exp_ncell; ++i) {
       Jali::Entity_ID_List adjcells;
 
-      Mm.cell_get_face_adj_cells(i, Jali::Parallel_type::OWNED, &adjcells);
+      Mm.cell_get_face_adj_cells(i, Jali::Entity_type::PARALLEL_OWNED, &adjcells);
 
       unsigned int nadj = adjcells.size();
       CHECK_EQUAL(exp_nadj[i], nadj);
@@ -82,17 +82,17 @@ TEST(FACE_ADJ_CELLS_1D) {
   Jali::Mesh_simple Mm(node_pts, MPI_COMM_WORLD);
 
   CHECK_EQUAL(exp_ncell, Mm.num_entities(Jali::Entity_kind::CELL,
-                                         Jali::Parallel_type::OWNED));
+                                         Jali::Entity_type::PARALLEL_OWNED));
   CHECK_EQUAL(exp_nface, Mm.num_entities(Jali::Entity_kind::FACE,
-                                         Jali::Parallel_type::OWNED));
+                                         Jali::Entity_type::PARALLEL_OWNED));
   CHECK_EQUAL(exp_nnode, Mm.num_entities(Jali::Entity_kind::NODE,
-                                         Jali::Parallel_type::OWNED));
+                                         Jali::Entity_type::PARALLEL_OWNED));
 
 
   for (int i = 0; i < exp_ncell; ++i) {
       Jali::Entity_ID_List adjcells;
 
-      Mm.cell_get_face_adj_cells(i, Jali::Parallel_type::OWNED, &adjcells);
+      Mm.cell_get_face_adj_cells(i, Jali::Entity_type::PARALLEL_OWNED, &adjcells);
 
       unsigned int nadj = adjcells.size();
       CHECK_EQUAL(exp_nadj[i], nadj);

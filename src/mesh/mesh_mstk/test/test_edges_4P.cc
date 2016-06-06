@@ -35,9 +35,9 @@ TEST(MSTK_EDGES_2D)
   // Check that we get the expected number of edges
 
   int ne_owned = mesh->num_entities(Jali::Entity_kind::EDGE,
-                                    Jali::Parallel_type::OWNED);
+                                    Jali::Entity_type::PARALLEL_OWNED);
   int ne_all = mesh->num_entities(Jali::Entity_kind::EDGE,
-                                  Jali::Parallel_type::ALL);
+                                  Jali::Entity_type::PARALLEL_ALL);
 
   // This assumes a symmetric partitioning - not always the case with
   // ZOLTAN graph partitioning
@@ -48,7 +48,7 @@ TEST(MSTK_EDGES_2D)
   // global IDs for a cell must match
 
   int nc_owned = mesh->num_entities(Jali::Entity_kind::CELL,
-                                    Jali::Parallel_type::OWNED);
+                                    Jali::Entity_type::PARALLEL_OWNED);
 
   for (int c = 0; c < nc_owned; ++c) {
     Jali::Entity_ID_List cedges, cfaces, fedges;
@@ -129,9 +129,9 @@ TEST(MSTK_EDGES_3D)
   // How many owned and used edges are there?
 
   int ne_owned = mesh->num_entities(Jali::Entity_kind::EDGE,
-                                    Jali::Parallel_type::OWNED);
+                                    Jali::Entity_type::PARALLEL_OWNED);
   int ne_all = mesh->num_entities(Jali::Entity_kind::EDGE,
-                                  Jali::Parallel_type::ALL);
+                                  Jali::Entity_type::PARALLEL_ALL);
 
   // Check that we got a non-zero number
 
@@ -144,7 +144,7 @@ TEST(MSTK_EDGES_3D)
   // of these faces and do additional checks
 
   int nc_owned = mesh->num_entities(Jali::Entity_kind::CELL,
-                                    Jali::Parallel_type::OWNED);
+                                    Jali::Entity_type::PARALLEL_OWNED);
 
   for (int c = 0; c < nc_owned; ++c) {
     Jali::Entity_ID_List cedges, cfaces, fedges;
