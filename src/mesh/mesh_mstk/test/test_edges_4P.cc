@@ -9,8 +9,7 @@
 
 // Test edge functions in 2D
 
-TEST(MSTK_EDGES_2D)
-{
+TEST(MSTK_EDGES_2D) {
 
   int rank, size;
 
@@ -58,7 +57,7 @@ TEST(MSTK_EDGES_2D)
     mesh->cell_get_faces_and_dirs(c, &cfaces, &cfdirs);
 
     for (int e = 0; e < cedges.size(); ++e) {
-      CHECK_EQUAL(mesh->GID(cedges[e], Jali::Entity_kind::EDGE), 
+      CHECK_EQUAL(mesh->GID(cedges[e], Jali::Entity_kind::EDGE),
                   mesh->GID(cfaces[e], Jali::Entity_kind::FACE));
     }
 
@@ -104,8 +103,7 @@ TEST(MSTK_EDGES_2D)
 
 // Test edge functions in 3D
 
-TEST(MSTK_EDGES_3D)
-{
+TEST(MSTK_EDGES_3D) {
 
   int rank, size;
 
