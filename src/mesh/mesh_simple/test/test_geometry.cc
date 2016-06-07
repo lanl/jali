@@ -103,10 +103,12 @@ TEST(MESH_GEOMETRY_1D) {
   const int num_tiles = 0;
   const int num_ghost_layers_tile = 0;
   const int num_ghost_layers_distmesh = 0;
+  const int num_ghost_layers_boundary = 0;
   std::vector<double> node_pts = {0.0, 1.0, 3.0};
   Jali::Mesh_simple mesh(node_pts, MPI_COMM_WORLD, NULL,
                          true, true, true, true, true, num_tiles,
                          num_ghost_layers_tile, num_ghost_layers_distmesh,
+                         num_ghost_layers_boundary,
                          Jali::Partitioner_type::INDEX,
                          JaliGeometry::Geom_type::CARTESIAN);
 
@@ -162,10 +164,12 @@ TEST(MESH_GEOMETRY_1D_SPHERICAL) {
   const int num_tiles = 2;
   const int num_ghost_layers_tile = 1;
   const int num_ghost_layers_distmesh = 0;
+  const int num_ghost_layers_boundary = 0;
   std::vector<double> node_pts = {0.0, 1.0, 3.0};
   Jali::Mesh_simple mesh(node_pts, MPI_COMM_WORLD, NULL,
                          true, true, true, true, true, num_tiles,
                          num_ghost_layers_tile, num_ghost_layers_distmesh,
+                         num_ghost_layers_boundary,
                          Jali::Partitioner_type::INDEX,
                          JaliGeometry::Geom_type::SPHERICAL);
 

@@ -56,6 +56,7 @@ class Mesh_MSTK : public Mesh {
             const int num_tiles = 0,
             const int num_ghost_layers_tile = 0,
             const int num_ghost_layers_distmesh = 1,
+            const int num_ghost_layers_boundary = 0,
             const Partitioner_type partitioner = Partitioner_type::METIS,
             const JaliGeometry::Geom_type geom_type =
             JaliGeometry::Geom_type::CARTESIAN);
@@ -72,6 +73,7 @@ class Mesh_MSTK : public Mesh {
             const int num_tiles = 0,
             const int num_ghost_layers_tile = 0,
             const int num_ghost_layers_distmesh = 1,
+            const int num_ghost_layers_boundary = 0,
             const Partitioner_type partitioner = Partitioner_type::METIS,
             const JaliGeometry::Geom_type geom_type =
             JaliGeometry::Geom_type::CARTESIAN);
@@ -94,6 +96,7 @@ class Mesh_MSTK : public Mesh {
             const int num_tiles = 0,
             const int num_ghost_layers_tile = 0,
             const int num_ghost_layers_distmesh = 1,
+            const int num_ghost_layers_boundary = 0,
             const Partitioner_type partitioner = Partitioner_type::METIS);
 
 
@@ -112,6 +115,7 @@ class Mesh_MSTK : public Mesh {
             const int num_tiles = 0,
             const int num_ghost_layers_tile = 0,
             const int num_ghost_layers_distmesh = 1,
+            const int num_ghost_layers_boundary = 0,
             const Partitioner_type partitioner = Partitioner_type::METIS,
             const JaliGeometry::Geom_type geom_type =
             JaliGeometry::Geom_type::CARTESIAN);
@@ -136,6 +140,7 @@ class Mesh_MSTK : public Mesh {
             const int num_tiles = 0,
             const int num_ghost_layers_tile = 0,
             const int num_ghost_layers_distmesh = 1,
+            const int num_ghost_layers_boundary = 0,
             const Partitioner_type partitioner = Partitioner_type::METIS,
             const JaliGeometry::Geom_type geom_type =
             JaliGeometry::Geom_type::CARTESIAN);
@@ -153,6 +158,7 @@ class Mesh_MSTK : public Mesh {
             const int num_tiles = 0,
             const int num_ghost_layers_tile = 0,
             const int num_ghost_layers_distmesh = 1,
+            const int num_ghost_layers_boundary = 0,
             const Partitioner_type partitioner = Partitioner_type::METIS,
             const JaliGeometry::Geom_type geom_type =
             JaliGeometry::Geom_type::CARTESIAN);
@@ -170,6 +176,7 @@ class Mesh_MSTK : public Mesh {
             const int num_tiles = 0,
             const int num_ghost_layers_tile = 0,
             const int num_ghost_layers_distmesh = 1,
+            const int num_ghost_layers_boundary = 0,
             const Partitioner_type partitioner = Partitioner_type::METIS,
             const JaliGeometry::Geom_type geom_type =
             JaliGeometry::Geom_type::CARTESIAN);
@@ -544,6 +551,7 @@ class Mesh_MSTK : public Mesh {
                          const bool request_faces = true,
                          const bool request_edges = false,
                          const int num_ghost_layers_distmesh = 1,
+                         const int num_ghost_layers_boundary = 0,
                          const Partitioner_type partitioner =
                          Partitioner_type::METIS);
 

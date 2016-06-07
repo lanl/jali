@@ -51,12 +51,13 @@ class bogus_mesh : public Jali::Mesh {
              const int num_tiles,
              const int num_ghost_layers_tile,
              const int num_ghost_layers_distmesh,
+             const int num_ghost_layers_boundary,
              const Jali::Partitioner_type partitioner,
              const JaliGeometry::Geom_type geom_type)
   : Mesh(request_faces, request_edges, request_sides, request_wedges,
          request_corners,
          num_tiles, num_ghost_layers_tile, num_ghost_layers_distmesh,
-         partitioner, geom_type, comm) {
+         num_ghost_layers_boundary, partitioner, geom_type, comm) {
     Exceptions::Jali_throw(Errors::Message("reading not supported"));
   }
   
@@ -68,11 +69,13 @@ class bogus_mesh : public Jali::Mesh {
              const int num_tiles,
              const int num_ghost_layers_tile,
              const int num_ghost_layers_distmesh,
+             const int num_ghost_layers_boundary,
              const Jali::Partitioner_type partitioner,
              const JaliGeometry::Geom_type geom_type)
   : Mesh(request_faces, request_edges, request_sides, request_wedges,
          request_corners, num_tiles, num_ghost_layers_tile,
-         num_ghost_layers_distmesh, partitioner, geom_type, comm) {
+         num_ghost_layers_distmesh, num_ghost_layers_boundary,
+         partitioner, geom_type, comm) {
     Exceptions::Jali_throw(Errors::Message("reading not supported"));
   }
   
@@ -87,11 +90,12 @@ class bogus_mesh : public Jali::Mesh {
              const int num_tiles,
              const int num_ghost_layers_tile,
              const int num_ghost_layers_distmesh,
+             const int num_ghost_layers_boundary,
              const Jali::Partitioner_type partitioner)
   : Mesh(request_faces, request_edges, request_sides, request_wedges,
          request_corners, num_tiles, num_ghost_layers_tile,
-         num_ghost_layers_distmesh, partitioner,
-         JaliGeometry::Geom_type::CARTESIAN, comm) {
+         num_ghost_layers_distmesh, num_ghost_layers_boundary,
+         partitioner, JaliGeometry::Geom_type::CARTESIAN, comm) {
     Exceptions::Jali_throw(Errors::Message("generation not supported"));
   }
   
@@ -106,11 +110,13 @@ class bogus_mesh : public Jali::Mesh {
              const int num_tiles,
              const int num_ghost_layers_tile,
              const int num_ghost_layers_distmesh,
+             const int num_ghost_layers_boundary,
              const Jali::Partitioner_type partitioner,
              const JaliGeometry::Geom_type geom_type)
   : Mesh(request_faces, request_edges, request_sides, request_wedges,
          request_corners, num_tiles, num_ghost_layers_tile,
-         num_ghost_layers_distmesh, partitioner, geom_type, comm) {
+         num_ghost_layers_distmesh, num_ghost_layers_boundary,
+         partitioner, geom_type, comm) {
     Exceptions::Jali_throw(Errors::Message("generation not supported"));
   }
   
@@ -124,11 +130,13 @@ class bogus_mesh : public Jali::Mesh {
              const int num_tiles,
              const int num_ghost_layers_tile,
              const int num_ghost_layers_distmesh,
+             const int num_ghost_layers_boundary,
              const Jali::Partitioner_type partitioner,
              const JaliGeometry::Geom_type geom_type)
   : Mesh(request_faces, request_edges, request_sides, request_wedges,
          request_corners, num_tiles, num_ghost_layers_tile,
-         num_ghost_layers_distmesh, partitioner, geom_type, comm) {
+         num_ghost_layers_distmesh, num_ghost_layers_boundary,
+         partitioner, geom_type, comm) {
     Exceptions::Jali_throw(Errors::Message("generation not supported"));
   }
 
@@ -142,11 +150,13 @@ class bogus_mesh : public Jali::Mesh {
              const int num_tiles,
              const int num_ghost_layers_tile,
              const int num_ghost_layers_distmesh,
+             const int num_ghost_layers_boundary,
              const Jali::Partitioner_type partitioner,
              const JaliGeometry::Geom_type geom_type)
   : Mesh(request_faces, request_edges, request_sides, request_wedges,
          request_corners, num_tiles, num_ghost_layers_tile,
-         num_ghost_layers_distmesh, partitioner, geom_type, comm) {
+         num_ghost_layers_distmesh, num_ghost_layers_boundary,
+         partitioner, geom_type, comm) {
     Exceptions::Jali_throw(Errors::Message("extraction not supported"));
   }
 
@@ -160,11 +170,13 @@ class bogus_mesh : public Jali::Mesh {
              const int num_tiles,
              const int num_ghost_layers_tile,
              const int num_ghost_layers_distmesh,
+             const int num_ghost_layers_boundary,
              const Jali::Partitioner_type partitioner,
              const JaliGeometry::Geom_type geom_type)
   : Mesh(request_faces, request_edges, request_sides, request_wedges,
          request_corners, num_tiles, num_ghost_layers_tile,
-         num_ghost_layers_distmesh, partitioner, geom_type, comm) {
+         num_ghost_layers_distmesh, num_ghost_layers_boundary,
+         partitioner, geom_type, comm) {
     Exceptions::Jali_throw(Errors::Message("extraction not supported"));
   }
 
@@ -178,11 +190,13 @@ class bogus_mesh : public Jali::Mesh {
              const int num_tiles,
              const int num_ghost_layers_tile,
              const int num_ghost_layers_distmesh,
+             const int num_ghost_layers_boundary,
              const Jali::Partitioner_type partitioner,
              const JaliGeometry::Geom_type geom_type)
   : Mesh(request_faces, request_edges, request_sides, request_wedges,
          request_corners, num_tiles, num_ghost_layers_tile,
-         num_ghost_layers_distmesh, partitioner, geom_type, comm) {
+         num_ghost_layers_distmesh, num_ghost_layers_boundary,
+         partitioner, geom_type, comm) {
     Exceptions::Jali_throw(Errors::Message("extraction not supported"));
   }
   
@@ -511,6 +525,7 @@ struct FrameworkTraits {
        const int num_tiles,
        const int num_ghost_layers_tile,
        const int num_ghost_layers_distmesh,
+       const int num_ghost_layers_boundary,
        const Partitioner_type partitioner,
        const JaliGeometry::Geom_type geom_type) {
     return
@@ -524,6 +539,7 @@ struct FrameworkTraits {
                                                            num_tiles,
                                                            num_ghost_layers_tile,
                                                            num_ghost_layers_distmesh,
+                                                           num_ghost_layers_boundary,
                                                            partitioner,
                                                            geom_type));
   }
@@ -575,6 +591,7 @@ struct FrameworkTraits {
            const int num_tiles,
            const int num_ghost_layers_tile,
            const int num_ghost_layers_distmesh,
+           const int num_ghost_layers_boundary,
            const Partitioner_type partitioner) {
     return
         std::shared_ptr<Mesh>(new typename generate_mesh::type(x0, y0, z0,
@@ -589,6 +606,7 @@ struct FrameworkTraits {
                                                                num_tiles,
                                                                num_ghost_layers_tile,
                                                                num_ghost_layers_distmesh,
+                                                               num_ghost_layers_boundary,
                                                                partitioner));
   }
 
@@ -607,6 +625,7 @@ struct FrameworkTraits {
            const int num_tiles,
            const int num_ghost_layers_tile,
            const int num_ghost_layers_distmesh,
+           const int num_ghost_layers_boundary,
            const Partitioner_type partitioner,
            const JaliGeometry::Geom_type geom_type) {
     return
@@ -620,6 +639,7 @@ struct FrameworkTraits {
                                                                num_tiles,
                                                                num_ghost_layers_tile,
                                                                num_ghost_layers_distmesh,
+                                                               num_ghost_layers_boundary,
                                                                partitioner,
                                                                geom_type));
   }
@@ -637,6 +657,7 @@ struct FrameworkTraits {
            const int num_tiles,
            const int num_ghost_layers_tile,
            const int num_ghost_layers_distmesh,
+           const int num_ghost_layers_boundary,
            const Partitioner_type partitioner,
            const JaliGeometry::Geom_type geom_type) {
     std::shared_ptr<Mesh>
@@ -648,6 +669,7 @@ struct FrameworkTraits {
                                                 num_tiles,
                                                 num_ghost_layers_tile,
                                                 num_ghost_layers_distmesh,
+                                                num_ghost_layers_boundary,
                                                 partitioner, geom_type));
     return result;
   }
@@ -693,6 +715,7 @@ struct FrameworkTraits {
           const int num_tiles,
           const int num_ghost_layers_tile,
           const int num_ghost_layers_distmesh,
+          const int num_ghost_layers_boundary,
           const Partitioner_type partitioner,
           const JaliGeometry::Geom_type geom_type) {
     return
@@ -707,6 +730,7 @@ struct FrameworkTraits {
                                                               num_tiles,
                                                               num_ghost_layers_tile,
                                                               num_ghost_layers_distmesh,
+                                                              num_ghost_layers_boundary,
                                                               partitioner,
                                                               geom_type));
   }
@@ -727,6 +751,7 @@ struct FrameworkTraits {
           const int num_tiles,
           const int num_ghost_layers_tile,
           const int num_ghost_layers_distmesh,
+          const int num_ghost_layers_boundary,
           const Partitioner_type partitioner,
           const JaliGeometry::Geom_type geom_type) {
     return
@@ -741,6 +766,7 @@ struct FrameworkTraits {
                                                               num_tiles,
                                                               num_ghost_layers_tile,
                                                               num_ghost_layers_distmesh,
+                                                              num_ghost_layers_boundary,
                                                               partitioner,
                                                               geom_type));
   }
@@ -761,6 +787,7 @@ struct FrameworkTraits {
           const int num_tiles,
           const int num_ghost_layers_tile,
           const int num_ghost_layers_distmesh,
+          const int num_ghost_layers_boundary,
           const Partitioner_type partitioner,
           const JaliGeometry::Geom_type geom_type) {
     return
@@ -776,6 +803,8 @@ struct FrameworkTraits {
                                                               num_tiles,
                                                               num_ghost_layers_tile,
                                                               num_ghost_layers_distmesh,
+                                                              num_ghost_layers_boundary,
+
                                                               partitioner,
                                                               geom_type));
   }
@@ -891,6 +920,7 @@ framework_read(const MPI_Comm& comm, const Framework& f,
                const bool request_corners, const int num_tiles,
                const int num_ghost_layers_tile,
                const int num_ghost_layers_distmesh,
+               const int num_ghost_layers_boundary,
                const Partitioner_type partitioner,
                const JaliGeometry::Geom_type geom_type)
 {
@@ -908,6 +938,7 @@ framework_read(const MPI_Comm& comm, const Framework& f,
                                            request_corners,
                                            num_tiles, num_ghost_layers_tile,
                                            num_ghost_layers_distmesh,
+                                           num_ghost_layers_boundary,
                                            partitioner, geom_type);
     break;
   case STKMESH:
@@ -920,6 +951,7 @@ framework_read(const MPI_Comm& comm, const Framework& f,
                                             request_corners,
                                             num_tiles, num_ghost_layers_tile,
                                             num_ghost_layers_distmesh,
+                                            num_ghost_layers_boundary,
                                             partitioner, geom_type);
     break;
   case MOAB:
@@ -932,6 +964,7 @@ framework_read(const MPI_Comm& comm, const Framework& f,
                                          request_corners,
                                          num_tiles, num_ghost_layers_tile,
                                          num_ghost_layers_distmesh,
+                                         num_ghost_layers_boundary,
                                          partitioner, geom_type);
     break;
   case MSTK:
@@ -944,6 +977,7 @@ framework_read(const MPI_Comm& comm, const Framework& f,
                                          request_corners,
                                          num_tiles, num_ghost_layers_tile,
                                          num_ghost_layers_distmesh,
+                                         num_ghost_layers_boundary,
                                          partitioner, geom_type);
     break;
   default:
@@ -1025,6 +1059,7 @@ framework_generate(const MPI_Comm& comm, const Framework& f,
                    const bool request_corners,
                    const int num_tiles, const int num_ghost_layers_tile,
                    const int num_ghost_layers_distmesh,
+                   const int num_ghost_layers_boundary,
                    const Partitioner_type partitioner) {
   std::shared_ptr<Mesh> result;
   int myPID;
@@ -1041,6 +1076,7 @@ framework_generate(const MPI_Comm& comm, const Framework& f,
                                                request_corners,
                                                num_tiles, num_ghost_layers_tile,
                                                num_ghost_layers_distmesh,
+                                               num_ghost_layers_boundary,
                                                partitioner);
     break;
   case STKMESH:
@@ -1052,8 +1088,10 @@ framework_generate(const MPI_Comm& comm, const Framework& f,
                                                 request_faces, request_edges,
                                                 request_sides,
                                                 request_wedges, request_corners,
-                                                num_tiles, num_ghost_layers_tile,
+                                                num_tiles,
+                                                num_ghost_layers_tile,
                                                 num_ghost_layers_distmesh,
+                                                num_ghost_layers_boundary,
                                                 partitioner);
     break;
   case MOAB:
@@ -1067,6 +1105,7 @@ framework_generate(const MPI_Comm& comm, const Framework& f,
                                              request_wedges, request_corners,
                                              num_tiles, num_ghost_layers_tile,
                                              num_ghost_layers_distmesh,
+                                             num_ghost_layers_boundary,
                                              partitioner);
     break;
   case MSTK:
@@ -1080,6 +1119,7 @@ framework_generate(const MPI_Comm& comm, const Framework& f,
                                              request_wedges, request_corners,
                                              num_tiles, num_ghost_layers_tile,
                                              num_ghost_layers_distmesh,
+                                             num_ghost_layers_boundary,
                                              partitioner);
     break;
   default:
@@ -1106,6 +1146,7 @@ framework_generate(const MPI_Comm& comm, const Framework& f,
                    const bool request_corners,
                    const int num_tiles, const int num_ghost_layers_tile,
                    const int num_ghost_layers_distmesh,
+                   const int num_ghost_layers_boundary,
                    const Partitioner_type partitioner,
                    const JaliGeometry::Geom_type geom_type) {
   std::shared_ptr<Mesh> result;
@@ -1122,6 +1163,7 @@ framework_generate(const MPI_Comm& comm, const Framework& f,
                                                request_corners,
                                                num_tiles, num_ghost_layers_tile,
                                                num_ghost_layers_distmesh,
+                                               num_ghost_layers_boundary,
                                                partitioner, geom_type);
     break;
   case STKMESH:
@@ -1132,8 +1174,10 @@ framework_generate(const MPI_Comm& comm, const Framework& f,
                                                 request_faces, request_edges,
                                                 request_sides, request_wedges,
                                                 request_corners,
-                                                num_tiles, num_ghost_layers_tile,
+                                                num_tiles,
+                                                num_ghost_layers_tile,
                                                 num_ghost_layers_distmesh,
+                                                num_ghost_layers_boundary,
                                                 partitioner, geom_type);
     break;
   case MOAB:
@@ -1146,6 +1190,7 @@ framework_generate(const MPI_Comm& comm, const Framework& f,
                                              request_corners,
                                              num_tiles, num_ghost_layers_tile,
                                              num_ghost_layers_distmesh,
+                                             num_ghost_layers_boundary,
                                              partitioner, geom_type);
     break;
   case MSTK:
@@ -1158,6 +1203,7 @@ framework_generate(const MPI_Comm& comm, const Framework& f,
                                              request_corners,
                                              num_tiles, num_ghost_layers_tile,
                                              num_ghost_layers_distmesh,
+                                             num_ghost_layers_boundary,
                                              partitioner, geom_type);
     break;
   default:
@@ -1183,6 +1229,7 @@ framework_generate(const MPI_Comm& comm, const Framework& f,
                    const bool request_corners,
                    const int num_tiles, const int num_ghost_layers_tile,
                    const int num_ghost_layers_distmesh,
+                   const int num_ghost_layers_boundary,
                    const Partitioner_type partitioner,
                    const JaliGeometry::Geom_type geom_type) {
   std::shared_ptr<Mesh> result;
@@ -1199,6 +1246,7 @@ framework_generate(const MPI_Comm& comm, const Framework& f,
                                                request_corners,
                                                num_tiles, num_ghost_layers_tile,
                                                num_ghost_layers_distmesh,
+                                               num_ghost_layers_boundary,
                                                partitioner, geom_type);
     break;
   case STKMESH:
@@ -1299,6 +1347,7 @@ framework_extract(const MPI_Comm& comm, const Framework& f,
                   const bool request_corners,
                   const int num_tiles, const int num_ghost_layers_tile,
                   const int num_ghost_layers_distmesh,
+                  const int num_ghost_layers_boundary,
                   const Partitioner_type partitioner,
                   const JaliGeometry::Geom_type geom_type) {
   std::shared_ptr<Mesh> result;
@@ -1313,6 +1362,7 @@ framework_extract(const MPI_Comm& comm, const Framework& f,
                                               request_corners,
                                               num_tiles, num_ghost_layers_tile,
                                               num_ghost_layers_distmesh,
+                                              num_ghost_layers_boundary,
                                               partitioner, geom_type);
     break;
   case STKMESH:
@@ -1325,6 +1375,7 @@ framework_extract(const MPI_Comm& comm, const Framework& f,
                                                request_corners,
                                                num_tiles, num_ghost_layers_tile,
                                                num_ghost_layers_distmesh,
+                                               num_ghost_layers_boundary,
                                                partitioner, geom_type);
     break;
   case MOAB:
@@ -1337,6 +1388,7 @@ framework_extract(const MPI_Comm& comm, const Framework& f,
                                             request_corners,
                                             num_tiles, num_ghost_layers_tile,
                                             num_ghost_layers_distmesh,
+                                            num_ghost_layers_boundary,
                                             partitioner, geom_type);
     break;
   case MSTK:
@@ -1349,6 +1401,7 @@ framework_extract(const MPI_Comm& comm, const Framework& f,
                                             request_corners,
                                             num_tiles, num_ghost_layers_tile,
                                             num_ghost_layers_distmesh,
+                                            num_ghost_layers_boundary,
                                             partitioner, geom_type);
     break;
   default:
@@ -1372,6 +1425,7 @@ framework_extract(const MPI_Comm& comm, const Framework& f,
                   const bool request_corners,
                   const int num_tiles, const int num_ghost_layers_tile,
                   const int num_ghost_layers_distmesh,
+                  const int num_ghost_layers_boundary,
                   const Partitioner_type partitioner,
                   const JaliGeometry::Geom_type geom_type) {
   std::shared_ptr<Mesh> result;
@@ -1386,6 +1440,7 @@ framework_extract(const MPI_Comm& comm, const Framework& f,
                                               request_corners,
                                               num_tiles, num_ghost_layers_tile,
                                               num_ghost_layers_distmesh,
+                                              num_ghost_layers_boundary,
                                               partitioner, geom_type);
     break;
   case STKMESH:
@@ -1398,6 +1453,7 @@ framework_extract(const MPI_Comm& comm, const Framework& f,
                                                request_corners,
                                                num_tiles, num_ghost_layers_tile,
                                                num_ghost_layers_distmesh,
+                                               num_ghost_layers_boundary,
                                                partitioner, geom_type);
     break;
   case MOAB:
@@ -1410,6 +1466,7 @@ framework_extract(const MPI_Comm& comm, const Framework& f,
                                             request_corners,
                                             num_tiles, num_ghost_layers_tile,
                                             num_ghost_layers_distmesh,
+                                            num_ghost_layers_boundary,
                                             partitioner, geom_type);
     break;
   case MSTK:
@@ -1422,6 +1479,7 @@ framework_extract(const MPI_Comm& comm, const Framework& f,
                                             request_corners,
                                             num_tiles, num_ghost_layers_tile,
                                             num_ghost_layers_distmesh,
+                                            num_ghost_layers_boundary,
                                             partitioner, geom_type);
     break;
   default:
@@ -1445,6 +1503,7 @@ framework_extract(const MPI_Comm& comm, const Framework& f,
                   const bool request_corners,
                   const int num_tiles, const int num_ghost_layers_tile,
                   const int num_ghost_layers_distmesh,
+                  const int num_ghost_layers_boundary,
                   const Partitioner_type partitioner,
                   const JaliGeometry::Geom_type geom_type) {
   std::shared_ptr<Mesh> result;
@@ -1460,6 +1519,7 @@ framework_extract(const MPI_Comm& comm, const Framework& f,
                                               request_corners,
                                               num_tiles, num_ghost_layers_tile,
                                               num_ghost_layers_distmesh,
+                                              num_ghost_layers_boundary,
                                               partitioner, geom_type);
     break;
   case STKMESH:
@@ -1473,6 +1533,7 @@ framework_extract(const MPI_Comm& comm, const Framework& f,
                                                request_corners,
                                                num_tiles, num_ghost_layers_tile,
                                                num_ghost_layers_distmesh,
+                                               num_ghost_layers_boundary,
                                                partitioner, geom_type);
     break;
   case MOAB:
@@ -1486,6 +1547,7 @@ framework_extract(const MPI_Comm& comm, const Framework& f,
                                             request_corners,
                                             num_tiles, num_ghost_layers_tile,
                                             num_ghost_layers_distmesh,
+                                            num_ghost_layers_boundary,
                                             partitioner, geom_type);
     break;
   case MSTK:
@@ -1499,6 +1561,7 @@ framework_extract(const MPI_Comm& comm, const Framework& f,
                                             request_corners,
                                             num_tiles, num_ghost_layers_tile,
                                             num_ghost_layers_distmesh,
+                                            num_ghost_layers_boundary,
                                             partitioner, geom_type);
     break;
   default:

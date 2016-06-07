@@ -113,6 +113,7 @@ class Mesh {
        const int num_tiles_ini = 0,
        const int num_ghost_layers_tile = 0,
        const int num_ghost_layers_distmesh = 1,
+       const int num_ghost_layers_boundary = 0,
        const Partitioner_type partitioner = Partitioner_type::METIS,
        const JaliGeometry::Geom_type geom_type =
        JaliGeometry::Geom_type::CARTESIAN,
@@ -127,6 +128,7 @@ class Mesh {
     num_tiles_ini_(num_tiles_ini),
     num_ghost_layers_tile_(num_ghost_layers_tile),
     num_ghost_layers_distmesh_(num_ghost_layers_distmesh),
+    num_ghost_layers_boundary_(num_ghost_layers_boundary),
     partitioner_pref_(partitioner),
     cell2face_info_cached(false), face2cell_info_cached(false),
     cell2edge_info_cached(false), face2edge_info_cached(false),
@@ -1269,6 +1271,7 @@ class Mesh {
   const int num_tiles_ini_;
   const int num_ghost_layers_tile_;
   const int num_ghost_layers_distmesh_;
+  const int num_ghost_layers_boundary_;
   const Partitioner_type partitioner_pref_;
   bool tiles_initialized_ = false;
   std::vector<std::shared_ptr<MeshTile>> meshtiles;

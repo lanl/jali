@@ -22,6 +22,7 @@ Mesh_simple::Mesh_simple(double x0, double y0, double z0,
                          const int num_tiles_ini,
                          const int num_ghost_layers_tile,
                          const int num_ghost_layers_distmesh,
+                         const int num_ghost_layers_boundary,
                          const Partitioner_type partitioner) :
     nx_(nx), ny_(ny), nz_(nz),
     x0_(x0), x1_(x1),
@@ -31,8 +32,8 @@ Mesh_simple::Mesh_simple(double x0, double y0, double z0,
     faces_per_node_aug_(13), cells_per_node_aug_(9),
   Mesh(request_faces, request_edges, request_sides, request_wedges,
        request_corners, num_tiles_ini, num_ghost_layers_tile,
-       num_ghost_layers_distmesh, partitioner,
-       JaliGeometry::Geom_type::CARTESIAN, comm) {
+       num_ghost_layers_distmesh, num_ghost_layers_boundary,
+       partitioner, JaliGeometry::Geom_type::CARTESIAN, comm) {
 
   Mesh::set_mesh_type(Mesh_type::RECTANGULAR);
   if (gm != (JaliGeometry::GeometricModelPtr) NULL)
@@ -65,6 +66,7 @@ Mesh_simple::Mesh_simple(double x0, double y0,
                          const int num_tiles_ini,
                          const int num_ghost_layers_tile,
                          const int num_ghost_layers_distmesh,
+                         const int num_ghost_layers_boundary,
                          const Partitioner_type partitioner,
                          const JaliGeometry::Geom_type geom_type) {
   Exceptions::Jali_throw(Errors::Message("Simple mesh cannot generate 2D meshes"));
@@ -85,6 +87,7 @@ Mesh_simple::Mesh_simple(const std::vector<double>& x,
                          const int num_tiles_ini,
                          const int num_ghost_layers_tile,
                          const int num_ghost_layers_distmesh,
+                         const int num_ghost_layers_boundary,
                          const Partitioner_type partitioner,
                          const JaliGeometry::Geom_type geom_type) :
   nx_(x.size()-1), ny_(-3), nz_(-3),
@@ -93,7 +96,8 @@ Mesh_simple::Mesh_simple(const std::vector<double>& x,
   faces_per_node_aug_(2), cells_per_node_aug_(3),
   Mesh(request_faces, request_edges, request_sides, request_wedges,
        request_corners, num_tiles_ini, num_ghost_layers_tile,
-       num_ghost_layers_distmesh, partitioner, geom_type, comm) {
+       num_ghost_layers_distmesh, num_ghost_layers_boundary,
+       partitioner, geom_type, comm) {
   set_space_dimension(1);
   set_cell_dimension(1);
 
@@ -123,6 +127,7 @@ Mesh_simple::Mesh_simple(const std::shared_ptr<Mesh> inmesh,
                          const int num_tiles_ini,
                          const int num_ghost_layers_tile,
                          const int num_ghost_layers_distmesh,
+                         const int num_ghost_layers_boundary,
                          const Partitioner_type partitioner,
                          const JaliGeometry::Geom_type geom_type) {
   Errors::Message mesg("Construction of new mesh from an existing mesh not yet"
@@ -143,6 +148,7 @@ Mesh_simple::Mesh_simple(const Mesh& inmesh,
                          const int num_tiles_ini,
                          const int num_ghost_layers_tile,
                          const int num_ghost_layers_distmesh,
+                         const int num_ghost_layers_boundary,
                          const Partitioner_type partitioner,
                          const JaliGeometry::Geom_type geom_type) {
   Errors::Message mesg("Construction of new mesh from an existing mesh not yet"
@@ -163,6 +169,7 @@ Mesh_simple::Mesh_simple(const Mesh& inmesh,
                          const int num_tiles_ini,
                          const int num_ghost_layers_tile,
                          const int num_ghost_layers_distmesh,
+                         const int num_ghost_layers_boundary,
                          const Partitioner_type partitioner,
                          const JaliGeometry::Geom_type geom_type) {
   Errors::Message mesg("Construction of new mesh from an existing mesh not yet"

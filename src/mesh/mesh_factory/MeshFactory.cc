@@ -63,6 +63,9 @@ void MeshFactory::reset_options(void) {
   /// Number of ghost/halo layers for mesh partitions across compute nodes
   num_ghost_layers_distmesh_ = 1;
 
+  /// Number of ghost/virtual element layers outside external boundaries
+  num_ghost_layers_boundary_ = 0;
+
   /// Partitioner type
   partitioner_ = Partitioner_type::METIS;
 
@@ -146,6 +149,7 @@ MeshFactory::create(const std::string& filename) {
                                 num_tiles_,
                                 num_ghost_layers_tile_,
                                 num_ghost_layers_distmesh_,
+                                num_ghost_layers_boundary_,
                                 partitioner_,
                                 geom_type_);
         if (geometric_model_ &&
@@ -243,6 +247,7 @@ MeshFactory::create(double x0, double y0, double z0,
                                     num_tiles_,
                                     num_ghost_layers_tile_,
                                     num_ghost_layers_distmesh_,
+                                    num_ghost_layers_boundary_,
                                     partitioner_);
         return result;
       } catch (const Message& msg) {
@@ -331,6 +336,7 @@ MeshFactory::create(double x0, double y0,
                                     num_tiles_,
                                     num_ghost_layers_tile_,
                                     num_ghost_layers_distmesh_,
+                                    num_ghost_layers_boundary_,
                                     partitioner_,
                                     geom_type_);
         return result;
@@ -411,6 +417,7 @@ MeshFactory::create(std::vector<double> const& x) {
                                     num_tiles_,
                                     num_ghost_layers_tile_,
                                     num_ghost_layers_distmesh_,
+                                    num_ghost_layers_boundary_,
                                     partitioner_,
                                     geom_type_);
         return result;
@@ -471,6 +478,7 @@ MeshFactory::create(const std::shared_ptr<Mesh> inmesh,
                                    num_tiles_,
                                    num_ghost_layers_tile_,
                                    num_ghost_layers_distmesh_,
+                                   num_ghost_layers_boundary_,
                                    partitioner_,
                                    geom_type_);
         return result;
