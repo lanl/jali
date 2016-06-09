@@ -251,6 +251,21 @@ class MeshTile {
 
  private:
 
+  void get_nodes_of_set(const Set_Name setname, const Entity_type ptype,
+                        Entity_ID_List *entids) const;
+  void get_edges_of_set(const Set_Name setname, const Entity_type ptype,
+                        Entity_ID_List *entids) const;
+  void get_faces_of_set(const Set_Name setname, const Entity_type ptype,
+                        Entity_ID_List *entids) const;
+  void get_sides_of_set(const Set_Name setname, const Entity_type ptype,
+                        Entity_ID_List *entids) const;
+  void get_wedges_of_set(const Set_Name setname, const Entity_type ptype,
+                        Entity_ID_List *entids) const;
+  void get_corners_of_set(const Set_Name setname, const Entity_type ptype,
+                        Entity_ID_List *entids) const;
+  void get_cells_of_set(const Set_Name setname, const Entity_type ptype,
+                        Entity_ID_List *entids) const;
+
   // Data
 
   Mesh& mesh_;
