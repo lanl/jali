@@ -110,42 +110,46 @@ bool entity_valid_kind(const Entity_kind kind) {
 
 
 
-// Parallel status of entity
+// Entity type - includes UNKNOWN_TYPE, PARALLEL_OWNED, PARALLEL_GHOST,
+// ALL, BOUNDARY_GHOST, DELETED
 
-enum class Parallel_type :  std::uint8_t {
-  PTYPE_UNKNOWN = 0,  // Initializer
-  OWNED = 1,         // Owned by this processor
-  GHOST = 2,         // Owned by another processor
-  ALL  = 3           // Parallel_type::OWNED + Parallel_type::GHOST
+enum class Entity_type : std::int8_t {
+    TYPE_UNKNOWN = -1,
+    DELETED = 0,
+    PARALLEL_OWNED = 1,    // Owned by this processor
+    PARALLEL_GHOST = 2,    // Owned by another processor
+    BOUNDARY_GHOST = 3,    // Ghost/Virtual entity on boundary
+    ALL  = 4      // PARALLEL_OWNED + PARALLEL_GHOST + BOUNDARY_GHOST
 };
 
-const int NUM_PARALLEL_TYPES = 4;
+const int NUM_ENTITY_TYPES = 6;
+
+// Check if Entity_type is valid
+
+inline
+bool valid_entity_type(const Entity_type type) {
+  int itype = static_cast<int>(type);
+  return (itype >= 0 && itype < NUM_ENTITY_TYPES);
+}
 
 // Return a string describing the entity kind that can be printed out
 inline
-std::string Parallel_type_string(Parallel_type const ptype) {
-  static const std::string parallel_type_str[4] =
-      {"Parallel_type::PTYPE_UNKNOWN", "Parallel_type::OWNED",
-       "Parallel_type::GHOST", "Parallel_type::ALL"};
+std::string Entity_type_string(Entity_type const type) {
+  static const std::string type_str[6] =
+      {"Entity_type::TYPE_UNKNOWN", "Entity_type::DELETED",
+       "Entity_type::PARALLEL_OWNED", "Entity_type::PARALLEL_GHOST",
+       "Entity_type::BOUNDARY_GHOST", "Entity_type::ALL"};
 
-  int iptype = static_cast<int>(ptype);
-  return (iptype >= 0 && iptype < NUM_PARALLEL_TYPES) ?
-      parallel_type_str[iptype] : "";
+  int itype = static_cast<int>(type);
+  return valid_entity_type(type) ? type_str[itype] : "";
 }
 
 
-// Output operator for Parallel_type
+// Output operator for Entity_type
 inline
-std::ostream& operator<<(std::ostream& os, const Parallel_type& ptype) {
-  os << " " << Parallel_type_string(ptype) << " ";
+std::ostream& operator<<(std::ostream& os, const Entity_type& ptype) {
+  os << " " << Entity_type_string(ptype) << " ";
   return os;
-}
-
-// Check if Parallel_type is valid
-
-inline
-bool entity_valid_ptype(const Parallel_type ptype) {
-  return (ptype >= Parallel_type::OWNED && ptype <= Parallel_type::ALL);
 }
 
 

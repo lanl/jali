@@ -24,10 +24,10 @@ TEST(JaliStateVector_Cells_Mesh) {
 
   std::vector<double> data1 = {1.0, 3.0, 2.5, 4.5};
   Jali::StateVector<double> myvec1("var1", mesh, Jali::Entity_kind::CELL,
-                                   Jali::Parallel_type::ALL, &(data1[0]));
+                                   Jali::Entity_type::ALL, &(data1[0]));
 
   int ncells = mesh->num_entities(Jali::Entity_kind::CELL,
-                                  Jali::Parallel_type::ALL);
+                                  Jali::Entity_type::ALL);
   CHECK_EQUAL(ncells, myvec1.size());
   CHECK_EQUAL(data1[0], myvec1[0]);
   CHECK_EQUAL(data1[1], myvec1[1]);
@@ -40,7 +40,7 @@ TEST(JaliStateVector_Cells_Mesh) {
 
   double data2 = -1.33;
   Jali::StateVector<double> myvec2("var2", mesh, Jali::Entity_kind::CELL,
-                                   Jali::Parallel_type::ALL, data2);
+                                   Jali::Entity_type::ALL, data2);
 
   CHECK_EQUAL(ncells, myvec2.size());
   CHECK_EQUAL(data2, myvec2[0]);
@@ -52,7 +52,7 @@ TEST(JaliStateVector_Cells_Mesh) {
 
   Jali::StateVector<double> myvec3("var3", mesh,
                                    Jali::Entity_kind::CELL,
-                                   Jali::Parallel_type::ALL);                                               
+                                   Jali::Entity_type::ALL);                                               
   CHECK_EQUAL(ncells, myvec3.size());
 }
  
@@ -66,11 +66,11 @@ TEST(JaliStateVectorNodes) {
 
   std::vector<double> data1 = {1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0};
   Jali::StateVector<double> myvec1("var1", mesh, Jali::Entity_kind::NODE,
-                                   Jali::Parallel_type::OWNED,
+                                   Jali::Entity_type::PARALLEL_OWNED,
                                    &(data1[0]));
 
   int nnodes = mesh->num_entities(Jali::Entity_kind::NODE,
-                                  Jali::Parallel_type::OWNED);
+                                  Jali::Entity_type::PARALLEL_OWNED);
   CHECK_EQUAL(nnodes, myvec1.size());
   for (int i = 0; i < nnodes; ++i)
     CHECK_EQUAL(data1[i], myvec1[i]);
@@ -86,7 +86,7 @@ TEST(JaliStateVectorAssignCopy) {
 
   std::vector<double> data1 = {1.0, 3.0, 2.5, 4.5};
   Jali::StateVector<double> myvec1("var1", mesh, Jali::Entity_kind::CELL,
-                                   Jali::Parallel_type::ALL,
+                                   Jali::Entity_type::ALL,
                                    &(data1[0]));
 
   // Assignment (NOTE that doing myvec2 = myvec1 is a copy not an assignment)
@@ -144,7 +144,7 @@ TEST(JaliStateVectorArray) {
 
 
   int ncells = mesh->num_entities(Jali::Entity_kind::CELL,
-                                  Jali::Parallel_type::ALL);
+                                  Jali::Entity_type::ALL);
 
   std::vector<std::array<double, 2>> data1(ncells);
   data1[0][0] = -1.0; data1[0][1] = 1.0;
@@ -154,7 +154,7 @@ TEST(JaliStateVectorArray) {
 
   Jali::StateVector<std::array<double, 2>> myvec1("var1", mesh,
                                                   Jali::Entity_kind::CELL,
-                                                  Jali::Parallel_type::ALL,
+                                                  Jali::Entity_type::ALL,
                                                   &(data1[0]));
 
   // Verify we can retrieve the data as expected

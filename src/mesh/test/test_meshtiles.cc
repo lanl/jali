@@ -109,10 +109,10 @@ TEST(MESH_TILES_MPI) {
     // the mesh is distributed or not)
 
     for (auto const& t : meshtiles) {
-      CHECK(t->num_cells<Jali::Parallel_type::OWNED>() > 0);
-      CHECK(t->num_cells<Jali::Parallel_type::GHOST>() > 0);
-      CHECK_EQUAL(t->num_cells<Jali::Parallel_type::OWNED>() + 
-                  t->num_cells<Jali::Parallel_type::GHOST>(),
+      CHECK(t->num_cells<Jali::Entity_type::PARALLEL_OWNED>() > 0);
+      CHECK(t->num_cells<Jali::Entity_type::PARALLEL_GHOST>() > 0);
+      CHECK_EQUAL(t->num_cells<Jali::Entity_type::PARALLEL_OWNED>() + 
+                  t->num_cells<Jali::Entity_type::PARALLEL_GHOST>(),
                   t->num_cells());
     }
 
@@ -122,15 +122,15 @@ TEST(MESH_TILES_MPI) {
     std::vector<int> cell_num_owners(mesh->num_cells(), 0);
     for (auto const& t : meshtiles) {
       int tileID = t->ID();
-      for (auto const& c : t->cells<Jali::Parallel_type::OWNED>()) {
+      for (auto const& c : t->cells<Jali::Entity_type::PARALLEL_OWNED>()) {
         cell_owner[c] = tileID;
         cell_num_owners[c]++;
       }
     }
     for (auto const& c : mesh->cells()) {
-      Jali::Parallel_type ptype =
-          mesh->entity_get_ptype(Jali::Entity_kind::CELL, c);
-      if (ptype == Jali::Parallel_type::GHOST)
+      Jali::Entity_type ptype =
+          mesh->entity_get_type(Jali::Entity_kind::CELL, c);
+      if (ptype == Jali::Entity_type::PARALLEL_GHOST)
         continue;  // Processor ghost, no tile on this proc owns it
 
       CHECK(cell_owner[c] >= 0 && cell_owner[c] < num_tiles_requested);
@@ -141,10 +141,10 @@ TEST(MESH_TILES_MPI) {
       
     for (auto const& t : meshtiles) {
       int tileID = t->ID();
-      for (auto const& c : t->cells<Jali::Parallel_type::GHOST>()) {
-        Jali::Parallel_type ptype =
-            mesh->entity_get_ptype(Jali::Entity_kind::CELL, c);
-        if (ptype == Jali::Parallel_type::GHOST)
+      for (auto const& c : t->cells<Jali::Entity_type::PARALLEL_GHOST>()) {
+        Jali::Entity_type ptype =
+            mesh->entity_get_type(Jali::Entity_kind::CELL, c);
+        if (ptype == Jali::Entity_type::PARALLEL_GHOST)
           continue;  // Processor ghost, no tile on this proc owns it
 
         CHECK_EQUAL(cell_owner[c], mesh->master_tile_ID_of_cell(c));
@@ -157,10 +157,10 @@ TEST(MESH_TILES_MPI) {
     // the mesh is distributed or not)
 
     for (auto const& t : meshtiles) {
-      CHECK(t->num_nodes<Jali::Parallel_type::OWNED>() > 0);
-      CHECK(t->num_nodes<Jali::Parallel_type::GHOST>() > 0);
-      CHECK_EQUAL(t->num_nodes<Jali::Parallel_type::OWNED>() +
-                  t->num_nodes<Jali::Parallel_type::GHOST>(),
+      CHECK(t->num_nodes<Jali::Entity_type::PARALLEL_OWNED>() > 0);
+      CHECK(t->num_nodes<Jali::Entity_type::PARALLEL_GHOST>() > 0);
+      CHECK_EQUAL(t->num_nodes<Jali::Entity_type::PARALLEL_OWNED>() +
+                  t->num_nodes<Jali::Entity_type::PARALLEL_GHOST>(),
                   t->num_nodes());
     }
 
@@ -168,15 +168,15 @@ TEST(MESH_TILES_MPI) {
     std::vector<int> node_num_owners(mesh->num_nodes(), 0);
     for (auto const& t : meshtiles) {
       int tileID = t->ID();
-      for (auto const& n : t->nodes<Jali::Parallel_type::OWNED>()) {
+      for (auto const& n : t->nodes<Jali::Entity_type::PARALLEL_OWNED>()) {
         node_owner[n] = tileID;
         node_num_owners[n]++;
       }
     }
     for (auto const& n : mesh->nodes()) {
-      Jali::Parallel_type ptype =
-          mesh->entity_get_ptype(Jali::Entity_kind::NODE, n);
-      if (ptype == Jali::Parallel_type::GHOST)
+      Jali::Entity_type ptype =
+          mesh->entity_get_type(Jali::Entity_kind::NODE, n);
+      if (ptype == Jali::Entity_type::PARALLEL_GHOST)
         continue;  // Processor ghost, no tile on this proc owns it
 
       CHECK(node_owner[n] >= 0 && node_owner[n] < num_tiles_requested);
@@ -187,10 +187,10 @@ TEST(MESH_TILES_MPI) {
       
     for (auto const& t : meshtiles) {
       int tileID = t->ID();
-      for (auto const& n : t->nodes<Jali::Parallel_type::GHOST>()) {
-        Jali::Parallel_type ptype =
-            mesh->entity_get_ptype(Jali::Entity_kind::NODE, n);
-        if (ptype == Jali::Parallel_type::GHOST)
+      for (auto const& n : t->nodes<Jali::Entity_type::PARALLEL_GHOST>()) {
+        Jali::Entity_type ptype =
+            mesh->entity_get_type(Jali::Entity_kind::NODE, n);
+        if (ptype == Jali::Entity_type::PARALLEL_GHOST)
           continue;  // Processor ghost, no tile on this proc owns it
 
         CHECK_EQUAL(node_owner[n], mesh->master_tile_ID_of_node(n));
@@ -203,10 +203,10 @@ TEST(MESH_TILES_MPI) {
     // the mesh is distributed or not)
 
     for (auto const& t : meshtiles) {
-      CHECK(t->num_faces<Jali::Parallel_type::OWNED>() > 0);
-      CHECK(t->num_faces<Jali::Parallel_type::GHOST>() > 0);
-      CHECK_EQUAL(t->num_faces<Jali::Parallel_type::OWNED>() + 
-                  t->num_faces<Jali::Parallel_type::GHOST>(),
+      CHECK(t->num_faces<Jali::Entity_type::PARALLEL_OWNED>() > 0);
+      CHECK(t->num_faces<Jali::Entity_type::PARALLEL_GHOST>() > 0);
+      CHECK_EQUAL(t->num_faces<Jali::Entity_type::PARALLEL_OWNED>() + 
+                  t->num_faces<Jali::Entity_type::PARALLEL_GHOST>(),
                   t->num_faces());
     }
 
@@ -216,15 +216,15 @@ TEST(MESH_TILES_MPI) {
     std::vector<int> face_num_owners(mesh->num_faces(), 0);
     for (auto const& t : meshtiles) {
       int tileID = t->ID();
-      for (auto const& f : t->faces<Jali::Parallel_type::OWNED>()) {
+      for (auto const& f : t->faces<Jali::Entity_type::PARALLEL_OWNED>()) {
         face_owner[f] = tileID;
         face_num_owners[f]++;
       }
     }
     for (auto const& f : mesh->faces()) {
-      Jali::Parallel_type ptype =
-          mesh->entity_get_ptype(Jali::Entity_kind::FACE, f);
-      if (ptype == Jali::Parallel_type::GHOST)
+      Jali::Entity_type ptype =
+          mesh->entity_get_type(Jali::Entity_kind::FACE, f);
+      if (ptype == Jali::Entity_type::PARALLEL_GHOST)
         continue;  // Processor ghost, no tile on this proc owns it
 
       CHECK(face_owner[f] >= 0 && face_owner[f] < num_tiles_requested);
@@ -235,10 +235,10 @@ TEST(MESH_TILES_MPI) {
       
     for (auto const& t : meshtiles) {
       int tileID = t->ID();
-      for (auto const& f : t->faces<Jali::Parallel_type::GHOST>()) {
-        Jali::Parallel_type ptype =
-            mesh->entity_get_ptype(Jali::Entity_kind::FACE, f);
-        if (ptype == Jali::Parallel_type::GHOST)
+      for (auto const& f : t->faces<Jali::Entity_type::PARALLEL_GHOST>()) {
+        Jali::Entity_type ptype =
+            mesh->entity_get_type(Jali::Entity_kind::FACE, f);
+        if (ptype == Jali::Entity_type::PARALLEL_GHOST)
           continue;  // Processor ghost, no tile on this proc owns it
 
         CHECK_EQUAL(face_owner[f], mesh->master_tile_ID_of_face(f));
@@ -253,10 +253,10 @@ TEST(MESH_TILES_MPI) {
       // the mesh is distributed or not)
       
       for (auto const& t : meshtiles) {
-        CHECK(t->num_edges<Jali::Parallel_type::OWNED>() > 0);
-        CHECK(t->num_edges<Jali::Parallel_type::GHOST>() > 0);
-        CHECK_EQUAL(t->num_edges<Jali::Parallel_type::OWNED>() + 
-                    t->num_edges<Jali::Parallel_type::GHOST>(),
+        CHECK(t->num_edges<Jali::Entity_type::PARALLEL_OWNED>() > 0);
+        CHECK(t->num_edges<Jali::Entity_type::PARALLEL_GHOST>() > 0);
+        CHECK_EQUAL(t->num_edges<Jali::Entity_type::PARALLEL_OWNED>() + 
+                    t->num_edges<Jali::Entity_type::PARALLEL_GHOST>(),
                     t->num_edges());
       }
       
@@ -266,15 +266,15 @@ TEST(MESH_TILES_MPI) {
       std::vector<int> edge_num_owners(mesh->num_edges(), 0);
       for (auto const& t : meshtiles) {
         int tileID = t->ID();
-        for (auto const& e : t->edges<Jali::Parallel_type::OWNED>()) {
+        for (auto const& e : t->edges<Jali::Entity_type::PARALLEL_OWNED>()) {
           edge_owner[e] = tileID;
           edge_num_owners[e]++;
         }
       }
       for (auto const& e : mesh->edges()) {
-        Jali::Parallel_type ptype =
-            mesh->entity_get_ptype(Jali::Entity_kind::EDGE, e);
-        if (ptype == Jali::Parallel_type::GHOST)
+        Jali::Entity_type ptype =
+            mesh->entity_get_type(Jali::Entity_kind::EDGE, e);
+        if (ptype == Jali::Entity_type::PARALLEL_GHOST)
           continue;  // Processor ghost, no tile on this proc owns it
 
         CHECK(edge_owner[e] >= 0 && edge_owner[e] < num_tiles_requested);
@@ -285,10 +285,10 @@ TEST(MESH_TILES_MPI) {
       
       for (auto const& t : meshtiles) {
         int tileID = t->ID();
-        for (auto const& e : t->edges<Jali::Parallel_type::GHOST>()) {
-          Jali::Parallel_type ptype =
-              mesh->entity_get_ptype(Jali::Entity_kind::EDGE, e);
-          if (ptype == Jali::Parallel_type::GHOST)
+        for (auto const& e : t->edges<Jali::Entity_type::PARALLEL_GHOST>()) {
+          Jali::Entity_type ptype =
+              mesh->entity_get_type(Jali::Entity_kind::EDGE, e);
+          if (ptype == Jali::Entity_type::PARALLEL_GHOST)
             continue;  // Processor ghost, no tile on this proc owns it
 
           CHECK_EQUAL(edge_owner[e], mesh->master_tile_ID_of_edge(e));
@@ -304,10 +304,10 @@ TEST(MESH_TILES_MPI) {
       // the mesh is distributed or not)
       
       for (auto const& t : meshtiles) {
-        CHECK(t->num_sides<Jali::Parallel_type::OWNED>() > 0);
-        CHECK(t->num_sides<Jali::Parallel_type::GHOST>() > 0);
-        CHECK_EQUAL(t->num_sides<Jali::Parallel_type::OWNED>() + 
-                    t->num_sides<Jali::Parallel_type::GHOST>(),
+        CHECK(t->num_sides<Jali::Entity_type::PARALLEL_OWNED>() > 0);
+        CHECK(t->num_sides<Jali::Entity_type::PARALLEL_GHOST>() > 0);
+        CHECK_EQUAL(t->num_sides<Jali::Entity_type::PARALLEL_OWNED>() + 
+                    t->num_sides<Jali::Entity_type::PARALLEL_GHOST>(),
                     t->num_sides());
       }
       
@@ -317,15 +317,15 @@ TEST(MESH_TILES_MPI) {
       std::vector<int> side_num_owners(mesh->num_sides(), 0);
       for (auto const& t : meshtiles) {
         int tileID = t->ID();
-        for (auto const& s : t->sides<Jali::Parallel_type::OWNED>()) {
+        for (auto const& s : t->sides<Jali::Entity_type::PARALLEL_OWNED>()) {
           side_owner[s] = tileID;
           side_num_owners[s]++;
         }
       }
       for (auto const& s : mesh->sides()) {
-        Jali::Parallel_type ptype =
-            mesh->entity_get_ptype(Jali::Entity_kind::SIDE, s);
-        if (ptype == Jali::Parallel_type::GHOST)
+        Jali::Entity_type ptype =
+            mesh->entity_get_type(Jali::Entity_kind::SIDE, s);
+        if (ptype == Jali::Entity_type::PARALLEL_GHOST)
           continue;  // Processor ghost, no tile on this proc owns it
 
         CHECK(side_owner[s] >= 0 && side_owner[s] < num_tiles_requested);
@@ -336,10 +336,10 @@ TEST(MESH_TILES_MPI) {
       
       for (auto const& t : meshtiles) {
         int tileID = t->ID();
-        for (auto const& s : t->sides<Jali::Parallel_type::GHOST>()) {
-          Jali::Parallel_type ptype =
-              mesh->entity_get_ptype(Jali::Entity_kind::SIDE, s);
-          if (ptype == Jali::Parallel_type::GHOST)
+        for (auto const& s : t->sides<Jali::Entity_type::PARALLEL_GHOST>()) {
+          Jali::Entity_type ptype =
+              mesh->entity_get_type(Jali::Entity_kind::SIDE, s);
+          if (ptype == Jali::Entity_type::PARALLEL_GHOST)
             continue;  // Processor ghost, no tile on this proc owns it
 
           CHECK_EQUAL(side_owner[s], mesh->master_tile_ID_of_side(s));
@@ -354,10 +354,10 @@ TEST(MESH_TILES_MPI) {
       // the mesh is distributed or not)
       
       for (auto const& t : meshtiles) {
-        CHECK(t->num_wedges<Jali::Parallel_type::OWNED>() > 0);
-        CHECK(t->num_wedges<Jali::Parallel_type::GHOST>() > 0);
-        CHECK_EQUAL(t->num_wedges<Jali::Parallel_type::OWNED>() + 
-                    t->num_wedges<Jali::Parallel_type::GHOST>(),
+        CHECK(t->num_wedges<Jali::Entity_type::PARALLEL_OWNED>() > 0);
+        CHECK(t->num_wedges<Jali::Entity_type::PARALLEL_GHOST>() > 0);
+        CHECK_EQUAL(t->num_wedges<Jali::Entity_type::PARALLEL_OWNED>() + 
+                    t->num_wedges<Jali::Entity_type::PARALLEL_GHOST>(),
                     t->num_wedges());
       }
       
@@ -367,15 +367,15 @@ TEST(MESH_TILES_MPI) {
       std::vector<int> wedge_num_owners(mesh->num_wedges(), 0);
       for (auto const& t : meshtiles) {
         int tileID = t->ID();
-        for (auto const& w : t->wedges<Jali::Parallel_type::OWNED>()) {
+        for (auto const& w : t->wedges<Jali::Entity_type::PARALLEL_OWNED>()) {
           wedge_owner[w] = tileID;
           wedge_num_owners[w]++;
         }
       }
       for (auto const& w : mesh->wedges()) {
-        Jali::Parallel_type ptype =
-            mesh->entity_get_ptype(Jali::Entity_kind::WEDGE, w);
-        if (ptype == Jali::Parallel_type::GHOST)
+        Jali::Entity_type ptype =
+            mesh->entity_get_type(Jali::Entity_kind::WEDGE, w);
+        if (ptype == Jali::Entity_type::PARALLEL_GHOST)
           continue;  // Processor ghost, no tile on this proc owns it
 
         CHECK(wedge_owner[w] >= 0 && wedge_owner[w] < num_tiles_requested);
@@ -386,10 +386,10 @@ TEST(MESH_TILES_MPI) {
       
       for (auto const& t : meshtiles) {
         int tileID = t->ID();
-        for (auto const& w : t->wedges<Jali::Parallel_type::GHOST>()) {
-          Jali::Parallel_type ptype =
-              mesh->entity_get_ptype(Jali::Entity_kind::WEDGE, w);
-          if (ptype == Jali::Parallel_type::GHOST)
+        for (auto const& w : t->wedges<Jali::Entity_type::PARALLEL_GHOST>()) {
+          Jali::Entity_type ptype =
+              mesh->entity_get_type(Jali::Entity_kind::WEDGE, w);
+          if (ptype == Jali::Entity_type::PARALLEL_GHOST)
             continue;  // Processor ghost, no tile on this proc owns it
 
           CHECK_EQUAL(wedge_owner[w], mesh->master_tile_ID_of_wedge(w));
@@ -405,10 +405,10 @@ TEST(MESH_TILES_MPI) {
       // the mesh is distributed or not)
       
       for (auto const& t : meshtiles) {
-        CHECK(t->num_corners<Jali::Parallel_type::OWNED>() > 0);
-        CHECK(t->num_corners<Jali::Parallel_type::GHOST>() > 0);
-        CHECK_EQUAL(t->num_corners<Jali::Parallel_type::OWNED>() + 
-                    t->num_corners<Jali::Parallel_type::GHOST>(),
+        CHECK(t->num_corners<Jali::Entity_type::PARALLEL_OWNED>() > 0);
+        CHECK(t->num_corners<Jali::Entity_type::PARALLEL_GHOST>() > 0);
+        CHECK_EQUAL(t->num_corners<Jali::Entity_type::PARALLEL_OWNED>() + 
+                    t->num_corners<Jali::Entity_type::PARALLEL_GHOST>(),
                     t->num_corners());
       }
       
@@ -418,15 +418,15 @@ TEST(MESH_TILES_MPI) {
       std::vector<int> corner_num_owners(mesh->num_corners(), 0);
       for (auto const& t : meshtiles) {
         int tileID = t->ID();
-        for (auto const& cn : t->corners<Jali::Parallel_type::OWNED>()) {
+        for (auto const& cn : t->corners<Jali::Entity_type::PARALLEL_OWNED>()) {
           corner_owner[cn] = tileID;
           corner_num_owners[cn]++;
         }
       }
       for (auto const& cn : mesh->corners()) {
-        Jali::Parallel_type ptype =
-            mesh->entity_get_ptype(Jali::Entity_kind::CORNER, cn);
-        if (ptype == Jali::Parallel_type::GHOST)
+        Jali::Entity_type ptype =
+            mesh->entity_get_type(Jali::Entity_kind::CORNER, cn);
+        if (ptype == Jali::Entity_type::PARALLEL_GHOST)
           continue;  // Processor ghost, no tile on this proc owns it
 
         CHECK(corner_owner[cn] >= 0 && corner_owner[cn] < num_tiles_requested);
@@ -437,10 +437,10 @@ TEST(MESH_TILES_MPI) {
       
       for (auto const& t : meshtiles) {
         int tileID = t->ID();
-        for (auto const& cn : t->corners<Jali::Parallel_type::GHOST>()) {
-          Jali::Parallel_type ptype =
-              mesh->entity_get_ptype(Jali::Entity_kind::CORNER, cn);
-          if (ptype == Jali::Parallel_type::GHOST)
+        for (auto const& cn : t->corners<Jali::Entity_type::PARALLEL_GHOST>()) {
+          Jali::Entity_type ptype =
+              mesh->entity_get_type(Jali::Entity_kind::CORNER, cn);
+          if (ptype == Jali::Entity_type::PARALLEL_GHOST)
             continue;  // Processor ghost, no tile on this proc owns it
 
           CHECK_EQUAL(corner_owner[cn], mesh->master_tile_ID_of_corner(cn));
@@ -463,10 +463,9 @@ TEST(MESH_TILES_SETS) {
   const Jali::Framework frameworks[] = {Jali::MSTK, Jali::Simple};
   const char *framework_names[] = {"MSTK", "Simple"};
   const int numframeworks = sizeof(frameworks)/sizeof(Jali::Framework);
-  Jali::Framework the_framework;
   for (int i = 0; i < numframeworks; i++) {
     // Set the framework
-    the_framework = frameworks[i];
+    Jali::Framework the_framework = frameworks[i];
     if (!Jali::framework_available(the_framework)) continue;
 
     int dim = 2;
@@ -537,7 +536,7 @@ TEST(MESH_TILES_SETS) {
 
     Jali::Entity_ID_List boxcells;
     mesh->get_set_entities("box1",  Jali::Entity_kind::CELL,
-                          Jali::Parallel_type::OWNED, &boxcells);
+                          Jali::Entity_type::PARALLEL_OWNED, &boxcells);
     int nboxcells_local = boxcells.size();
     int nboxcells_global = 0;
     MPI_Allreduce(&nboxcells_local, &nboxcells_global, 1, MPI_INT,
@@ -551,7 +550,7 @@ TEST(MESH_TILES_SETS) {
 
     for (auto const& t : meshtiles) {
       int tileID = t->ID();
-      CHECK_EQUAL(4, t->num_cells<Jali::Parallel_type::OWNED>());
+      CHECK_EQUAL(4, t->num_cells<Jali::Entity_type::PARALLEL_OWNED>());
     }
 
     // Check that we are able to retrieve set entities on the tiles
@@ -567,7 +566,7 @@ TEST(MESH_TILES_SETS) {
       JaliGeometry::Point tilelo(99.0, 99.0);
       JaliGeometry::Point tilehi(-99.0, -99.0);
 
-      for (auto const& c : t->cells<Jali::Parallel_type::OWNED>()) {
+      for (auto const& c : t->cells<Jali::Entity_type::PARALLEL_OWNED>()) {
         std::vector<JaliGeometry::Point> cellpnts;
         mesh->cell_get_coordinates(c, &cellpnts);
         for (auto const& p : cellpnts) {
@@ -591,7 +590,7 @@ TEST(MESH_TILES_SETS) {
       // Get the tile's entities inside the box
 
       t->get_set_entities("box1", Jali::Entity_kind::CELL,
-                          Jali::Parallel_type::OWNED, &boxcells);
+                          Jali::Entity_type::PARALLEL_OWNED, &boxcells);
 
       // Make sure we got as many we expected - each tile has 4x4
       // cells and 2x2 cells of each tile are inside the box region
@@ -612,7 +611,7 @@ TEST(MESH_TILES_SETS) {
         CHECK_EQUAL(0, boxcells.size());
 
       t->get_set_entities("box1", Jali::Entity_kind::CELL,
-                          Jali::Parallel_type::ALL, &boxcells);
+                          Jali::Entity_type::ALL, &boxcells);
 
       // Make sure we got as many we expected - each 2x2 set of cells
       // of the tile within the box will touch other tiles in the box
@@ -631,14 +630,14 @@ TEST(MESH_TILES_SETS) {
 
       Jali::Entity_ID_List planefaces;
       t->get_set_entities("plane1", Jali::Entity_kind::FACE,
-                          Jali::Parallel_type::OWNED, &planefaces);
+                          Jali::Entity_type::PARALLEL_OWNED, &planefaces);
 
       if (fabs(tilelo[0]-(-1)) < 1.0e-12) {
         CHECK_EQUAL(2, planefaces.size());
 
         for (auto const& f : planefaces) {
           Jali::Entity_ID_List fcells;
-          mesh->face_get_cells(f, Jali::Parallel_type::ALL, &fcells);
+          mesh->face_get_cells(f, Jali::Entity_type::ALL, &fcells);
           CHECK_EQUAL(1, fcells.size());
 
           // Get outward normal of face (normalized)

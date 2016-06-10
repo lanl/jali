@@ -12,6 +12,7 @@
 #include <vector>
 #include <array>
 #include <string>
+#include <algorithm>
 #include <cassert>
 #include <typeinfo>
 
@@ -112,6 +113,7 @@ class Mesh {
        const int num_tiles_ini = 0,
        const int num_ghost_layers_tile = 0,
        const int num_ghost_layers_distmesh = 1,
+       const bool request_boundary_ghosts = false,
        const Partitioner_type partitioner = Partitioner_type::METIS,
        const JaliGeometry::Geom_type geom_type =
        JaliGeometry::Geom_type::CARTESIAN,
@@ -126,11 +128,12 @@ class Mesh {
     num_tiles_ini_(num_tiles_ini),
     num_ghost_layers_tile_(num_ghost_layers_tile),
     num_ghost_layers_distmesh_(num_ghost_layers_distmesh),
+    boundary_ghosts_requested_(request_boundary_ghosts),
     partitioner_pref_(partitioner),
     cell2face_info_cached(false), face2cell_info_cached(false),
     cell2edge_info_cached(false), face2edge_info_cached(false),
     side_info_cached(false), wedge_info_cached(false),
-    corner_info_cached(false), parallel_type_info_cached(false),
+    corner_info_cached(false), type_info_cached(false),
     geometric_model_(NULL), comm(incomm),
     geomtype(geom_type) {
     
@@ -230,10 +233,10 @@ class Mesh {
     return mesh_type_;
   }
 
-  //! Get parallel type of entity - OWNED, GHOST
+  //! Get type of entity - PARALLEL_OWNED, PARALLEL_GHOST, BOUNDARY_GHOST
 
-  Parallel_type entity_get_ptype(const Entity_kind kind,
-                                 const Entity_ID entid) const;
+  Entity_type entity_get_type(const Entity_kind kind,
+                              const Entity_ID entid) const;
 
 
   //! Parent entity in the source mesh if mesh was derived from another mesh
@@ -256,44 +259,44 @@ class Mesh {
   //
 
   //! Number of entities of any kind (cell, face, node) and in a
-  //! particular category (OWNED, GHOST, ALL)
+  //! particular category (PARALLEL_OWNED, PARALLEL_GHOST, ALL)
 
   unsigned int num_entities(const Entity_kind kind,
-                            const Parallel_type ptype) const;
+                            const Entity_type type) const;
 
-  //! Number of nodes of ptype (OWNED, GHOST, ALL)
+  //! Number of nodes of type (PARALLEL_OWNED, PARALLEL_GHOST, ALL)
 
-  template<Parallel_type ptype = Parallel_type::ALL>
+  template<Entity_type type = Entity_type::ALL>
   unsigned int num_nodes() const;
 
-  //! Number of edges of ptype (OWNED, GHOST, ALL)
+  //! Number of edges of type (PARALLEL_OWNED, PARALLEL_GHOST, ALL)
 
-  template<Parallel_type ptype = Parallel_type::ALL>
+  template<Entity_type type = Entity_type::ALL>
   unsigned int num_edges() const;
 
-  //! Number of faces of ptype (OWNED, GHOST, ALL)
+  //! Number of faces of type (PARALLEL_OWNED, PARALLEL_GHOST, ALL)
 
-  template<Parallel_type ptype = Parallel_type::ALL>
+  template<Entity_type type = Entity_type::ALL>
   unsigned int num_faces() const;
 
-  //! Number of sides of ptype (OWNED, GHOST, ALL)
+  //! Number of sides of type (PARALLEL_OWNED, PARALLEL_GHOST, ALL)
 
-  template<Parallel_type ptype = Parallel_type::ALL>
+  template<Entity_type type = Entity_type::ALL>
   unsigned int num_sides() const;
 
-  //! Number of wedges of ptype (OWNED, GHOST, ALL)
+  //! Number of wedges of type (PARALLEL_OWNED, PARALLEL_GHOST, ALL)
 
-  template<Parallel_type ptype = Parallel_type::ALL>
+  template<Entity_type type = Entity_type::ALL>
   unsigned int num_wedges() const;
 
-  //! Number of corners of ptype (OWNED, GHOST, ALL)
+  //! Number of corners of type (PARALLEL_OWNED, PARALLEL_GHOST, ALL)
 
-  template<Parallel_type ptype = Parallel_type::ALL>
+  template<Entity_type type = Entity_type::ALL>
   unsigned int num_corners() const;
 
-  //! Number of cells of ptype (OWNED, GHOST, ALL)
+  //! Number of cells of type (PARALLEL_OWNED, PARALLEL_GHOST, ALL)
 
-  template<Parallel_type ptype = Parallel_type::ALL>
+  template<Entity_type type = Entity_type::ALL>
   unsigned int num_cells() const;
 
 
@@ -317,37 +320,37 @@ class Mesh {
 
   //! Nodes of mesh (of a particular parallel type OWNED, GHOST or ALL)
 
-  template<Parallel_type ptype = Parallel_type::ALL>
+  template<Entity_type type = Entity_type::ALL>
   const std::vector<Entity_ID> & nodes() const;
 
   //! Edges of mesh (of a particular parallel type OWNED, GHOST or ALL)
 
-  template<Parallel_type ptype = Parallel_type::ALL>
+  template<Entity_type type = Entity_type::ALL>
   const std::vector<Entity_ID> & edges() const;
 
   //! Faces of mesh (of a particular parallel type OWNED, GHOST or ALL)
 
-  template<Parallel_type ptype = Parallel_type::ALL>
+  template<Entity_type type = Entity_type::ALL>
   const std::vector<Entity_ID> & faces() const;
 
   //! Sides of mesh (of a particular parallel type OWNED, GHOST or ALL)
 
-  template<Parallel_type ptype = Parallel_type::ALL>
+  template<Entity_type type = Entity_type::ALL>
   const std::vector<Entity_ID> & sides() const;
 
   //! Wedges of mesh (of a particular parallel type OWNED, GHOST or ALL)
 
-  template<Parallel_type ptype = Parallel_type::ALL>
+  template<Entity_type type = Entity_type::ALL>
   const std::vector<Entity_ID> & wedges() const;
 
   //! Corners of mesh (of a particular parallel type OWNED, GHOST or ALL)
 
-  template<Parallel_type ptype = Parallel_type::ALL>
+  template<Entity_type type = Entity_type::ALL>
   const std::vector<Entity_ID> & corners() const;
 
   //! Cells of mesh (of a particular parallel type OWNED, GHOST or ALL)
 
-  template<Parallel_type ptype = Parallel_type::ALL>
+  template<Entity_type type = Entity_type::ALL>
   const std::vector<Entity_ID> & cells() const;
 
 
@@ -579,23 +582,23 @@ class Mesh {
   // Upward adjacencies
   //-------------------
 
-  //! Cells of type 'ptype' connected to a node - The order of cells
+  //! Cells of type 'type' connected to a node - The order of cells
   //! is not guaranteed to be the same for corresponding nodes on
   //! different processors
 
   virtual
   void node_get_cells(const Entity_ID nodeid,
-                      const Parallel_type ptype,
+                      const Entity_type type,
                       Entity_ID_List *cellids) const = 0;
 
 
-  //! Faces of type 'ptype' connected to a node - The order of faces
+  //! Faces of type 'type' connected to a node - The order of faces
   //! is not guaranteed to be the same for corresponding nodes on
   //! different processors
 
   virtual
   void node_get_faces(const Entity_ID nodeid,
-                      const Parallel_type ptype,
+                      const Entity_type type,
                       Entity_ID_List *faceids) const = 0;
 
   //! Wedges connected to a node - The wedges are returned in no
@@ -603,7 +606,7 @@ class Mesh {
   //! be the same for corresponding nodes on different processors
 
   void node_get_wedges(const Entity_ID nodeid,
-                       const Parallel_type ptype,
+                       const Entity_type type,
                        Entity_ID_List *wedgeids) const;
 
   //! Corners connected to a node - The corners are returned in no
@@ -611,17 +614,17 @@ class Mesh {
   //! be the same for corresponding nodes on different processors
 
   void node_get_corners(const Entity_ID nodeid,
-                        const Parallel_type ptype,
+                        const Entity_type type,
                         Entity_ID_List *cornerids) const;
 
-  //! Get faces of ptype of a particular cell that are connected to the
+  //! Get faces of type of a particular cell that are connected to the
   //! given node - The order of faces is not guarnateed to be the same
   //! for corresponding nodes on different processors
 
   virtual
   void node_get_cell_faces(const Entity_ID nodeid,
                            const Entity_ID cellid,
-                           const Parallel_type ptype,
+                           const Entity_type type,
                             Entity_ID_List *faceids) const = 0;
 
   //! Cells connected to a face - The cells are returned in no
@@ -629,7 +632,7 @@ class Mesh {
   //! be the same for corresponding faces on different processors
 
   void face_get_cells(const Entity_ID faceid,
-                      const Parallel_type ptype,
+                      const Entity_type type,
                       Entity_ID_List *cellids) const;
 
   //! Cell of a wedge
@@ -657,17 +660,17 @@ class Mesh {
   // Same level adjacencies
   //-----------------------
 
-  //! Face connected neighboring cells of given cell of a particular ptype
+  //! Face connected neighboring cells of given cell of a particular type
   //! (e.g. a hex has 6 face neighbors)
   //!
   //! The order in which the cellids are returned cannot be
-  //! guaranteed in general except when ptype = ALL, in which case
+  //! guaranteed in general except when type = ALL, in which case
   //! the cellids will correcpond to cells across the respective
   //! faces given by cell_get_faces
 
   virtual
   void cell_get_face_adj_cells(const Entity_ID cellid,
-                               const Parallel_type ptype,
+                               const Entity_type type,
                                Entity_ID_List *fadj_cellids) const = 0;
 
   //! Node connected neighboring cells of given cell
@@ -676,7 +679,7 @@ class Mesh {
 
   virtual
   void cell_get_node_adj_cells(const Entity_ID cellid,
-                               const Parallel_type ptype,
+                               const Entity_type type,
                                Entity_ID_List *cellids) const = 0;
 
 
@@ -992,12 +995,12 @@ class Mesh {
   virtual
   unsigned int get_set_size(const Set_Name setname,
                              const Entity_kind kind,
-                             const Parallel_type ptype) const = 0;
+                             const Entity_type type) const = 0;
 
   virtual
   unsigned int get_set_size(const char *setname,
                              const Entity_kind kind,
-                             const Parallel_type ptype) const = 0;
+                             const Entity_type type) const = 0;
 
 
   //! Get list of entities of type 'category' in set
@@ -1005,13 +1008,13 @@ class Mesh {
   virtual
   void get_set_entities(const Set_Name setname,
                          const Entity_kind kind,
-                         const Parallel_type ptype,
+                         const Entity_type type,
                          Entity_ID_List *entids) const = 0;
 
   virtual
   void get_set_entities(const char *setname,
                          const Entity_kind kind,
-                         const Parallel_type ptype,
+                         const Entity_type type,
                          Entity_ID_List *entids) const = 0;
 
 
@@ -1062,7 +1065,7 @@ class Mesh {
 
   virtual
   void face_get_cells_internal(const Entity_ID faceid,
-                                const Parallel_type ptype,
+                                const Entity_type type,
                                 Entity_ID_List *cellids) const = 0;
 
 
@@ -1095,7 +1098,7 @@ class Mesh {
   // get nodes of an edge - virtual function that will be implemented
   // in each mesh framework. The results are cached in the base class
 
-  virtual 
+  virtual
   void edge_get_nodes_internal(const Entity_ID edgeid,
                                Entity_ID *enode0, Entity_ID *enode1) const = 0;
 
@@ -1193,7 +1196,7 @@ class Mesh {
   void compute_corner_geometry(const Entity_ID cornerid,
                               double *volume) const;
 
-  void cache_parallel_type_info() const;
+  void cache_type_info() const;
   void cache_cell2face_info() const;
   void cache_face2cell_info() const;
   void cache_cell2edge_info() const;
@@ -1268,6 +1271,7 @@ class Mesh {
   const int num_tiles_ini_;
   const int num_ghost_layers_tile_;
   const int num_ghost_layers_distmesh_;
+  const bool boundary_ghosts_requested_;
   const Partitioner_type partitioner_pref_;
   bool tiles_initialized_ = false;
   std::vector<std::shared_ptr<MeshTile>> meshtiles;
@@ -1292,19 +1296,23 @@ class Mesh {
   mutable std::vector<int> nodeids_owned_, nodeids_ghost_, nodeids_all_;
   mutable std::vector<int> edgeids_owned_, edgeids_ghost_, edgeids_all_;
   mutable std::vector<int> faceids_owned_, faceids_ghost_, faceids_all_;
-  mutable std::vector<int> sideids_owned_, sideids_ghost_, sideids_all_;
-  mutable std::vector<int> wedgeids_owned_, wedgeids_ghost_, wedgeids_all_;
-  mutable std::vector<int> cornerids_owned_, cornerids_ghost_, cornerids_all_;
-  mutable std::vector<int> cellids_owned_, cellids_ghost_, cellids_all_;
+  mutable std::vector<int> sideids_owned_, sideids_ghost_,
+    sideids_boundary_ghost_, sideids_all_;
+  mutable std::vector<int> wedgeids_owned_, wedgeids_ghost_,
+    wedgeids_boundary_ghost_, wedgeids_all_;
+  mutable std::vector<int> cornerids_owned_, cornerids_ghost_,
+    cornerids_boundary_ghost_, cornerids_all_;
+  mutable std::vector<int> cellids_owned_, cellids_ghost_,
+    cellids_boundary_ghost_, cellids_all_;
   std::vector<int> dummy_list_;  // for unspecialized cases
 
-  // Parallel type for essential entities - sides, wedges and corners will
-  // get their parallel type from their owning cell
+  // Type info for essential entities - sides, wedges and corners will
+  // get their type from their owning cell
 
-  mutable std::vector<Parallel_type> cell_parallel_type;
-  mutable std::vector<Parallel_type> face_parallel_type;  // if faces requested
-  mutable std::vector<Parallel_type> edge_parallel_type;  // if edges requested
-  mutable std::vector<Parallel_type> node_parallel_type;
+  mutable std::vector<Entity_type> cell_type;
+  mutable std::vector<Entity_type> face_type;  // if faces requested
+  mutable std::vector<Entity_type> edge_type;  // if edges requested
+  mutable std::vector<Entity_type> node_type;
 
   // Some standard topological relationships that are cached. The rest
   // are computed on the fly or obtained from the derived class
@@ -1369,7 +1377,7 @@ class Mesh {
 
   mutable bool faces_requested, edges_requested, sides_requested,
     wedges_requested, corners_requested;
-  mutable bool parallel_type_info_cached;
+  mutable bool type_info_cached;
   mutable bool cell2face_info_cached, face2cell_info_cached;
   mutable bool cell2edge_info_cached, face2edge_info_cached;
   mutable bool edge2node_info_cached;
@@ -1446,177 +1454,257 @@ class Mesh {
 
 // Templated version of num_entities with specializations on enum
 
-template<Parallel_type ptype> inline
+template<Entity_type type> inline
 unsigned int Mesh::num_nodes() const {
-  std::cerr << "num_nodes: Not defined for parallel type " << ptype << "\n";
+  std::cerr << "num_nodes: Not defined for parallel type " << type << "\n";
   return 0;
 }
 template<> inline
 unsigned int
-Mesh::num_nodes<Parallel_type::OWNED>() const {return nodeids_owned_.size();}
+Mesh::num_nodes<Entity_type::PARALLEL_OWNED>() const {
+  return nodeids_owned_.size();
+}
 template<> inline
 unsigned int
-Mesh::num_nodes<Parallel_type::GHOST>() const {return nodeids_ghost_.size();}
+Mesh::num_nodes<Entity_type::PARALLEL_GHOST>() const {
+  return nodeids_ghost_.size();
+}
 template<> inline
-unsigned int Mesh::num_nodes<Parallel_type::ALL>() const {
-  return num_nodes<Parallel_type::OWNED>() + num_nodes<Parallel_type::GHOST>();
+unsigned int Mesh::num_nodes<Entity_type::ALL>() const {
+  return num_nodes<Entity_type::PARALLEL_OWNED>() +
+      num_nodes<Entity_type::PARALLEL_GHOST>();
 }
 
-template<Parallel_type ptype> inline
+template<Entity_type type> inline
 unsigned int Mesh::num_edges() const {
-  std::cerr << "num_edges: Not defined for parallel type " << ptype << "\n";
+  std::cerr << "num_edges: Not defined for parallel type " << type << "\n";
   return 0;
 }
 template<> inline
 unsigned int
-Mesh::num_edges<Parallel_type::OWNED>() const {return edgeids_owned_.size();}
+Mesh::num_edges<Entity_type::PARALLEL_OWNED>() const {
+  return edgeids_owned_.size();
+}
 template<> inline
 unsigned int
-Mesh::num_edges<Parallel_type::GHOST>() const {return edgeids_ghost_.size();}
+Mesh::num_edges<Entity_type::PARALLEL_GHOST>() const {
+  return edgeids_ghost_.size();
+}
 template<> inline
-unsigned int Mesh::num_edges<Parallel_type::ALL>() const {
-  return num_edges<Parallel_type::OWNED>() + num_edges<Parallel_type::GHOST>();
+unsigned int Mesh::num_edges<Entity_type::ALL>() const {
+  return num_edges<Entity_type::PARALLEL_OWNED>() +
+      num_edges<Entity_type::PARALLEL_GHOST>();
 }
 
-template<Parallel_type ptype> inline
+template<Entity_type type> inline
 unsigned int Mesh::num_faces() const {
-  std::cerr << "num_faces: Not defined for parallel type " << ptype << "\n";
+  std::cerr << "num_faces: Not defined for parallel type " << type << "\n";
   return 0;
 }
 template<> inline
 unsigned int
-Mesh::num_faces<Parallel_type::OWNED>() const {return faceids_owned_.size();}
+Mesh::num_faces<Entity_type::PARALLEL_OWNED>() const {
+  return faceids_owned_.size();
+}
 template<> inline
 unsigned int
-Mesh::num_faces<Parallel_type::GHOST>() const {return faceids_ghost_.size();}
+Mesh::num_faces<Entity_type::PARALLEL_GHOST>() const {
+  return faceids_ghost_.size();
+}
 template<> inline
-unsigned int Mesh::num_faces<Parallel_type::ALL>() const {
-  return num_faces<Parallel_type::OWNED>() + num_faces<Parallel_type::GHOST>();
+unsigned int Mesh::num_faces<Entity_type::ALL>() const {
+  return (num_faces<Entity_type::PARALLEL_OWNED>() +
+          num_faces<Entity_type::PARALLEL_GHOST>());
 }
 
-template<Parallel_type ptype> inline
+template<Entity_type type> inline
 unsigned int Mesh::num_sides() const {
-  std::cerr << "num_sides: Not defined for parallel type " << ptype << "\n";
+  std::cerr << "num_sides: Not defined for parallel type " << type << "\n";
   return 0;
 }
 template<> inline
 unsigned int
-Mesh::num_sides<Parallel_type::OWNED>() const {return sideids_owned_.size();}
+Mesh::num_sides<Entity_type::PARALLEL_OWNED>() const {
+  return sideids_owned_.size();
+}
 template<> inline
 unsigned int
-Mesh::num_sides<Parallel_type::GHOST>() const {return sideids_ghost_.size();}
+Mesh::num_sides<Entity_type::PARALLEL_GHOST>() const {
+  return sideids_ghost_.size();
+}
 template<> inline
-unsigned int Mesh::num_sides<Parallel_type::ALL>() const {
-  return (num_sides<Parallel_type::OWNED>() +
-          num_sides<Parallel_type::GHOST>());
+unsigned int
+Mesh::num_sides<Entity_type::BOUNDARY_GHOST>() const {
+  return sideids_boundary_ghost_.size();
+}
+template<> inline
+unsigned int Mesh::num_sides<Entity_type::ALL>() const {
+  return (num_sides<Entity_type::PARALLEL_OWNED>() +
+          num_sides<Entity_type::PARALLEL_GHOST>() +
+          num_sides<Entity_type::BOUNDARY_GHOST>());
 }
 
-template<Parallel_type ptype> inline
+template<Entity_type type> inline
 unsigned int Mesh::num_wedges() const {
-  std::cerr << "num_wedges: Not defined for parallel type " << ptype << "\n";
+  std::cerr << "num_wedges: Not defined for parallel type " << type << "\n";
   return 0;
 }
 template<> inline
 unsigned int
-Mesh::num_wedges<Parallel_type::OWNED>() const {return wedgeids_owned_.size();}
+Mesh::num_wedges<Entity_type::PARALLEL_OWNED>() const {
+  return wedgeids_owned_.size();
+}
 template<> inline
 unsigned int
-Mesh::num_wedges<Parallel_type::GHOST>() const {return wedgeids_ghost_.size();}
+Mesh::num_wedges<Entity_type::PARALLEL_GHOST>() const {
+return wedgeids_ghost_.size();
+}
 template<> inline
-unsigned int Mesh::num_wedges<Parallel_type::ALL>() const {
-  return (num_wedges<Parallel_type::OWNED>() +
-          num_wedges<Parallel_type::GHOST>());
+unsigned int
+Mesh::num_wedges<Entity_type::BOUNDARY_GHOST>() const {
+return wedgeids_boundary_ghost_.size();
+}
+template<> inline
+unsigned int Mesh::num_wedges<Entity_type::ALL>() const {
+  return (num_wedges<Entity_type::PARALLEL_OWNED>() +
+          num_wedges<Entity_type::PARALLEL_GHOST>() +
+          num_wedges<Entity_type::BOUNDARY_GHOST>());
 }
 
-template<Parallel_type ptype> inline
+template<Entity_type type> inline
 unsigned int Mesh::num_corners() const {
-  std::cerr << "num_corners: Not defined for parallel type " << ptype << "\n";
+  std::cerr << "num_corners: Not defined for type " << type << "\n";
   return 0;
 }
 template<> inline
 unsigned int
-Mesh::num_corners<Parallel_type::OWNED>() const {
+Mesh::num_corners<Entity_type::PARALLEL_OWNED>() const {
   return cornerids_owned_.size();
 }
 template<> inline
 unsigned int
-Mesh::num_corners<Parallel_type::GHOST>() const {
+Mesh::num_corners<Entity_type::PARALLEL_GHOST>() const {
   return cornerids_ghost_.size();
 }
 template<> inline
-unsigned int Mesh::num_corners<Parallel_type::ALL>() const {
-  return (num_corners<Parallel_type::OWNED>() +
-          num_corners<Parallel_type::GHOST>());
+unsigned int Mesh::num_corners<Entity_type::BOUNDARY_GHOST>() const {
+  return cornerids_boundary_ghost_.size();
+}
+template<> inline
+unsigned int Mesh::num_corners<Entity_type::ALL>() const {
+  return (num_corners<Entity_type::PARALLEL_OWNED>() +
+          num_corners<Entity_type::PARALLEL_GHOST>() +
+          num_corners<Entity_type::BOUNDARY_GHOST>());
 }
 
-template<Parallel_type ptype> inline
+template<Entity_type type> inline
 unsigned int Mesh::num_cells() const {
-  std::cerr << "num_cells: Not defined for parallel type " << ptype << "\n";
+  std::cerr << "num_cells: Not defined for parallel type " << type << "\n";
   return 0;
 }
 template<> inline
 unsigned int
-Mesh::num_cells<Parallel_type::OWNED>() const {return cellids_owned_.size();}
+Mesh::num_cells<Entity_type::PARALLEL_OWNED>() const {
+  return cellids_owned_.size();
+}
 template<> inline
 unsigned int
-Mesh::num_cells<Parallel_type::GHOST>() const {return cellids_ghost_.size();}
+Mesh::num_cells<Entity_type::PARALLEL_GHOST>() const {
+  return cellids_ghost_.size();
+}
 template<> inline
-unsigned int Mesh::num_cells<Parallel_type::ALL>() const {
-  return num_cells<Parallel_type::OWNED>() + num_cells<Parallel_type::GHOST>();
+unsigned int
+Mesh::num_cells<Entity_type::BOUNDARY_GHOST>() const {
+  return cellids_boundary_ghost_.size();
+}
+template<> inline
+unsigned int Mesh::num_cells<Entity_type::ALL>() const {
+  return (num_cells<Entity_type::PARALLEL_OWNED>() +
+          num_cells<Entity_type::PARALLEL_GHOST>() +
+          num_cells<Entity_type::BOUNDARY_GHOST>());
 }
 
 
 inline
 unsigned int Mesh::num_entities(const Entity_kind kind,
-                                const Parallel_type ptype) const {
+                                const Entity_type type) const {
   switch (kind) {
     case Entity_kind::NODE:
-      switch (ptype) {
-        case Parallel_type::OWNED: return num_nodes<Parallel_type::OWNED>();
-        case Parallel_type::GHOST: return num_nodes<Parallel_type::GHOST>();
-        case Parallel_type::ALL: return num_nodes<Parallel_type::ALL>();
+      switch (type) {
+        case Entity_type::PARALLEL_OWNED:
+          return num_nodes<Entity_type::PARALLEL_OWNED>();
+        case Entity_type::PARALLEL_GHOST:
+          return num_nodes<Entity_type::PARALLEL_GHOST>();
+        case Entity_type::ALL:
+          return num_nodes<Entity_type::ALL>();
         default: return 0;
       }
     case Entity_kind::EDGE:
-      switch (ptype) {
-        case Parallel_type::OWNED: return num_edges<Parallel_type::OWNED>();
-        case Parallel_type::GHOST: return num_edges<Parallel_type::GHOST>();
-        case Parallel_type::ALL: return num_edges<Parallel_type::ALL>();
+      switch (type) {
+        case Entity_type::PARALLEL_OWNED:
+          return num_edges<Entity_type::PARALLEL_OWNED>();
+        case Entity_type::PARALLEL_GHOST:
+          return num_edges<Entity_type::PARALLEL_GHOST>();
+        case Entity_type::ALL:
+          return num_edges<Entity_type::ALL>();
         default: return 0;
       }
     case Entity_kind::FACE:
-      switch (ptype) {
-        case Parallel_type::OWNED: return num_faces<Parallel_type::OWNED>();
-        case Parallel_type::GHOST: return num_faces<Parallel_type::GHOST>();
-        case Parallel_type::ALL: return num_faces<Parallel_type::ALL>();
+      switch (type) {
+        case Entity_type::PARALLEL_OWNED:
+          return num_faces<Entity_type::PARALLEL_OWNED>();
+        case Entity_type::PARALLEL_GHOST:
+          return num_faces<Entity_type::PARALLEL_GHOST>();
+        case Entity_type::ALL:
+          return num_faces<Entity_type::ALL>();
         default: return 0;
       }
     case Entity_kind::SIDE:
-      switch (ptype) {
-        case Parallel_type::OWNED: return num_sides<Parallel_type::OWNED>();
-        case Parallel_type::GHOST: return num_sides<Parallel_type::GHOST>();
-        case Parallel_type::ALL: return num_sides<Parallel_type::ALL>();
+      switch (type) {
+        case Entity_type::PARALLEL_OWNED:
+          return num_sides<Entity_type::PARALLEL_OWNED>();
+        case Entity_type::PARALLEL_GHOST:
+          return num_sides<Entity_type::PARALLEL_GHOST>();
+        case Entity_type::BOUNDARY_GHOST:
+          return num_sides<Entity_type::BOUNDARY_GHOST>();
+        case Entity_type::ALL:
+          return num_sides<Entity_type::ALL>();
         default: return 0;
       }
     case Entity_kind::WEDGE:
-      switch (ptype) {
-        case Parallel_type::OWNED: return num_wedges<Parallel_type::OWNED>();
-        case Parallel_type::GHOST: return num_wedges<Parallel_type::GHOST>();
-        case Parallel_type::ALL: return num_wedges<Parallel_type::ALL>();
+      switch (type) {
+        case Entity_type::PARALLEL_OWNED:
+          return num_wedges<Entity_type::PARALLEL_OWNED>();
+        case Entity_type::PARALLEL_GHOST:
+          return num_wedges<Entity_type::PARALLEL_GHOST>();
+        case Entity_type::BOUNDARY_GHOST:
+          return num_wedges<Entity_type::BOUNDARY_GHOST>();
+        case Entity_type::ALL:
+          return num_wedges<Entity_type::ALL>();
         default: return 0;
       }
     case Entity_kind::CORNER:
-      switch (ptype) {
-        case Parallel_type::OWNED: return num_corners<Parallel_type::OWNED>();
-        case Parallel_type::GHOST: return num_corners<Parallel_type::GHOST>();
-        case Parallel_type::ALL: return num_corners<Parallel_type::ALL>();
+      switch (type) {
+        case Entity_type::PARALLEL_OWNED:
+          return num_corners<Entity_type::PARALLEL_OWNED>();
+        case Entity_type::PARALLEL_GHOST:
+          return num_corners<Entity_type::PARALLEL_GHOST>();
+        case Entity_type::BOUNDARY_GHOST:
+          return num_corners<Entity_type::BOUNDARY_GHOST>();
+        case Entity_type::ALL:
+          return num_corners<Entity_type::ALL>();
         default: return 0;
       }
     case Entity_kind::CELL:
-      switch (ptype) {
-        case Parallel_type::OWNED: return num_cells<Parallel_type::OWNED>();
-        case Parallel_type::GHOST: return num_cells<Parallel_type::GHOST>();
-        case Parallel_type::ALL: return num_cells<Parallel_type::ALL>();
+      switch (type) {
+        case Entity_type::PARALLEL_OWNED:
+          return num_cells<Entity_type::PARALLEL_OWNED>();
+        case Entity_type::PARALLEL_GHOST:
+          return num_cells<Entity_type::PARALLEL_GHOST>();
+        case Entity_type::BOUNDARY_GHOST:
+          return num_cells<Entity_type::BOUNDARY_GHOST>();
+        case Entity_type::ALL:
+          return num_cells<Entity_type::ALL>();
         default: return 0;
       }
     default:
@@ -1629,143 +1717,180 @@ unsigned int Mesh::num_entities(const Entity_kind kind,
 // implementation prints error message - meaningful values returned
 // through template specialization)
 
-template<Parallel_type ptype> inline
+template<Entity_type type> inline
 const std::vector<Entity_ID> & Mesh::nodes() const {
   std::cerr << "Mesh::nodes() - " <<
       "Meaningless to query for list of nodes of parallel type " <<
-      ptype << "\n";
+      type << "\n";
   return dummy_list_;
 }
 template<> inline
-const std::vector<Entity_ID> & Mesh::nodes<Parallel_type::OWNED>() const {
+const std::vector<Entity_ID>&
+Mesh::nodes<Entity_type::PARALLEL_OWNED>() const {
   return nodeids_owned_;
 }
 template<> inline
-const std::vector<Entity_ID> & Mesh::nodes<Parallel_type::GHOST>() const {
+const std::vector<Entity_ID>&
+Mesh::nodes<Entity_type::PARALLEL_GHOST>() const {
   return nodeids_ghost_;
 }
 template<> inline
-const std::vector<Entity_ID> & Mesh::nodes<Parallel_type::ALL>() const {
+const std::vector<Entity_ID> & Mesh::nodes<Entity_type::ALL>() const {
   return nodeids_all_;
 }
 
-template<Parallel_type ptype> inline
+template<Entity_type type> inline
 const std::vector<Entity_ID> & Mesh::edges() const {
   std::cerr << "Mesh::edges() - " <<
       "Meaningless to query for list of edges of parallel type " <<
-      ptype << "\n";
+      type << "\n";
   return dummy_list_;
 }
 template<> inline
-const std::vector<Entity_ID> & Mesh::edges<Parallel_type::OWNED>() const {
+const std::vector<Entity_ID>&
+Mesh::edges<Entity_type::PARALLEL_OWNED>() const {
   return edgeids_owned_;
 }
 template<> inline
-const std::vector<Entity_ID> & Mesh::edges<Parallel_type::GHOST>() const {
+const std::vector<Entity_ID>&
+Mesh::edges<Entity_type::PARALLEL_GHOST>() const {
   return edgeids_ghost_;
 }
 template<> inline
-const std::vector<Entity_ID> & Mesh::edges<Parallel_type::ALL>() const {
+const std::vector<Entity_ID> & Mesh::edges<Entity_type::ALL>() const {
   return edgeids_all_;
 }
 
-template<Parallel_type ptype> inline
+template<Entity_type type> inline
 const std::vector<Entity_ID> & Mesh::faces() const {
   std::cerr << "Mesh::faces() - " <<
       "Meaningless to query for list of faces of parallel type " <<
-      ptype << "\n";
+      type << "\n";
   return dummy_list_;
 }
 template<> inline
-const std::vector<Entity_ID> & Mesh::faces<Parallel_type::OWNED>() const {
+const std::vector<Entity_ID>&
+Mesh::faces<Entity_type::PARALLEL_OWNED>() const {
   return faceids_owned_;
 }
 template<> inline
-const std::vector<Entity_ID> & Mesh::faces<Parallel_type::GHOST>() const {
+const std::vector<Entity_ID>&
+Mesh::faces<Entity_type::PARALLEL_GHOST>() const {
   return faceids_ghost_;
 }
 template<> inline
-const std::vector<Entity_ID> & Mesh::faces<Parallel_type::ALL>() const {
+const std::vector<Entity_ID> & Mesh::faces<Entity_type::ALL>() const {
   return faceids_all_;
 }
 
-template<Parallel_type ptype> inline
+template<Entity_type type> inline
 const std::vector<Entity_ID> & Mesh::sides() const {
   std::cerr << "Mesh::sides() - " <<
       "Meaningless to query for list of sides of parallel type " <<
-      ptype << "\n";
+      type << "\n";
   return dummy_list_;
 }
 template<> inline
-const std::vector<Entity_ID> & Mesh::sides<Parallel_type::OWNED>() const {
+const std::vector<Entity_ID>&
+Mesh::sides<Entity_type::PARALLEL_OWNED>() const {
   return sideids_owned_;
 }
 template<> inline
-const std::vector<Entity_ID> & Mesh::sides<Parallel_type::GHOST>() const {
+const std::vector<Entity_ID>&
+Mesh::sides<Entity_type::PARALLEL_GHOST>() const {
   return sideids_ghost_;
 }
 template<> inline
-const std::vector<Entity_ID> & Mesh::sides<Parallel_type::ALL>() const {
+const std::vector<Entity_ID>&
+Mesh::sides<Entity_type::BOUNDARY_GHOST>() const {
+  return sideids_boundary_ghost_;
+}
+template<> inline
+const std::vector<Entity_ID> & Mesh::sides<Entity_type::ALL>() const {
   return sideids_all_;
 }
 
-template<Parallel_type ptype> inline
+template<Entity_type type> inline
 const std::vector<Entity_ID> & Mesh::wedges() const {
   std::cerr << "Mesh::wedges() - " <<
       "Meaningless to query for list of wedges of parallel type " <<
-      ptype << "\n";
+      type << "\n";
   return dummy_list_;
 }
 template<> inline
-const std::vector<Entity_ID> & Mesh::wedges<Parallel_type::OWNED>() const {
+const std::vector<Entity_ID>&
+Mesh::wedges<Entity_type::PARALLEL_OWNED>() const {
   return wedgeids_owned_;
 }
 template<> inline
-const std::vector<Entity_ID> & Mesh::wedges<Parallel_type::GHOST>() const {
+const std::vector<Entity_ID>&
+Mesh::wedges<Entity_type::PARALLEL_GHOST>() const {
   return wedgeids_ghost_;
 }
 template<> inline
-const std::vector<Entity_ID> & Mesh::wedges<Parallel_type::ALL>() const {
+const std::vector<Entity_ID>&
+Mesh::wedges<Entity_type::BOUNDARY_GHOST>() const {
+  return wedgeids_boundary_ghost_;
+}
+template<> inline
+const std::vector<Entity_ID>&
+Mesh::wedges<Entity_type::ALL>() const {
   return wedgeids_all_;
 }
 
-template<Parallel_type ptype> inline
+template<Entity_type type> inline
 const std::vector<Entity_ID> & Mesh::corners() const {
   std::cerr << "Mesh::corners() - " <<
       "Meaningless to query for list of corners of parallel type " <<
-      ptype << "\n";
+      type << "\n";
   return dummy_list_;
 }
 template<> inline
-const std::vector<Entity_ID> & Mesh::corners<Parallel_type::OWNED>() const {
+const std::vector<Entity_ID>&
+Mesh::corners<Entity_type::PARALLEL_OWNED>() const {
   return cornerids_owned_;
 }
 template<> inline
-const std::vector<Entity_ID> & Mesh::corners<Parallel_type::GHOST>() const {
+const std::vector<Entity_ID>&
+Mesh::corners<Entity_type::PARALLEL_GHOST>() const {
   return cornerids_ghost_;
 }
 template<> inline
-const std::vector<Entity_ID> & Mesh::corners<Parallel_type::ALL>() const {
+const std::vector<Entity_ID>&
+Mesh::corners<Entity_type::BOUNDARY_GHOST>() const {
+  return cornerids_boundary_ghost_;
+}
+template<> inline
+const std::vector<Entity_ID>&
+Mesh::corners<Entity_type::ALL>() const {
   return cornerids_all_;
 }
 
-template<Parallel_type ptype> inline
+template<Entity_type type> inline
 const std::vector<Entity_ID> & Mesh::cells() const {
   std::cerr << "Mesh::cells() - " <<
       "Meaningless to query for list of cells of parallel type " <<
-      ptype << "\n";
+      type << "\n";
   return dummy_list_;
 }
 template<> inline
-const std::vector<Entity_ID> & Mesh::cells<Parallel_type::OWNED>() const {
+const std::vector<Entity_ID>&
+Mesh::cells<Entity_type::PARALLEL_OWNED>() const {
   return cellids_owned_;
 }
 template<> inline
-const std::vector<Entity_ID> & Mesh::cells<Parallel_type::GHOST>() const {
+const std::vector<Entity_ID>&
+Mesh::cells<Entity_type::PARALLEL_GHOST>() const {
   return cellids_ghost_;
 }
 template<> inline
-const std::vector<Entity_ID> & Mesh::cells<Parallel_type::ALL>() const {
+const std::vector<Entity_ID>&
+Mesh::cells<Entity_type::BOUNDARY_GHOST>() const {
+  return cellids_boundary_ghost_;
+}
+template<> inline
+const std::vector<Entity_ID>&
+Mesh::cells<Entity_type::ALL>() const {
   return cellids_all_;
 }
 
@@ -1932,7 +2057,7 @@ inline
 Entity_ID Mesh::corner_get_node(const Entity_ID cornerid) const {
   assert(corners_requested);
   assert(corner_info_cached && side_info_cached);
-  assert(corner_wedge_ids[cornerid].size());  
+  assert(corner_wedge_ids[cornerid].size());
 
   // Instead of calling corner_get_wedges which involves a list copy,
   // we will directly access the first element of the corner_wedge_ids

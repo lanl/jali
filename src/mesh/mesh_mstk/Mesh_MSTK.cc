@@ -29,15 +29,17 @@ Mesh_MSTK::Mesh_MSTK(const char *filename, const MPI_Comm& incomm,
                      const int num_tiles_ini,
                      const int num_ghost_layers_tile,
                      const int num_ghost_layers_distmesh,
+                     const bool boundary_ghosts_requested,
                      const Partitioner_type partitioner,
                      const JaliGeometry::Geom_type geom_type) :
 Mesh(request_faces, request_edges, request_sides, request_wedges,
      request_corners, num_tiles_ini, num_ghost_layers_tile,
-     num_ghost_layers_distmesh, partitioner, geom_type, incomm),
+     num_ghost_layers_distmesh, boundary_ghosts_requested,
+     partitioner, geom_type, incomm),
   mpicomm(incomm), meshxyz(NULL),
   faces_initialized(false), edges_initialized(false),
   target_cell_volumes(NULL), min_cell_volumes(NULL) {
-  
+
   int numprocs;
   MPI_Comm_size(mpicomm, &numprocs);
 
@@ -70,7 +72,7 @@ Mesh(request_faces, request_edges, request_sides, request_wedges,
       int opts[5] = {0, 0, 0, 0, 0};
 
       opts[0] = 1;   // Partition the input mesh
-      opts[1] = 0;   // Use the default method for distributing the mesh      
+      opts[1] = 0;   // Use the default method for distributing the mesh
       opts[2] = num_ghost_layers_distmesh;   // Number of ghost layers
       opts[3] = 0;  // default to METIS
       if (partitioner == Partitioner_type::ZOLTAN_GRAPH)
@@ -81,7 +83,7 @@ Mesh(request_faces, request_edges, request_sides, request_wedges,
       ok = MESH_ImportFromExodusII(mesh, filename, opts, mpicomm);
     }
   } else if (len > 4 &&
-             strncmp(&(filename[len-4]), ".par", 4) == 0) { // Nemesis file
+             strncmp(&(filename[len-4]), ".par", 4) == 0) {  // Nemesis file
     int opts[5] = {0, 0, 0, 0, 0};
 
     opts[0] = 1;     // Parallel weave distributed meshes
@@ -167,14 +169,16 @@ Mesh_MSTK::Mesh_MSTK(const char *filename, const MPI_Comm& incomm,
                      const int num_tiles,
                      const int num_ghost_layers_tile,
                      const int num_ghost_layers_distmesh,
+                     const bool boundary_ghosts_requested,
                      const Partitioner_type partitioner,
                      const JaliGeometry::Geom_type geom_type) :
 Mesh(request_faces, request_edges, request_sides, request_wedges,
      request_corners, num_tiles, num_ghost_layers_tile,
-     num_ghost_layers_distmesh, partitioner, geom_type, incomm),
-    mpicomm(incomm), meshxyz(NULL),
-    faces_initialized(false), edges_initialized(false),
-    target_cell_volumes(NULL), min_cell_volumes(NULL) {
+     num_ghost_layers_distmesh, boundary_ghosts_requested,
+     partitioner, geom_type, incomm),
+     mpicomm(incomm), meshxyz(NULL),
+     faces_initialized(false), edges_initialized(false),
+  target_cell_volumes(NULL), min_cell_volumes(NULL) {
 
   // Assume three dimensional problem if constructor called without
   // the space_dimension parameter
@@ -215,8 +219,7 @@ Mesh(request_faces, request_edges, request_sides, request_wedges,
 
       ok = MESH_ImportFromExodusII(mesh, filename, opts, mpicomm);
     }
-  }
-  else if (len > 4 &&
+  } else if (len > 4 &&
            strncmp(&(filename[len-4]), ".par", 4) == 0) {  // Nemesis file
     int opts[5] = {0, 0, 0, 0, 0};
 
@@ -225,8 +228,7 @@ Mesh(request_faces, request_edges, request_sides, request_wedges,
 
     ok = MESH_ImportFromNemesisI(mesh, filename, opts, mpicomm);
 
-  }
-  else {
+  } else {
     std::stringstream mesg_stream;
     mesg_stream << "Cannot identify file type from extension of input file " <<
         filename << " on processor " << myprocid << std::endl;
@@ -280,11 +282,12 @@ Mesh_MSTK::Mesh_MSTK(const double x0, const double y0, const double z0,
                      const int num_tiles,
                      const int num_ghost_layers_tile,
                      const int num_ghost_layers_distmesh,
+                     const bool boundary_ghosts_requested,
                      const Partitioner_type partitioner) :
 Mesh(request_faces, request_edges, request_sides, request_wedges,
      request_corners, num_tiles, num_ghost_layers_tile,
-     num_ghost_layers_distmesh, partitioner,
-     JaliGeometry::Geom_type::CARTESIAN, incomm),
+     num_ghost_layers_distmesh, boundary_ghosts_requested,
+     partitioner, JaliGeometry::Geom_type::CARTESIAN, incomm),
     mpicomm(incomm), meshxyz(NULL),
     faces_initialized(false), edges_initialized(false),
     target_cell_volumes(NULL), min_cell_volumes(NULL) {
@@ -311,9 +314,9 @@ Mesh(request_faces, request_edges, request_sides, request_wedges,
     int numprocs;
     MPI_Comm_size(mpicomm, &numprocs);
     MPI_Comm_rank(mpicomm, &myprocid);
-    
+
     if (partitioner != Partitioner_type::BLOCK) {
-      if (myprocid == 0) 
+      if (myprocid == 0)
         std::cerr << "Partitioner type " << partitioner <<
             " requested but only Partitioner_type::BLOCK can be used " <<
             " for parallel generation of regular meshes - Overriding!\n";
@@ -336,11 +339,11 @@ Mesh(request_faces, request_edges, request_sides, request_wedges,
 
     std::vector<std::array<double, 6>> blocklimits;
     std::vector<std::array<int, 3>> blocknumcells;
-    
+
     int ok = block_partition_regular_mesh(topo_dim, domain, num_cells_in_dir,
                                           numprocs,
                                           &blocklimits, &blocknumcells);
-  
+
     if (!ok) {
       std::stringstream mesg_stream;
       mesg_stream << "Failed to block partition domain on processor " <<
@@ -417,11 +420,13 @@ Mesh_MSTK::Mesh_MSTK(const double x0, const double y0,
                      const int num_tiles,
                      const int num_ghost_layers_tile,
                      const int num_ghost_layers_distmesh,
+                     const bool boundary_ghosts_requested,
                      const Partitioner_type partitioner,
                      const JaliGeometry::Geom_type geom_type) :
 Mesh(request_faces, request_edges, request_sides, request_wedges,
      request_corners, num_tiles, num_ghost_layers_tile,
-     num_ghost_layers_distmesh, partitioner, geom_type, incomm),
+     num_ghost_layers_distmesh, boundary_ghosts_requested,
+     partitioner, geom_type, incomm),
     mpicomm(incomm), meshxyz(NULL),
     faces_initialized(false), edges_initialized(false),
                    target_cell_volumes(NULL), min_cell_volumes(NULL) {
@@ -448,7 +453,7 @@ Mesh(request_faces, request_edges, request_sides, request_wedges,
     int numprocs;
     MPI_Comm_size(mpicomm, &numprocs);
     MPI_Comm_rank(mpicomm, &myprocid);
-    
+
     int topo_dim = 2;  // What is the topological dimension of the mesh
 
     // Get a block partitioning of the domain without actually
@@ -466,11 +471,11 @@ Mesh(request_faces, request_edges, request_sides, request_wedges,
 
     std::vector<std::array<double, 6>> blocklimits;
     std::vector<std::array<int, 3>> blocknumcells;
-    
+
     int ok = block_partition_regular_mesh(topo_dim, domain, num_cells_in_dir,
                                           numprocs,
                                           &blocklimits, &blocknumcells);
-  
+
     if (!ok) {
       std::stringstream mesg_stream;
       mesg_stream << "Failed to block partition domain on processor " <<
@@ -543,12 +548,14 @@ Mesh_MSTK::Mesh_MSTK(const std::shared_ptr<Mesh> inmesh,
                      const int num_tiles,
                      const int num_ghost_layers_tile,
                      const int num_ghost_layers_distmesh,
+                     const bool boundary_ghosts_requested,
                      const Partitioner_type partitioner,
                      const JaliGeometry::Geom_type geom_type) :
     mpicomm(inmesh->get_comm()),
   Mesh(request_faces, request_edges, request_sides, request_wedges,
        request_corners, num_tiles, num_ghost_layers_tile,
-       num_ghost_layers_distmesh, partitioner, geom_type, inmesh->get_comm()) {
+       num_ghost_layers_distmesh, boundary_ghosts_requested,
+       partitioner, geom_type, inmesh->get_comm()) {
 
   Mesh_MSTK *inmesh_mstk = dynamic_cast<Mesh_MSTK *>(inmesh.get());
   Mesh_ptr mstk_source_mesh = inmesh_mstk->mesh;
@@ -565,7 +572,7 @@ Mesh_MSTK::Mesh_MSTK(const std::shared_ptr<Mesh> inmesh,
     // if it already does not exist
 
     int setsize = inmesh_mstk->get_set_size(setnames[i], setkind,
-                                            Parallel_type::OWNED);
+                                            Entity_type::PARALLEL_OWNED);
 
     // Now retrieve the entities in the set from MSTK
 
@@ -589,7 +596,8 @@ Mesh_MSTK::Mesh_MSTK(const std::shared_ptr<Mesh> inmesh,
 
   extract_mstk_mesh(*inmesh_mstk, src_ents, entity_dim,
                     flatten, extrude, request_faces, request_edges,
-                    num_ghost_layers_distmesh, partitioner);
+                    num_ghost_layers_distmesh, boundary_ghosts_requested,
+                    partitioner);
 
   List_Delete(src_ents);
 }
@@ -607,12 +615,14 @@ Mesh_MSTK::Mesh_MSTK(const Mesh& inmesh,
                      const int num_tiles,
                      const int num_ghost_layers_tile,
                      const int num_ghost_layers_distmesh,
+                     const bool boundary_ghosts_requested,
                      const Partitioner_type partitioner,
                      const JaliGeometry::Geom_type geom_type) :
   mpicomm(inmesh.get_comm()),
   Mesh(request_faces, request_edges, request_sides, request_wedges,
        request_corners, num_tiles, num_ghost_layers_tile,
-       num_ghost_layers_distmesh, partitioner, geom_type, inmesh.get_comm()) {
+       num_ghost_layers_distmesh, boundary_ghosts_requested,
+       partitioner, geom_type, inmesh.get_comm()) {
 
   Mesh_ptr inmesh_mstk = ((Mesh_MSTK&) inmesh).mesh;
 
@@ -630,7 +640,7 @@ Mesh_MSTK::Mesh_MSTK(const Mesh& inmesh,
 
     int setsize = ((Mesh_MSTK &) inmesh).get_set_size(setnames[i],
                                                       setkind,
-                                                      Parallel_type::OWNED);
+                                                      Entity_type::PARALLEL_OWNED);
 
     //  Now retrieve the entities in the set from MSTK
 
@@ -654,7 +664,7 @@ Mesh_MSTK::Mesh_MSTK(const Mesh& inmesh,
 
   extract_mstk_mesh((Mesh_MSTK&) inmesh, src_ents, entity_dim, flatten, extrude,
                     request_faces, request_edges, num_ghost_layers_distmesh,
-                    partitioner);
+                    boundary_ghosts_requested, partitioner);
 
   List_Delete(src_ents);
 }
@@ -678,12 +688,14 @@ Mesh_MSTK::Mesh_MSTK(const Mesh& inmesh,
                      const int num_tiles,
                      const int num_ghost_layers_tile,
                      const int num_ghost_layers_distmesh,
+                     const bool boundary_ghosts_requested,
                      const Partitioner_type partitioner,
                      const JaliGeometry::Geom_type geom_type) :
 mpicomm(inmesh.get_comm()),
   Mesh(request_faces, request_edges, request_sides, request_wedges,
        request_corners, num_tiles, num_ghost_layers_tile,
-       num_ghost_layers_distmesh, partitioner, geom_type, inmesh.get_comm()) {
+       num_ghost_layers_distmesh, boundary_ghosts_requested,
+       partitioner, geom_type, inmesh.get_comm()) {
 
   // store pointers to the MESH_XXXFromID functions so that they can
   // be called without a switch statement
@@ -704,7 +716,7 @@ mpicomm(inmesh.get_comm()),
 
   extract_mstk_mesh((Mesh_MSTK&) inmesh, src_ents, entity_dim, flatten, extrude,
                     request_faces, request_edges, num_ghost_layers_distmesh,
-                    partitioner);
+                    boundary_ghosts_requested, partitioner);
 
   List_Delete(src_ents);
 }
@@ -782,6 +794,7 @@ void Mesh_MSTK::extract_mstk_mesh(const Mesh_MSTK& inmesh,
                                   const bool request_faces,
                                   const bool request_edges,
                                   const int num_ghost_layers_distmesh,
+                                  const bool boundary_ghosts_requested,
                                   const Partitioner_type partitioner) {
   int ok, ival, idx;
   double rval, xyz[3];
@@ -1284,6 +1297,14 @@ Mesh_MSTK::~Mesh_MSTK() {
   if (NotOwnedFaces) MSet_Delete(NotOwnedFaces);
   if (OwnedCells) MSet_Delete(OwnedCells);
   if (GhostCells) MSet_Delete(GhostCells);
+  if (BoundaryGhostCells) {
+    int idx = 0;
+    MEntity_ptr ment;
+    while ((ment = MSet_Next_Entry(BoundaryGhostCells, &idx)))
+      MEnt_Unmark(ment, boundary_ghost_mark);
+    MSet_Delete(BoundaryGhostCells);
+    if (boundary_ghost_mark) MSTK_FreeMarker(boundary_ghost_mark);
+  }
 
   if (entities_deleted) {
     if (deleted_vertices) List_Delete(deleted_vertices);
@@ -1951,7 +1972,7 @@ void Mesh_MSTK::edge_get_nodes_internal(const Entity_ID edgeid,
 // the outset how many entries will be put into the list
 
 void Mesh_MSTK::node_get_cells(const Entity_ID nodeid,
-                               const Parallel_type ptype,
+                               const Entity_type ptype,
                                std::vector<Entity_ID> *cellids) const {
   int idx, lid, nc;
   List_ptr cell_list;
@@ -1962,7 +1983,7 @@ void Mesh_MSTK::node_get_cells(const Entity_ID nodeid,
   MVertex_ptr mv = (MVertex_ptr) vtx_id_to_handle[nodeid];
 
   /* Reserved for next major release of MSTK
-  if (MV_PType(mv) == PINTERIOR && ptype != Parallel_type::GHOST) {
+  if (MV_PType(mv) == PINTERIOR && ptype != Entity_type::PARALLEL_GHOST) {
 
     if (cell_dimension() == 3) {
       int nvr, regionids[200];
@@ -2007,14 +2028,16 @@ void Mesh_MSTK::node_get_cells(const Entity_ID nodeid,
     idx = 0;
     while ((ment = List_Next_Entry(cell_list, &idx))) {
       if (MEnt_PType(ment) == PGHOST) {
-        if (ptype == Parallel_type::GHOST || ptype == Parallel_type::ALL) {
+        if (ptype == Entity_type::PARALLEL_GHOST ||
+            ptype == Entity_type::ALL) {
           lid = MEnt_ID(ment);
           *it = lid-1;  // assign to next spot by dereferencing iterator
           ++it;
           ++n;
         }
       } else {
-        if (ptype == Parallel_type::OWNED || ptype == Parallel_type::ALL) {
+        if (ptype == Entity_type::PARALLEL_OWNED ||
+            ptype == Entity_type::ALL) {
           lid = MEnt_ID(ment);
           *it = lid-1;  // assign to next spot by dereferencing iterator
           ++it;
@@ -2039,7 +2062,7 @@ void Mesh_MSTK::node_get_cells(const Entity_ID nodeid,
 // the outset how many entries will be put into the list
 
 void Mesh_MSTK::node_get_faces(const Entity_ID nodeid,
-                               const Parallel_type ptype,
+                               const Entity_type ptype,
                                std::vector<Entity_ID> *faceids) const {
   int idx, lid, n;
   List_ptr face_list;
@@ -2051,7 +2074,7 @@ void Mesh_MSTK::node_get_faces(const Entity_ID nodeid,
   MVertex_ptr mv = (MVertex_ptr) vtx_id_to_handle[nodeid];
 
   /* Reserved for next major release of MSTK
-  if (MV_PType(mv) == PINTERIOR && ptype != Parallel_type::GHOST) {
+  if (MV_PType(mv) == PINTERIOR && ptype != Entity_type::PARALLEL_GHOST) {
     if (cell_dimension() == 3) {
       int nvf, vfaceids[200];
 
@@ -2093,14 +2116,16 @@ void Mesh_MSTK::node_get_faces(const Entity_ID nodeid,
     idx = 0; n = 0;
     while ((ment = List_Next_Entry(face_list, &idx))) {
       if (MEnt_PType(ment) == PGHOST) {
-        if (ptype == Parallel_type::GHOST || ptype == Parallel_type::ALL) {
+        if (ptype == Entity_type::PARALLEL_GHOST ||
+            ptype == Entity_type::ALL) {
           lid = MEnt_ID(ment);
           *it = lid-1;  // assign to next spot by dereferencing iterator
           ++it;
           ++n;
         }
       } else {
-        if (ptype == Parallel_type::OWNED || ptype == Parallel_type::ALL) {
+        if (ptype == Entity_type::PARALLEL_OWNED ||
+            ptype == Entity_type::ALL) {
           lid = MEnt_ID(ment);
           *it = lid-1;  // assign to next spot by dereferencing iterator
           ++it;
@@ -2127,7 +2152,7 @@ void Mesh_MSTK::node_get_faces(const Entity_ID nodeid,
 
 void Mesh_MSTK::node_get_cell_faces(const Entity_ID nodeid,
                                     const Entity_ID cellid,
-                                    const Parallel_type ptype,
+                                    const Entity_type ptype,
                                     std::vector<Entity_ID> *faceids) const {
   int idx, lid, n;
   List_ptr cell_list;
@@ -2153,14 +2178,16 @@ void Mesh_MSTK::node_get_cell_faces(const Entity_ID nodeid,
       if (!MF_UsesEntity(mf, mv, MVERTEX)) continue;
 
       if (MEnt_PType(mf) == PGHOST) {
-        if (ptype == Parallel_type::GHOST || ptype == Parallel_type::ALL) {
+        if (ptype == Entity_type::PARALLEL_GHOST ||
+            ptype == Entity_type::ALL) {
           lid = MEnt_ID(mf);
           *it = lid-1;  // assign to next spot by dereferencing iterator
           ++it;
           ++n;
         }
       } else {
-        if (ptype == Parallel_type::OWNED || ptype == Parallel_type::ALL) {
+        if (ptype == Entity_type::PARALLEL_OWNED ||
+            ptype == Entity_type::ALL) {
           lid = MEnt_ID(mf);
           *it = lid-1;  // assign to next spot by dereferencing iterator
           ++it;
@@ -2182,14 +2209,16 @@ void Mesh_MSTK::node_get_cell_faces(const Entity_ID nodeid,
       if (!ME_UsesEntity(me, mv, MVERTEX)) continue;
 
       if (MEnt_PType(me) == PGHOST) {
-        if (ptype == Parallel_type::GHOST || ptype == Parallel_type::ALL) {
+        if (ptype == Entity_type::PARALLEL_GHOST ||
+            ptype == Entity_type::ALL) {
           lid = MEnt_ID(me);
           *it = lid-1;  // assign to next spot by dereferencing iterator
           ++it;
           ++n;
         }
       } else {
-        if (ptype == Parallel_type::OWNED || ptype == Parallel_type::ALL) {
+        if (ptype == Entity_type::PARALLEL_OWNED ||
+            ptype == Entity_type::ALL) {
           lid = MEnt_ID(me);
           *it = lid-1;  // assign to next spot by dereferencing iterator
           ++it;
@@ -2208,7 +2237,7 @@ void Mesh_MSTK::node_get_cell_faces(const Entity_ID nodeid,
 // Cells connected to a face
 
 void Mesh_MSTK::face_get_cells_internal(const Entity_ID faceid,
-                                        const Parallel_type ptype,
+                                        const Entity_type ptype,
                                         std::vector<Entity_ID> *cellids) const {
   int lid, n;
 
@@ -2223,7 +2252,7 @@ void Mesh_MSTK::face_get_cells_internal(const Entity_ID faceid,
 
     List_ptr fregs = MF_Regions(mf);
     MRegion_ptr mr;
-    if (ptype == Parallel_type::ALL) {
+    if (ptype == Entity_type::ALL) {
       int idx = 0;
       while ((mr = List_Next_Entry(fregs, &idx))) {
         *it = MR_ID(mr)-1;  // assign to next spot by dereferencing iterator
@@ -2234,7 +2263,7 @@ void Mesh_MSTK::face_get_cells_internal(const Entity_ID faceid,
       int idx = 0;
       while ((mr = List_Next_Entry(fregs, &idx))) {
         if (MEnt_PType(mr) == PGHOST) {
-          if (ptype == Parallel_type::GHOST) {
+          if (ptype == Entity_type::PARALLEL_GHOST) {
             *it = MR_ID(mr)-1;  // assign to next spot by dereferencing iterator
             ++it;
             ++n;
@@ -2253,7 +2282,7 @@ void Mesh_MSTK::face_get_cells_internal(const Entity_ID faceid,
 
     List_ptr efaces = ME_Faces(me);
     MFace_ptr mf;
-    if (ptype == Parallel_type::ALL) {
+    if (ptype == Entity_type::ALL) {
       int idx = 0;
       while ((mf = List_Next_Entry(efaces, &idx))) {
         *it = MF_ID(mf)-1;  // assign to next spot by dereferencing iterator
@@ -2264,13 +2293,13 @@ void Mesh_MSTK::face_get_cells_internal(const Entity_ID faceid,
       int idx = 0;
       while ((mf = List_Next_Entry(efaces, &idx))) {
         if (MEnt_PType(mf) == PGHOST) {
-          if (ptype == Parallel_type::GHOST) {
+          if (ptype == Entity_type::PARALLEL_GHOST) {
             *it = MF_ID(mf)-1;  // assign to next spot by dereferencing iterator
             ++it;
             ++n;
           }
         } else {
-          if (ptype == Parallel_type::OWNED) {
+          if (ptype == Entity_type::PARALLEL_OWNED) {
             *it = MF_ID(mf)-1;  // assign to next spot by dereferencing iterator
             ++it;
             ++n;
@@ -2295,7 +2324,7 @@ void Mesh_MSTK::face_get_cells_internal(const Entity_ID faceid,
 // be put into the list
 
 void Mesh_MSTK::cell_get_face_adj_cells(const Entity_ID cellid,
-                                        const Parallel_type ptype,
+                                        const Entity_type ptype,
                                         std::vector<Entity_ID> *fadj_cellids)
     const {
 
@@ -2321,12 +2350,14 @@ void Mesh_MSTK::cell_get_face_adj_cells(const Entity_ID cellid,
       while ((mr2 = List_Next_Entry(fregs, &idx2))) {
         if (mr2 != mr) {
           if (MEnt_PType(mr2) == PGHOST) {
-            if (ptype == Parallel_type::GHOST || ptype == Parallel_type::ALL) {
+            if (ptype == Entity_type::PARALLEL_GHOST ||
+                ptype == Entity_type::ALL) {
               lid = MEnt_ID(mr2);
               fadj_cellids->push_back(lid-1);
             }
           } else {
-            if (ptype == Parallel_type::OWNED || ptype == Parallel_type::ALL) {
+            if (ptype == Entity_type::PARALLEL_OWNED ||
+                ptype == Entity_type::ALL) {
               lid = MEnt_ID(mr2);
               fadj_cellids->push_back(lid-1);
             }
@@ -2352,12 +2383,14 @@ void Mesh_MSTK::cell_get_face_adj_cells(const Entity_ID cellid,
       while ((mf2 = List_Next_Entry(efaces, &idx2))) {
         if (mf2 != mf) {
           if (MEnt_PType(mf2) == PGHOST) {
-            if (ptype == Parallel_type::GHOST || ptype == Parallel_type::ALL) {
+            if (ptype == Entity_type::PARALLEL_GHOST ||
+                ptype == Entity_type::ALL) {
               lid = MEnt_ID(mf2);
               fadj_cellids->push_back(lid-1);
             }
           } else {
-            if (ptype == Parallel_type::OWNED || ptype == Parallel_type::ALL) {
+            if (ptype == Entity_type::PARALLEL_OWNED ||
+                ptype == Entity_type::ALL) {
               lid = MEnt_ID(mf2);
               fadj_cellids->push_back(lid-1);
             }
@@ -2381,7 +2414,7 @@ void Mesh_MSTK::cell_get_face_adj_cells(const Entity_ID cellid,
 // be put into the list
 
 void Mesh_MSTK::cell_get_node_adj_cells(const Entity_ID cellid,
-                                        const Parallel_type ptype,
+                                        const Entity_type ptype,
                                         std::vector<Entity_ID> *nadj_cellids)
     const {
 
@@ -2411,12 +2444,14 @@ void Mesh_MSTK::cell_get_node_adj_cells(const Entity_ID cellid,
           MEnt_Mark(mr2, mkid);
           List_Add(cell_list, mr2);
           if (MEnt_PType(mr2) == PGHOST) {
-            if (ptype == Parallel_type::GHOST || ptype == Parallel_type::ALL) {
+            if (ptype == Entity_type::PARALLEL_GHOST ||
+                ptype == Entity_type::ALL) {
               lid = MEnt_ID(mr2);
               nadj_cellids->push_back(lid-1);
             }
           } else {
-            if (ptype == Parallel_type::OWNED || ptype == Parallel_type::ALL) {
+            if (ptype == Entity_type::PARALLEL_OWNED ||
+                ptype == Entity_type::ALL) {
               lid = MEnt_ID(mr2);
               nadj_cellids->push_back(lid-1);
             }
@@ -2444,12 +2479,14 @@ void Mesh_MSTK::cell_get_node_adj_cells(const Entity_ID cellid,
           MEnt_Mark(mf2, mkid);
           List_Add(cell_list, mf2);
           if (MEnt_PType(mf2) == PGHOST) {
-            if (ptype == Parallel_type::GHOST || ptype == Parallel_type::ALL) {
+            if (ptype == Entity_type::PARALLEL_GHOST ||
+                ptype == Entity_type::ALL) {
               lid = MEnt_ID(mf2);
               nadj_cellids->push_back(lid-1);
             }
           } else {
-            if (ptype == Parallel_type::OWNED || ptype == Parallel_type::ALL) {
+            if (ptype == Entity_type::PARALLEL_OWNED ||
+                ptype == Entity_type::ALL) {
               lid = MEnt_ID(mf2);
               nadj_cellids->push_back(lid-1);
             }
@@ -2674,7 +2711,8 @@ MSet_ptr Mesh_MSTK::build_set(const JaliGeometry::RegionPtr region,
     if (region->type() == JaliGeometry::Region_type::BOX ||
         region->type() == JaliGeometry::Region_type::COLORFUNCTION) {
 
-      int ncell = Mesh::num_entities(Entity_kind::CELL, Parallel_type::ALL);
+      int ncell = Mesh::num_entities(Entity_kind::CELL,
+                                     Entity_type::ALL);
 
       for (int icell = 0; icell < ncell; icell++)
         if (region->inside(cell_centroid(icell)))
@@ -2686,7 +2724,8 @@ MSet_ptr Mesh_MSTK::build_set(const JaliGeometry::RegionPtr region,
 
       rgnpnt = ((JaliGeometry::PointRegionPtr)region)->point();
 
-      int nnode = Mesh::num_entities(Entity_kind::NODE, Parallel_type::ALL);
+      int nnode = Mesh::num_entities(Entity_kind::NODE,
+                                     Entity_type::ALL);
       double mindist2 = 1.e+16;
       int minnode = -1;
 
@@ -2706,7 +2745,7 @@ MSet_ptr Mesh_MSTK::build_set(const JaliGeometry::RegionPtr region,
 
       Entity_ID_List cells, cells1;
 
-      node_get_cells(minnode, Parallel_type::ALL, &cells);
+      node_get_cells(minnode, Entity_type::ALL, &cells);
 
       int ncells = cells.size();
       for (int ic = 0; ic < ncells; ic++) {
@@ -2721,7 +2760,8 @@ MSet_ptr Mesh_MSTK::build_set(const JaliGeometry::RegionPtr region,
 
       if (celldim == 2) {
 
-        int ncells = Mesh::num_entities(Entity_kind::CELL, Parallel_type::ALL);
+        int ncells = Mesh::num_entities(Entity_kind::CELL,
+                                        Entity_type::ALL);
         for (int ic = 0; ic < ncells; ic++) {
 
           std::vector<JaliGeometry::Point> ccoords(spacedim);
@@ -2805,7 +2845,8 @@ MSet_ptr Mesh_MSTK::build_set(const JaliGeometry::RegionPtr region,
 
     if (region->type() == JaliGeometry::Region_type::BOX)  {
 
-      int nface = Mesh::num_entities(Entity_kind::FACE, Parallel_type::ALL);
+      int nface = Mesh::num_entities(Entity_kind::FACE,
+                                     Entity_type::ALL);
 
       for (int iface = 0; iface < nface; iface++) {
         if (region->inside(face_centroid(iface)))
@@ -2815,7 +2856,8 @@ MSet_ptr Mesh_MSTK::build_set(const JaliGeometry::RegionPtr region,
     } else if (region->type() == JaliGeometry::Region_type::PLANE ||
                region->type() == JaliGeometry::Region_type::POLYGON) {
 
-      int nface = Mesh::num_entities(Entity_kind::FACE, Parallel_type::ALL);
+      int nface = Mesh::num_entities(Entity_kind::FACE,
+                                     Entity_type::ALL);
 
       for (int iface = 0; iface < nface; iface++) {
         std::vector<JaliGeometry::Point> fcoords(spacedim);
@@ -2866,7 +2908,8 @@ MSet_ptr Mesh_MSTK::build_set(const JaliGeometry::RegionPtr region,
         region->type() == JaliGeometry::Region_type::POLYGON ||
         region->type() == JaliGeometry::Region_type::POINT) {
 
-      int nnode = Mesh::num_entities(Entity_kind::NODE, Parallel_type::ALL);
+      int nnode = Mesh::num_entities(Entity_kind::NODE,
+                                     Entity_type::ALL);
 
       for (int inode = 0; inode < nnode; inode++) {
 
@@ -3080,7 +3123,7 @@ MSet_ptr Mesh_MSTK::build_set(const JaliGeometry::RegionPtr region,
 
 void Mesh_MSTK::get_set_entities(const std::string setname,
                                  const Entity_kind kind,
-                                 const Parallel_type ptype,
+                                 const Entity_type ptype,
                                  std::vector<Entity_ID> *setents) const {
   int idx, i, lid;
   MSet_ptr mset = NULL, mset1 = NULL;
@@ -3231,7 +3274,7 @@ void Mesh_MSTK::get_set_entities(const std::string setname,
     nent_loc = 0;  // reset and count to get the real number
 
     switch (ptype) {
-    case Parallel_type::OWNED:
+    case Entity_type::PARALLEL_OWNED:
       idx = 0;
       while ((ment = MSet_Next_Entry(mset1, &idx))) {
         if (MEnt_PType(ment) != PGHOST) {
@@ -3241,7 +3284,7 @@ void Mesh_MSTK::get_set_entities(const std::string setname,
         }
       }
       break;
-    case Parallel_type::GHOST:
+    case Entity_type::PARALLEL_GHOST:
       idx = 0;
       while ((ment = MSet_Next_Entry(mset1, &idx))) {
         if (MEnt_PType(ment) == PGHOST) {
@@ -3251,7 +3294,7 @@ void Mesh_MSTK::get_set_entities(const std::string setname,
         }
       }
       break;
-    case Parallel_type::ALL:
+    case Entity_type::ALL:
       idx = 0;
       while ((ment = MSet_Next_Entry(mset1, &idx))) {
         *it = MEnt_ID(ment)-1;  // assign to next spot by dereferencing iterator
@@ -3284,7 +3327,7 @@ void Mesh_MSTK::get_set_entities(const std::string setname,
 
 void Mesh_MSTK::get_set_entities(const char *setname,
                                  const Entity_kind kind,
-                                 const Parallel_type ptype,
+                                 const Entity_type ptype,
                                  std::vector<Entity_ID> *setents) const {
   std::string setname1(setname);
   get_set_entities(setname1, kind, ptype, setents);
@@ -3295,7 +3338,7 @@ void Mesh_MSTK::get_set_entities(const char *setname,
 
 unsigned int Mesh_MSTK::get_set_size(const char *setname,
                                      const Entity_kind kind,
-                                     const Parallel_type ptype) const {
+                                     const Entity_type ptype) const {
   Entity_ID_List setents;
   std::string setname1(setname);
   get_set_entities(setname1, kind, ptype, &setents);
@@ -3306,7 +3349,7 @@ unsigned int Mesh_MSTK::get_set_size(const char *setname,
 
 unsigned int Mesh_MSTK::get_set_size(const std::string setname,
                                      const Entity_kind kind,
-                                     const Parallel_type ptype) const {
+                                     const Entity_type ptype) const {
   Entity_ID_List setents;
   get_set_entities(setname, kind, ptype, &setents);
   return setents.size();
@@ -3397,6 +3440,14 @@ void Mesh_MSTK::post_create_steps_() {
 
   collapse_degen_edges();
 
+  // Create boundary ghost elements (if requested). Regardless of what
+  // the requested number of layers is, we will create only 1 layer
+
+  if (Mesh::boundary_ghosts_requested_)
+    create_boundary_ghosts();
+
+  // label cells to indicate if they are one of the standard element
+  // types (tet, hex, prism) or if they are general polytopes
   label_celltype();
 
   // Initialize data structures for various entities - vertices/nodes
@@ -3593,8 +3644,11 @@ void Mesh_MSTK::init_cells() {
   MEntity_ptr ment;
   int nowned = MSet_Num_Entries(OwnedCells);
   int nghost = MSet_Num_Entries(GhostCells);
+  int nboundary_ghost = Mesh::boundary_ghosts_requested_ ?
+      MSet_Num_Entries(BoundaryGhostCells) : 0;
+  int nall = nowned + nghost + nboundary_ghost;
 
-  Mesh::cellids_all_.resize(nowned+nghost);
+  Mesh::cellids_all_.resize(nall);
   j = 0;
 
   Mesh::cellids_owned_.resize(nowned);
@@ -3611,6 +3665,16 @@ void Mesh_MSTK::init_cells() {
     int id = MEnt_ID(ment)-1;
     cellids_ghost_[i++] = id;
     cellids_all_[j++] = id;
+  }
+
+  if (Mesh::boundary_ghosts_requested_) {
+    Mesh::cellids_boundary_ghost_.resize(nboundary_ghost);
+    idx = 0; i = 0;
+    while ((ment = MSet_Next_Entry(BoundaryGhostCells, &idx))) {
+      int id = MEnt_ID(ment)-1;
+      cellids_boundary_ghost_[i++] = id;
+      cellids_all_[j++] = id;
+    }
   }
 }
 
@@ -3737,6 +3801,15 @@ void Mesh_MSTK::init_cell_id2handle_maps() {
     lid++;
   }
 
+  if (Mesh::boundary_ghosts_requested_) {
+    idx = 0;
+    while ((gencell = MSet_Next_Entry(BoundaryGhostCells, &idx))) {
+      MEnt_Set_ID(gencell, lid);
+      cell_id_to_handle[lid-1] = gencell;
+      lid++;
+    }
+  }
+
 }  // Mesh_MSTK::init_id_handle_maps
 
 
@@ -3844,7 +3917,7 @@ void Mesh_MSTK::init_pedge_dirs() {
           remote_vertexid0 == local_vertexid1) {
         int lid = MEnt_ID(edge);
         edgeflip[lid-1] = true;
-      } else { // Sanity Check
+      } else {  // Sanity Check
 
         if (remote_vertexid1 != local_vertexid1 &&
             remote_vertexid0 != local_vertexid0) {
@@ -4048,7 +4121,7 @@ void Mesh_MSTK::init_pface_dirs() {
             remote_faceid0 == local_faceid1) {
           int lid = MEnt_ID(edge);
           faceflip[lid-1] = true;
-        } else { // Sanity Check
+        } else {  // Sanity Check
 
           if (remote_faceid1 != local_faceid1 &&
               remote_faceid0 != local_faceid0) {
@@ -4079,26 +4152,36 @@ void Mesh_MSTK::init_pcell_lists() {
 
     OwnedCells = MSet_New(mesh, "OwnedCells", MREGION);
     GhostCells = MSet_New(mesh, "GhostCells", MREGION);
+    BoundaryGhostCells = MSet_New(mesh, "BoundaryGhostCells", MREGION);
 
     idx = 0;
     while ((region = MESH_Next_Region(mesh, &idx))) {
       if (MR_PType(region) == PGHOST)
         MSet_Add(GhostCells, region);
-      else
-        MSet_Add(OwnedCells, region);
+      else {
+        if (MEnt_IsMarked(region, boundary_ghost_mark))
+          MSet_Add(BoundaryGhostCells, region);
+        else
+          MSet_Add(OwnedCells, region);
+      }
     }
   } else if (cell_dimension() == 2) {
     MFace_ptr face;
 
     OwnedCells = MSet_New(mesh, "OwnedCells", MFACE);
     GhostCells = MSet_New(mesh, "GhostCells", MFACE);
+    BoundaryGhostCells = MSet_New(mesh, "BoundaryGhostCells", MFACE);
 
     idx = 0;
     while ((face = MESH_Next_Face(mesh, &idx))) {
       if (MF_PType(face) == PGHOST)
         MSet_Add(GhostCells, face);
-      else
-        MSet_Add(OwnedCells, face);
+      else {
+        if (MEnt_IsMarked(face, boundary_ghost_mark))
+          MSet_Add(BoundaryGhostCells, face);
+        else
+          MSet_Add(OwnedCells, face);
+      }
     }
   } else {
     Errors::Message mesg("Implemented only for 2D and 3D");
@@ -4202,9 +4285,9 @@ void Mesh_MSTK::init_set_info() {
           }
         }
       }
-    } else { /* General region - we have to account for all kinds of
-              entities being queried in a set defined by this
-              region */
+    } else {  /* General region - we have to account for all kinds of
+                 entities being queried in a set defined by this
+                 region */
       Entity_kind int_to_kind[4] = {Entity_kind::NODE, Entity_kind::EDGE,
                                     Entity_kind::FACE, Entity_kind::CELL};
 
@@ -4347,6 +4430,46 @@ void Mesh_MSTK::collapse_degen_edges() {
   }
 
 } /* end Mesh_MSTK::collapse_degen_edges */
+
+
+void Mesh_MSTK::create_boundary_ghosts() {
+  if (Mesh::cell_dimension() == 2) {
+    MEdge_ptr me;
+    int idx = 0;
+    while ((me = MESH_Next_Edge(mesh, &idx))) {
+      List_ptr efaces = ME_Faces(me);
+      if (List_Num_Entries(efaces) == 1 &&
+          ME_PType(me) != PGHOST && !ME_OnParBoundary(me)) {
+        MFace_ptr mfint = List_Entry(efaces, 0);
+        int dir = MF_EdgeDir(mfint, me);
+
+        MFace_ptr mfbndry = MF_New(mesh);
+        dir = !dir;
+        MF_Set_Edges(mfbndry, 1, &me, &dir);  // One edge for the face
+        MEnt_Mark(mfbndry, boundary_ghost_mark);
+      }
+      List_Delete(efaces);
+    }
+  } else if (Mesh::cell_dimension() == 3) {
+    MFace_ptr mf;
+    int idx = 0;
+    while ((mf = MESH_Next_Face(mesh, &idx))) {
+      List_ptr fregions = MF_Regions(mf);
+      if (List_Num_Entries(fregions) == 1 &&
+          MF_PType(mf) != PGHOST && !MF_OnParBoundary(mf)) {
+        MRegion_ptr mrint = List_Entry(fregions, 0);
+        int dir = MR_FaceDir(mrint, mf);
+
+        MRegion_ptr mrbndry = MR_New(mesh);
+        dir = !dir;
+        MR_Set_Faces(mrbndry, 1, &mf, &dir);  // One face for the region
+        MEnt_Mark(mrbndry, boundary_ghost_mark);
+      }
+      List_Delete(fregions);
+    }
+  } else {
+  }
+}
 
 
 Cell_type Mesh_MSTK::MFace_Celltype(MFace_ptr face) {
@@ -4921,9 +5044,14 @@ void Mesh_MSTK::pre_create_steps_(const int space_dimension,
   OwnedVerts = NotOwnedVerts = NULL;
   OwnedEdges = NotOwnedEdges = NULL;
   OwnedFaces = NotOwnedFaces = NULL;
-  OwnedCells = GhostCells = NULL;
+  OwnedCells = GhostCells = BoundaryGhostCells = NULL;
   deleted_vertices = deleted_edges = deleted_faces = deleted_regions = NULL;
   entities_deleted = false;
+  
+  if (Mesh::boundary_ghosts_requested_)
+    boundary_ghost_mark = MSTK_GetMarker();
+  else
+    boundary_ghost_mark = 0;
 }
 
 

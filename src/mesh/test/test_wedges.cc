@@ -74,17 +74,17 @@ TEST(MESH_WEDGES_2D) {
     CHECK_EQUAL(aerr, 0);
 
     int nwedges_owned = mesh->num_entities(Jali::Entity_kind::WEDGE,
-                                           Jali::Parallel_type::OWNED);
+                                           Jali::Entity_type::PARALLEL_OWNED);
     int nwedges_ghost = mesh->num_entities(Jali::Entity_kind::WEDGE,
-                                           Jali::Parallel_type::GHOST);
+                                           Jali::Entity_type::PARALLEL_GHOST);
     CHECK(nwedges_owned > 0);
     if (nproc > 1)
       CHECK(nwedges_ghost);
     else
       CHECK(!nwedges_ghost);
 
-    nwedges_owned = mesh->num_wedges<Jali::Parallel_type::OWNED>();
-    nwedges_ghost = mesh->num_wedges<Jali::Parallel_type::GHOST>();
+    nwedges_owned = mesh->num_wedges<Jali::Entity_type::PARALLEL_OWNED>();
+    nwedges_ghost = mesh->num_wedges<Jali::Entity_type::PARALLEL_GHOST>();
     CHECK(nwedges_owned > 0);
     if (nproc > 1)
       CHECK(nwedges_ghost);

@@ -45,6 +45,7 @@ public:
                const int num_tiles_ini = 0,
                const int num_ghost_layers_tile = 0,
                const int num_ghost_layers_distmesh = 0,
+               const bool request_boundary_ghosts = false,
                const Partitioner_type partitioner = Partitioner_type::METIS);
 
   Mesh_simple (double x0, double y0,
@@ -60,6 +61,7 @@ public:
                const int num_tiles_ini = 0,
                const int num_ghost_layers_tile = 0,
                const int num_ghost_layers_distmesh = 0,
+               const bool request_boundary_ghosts = false,
                const Partitioner_type partitioner = Partitioner_type::METIS,
                const JaliGeometry::Geom_type geom_type =
                JaliGeometry::Geom_type::CARTESIAN);
@@ -76,6 +78,7 @@ public:
                const int num_tiles_ini = 0,
                const int num_ghost_layers_tile = 0,
                const int num_ghost_layers_distmesh = 0,
+               const bool request_boundary_ghosts = false,
                const Partitioner_type partitioner = Partitioner_type::METIS,
                const JaliGeometry::Geom_type geom_type =
                JaliGeometry::Geom_type::CARTESIAN);
@@ -98,7 +101,8 @@ public:
               const bool request_corners = false,
               const int num_tiles = 0,
               const int num_ghost_layers_tile = 0,
-               const int num_ghost_layers_distmesh = 0,
+              const int num_ghost_layers_distmesh = 0,
+               const bool request_boundary_ghosts = false,
               const Partitioner_type partitioner = Partitioner_type::METIS,
               const JaliGeometry::Geom_type geom_type =
               JaliGeometry::Geom_type::CARTESIAN);
@@ -116,6 +120,7 @@ public:
               const int num_tiles = 0,
               const int num_ghost_layers_tile = 0,
               const int num_ghost_layers_distmesh = 0,
+               const bool request_boundary_ghosts = false,
               const Partitioner_type partitioner = Partitioner_type::METIS,
               const JaliGeometry::Geom_type geom_type =
               JaliGeometry::Geom_type::CARTESIAN);
@@ -133,6 +138,7 @@ public:
               const int num_tiles = 0,
               const int num_ghost_layers_tile = 0,
               const int num_ghost_layers_distmesh = 0,
+               const bool request_boundary_ghosts = false,
               const Partitioner_type partitioner = Partitioner_type::METIS,
               const JaliGeometry::Geom_type geom_type =
               JaliGeometry::Geom_type::CARTESIAN);
@@ -197,19 +203,19 @@ public:
 
   // Cells of type 'ptype' connected to a node
   void node_get_cells(const Entity_ID nodeid,
-                      const Parallel_type ptype,
+                      const Entity_type ptype,
                       std::vector<Entity_ID> *cellids) const;
 
   // Faces of type 'ptype' connected to a node
   void node_get_faces(const Entity_ID nodeid,
-                      const Parallel_type ptype,
+                      const Entity_type ptype,
                       std::vector<Entity_ID> *faceids) const;
 
   // Get faces of ptype of a particular cell that are connected to the
   // given node
   void node_get_cell_faces(const Entity_ID nodeid,
                            const Entity_ID cellid,
-                           const Parallel_type ptype,
+                           const Entity_type ptype,
                            std::vector<Entity_ID> *faceids) const;
 
   // Same level adjacencies
@@ -224,7 +230,7 @@ public:
   // faces given by cell_get_faces
 
   void cell_get_face_adj_cells(const Entity_ID cellid,
-                               const Parallel_type ptype,
+                               const Entity_type ptype,
                                std::vector<Entity_ID> *fadj_cellids) const;
 
   // Node connected neighboring cells of given cell
@@ -232,7 +238,7 @@ public:
   // The cells are returned in no particular order
 
   void cell_get_node_adj_cells(const Entity_ID cellid,
-                               const Parallel_type ptype,
+                               const Entity_type ptype,
                                std::vector<Entity_ID> *nadj_cellids) const;
 
   //
@@ -278,23 +284,23 @@ public:
 
   unsigned int get_set_size(const Set_Name setname,
                             const Entity_kind kind,
-                            const Parallel_type ptype) const;
+                            const Entity_type ptype) const;
 
 
   unsigned int get_set_size(const char *setname,
                             const Entity_kind kind,
-                            const Parallel_type ptype) const;
+                            const Entity_type ptype) const;
 
 
   void get_set_entities(const Set_Name setname,
                         const Entity_kind kind,
-                        const Parallel_type ptype,
+                        const Entity_type ptype,
                         Entity_ID_List *entids) const;
 
 
   void get_set_entities(const char *setname,
                         const Entity_kind kind,
-                        const Parallel_type ptype,
+                        const Entity_type ptype,
                         Entity_ID_List *entids) const;
 
 
@@ -393,7 +399,7 @@ private:
 
   // Cells connected to a face
   void face_get_cells_internal(const Entity_ID faceid,
-                               const Parallel_type ptype,
+                               const Entity_type ptype,
                                std::vector<Entity_ID> *cellids) const;
 
 

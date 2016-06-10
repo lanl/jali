@@ -24,13 +24,7 @@ TEST(MSTK_HEX_3x3x3_4P) {
 
   if (size != 4) {
     std::cerr << "Test must be run with 4 processors" << std::endl;
-    //    return;
   }
-
-  //  if (rank == 0) {
-  int DebugWait = 0;
-  while (DebugWait);
-  //  }
 
   // Load a single hex from the hex1.exo file
 

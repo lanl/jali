@@ -4,8 +4,7 @@
 
 #include "../Mesh_MSTK.hh"
 
-TEST(MSTK_HEX_3x3x3_PAR_READ_4P)
-{
+TEST(MSTK_HEX_3x3x3_PAR_READ_4P) {
 
   int i, j, k, err, nc, nf, nv;
   std::vector<Jali::Entity_ID> faces(6), nodes(8);

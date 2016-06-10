@@ -22,6 +22,7 @@ Mesh_simple::Mesh_simple(double x0, double y0, double z0,
                          const int num_tiles_ini,
                          const int num_ghost_layers_tile,
                          const int num_ghost_layers_distmesh,
+                         const bool boundary_ghosts_requested,
                          const Partitioner_type partitioner) :
     nx_(nx), ny_(ny), nz_(nz),
     x0_(x0), x1_(x1),
@@ -31,8 +32,10 @@ Mesh_simple::Mesh_simple(double x0, double y0, double z0,
     faces_per_node_aug_(13), cells_per_node_aug_(9),
   Mesh(request_faces, request_edges, request_sides, request_wedges,
        request_corners, num_tiles_ini, num_ghost_layers_tile,
-       num_ghost_layers_distmesh, partitioner,
-       JaliGeometry::Geom_type::CARTESIAN, comm) {
+       num_ghost_layers_distmesh, boundary_ghosts_requested,
+       partitioner, JaliGeometry::Geom_type::CARTESIAN, comm) {
+
+  assert(!boundary_ghosts_requested);  // Cannot yet make boundary ghosts
 
   Mesh::set_mesh_type(Mesh_type::RECTANGULAR);
   if (gm != (JaliGeometry::GeometricModelPtr) NULL)
@@ -65,6 +68,7 @@ Mesh_simple::Mesh_simple(double x0, double y0,
                          const int num_tiles_ini,
                          const int num_ghost_layers_tile,
                          const int num_ghost_layers_distmesh,
+                         const bool boundary_ghosts_requested,
                          const Partitioner_type partitioner,
                          const JaliGeometry::Geom_type geom_type) {
   Exceptions::Jali_throw(Errors::Message("Simple mesh cannot generate 2D meshes"));
@@ -85,6 +89,7 @@ Mesh_simple::Mesh_simple(const std::vector<double>& x,
                          const int num_tiles_ini,
                          const int num_ghost_layers_tile,
                          const int num_ghost_layers_distmesh,
+                         const bool boundary_ghosts_requested,
                          const Partitioner_type partitioner,
                          const JaliGeometry::Geom_type geom_type) :
   nx_(x.size()-1), ny_(-3), nz_(-3),
@@ -93,9 +98,12 @@ Mesh_simple::Mesh_simple(const std::vector<double>& x,
   faces_per_node_aug_(2), cells_per_node_aug_(3),
   Mesh(request_faces, request_edges, request_sides, request_wedges,
        request_corners, num_tiles_ini, num_ghost_layers_tile,
-       num_ghost_layers_distmesh, partitioner, geom_type, comm) {
+       num_ghost_layers_distmesh, boundary_ghosts_requested,
+       partitioner, geom_type, comm) {
   set_space_dimension(1);
   set_cell_dimension(1);
+
+  assert(!boundary_ghosts_requested);  // Cannot yet make boundary ghosts
 
   clear_internals_1d_();
   update_internals_1d_();
@@ -123,6 +131,7 @@ Mesh_simple::Mesh_simple(const std::shared_ptr<Mesh> inmesh,
                          const int num_tiles_ini,
                          const int num_ghost_layers_tile,
                          const int num_ghost_layers_distmesh,
+                         const bool boundary_ghosts_requested,
                          const Partitioner_type partitioner,
                          const JaliGeometry::Geom_type geom_type) {
   Errors::Message mesg("Construction of new mesh from an existing mesh not yet"
@@ -143,6 +152,7 @@ Mesh_simple::Mesh_simple(const Mesh& inmesh,
                          const int num_tiles_ini,
                          const int num_ghost_layers_tile,
                          const int num_ghost_layers_distmesh,
+                         const bool boundary_ghosts_requested,
                          const Partitioner_type partitioner,
                          const JaliGeometry::Geom_type geom_type) {
   Errors::Message mesg("Construction of new mesh from an existing mesh not yet"
@@ -163,6 +173,7 @@ Mesh_simple::Mesh_simple(const Mesh& inmesh,
                          const int num_tiles_ini,
                          const int num_ghost_layers_tile,
                          const int num_ghost_layers_distmesh,
+                         const bool boundary_ghosts_requested,
                          const Partitioner_type partitioner,
                          const JaliGeometry::Geom_type geom_type) {
   Errors::Message mesg("Construction of new mesh from an existing mesh not yet"
@@ -274,7 +285,7 @@ void Mesh_simple::update_internals_1d_() {
   Mesh::nodeids_all_ = Mesh::nodeids_owned_;
 
   if (Mesh::edges_requested) {
-    int num_edges = num_cells_;
+    int num_edges = num_cells_+1;  // edges are same as faces and nodes in 1D
     Mesh::edgeids_owned_.resize(num_edges);
     for (int i = 0; i < num_edges; ++i)
       edgeids_owned_[i] = i;
@@ -732,7 +743,7 @@ void Mesh_simple::node_set_coordinates(const Jali::Entity_ID local_node_id,
 
 
 void Mesh_simple::node_get_cells(const Jali::Entity_ID nodeid,
-                                 const Jali::Parallel_type ptype,
+                                 const Jali::Entity_type ptype,
                                  Jali::Entity_ID_List *cellids) const {
   unsigned int offset = (unsigned int) cells_per_node_aug_*nodeid;
   unsigned int ncells = node_to_cell_[offset];
@@ -746,7 +757,7 @@ void Mesh_simple::node_get_cells(const Jali::Entity_ID nodeid,
 
 // Faces of type 'ptype' connected to a node
 void Mesh_simple::node_get_faces(const Jali::Entity_ID nodeid,
-                                 const Jali::Parallel_type ptype,
+                                 const Jali::Entity_type ptype,
                                  Jali::Entity_ID_List *faceids) const {
   unsigned int offset = (unsigned int) faces_per_node_aug_*nodeid;
   unsigned int nfaces = node_to_face_[offset];
@@ -763,7 +774,7 @@ void Mesh_simple::node_get_faces(const Jali::Entity_ID nodeid,
 
 void Mesh_simple::node_get_cell_faces(const Jali::Entity_ID nodeid,
                                       const Jali::Entity_ID cellid,
-                                      const Jali::Parallel_type ptype,
+                                      const Jali::Entity_type ptype,
                                       Jali::Entity_ID_List *faceids) const {
   unsigned int offset = (unsigned int) faces_per_cell_*cellid;
 
@@ -788,7 +799,7 @@ void Mesh_simple::node_get_cell_faces(const Jali::Entity_ID nodeid,
 
 // Cells connected to a face
 void Mesh_simple::face_get_cells_internal(const Jali::Entity_ID faceid,
-                                          const Jali::Parallel_type ptype,
+                                          const Jali::Entity_type ptype,
                                           Jali::Entity_ID_List *cellids) const {
   unsigned int offset = (unsigned int) 2*faceid;
 
@@ -813,7 +824,7 @@ void Mesh_simple::face_get_cells_internal(const Jali::Entity_ID faceid,
 // faces given by cell_get_faces
 
 void Mesh_simple::cell_get_face_adj_cells(const Jali::Entity_ID cellid,
-                                          const Jali::Parallel_type ptype,
+                                          const Jali::Entity_type ptype,
                                           Jali::Entity_ID_List
                                           *fadj_cellids) const {
   unsigned int offset = (unsigned int) faces_per_cell_*cellid;
@@ -843,7 +854,7 @@ void Mesh_simple::cell_get_face_adj_cells(const Jali::Entity_ID cellid,
 // The cells are returned in no particular order
 
 void Mesh_simple::cell_get_node_adj_cells(const Jali::Entity_ID cellid,
-                                          const Jali::Parallel_type ptype,
+                                          const Jali::Entity_type ptype,
                                           Jali::Entity_ID_List
                                           *nadj_cellids) const {
   unsigned int offset = (unsigned int) nodes_per_cell_*cellid;
@@ -877,7 +888,7 @@ void Mesh_simple::cell_get_node_adj_cells(const Jali::Entity_ID cellid,
 
 unsigned int Mesh_simple::get_set_size(const char *setname,
                                        const Jali::Entity_kind kind,
-                                       const Jali::Parallel_type ptype) const {
+                                       const Jali::Entity_type ptype) const {
   Entity_ID_List setents;
   get_set_entities(setname, kind, ptype, &setents);
 
@@ -886,7 +897,7 @@ unsigned int Mesh_simple::get_set_size(const char *setname,
 
 unsigned int Mesh_simple::get_set_size(const std::string setname,
                                        const Jali::Entity_kind kind,
-                                       const Jali::Parallel_type ptype) const {
+                                       const Jali::Entity_type ptype) const {
   Entity_ID_List setents;
   get_set_entities(setname, kind, ptype, &setents);
 
@@ -896,7 +907,7 @@ unsigned int Mesh_simple::get_set_size(const std::string setname,
 
 void Mesh_simple::get_set_entities(const char *setname,
                                    const Jali::Entity_kind kind,
-                                   const Jali::Parallel_type ptype,
+                                   const Jali::Entity_type ptype,
                                    Jali::Entity_ID_List *setents) const {
   std::string setname1(setname);
   get_set_entities(setname1, kind, ptype, setents);
@@ -904,7 +915,7 @@ void Mesh_simple::get_set_entities(const char *setname,
 
 void Mesh_simple::get_set_entities(const std::string setname,
                                    const Jali::Entity_kind kind,
-                                   const Jali::Parallel_type ptype,
+                                   const Jali::Entity_type ptype,
                                    Jali::Entity_ID_List *setents) const {
   // we ignore ptype since this is a serial implementation
 
