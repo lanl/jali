@@ -463,10 +463,9 @@ TEST(MESH_TILES_SETS) {
   const Jali::Framework frameworks[] = {Jali::MSTK, Jali::Simple};
   const char *framework_names[] = {"MSTK", "Simple"};
   const int numframeworks = sizeof(frameworks)/sizeof(Jali::Framework);
-  Jali::Framework the_framework;
   for (int i = 0; i < numframeworks; i++) {
     // Set the framework
-    the_framework = frameworks[i];
+    Jali::Framework the_framework = frameworks[i];
     if (!Jali::framework_available(the_framework)) continue;
 
     int dim = 2;
