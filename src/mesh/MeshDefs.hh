@@ -116,24 +116,32 @@ bool entity_valid_kind(const Entity_kind kind) {
 enum class Entity_type : std::int8_t {
     TYPE_UNKNOWN = -1,
     DELETED = 0,
-    PARALLEL_OWNED = 1,         // Owned by this processor
-    PARALLEL_GHOST = 2,         // Owned by another processor
-    PARALLEL_ALL  = 3,          // PARALLEL_OWNED + PARALLEL_GHOST
-    BOUNDARY_GHOST = 4          // Ghost/Virtual entity on boundary
+    PARALLEL_OWNED = 1,    // Owned by this processor
+    PARALLEL_GHOST = 2,    // Owned by another processor
+    BOUNDARY_GHOST = 3,    // Ghost/Virtual entity on boundary
+    PARALLEL_ALL  = 4      // PARALLEL_OWNED + PARALLEL_GHOST + BOUNDARY_GHOST
 };
 
-const int NUM_ENTITY_TYPES = 5;
+const int NUM_ENTITY_TYPES = 6;
+
+// Check if Entity_type is valid
+
+inline
+bool valid_entity_type(const Entity_type type) {
+  int itype = static_cast<int>(type);
+  return (itype >= 0 && itype < NUM_ENTITY_TYPES);
+}
 
 // Return a string describing the entity kind that can be printed out
 inline
-std::string Entity_type_string(Entity_type const ptype) {
-  static const std::string parallel_type_str[4] =
-      {"Entity_type::TYPE_UNKNOWN", "Entity_type::PARALLEL_OWNED",
-       "Entity_type::PARALLEL_GHOST", "Entity_type::PARALLEL_ALL"};
+std::string Entity_type_string(Entity_type const type) {
+  static const std::string type_str[6] =
+      {"Entity_type::TYPE_UNKNOWN", "Entity_type::DELETED",
+       "Entity_type::PARALLEL_OWNED", "Entity_type::PARALLEL_GHOST",
+       "Entity_type::BOUNDARY_GHOST", "Entity_type::PARALLEL_ALL"};
 
-  int iptype = static_cast<int>(ptype);
-  return (iptype >= 0 && iptype < NUM_ENTITY_TYPES) ?
-      parallel_type_str[iptype] : "";
+  int itype = static_cast<int>(type);
+  return valid_entity_type(type) ? type_str[itype] : "";
 }
 
 
@@ -142,14 +150,6 @@ inline
 std::ostream& operator<<(std::ostream& os, const Entity_type& ptype) {
   os << " " << Entity_type_string(ptype) << " ";
   return os;
-}
-
-// Check if Entity_type is valid
-
-inline
-bool entity_valid_ptype(const Entity_type ptype) {
-  return (ptype >= Entity_type::PARALLEL_OWNED &&
-          ptype <= Entity_type::PARALLEL_ALL);
 }
 
 
