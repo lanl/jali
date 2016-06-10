@@ -52,7 +52,7 @@ framework_read(const MPI_Comm& comm, const Framework& f,
                const int num_tiles,
                const int num_ghost_layers_tile,
                const int num_ghost_layers_distmesh,
-               const int num_ghost_layers_boundary,
+               const bool boundary_ghosts_requested,
                const Partitioner_type partitioner,
                const JaliGeometry::Geom_type geom_type);
 
@@ -81,7 +81,7 @@ framework_generate(const MPI_Comm& comm, const Framework& f,
                    const int num_tiles,
                    const int num_ghost_layers_tile,
                    const int num_ghost_layers_distmesh,
-                   const int num_ghost_layers_boundary,
+                   const bool boundary_ghosts_requested,
                    const Partitioner_type partitioner);
 
 /// Generate a quadrilateral mesh
@@ -99,7 +99,7 @@ framework_generate(const MPI_Comm& comm, const Framework& f,
                    const int num_tiles,
                    const int num_ghost_layers_tile,
                    const int num_ghost_layers_distmesh,
-                   const int num_ghost_layers_boundary,
+                   const bool boundary_ghosts_requested,
                    const Partitioner_type partitioner,
                    const JaliGeometry::Geom_type geom_type);
 
@@ -116,7 +116,7 @@ framework_generate(const MPI_Comm& comm, const Framework& f,
                    const int num_tiles,
                    const int num_ghost_layers_tile,
                    const int num_ghost_layers_distmesh,
-                   const int num_ghost_layers_boundary,
+                   const bool boundary_ghosts_requested,
                    const Partitioner_type partitioner,
                    const JaliGeometry::Geom_type geom_type);
 
@@ -135,7 +135,7 @@ framework_extract(const MPI_Comm& comm, const Framework& f,
                   const int num_tiles,
                   const int num_ghost_layers_tile,
                   const int num_ghost_layers_distmesh,
-                  const int num_ghost_layers_boundary,
+                  const bool boundary_ghosts_requested,
                   const Partitioner_type partitioner,
                   const JaliGeometry::Geom_type geom_type);
 
@@ -154,7 +154,7 @@ framework_extract(const MPI_Comm& comm, const Framework& f,
                   const int num_tiles,
                   const int num_ghost_layers_tile,
                   const int num_ghost_layers_distmesh,
-                  const int num_ghost_layers_boundary,
+                  const bool boundary_ghosts_requested,
                   const Partitioner_type partitioner,
                   const JaliGeometry::Geom_type geom_type);
 
@@ -173,7 +173,7 @@ framework_extract(const MPI_Comm& comm, const Framework& f,
                   const bool extrude,
                   const int num_ghost_layers_tile,
                   const int num_ghost_layers_distmesh,
-                  const int num_ghost_layers_boundary,
+                  const bool boundary_ghosts_requested,
                   const Partitioner_type partitioner,
                   const JaliGeometry::Geom_type geom_type);
 

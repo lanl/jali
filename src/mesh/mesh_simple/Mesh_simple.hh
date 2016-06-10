@@ -45,7 +45,7 @@ public:
                const int num_tiles_ini = 0,
                const int num_ghost_layers_tile = 0,
                const int num_ghost_layers_distmesh = 0,
-               const int num_ghost_layers_boundary = 0,
+               const bool request_boundary_ghosts = false,
                const Partitioner_type partitioner = Partitioner_type::METIS);
 
   Mesh_simple (double x0, double y0,
@@ -61,7 +61,7 @@ public:
                const int num_tiles_ini = 0,
                const int num_ghost_layers_tile = 0,
                const int num_ghost_layers_distmesh = 0,
-               const int num_ghost_layers_boundary = 0,
+               const bool request_boundary_ghosts = false,
                const Partitioner_type partitioner = Partitioner_type::METIS,
                const JaliGeometry::Geom_type geom_type =
                JaliGeometry::Geom_type::CARTESIAN);
@@ -78,7 +78,7 @@ public:
                const int num_tiles_ini = 0,
                const int num_ghost_layers_tile = 0,
                const int num_ghost_layers_distmesh = 0,
-               const int num_ghost_layers_boundary = 0,
+               const bool request_boundary_ghosts = false,
                const Partitioner_type partitioner = Partitioner_type::METIS,
                const JaliGeometry::Geom_type geom_type =
                JaliGeometry::Geom_type::CARTESIAN);
@@ -102,7 +102,7 @@ public:
               const int num_tiles = 0,
               const int num_ghost_layers_tile = 0,
               const int num_ghost_layers_distmesh = 0,
-               const int num_ghost_layers_boundary = 0,
+               const bool request_boundary_ghosts = false,
               const Partitioner_type partitioner = Partitioner_type::METIS,
               const JaliGeometry::Geom_type geom_type =
               JaliGeometry::Geom_type::CARTESIAN);
@@ -120,7 +120,7 @@ public:
               const int num_tiles = 0,
               const int num_ghost_layers_tile = 0,
               const int num_ghost_layers_distmesh = 0,
-               const int num_ghost_layers_boundary = 0,
+               const bool request_boundary_ghosts = false,
               const Partitioner_type partitioner = Partitioner_type::METIS,
               const JaliGeometry::Geom_type geom_type =
               JaliGeometry::Geom_type::CARTESIAN);
@@ -138,7 +138,7 @@ public:
               const int num_tiles = 0,
               const int num_ghost_layers_tile = 0,
               const int num_ghost_layers_distmesh = 0,
-               const int num_ghost_layers_boundary = 0,
+               const bool request_boundary_ghosts = false,
               const Partitioner_type partitioner = Partitioner_type::METIS,
               const JaliGeometry::Geom_type geom_type =
               JaliGeometry::Geom_type::CARTESIAN);

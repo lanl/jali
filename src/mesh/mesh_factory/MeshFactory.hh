@@ -60,9 +60,9 @@ class MeshFactory {
   /// Number of ghost/halo layers for mesh partitions across compute nodes
   int num_ghost_layers_distmesh_;
 
-  /// Number of ghost/halo layers on external boundaries - used for applying
-  /// certain types of boundary conditions
-  int num_ghost_layers_boundary_;
+  /// Are ghost/halo layers on external boundaries required - used for
+  /// applying certain types of boundary conditions
+  bool request_boundary_ghosts_;
 
   /// Partitioner type
   Partitioner_type partitioner_;
@@ -151,16 +151,16 @@ class MeshFactory {
     num_ghost_layers_distmesh_ = num_layers;
   }
 
-  /// Get the number of ghost/virtual element layers outside
-  /// external boundaries of the meshes to be created (default 0)
-  int num_ghost_layers_boundary(void) const {
-    return num_ghost_layers_boundary_;
+  /// Are ghost/virtual elements outside external boundaries of the
+  /// meshes to be created (default false)
+  bool boundary_ghosts_requested(void) const {
+    return request_boundary_ghosts_;
   }
 
   /// Set the number of ghost/virtual element layers outside
   /// external boundarieis in the meshes to be created
-  void num_ghost_layers_boundary(int num_layers) {
-    num_ghost_layers_boundary_ = num_layers;
+  void boundary_ghosts_requested(bool requested_or_not) {
+    request_boundary_ghosts_ = requested_or_not;
   }
 
   /// Get the number of tiles to be created (default 0)

@@ -36,6 +36,8 @@ void Mesh::cache_type_info() const {
     cell_type[c] = Entity_type::PARALLEL_OWNED;
   for (auto const& c : cells<Entity_type::PARALLEL_GHOST>())
     cell_type[c] = Entity_type::PARALLEL_GHOST;
+  for (auto const& c : cells<Entity_type::BOUNDARY_GHOST>())
+    cell_type[c] = Entity_type::BOUNDARY_GHOST;
 
   if (faces_requested) {
     face_type.resize(num_faces());
@@ -158,7 +160,7 @@ void Mesh::cache_cell2edge_info() const {
 // itself; rather it is modifying mutable data structures - see
 // declaration of Mesh class for further explanation
 
-void Mesh::cache_edge2node_info() const {  
+void Mesh::cache_edge2node_info() const {
   int nedges = num_edges<Entity_type::PARALLEL_ALL>();
   edge_node_ids.resize(nedges);
 
@@ -181,7 +183,8 @@ void Mesh::cache_edge2node_info() const {
 void Mesh::cache_side_info() const {
   int ncells_owned = num_cells<Entity_type::PARALLEL_OWNED>();
   int ncells_ghost = num_cells<Entity_type::PARALLEL_GHOST>();
-  int ncells = ncells_owned + ncells_ghost;
+  int ncells_bndry_ghost = num_cells<Entity_type::BOUNDARY_GHOST>();
+  int ncells = ncells_owned + ncells_ghost + ncells_bndry_ghost;
 
   cell_side_ids.resize(ncells);
 
@@ -192,11 +195,13 @@ void Mesh::cache_side_info() const {
   int num_sides_all = 0;
   int num_sides_owned = 0;
   int num_sides_ghost = 0;
+  int num_sides_bndry_ghost = 0;
 
   if (celldim == 1) {  // in 1D there are always 2 sides per cell
     num_sides_all = 2*ncells;
     num_sides_owned = 2*ncells_owned;
     num_sides_ghost = 2*ncells_ghost;
+    num_sides_bndry_ghost = 2*ncells_bndry_ghost;
 
     for (auto const & c : cells())
       cell_side_ids[c].reserve(2);
@@ -217,8 +222,10 @@ void Mesh::cache_side_info() const {
         
         if (cell_type[c] == Entity_type::PARALLEL_OWNED)
           num_sides_owned += nfedges;
-        else
+        else if (cell_type[c] == Entity_type::PARALLEL_GHOST)
           num_sides_ghost += nfedges;
+        else if (cell_type[c] == Entity_type::BOUNDARY_GHOST)
+          num_sides_bndry_ghost += nfedges;
       }
 
       cell_side_ids[c].reserve(numsides_in_cell);
@@ -227,18 +234,20 @@ void Mesh::cache_side_info() const {
 
   sideids_owned_.resize(num_sides_owned);
   sideids_ghost_.resize(num_sides_ghost);
+  sideids_boundary_ghost_.resize(num_sides_bndry_ghost);
   sideids_all_.resize(num_sides_all);
   side_edge_id.resize(num_sides_all, -1);
   side_edge_use.resize(num_sides_all, true);
   side_face_id.resize(num_sides_all, -1);
   side_cell_id.resize(num_sides_all, -1);
   side_opp_side_id.resize(num_sides_all, -1);
-  //  side_node_ids.resize(num_sides_all, {-1, -1});  // intel does not like this
+  //  side_node_ids.resize(num_sides_all, {-1, -1});  // intel 15.0.3 does not like this
   side_node_ids.resize(num_sides_all);
 
   if (celldim == 1) {
+    int iall = 0, iown = 0, ighost = 0, ibndry = 0;
     for (auto const& c : cells()) {
-      // always 2 wedges per cell
+      // always 2 sides per cell
       int sideid = 2*c;
       
       Entity_ID_List nodeids;
@@ -246,6 +255,18 @@ void Mesh::cache_side_info() const {
       
       cell_side_ids[c].push_back(sideid);
       cell_side_ids[c].push_back(sideid+1);
+      sideids_all_[iall++] = sideid;
+      sideids_all_[iall++] = sideid+1;
+      if (cell_type[c] == Entity_type::PARALLEL_OWNED) {
+        sideids_owned_[iown++] = sideid;
+        sideids_owned_[iown++] = sideid+1;
+      } else if (cell_type[c] == Entity_type::PARALLEL_GHOST) {  // not yet ..
+        sideids_ghost_[ighost++] = sideid;
+        sideids_ghost_[ighost++] = sideid+1;
+      } else if (cell_type[c] == Entity_type::BOUNDARY_GHOST) {  // not yet ..
+        sideids_boundary_ghost_[ibndry++] = sideid;
+        sideids_boundary_ghost_[ibndry++] = sideid+1;
+      }
 
       // Sides are degenerate
       side_node_ids[sideid][0] =  nodeids[0];
@@ -272,7 +293,7 @@ void Mesh::cache_side_info() const {
     std::vector<std::vector<Entity_ID>> sides_of_edge(nedges);  // Temp. var.
 
     int sideid = 0;
-    int iall = 0, iown = 0, ighost = 0;
+    int iall = 0, iown = 0, ighost = 0, ibndry = 0;
     for (auto const & c : cells()) {
       std::vector<Entity_ID> cfaces;
       std::vector<dir_t> cfdirs;
@@ -298,9 +319,9 @@ void Mesh::cache_side_info() const {
           edge_get_nodes(e, &(enodes[0]), &(enodes[1]));
 
           if (celldim == 2) {  // 2D
-            side_node_ids[sideid][0] = fdir == 1 ? enodes[0] : enodes[1];
-            side_node_ids[sideid][1] = fdir == 1 ? enodes[1] : enodes[0];
-            side_edge_use[sideid] = fdir == 1 ? true : false;
+            side_node_ids[sideid][0] = (fdir == 1) ? enodes[0] : enodes[1];
+            side_node_ids[sideid][1] = (fdir == 1) ? enodes[1] : enodes[0];
+            side_edge_use[sideid] = (fdir == 1) ? true : false;
           } else {  // 3D
             
             // In 3D, if the cell uses the face in the +ve dir (normal
@@ -310,7 +331,7 @@ void Mesh::cache_side_info() const {
             // point 1 and face center for the side to have a normal
             // pointing into the cell
             
-            int fdir01 = (fdir+1)/2;
+            int fdir01 = (fdir+1)/2;  // convert from -1/1 to 0/1
             int edir01 = (edir+1)/2;
             int dir = fdir01^edir01;  // gives 0 if both are same
             side_node_ids[sideid][0] = dir ? enodes[0] : enodes[1];
@@ -327,6 +348,8 @@ void Mesh::cache_side_info() const {
           sideids_all_[iall++] = sideid;
           if (cell_type[c] == Entity_type::PARALLEL_OWNED)
             sideids_owned_[iown++] = sideid;
+          else if (cell_type[c] == Entity_type::BOUNDARY_GHOST)
+            sideids_boundary_ghost_[ibndry++] = sideid;
           else
             sideids_ghost_[ighost++] = sideid;
           
@@ -365,7 +388,8 @@ void Mesh::cache_side_info() const {
 void Mesh::cache_wedge_info() const {
   int ncells_owned = num_cells<Entity_type::PARALLEL_OWNED>();
   int ncells_ghost = num_cells<Entity_type::PARALLEL_GHOST>();
-  int ncells = ncells_owned + ncells_ghost;
+  int ncells_boundary_ghost = num_cells<Entity_type::BOUNDARY_GHOST>();
+  int ncells = ncells_owned + ncells_ghost + ncells_boundary_ghost;
 
   int nnodes_owned = num_nodes<Entity_type::PARALLEL_OWNED>();
   int nnodes_ghost = num_nodes<Entity_type::PARALLEL_GHOST>();
@@ -373,18 +397,21 @@ void Mesh::cache_wedge_info() const {
 
   int nsides_owned = num_sides<Entity_type::PARALLEL_OWNED>();
   int nsides_ghost = num_sides<Entity_type::PARALLEL_GHOST>();
-  int nsides_all = nsides_owned + nsides_ghost;
+  int nsides_boundary_ghost = num_sides<Entity_type::BOUNDARY_GHOST>();
+  int nsides_all = nsides_owned + nsides_ghost + nsides_boundary_ghost;
 
   int num_wedges_all = 2*nsides_all;
   int num_wedges_owned = 2*nsides_owned;
   int num_wedges_ghost = 2*nsides_ghost;
+  int num_wedges_boundary_ghost = 2*nsides_boundary_ghost;
 
   wedgeids_owned_.resize(num_wedges_owned);
   wedgeids_ghost_.resize(num_wedges_ghost);
+  wedgeids_boundary_ghost_.resize(num_wedges_boundary_ghost);
   wedge_corner_id.resize(num_wedges_all, -1);  // filled when building corners
 
   
-  int iown = 0, ighost = 0;
+  int iown = 0, ighost = 0, ibndry = 0;
   for (auto const& s : sides()) {
     int wedgeid0 = 2*s;
     int wedgeid1 = 2*s + 1;
@@ -392,9 +419,12 @@ void Mesh::cache_wedge_info() const {
     if (cell_type[c] == Entity_type::PARALLEL_OWNED) {
       wedgeids_owned_[iown++] = wedgeid0;
       wedgeids_owned_[iown++] = wedgeid1;
-    } else {
+    } else if (cell_type[c] == Entity_type::PARALLEL_GHOST) {
       wedgeids_ghost_[ighost++] = wedgeid0;
       wedgeids_ghost_[ighost++] = wedgeid1;
+    } else if (cell_type[c] == Entity_type::BOUNDARY_GHOST) {
+      wedgeids_boundary_ghost_[ibndry++] = wedgeid0;
+      wedgeids_boundary_ghost_[ibndry++] = wedgeid1;
     }
   }
 
@@ -402,6 +432,8 @@ void Mesh::cache_wedge_info() const {
   wedgeids_all_ = wedgeids_owned_;  // copy
   wedgeids_all_.insert(wedgeids_all_.end(), wedgeids_ghost_.begin(),
               wedgeids_ghost_.end());
+  wedgeids_all_.insert(wedgeids_all_.end(), wedgeids_boundary_ghost_.begin(),
+              wedgeids_boundary_ghost_.end());
 
   wedge_info_cached = true;
 }  // cache_wedge_info
@@ -410,7 +442,8 @@ void Mesh::cache_wedge_info() const {
 void Mesh::cache_corner_info() const {
   int ncells_owned = num_cells<Entity_type::PARALLEL_OWNED>();
   int ncells_ghost = num_cells<Entity_type::PARALLEL_GHOST>();
-  int ncells = ncells_owned + ncells_ghost;
+  int ncells_boundary_ghost = num_cells<Entity_type::BOUNDARY_GHOST>();
+  int ncells = ncells_owned + ncells_ghost + ncells_boundary_ghost;
 
   int nnodes_owned = num_nodes<Entity_type::PARALLEL_OWNED>();
   int nnodes_ghost = num_nodes<Entity_type::PARALLEL_GHOST>();
@@ -422,6 +455,7 @@ void Mesh::cache_corner_info() const {
   int num_corners_all = 0;
   int num_corners_owned = 0;
   int num_corners_ghost = 0;
+  int num_corners_boundary_ghost = 0;
 
   for (auto const& c : cells()) {
     std::vector<Entity_ID> cnodes;
@@ -431,16 +465,19 @@ void Mesh::cache_corner_info() const {
     num_corners_all += cnodes.size();  // as many corners as nodes in cell
     if (cell_type[c] == Entity_type::PARALLEL_OWNED)
       num_corners_owned += cnodes.size();
-    else
+    else if (cell_type[c] == Entity_type::PARALLEL_GHOST)
       num_corners_ghost += cnodes.size();
+    else if (cell_type[c] == Entity_type::BOUNDARY_GHOST)
+      num_corners_boundary_ghost += cnodes.size();
   }
 
   cornerids_owned_.resize(num_corners_owned);
   cornerids_ghost_.resize(num_corners_ghost);
+  cornerids_boundary_ghost_.resize(num_corners_boundary_ghost);
   corner_wedge_ids.resize(num_corners_all);
 
   int cornerid = 0;
-  int iown = 0, ighost = 0;
+  int iown = 0, ighost = 0, ibndry = 0;
   for (auto const& c : cells()) {
     std::vector<Entity_ID> cnodes;
     cell_get_nodes(c, &cnodes);
@@ -454,8 +491,10 @@ void Mesh::cache_corner_info() const {
 
       if (cell_type[c] == Entity_type::PARALLEL_OWNED)
         cornerids_owned_[iown++] = cornerid;
-      else
+      else if (cell_type[c] == Entity_type::PARALLEL_GHOST)
         cornerids_ghost_[ighost++] = cornerid;
+      else if (cell_type[c] == Entity_type::BOUNDARY_GHOST)
+        cornerids_boundary_ghost_[ibndry++] = cornerid;
 
       for (auto const& w : cwedges) {
         Entity_ID n2 = wedge_get_node(w);
@@ -473,6 +512,8 @@ void Mesh::cache_corner_info() const {
   cornerids_all_ = cornerids_owned_;  // list copy
   cornerids_all_.insert(cornerids_all_.end(), cornerids_ghost_.begin(),
                         cornerids_ghost_.end());
+  cornerids_all_.insert(cornerids_all_.end(), cornerids_boundary_ghost_.begin(),
+                        cornerids_boundary_ghost_.end());
 
   corner_info_cached = true;
 }  // cache_corner_info
@@ -939,14 +980,21 @@ int Mesh::compute_cell_geometric_quantities() const {
 
   cell_volumes.resize(ncells);
   cell_centroids.resize(ncells);
-  for (int i = 0; i < ncells; i++) {
-    double volume;
-    JaliGeometry::Point centroid(spacedim);
-
-    compute_cell_geometry(i, &volume, &centroid);
-
-    cell_volumes[i] = volume;
-    cell_centroids[i] = centroid;
+  
+  std::vector<double> zerovec(spacedim, 0.0);
+  for (int c = 0; c < ncells; c++) {
+    if (cell_type[c] == Entity_type::BOUNDARY_GHOST) {
+      cell_volumes[c] = 0.0;
+      cell_centroids[c].set(spacedim, &(zerovec[0]));
+    } else {
+      double volume;
+      JaliGeometry::Point centroid(spacedim);
+      
+      compute_cell_geometry(c, &volume, &centroid);
+      
+      cell_volumes[c] = volume;
+      cell_centroids[c] = centroid;
+    }
   }
 
   cell_geometry_precomputed = true;
@@ -1023,12 +1071,18 @@ int Mesh::compute_side_geometric_quantities() const {
   side_outward_facet_normal.reserve(num_sides());
   side_mid_facet_normal.reserve(num_sides());
 
+  JaliGeometry::Point outward_facet_normal(spacedim);
+  JaliGeometry::Point mid_facet_normal(spacedim);
   for (auto const & s : sides()) {
-    JaliGeometry::Point outward_facet_normal(spacedim),
-        mid_facet_normal(spacedim);
-    compute_side_geometry(s, &(side_volumes[s]),
-                          &(outward_facet_normal),
-                          &(mid_facet_normal));
+    if (entity_get_type(Entity_kind::SIDE, s) == Entity_type::BOUNDARY_GHOST) {
+      side_volumes[s] = 0.0;
+      outward_facet_normal.set(0.0);
+      mid_facet_normal.set(0.0);
+    } else {
+      compute_side_geometry(s, &(side_volumes[s]),
+                            &(outward_facet_normal),
+                            &(mid_facet_normal));
+    }
     side_outward_facet_normal.push_back(outward_facet_normal);
     side_mid_facet_normal.push_back(mid_facet_normal);
   }
@@ -1039,8 +1093,11 @@ int Mesh::compute_side_geometric_quantities() const {
 
 int Mesh::compute_corner_geometric_quantities() const {
   corner_volumes.resize(num_corners());
-  for (auto const & c : corners())
-    compute_corner_geometry(c, &(corner_volumes[c]));
+  for (auto const & cn : corners())
+    if (entity_get_type(Entity_kind::CORNER, cn) == Entity_type::BOUNDARY_GHOST)
+      corner_volumes[cn] = 0.0;
+    else
+      compute_corner_geometry(cn, &(corner_volumes[cn]));
   corner_geometry_precomputed = true;
   return 1;
 }
@@ -1433,7 +1490,7 @@ void Mesh::compute_side_geometry(Entity_ID const sideid,
     }
 
     // This is not really defined - nobody should try to use this
-    *mid_facet_normal = JaliGeometry::Point(0.0);
+    mid_facet_normal->set(0.0);
   }
 }  // Compute side geometry
 

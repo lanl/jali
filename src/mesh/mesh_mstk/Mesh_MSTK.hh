@@ -56,7 +56,7 @@ class Mesh_MSTK : public Mesh {
             const int num_tiles = 0,
             const int num_ghost_layers_tile = 0,
             const int num_ghost_layers_distmesh = 1,
-            const int num_ghost_layers_boundary = 0,
+            const bool request_boundary_ghosts = false,
             const Partitioner_type partitioner = Partitioner_type::METIS,
             const JaliGeometry::Geom_type geom_type =
             JaliGeometry::Geom_type::CARTESIAN);
@@ -73,7 +73,7 @@ class Mesh_MSTK : public Mesh {
             const int num_tiles = 0,
             const int num_ghost_layers_tile = 0,
             const int num_ghost_layers_distmesh = 1,
-            const int num_ghost_layers_boundary = 0,
+            const bool request_boundary_ghosts = false,
             const Partitioner_type partitioner = Partitioner_type::METIS,
             const JaliGeometry::Geom_type geom_type =
             JaliGeometry::Geom_type::CARTESIAN);
@@ -96,7 +96,7 @@ class Mesh_MSTK : public Mesh {
             const int num_tiles = 0,
             const int num_ghost_layers_tile = 0,
             const int num_ghost_layers_distmesh = 1,
-            const int num_ghost_layers_boundary = 0,
+            const bool request_boundary_ghosts = false,
             const Partitioner_type partitioner = Partitioner_type::METIS);
 
 
@@ -115,7 +115,7 @@ class Mesh_MSTK : public Mesh {
             const int num_tiles = 0,
             const int num_ghost_layers_tile = 0,
             const int num_ghost_layers_distmesh = 1,
-            const int num_ghost_layers_boundary = 0,
+            const bool request_boundary_ghosts = false,
             const Partitioner_type partitioner = Partitioner_type::METIS,
             const JaliGeometry::Geom_type geom_type =
             JaliGeometry::Geom_type::CARTESIAN);
@@ -140,7 +140,7 @@ class Mesh_MSTK : public Mesh {
             const int num_tiles = 0,
             const int num_ghost_layers_tile = 0,
             const int num_ghost_layers_distmesh = 1,
-            const int num_ghost_layers_boundary = 0,
+            const bool request_boundary_ghosts = false,
             const Partitioner_type partitioner = Partitioner_type::METIS,
             const JaliGeometry::Geom_type geom_type =
             JaliGeometry::Geom_type::CARTESIAN);
@@ -158,7 +158,7 @@ class Mesh_MSTK : public Mesh {
             const int num_tiles = 0,
             const int num_ghost_layers_tile = 0,
             const int num_ghost_layers_distmesh = 1,
-            const int num_ghost_layers_boundary = 0,
+            const bool request_boundary_ghosts = false,
             const Partitioner_type partitioner = Partitioner_type::METIS,
             const JaliGeometry::Geom_type geom_type =
             JaliGeometry::Geom_type::CARTESIAN);
@@ -176,7 +176,7 @@ class Mesh_MSTK : public Mesh {
             const int num_tiles = 0,
             const int num_ghost_layers_tile = 0,
             const int num_ghost_layers_distmesh = 1,
-            const int num_ghost_layers_boundary = 0,
+            const bool request_boundary_ghosts = false,
             const Partitioner_type partitioner = Partitioner_type::METIS,
             const JaliGeometry::Geom_type geom_type =
             JaliGeometry::Geom_type::CARTESIAN);
@@ -530,6 +530,8 @@ class Mesh_MSTK : public Mesh {
   void init_faces();
   void init_cells();
 
+  void create_boundary_ghosts();
+
   void init_set_info();
   void inherit_labeled_sets(MAttrib_ptr copyatt);
   std::string internal_name_of_set(const JaliGeometry::RegionPtr region,
@@ -551,7 +553,7 @@ class Mesh_MSTK : public Mesh {
                          const bool request_faces = true,
                          const bool request_edges = false,
                          const int num_ghost_layers_distmesh = 1,
-                         const int num_ghost_layers_boundary = 0,
+                         const bool request_boundary_ghosts = false,
                          const Partitioner_type partitioner =
                          Partitioner_type::METIS);
 
@@ -678,15 +680,15 @@ class Mesh_MSTK : public Mesh {
 
   mutable MSet_ptr OwnedFaces, NotOwnedFaces;
 
-  MSet_ptr OwnedCells, GhostCells;
+  MSet_ptr OwnedCells, GhostCells, BoundaryGhostCells;
 
   // Flags to indicate if face and edge info is initialized
 
   mutable bool faces_initialized, edges_initialized;
 
-  // Marker to indicate if an entity is not owned
+  // Marker to indicate if a cell is a boundary ghost cell
 
-  int notwownedmark;
+  int boundary_ghost_mark = 0;
 
   // Deleted entity lists if some pre-processing had to be done
   // to the mesh to eliminate degenerate entities

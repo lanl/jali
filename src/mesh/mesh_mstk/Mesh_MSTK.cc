@@ -29,12 +29,12 @@ Mesh_MSTK::Mesh_MSTK(const char *filename, const MPI_Comm& incomm,
                      const int num_tiles_ini,
                      const int num_ghost_layers_tile,
                      const int num_ghost_layers_distmesh,
-                     const int num_ghost_layers_boundary,
+                     const bool boundary_ghosts_requested,
                      const Partitioner_type partitioner,
                      const JaliGeometry::Geom_type geom_type) :
 Mesh(request_faces, request_edges, request_sides, request_wedges,
      request_corners, num_tiles_ini, num_ghost_layers_tile,
-     num_ghost_layers_distmesh, num_ghost_layers_boundary,
+     num_ghost_layers_distmesh, boundary_ghosts_requested,
      partitioner, geom_type, incomm),
   mpicomm(incomm), meshxyz(NULL),
   faces_initialized(false), edges_initialized(false),
@@ -169,16 +169,16 @@ Mesh_MSTK::Mesh_MSTK(const char *filename, const MPI_Comm& incomm,
                      const int num_tiles,
                      const int num_ghost_layers_tile,
                      const int num_ghost_layers_distmesh,
-                     const int num_ghost_layers_boundary,
+                     const bool boundary_ghosts_requested,
                      const Partitioner_type partitioner,
                      const JaliGeometry::Geom_type geom_type) :
 Mesh(request_faces, request_edges, request_sides, request_wedges,
      request_corners, num_tiles, num_ghost_layers_tile,
-     num_ghost_layers_distmesh, num_ghost_layers_boundary,
+     num_ghost_layers_distmesh, boundary_ghosts_requested,
      partitioner, geom_type, incomm),
      mpicomm(incomm), meshxyz(NULL),
      faces_initialized(false), edges_initialized(false),
-     target_cell_volumes(NULL), min_cell_volumes(NULL) {
+  target_cell_volumes(NULL), min_cell_volumes(NULL) {
 
   // Assume three dimensional problem if constructor called without
   // the space_dimension parameter
@@ -282,11 +282,11 @@ Mesh_MSTK::Mesh_MSTK(const double x0, const double y0, const double z0,
                      const int num_tiles,
                      const int num_ghost_layers_tile,
                      const int num_ghost_layers_distmesh,
-                     const int num_ghost_layers_boundary,
+                     const bool boundary_ghosts_requested,
                      const Partitioner_type partitioner) :
 Mesh(request_faces, request_edges, request_sides, request_wedges,
      request_corners, num_tiles, num_ghost_layers_tile,
-     num_ghost_layers_distmesh, num_ghost_layers_boundary,
+     num_ghost_layers_distmesh, boundary_ghosts_requested,
      partitioner, JaliGeometry::Geom_type::CARTESIAN, incomm),
     mpicomm(incomm), meshxyz(NULL),
     faces_initialized(false), edges_initialized(false),
@@ -420,12 +420,12 @@ Mesh_MSTK::Mesh_MSTK(const double x0, const double y0,
                      const int num_tiles,
                      const int num_ghost_layers_tile,
                      const int num_ghost_layers_distmesh,
-                     const int num_ghost_layers_boundary,
+                     const bool boundary_ghosts_requested,
                      const Partitioner_type partitioner,
                      const JaliGeometry::Geom_type geom_type) :
 Mesh(request_faces, request_edges, request_sides, request_wedges,
      request_corners, num_tiles, num_ghost_layers_tile,
-     num_ghost_layers_distmesh, num_ghost_layers_boundary,
+     num_ghost_layers_distmesh, boundary_ghosts_requested,
      partitioner, geom_type, incomm),
     mpicomm(incomm), meshxyz(NULL),
     faces_initialized(false), edges_initialized(false),
@@ -548,13 +548,13 @@ Mesh_MSTK::Mesh_MSTK(const std::shared_ptr<Mesh> inmesh,
                      const int num_tiles,
                      const int num_ghost_layers_tile,
                      const int num_ghost_layers_distmesh,
-                     const int num_ghost_layers_boundary,
+                     const bool boundary_ghosts_requested,
                      const Partitioner_type partitioner,
                      const JaliGeometry::Geom_type geom_type) :
     mpicomm(inmesh->get_comm()),
   Mesh(request_faces, request_edges, request_sides, request_wedges,
        request_corners, num_tiles, num_ghost_layers_tile,
-       num_ghost_layers_distmesh, num_ghost_layers_boundary,
+       num_ghost_layers_distmesh, boundary_ghosts_requested,
        partitioner, geom_type, inmesh->get_comm()) {
 
   Mesh_MSTK *inmesh_mstk = dynamic_cast<Mesh_MSTK *>(inmesh.get());
@@ -596,7 +596,7 @@ Mesh_MSTK::Mesh_MSTK(const std::shared_ptr<Mesh> inmesh,
 
   extract_mstk_mesh(*inmesh_mstk, src_ents, entity_dim,
                     flatten, extrude, request_faces, request_edges,
-                    num_ghost_layers_distmesh, num_ghost_layers_boundary,
+                    num_ghost_layers_distmesh, boundary_ghosts_requested,
                     partitioner);
 
   List_Delete(src_ents);
@@ -615,13 +615,13 @@ Mesh_MSTK::Mesh_MSTK(const Mesh& inmesh,
                      const int num_tiles,
                      const int num_ghost_layers_tile,
                      const int num_ghost_layers_distmesh,
-                     const int num_ghost_layers_boundary,
+                     const bool boundary_ghosts_requested,
                      const Partitioner_type partitioner,
                      const JaliGeometry::Geom_type geom_type) :
   mpicomm(inmesh.get_comm()),
   Mesh(request_faces, request_edges, request_sides, request_wedges,
        request_corners, num_tiles, num_ghost_layers_tile,
-       num_ghost_layers_distmesh, num_ghost_layers_boundary,
+       num_ghost_layers_distmesh, boundary_ghosts_requested,
        partitioner, geom_type, inmesh.get_comm()) {
 
   Mesh_ptr inmesh_mstk = ((Mesh_MSTK&) inmesh).mesh;
@@ -664,7 +664,7 @@ Mesh_MSTK::Mesh_MSTK(const Mesh& inmesh,
 
   extract_mstk_mesh((Mesh_MSTK&) inmesh, src_ents, entity_dim, flatten, extrude,
                     request_faces, request_edges, num_ghost_layers_distmesh,
-                    num_ghost_layers_boundary, partitioner);
+                    boundary_ghosts_requested, partitioner);
 
   List_Delete(src_ents);
 }
@@ -688,13 +688,13 @@ Mesh_MSTK::Mesh_MSTK(const Mesh& inmesh,
                      const int num_tiles,
                      const int num_ghost_layers_tile,
                      const int num_ghost_layers_distmesh,
-                     const int num_ghost_layers_boundary,
+                     const bool boundary_ghosts_requested,
                      const Partitioner_type partitioner,
                      const JaliGeometry::Geom_type geom_type) :
 mpicomm(inmesh.get_comm()),
   Mesh(request_faces, request_edges, request_sides, request_wedges,
        request_corners, num_tiles, num_ghost_layers_tile,
-       num_ghost_layers_distmesh, num_ghost_layers_boundary,
+       num_ghost_layers_distmesh, boundary_ghosts_requested,
        partitioner, geom_type, inmesh.get_comm()) {
 
   // store pointers to the MESH_XXXFromID functions so that they can
@@ -716,7 +716,7 @@ mpicomm(inmesh.get_comm()),
 
   extract_mstk_mesh((Mesh_MSTK&) inmesh, src_ents, entity_dim, flatten, extrude,
                     request_faces, request_edges, num_ghost_layers_distmesh,
-                    num_ghost_layers_boundary, partitioner);
+                    boundary_ghosts_requested, partitioner);
 
   List_Delete(src_ents);
 }
@@ -794,7 +794,7 @@ void Mesh_MSTK::extract_mstk_mesh(const Mesh_MSTK& inmesh,
                                   const bool request_faces,
                                   const bool request_edges,
                                   const int num_ghost_layers_distmesh,
-                                  const int num_ghost_layers_boundary,
+                                  const bool boundary_ghosts_requested,
                                   const Partitioner_type partitioner) {
   int ok, ival, idx;
   double rval, xyz[3];
@@ -1297,6 +1297,14 @@ Mesh_MSTK::~Mesh_MSTK() {
   if (NotOwnedFaces) MSet_Delete(NotOwnedFaces);
   if (OwnedCells) MSet_Delete(OwnedCells);
   if (GhostCells) MSet_Delete(GhostCells);
+  if (BoundaryGhostCells) {
+    int idx = 0;
+    MEntity_ptr ment;
+    while ((ment = MSet_Next_Entry(BoundaryGhostCells, &idx)))
+      MEnt_Unmark(ment, boundary_ghost_mark);
+    MSet_Delete(BoundaryGhostCells);
+    if (boundary_ghost_mark) MSTK_FreeMarker(boundary_ghost_mark);
+  }
 
   if (entities_deleted) {
     if (deleted_vertices) List_Delete(deleted_vertices);
@@ -2020,14 +2028,16 @@ void Mesh_MSTK::node_get_cells(const Entity_ID nodeid,
     idx = 0;
     while ((ment = List_Next_Entry(cell_list, &idx))) {
       if (MEnt_PType(ment) == PGHOST) {
-        if (ptype == Entity_type::PARALLEL_GHOST || ptype == Entity_type::PARALLEL_ALL) {
+        if (ptype == Entity_type::PARALLEL_GHOST ||
+            ptype == Entity_type::PARALLEL_ALL) {
           lid = MEnt_ID(ment);
           *it = lid-1;  // assign to next spot by dereferencing iterator
           ++it;
           ++n;
         }
       } else {
-        if (ptype == Entity_type::PARALLEL_OWNED || ptype == Entity_type::PARALLEL_ALL) {
+        if (ptype == Entity_type::PARALLEL_OWNED ||
+            ptype == Entity_type::PARALLEL_ALL) {
           lid = MEnt_ID(ment);
           *it = lid-1;  // assign to next spot by dereferencing iterator
           ++it;
@@ -3430,6 +3440,14 @@ void Mesh_MSTK::post_create_steps_() {
 
   collapse_degen_edges();
 
+  // Create boundary ghost elements (if requested). Regardless of what
+  // the requested number of layers is, we will create only 1 layer
+
+  if (Mesh::boundary_ghosts_requested_)
+    create_boundary_ghosts();
+
+  // label cells to indicate if they are one of the standard element
+  // types (tet, hex, prism) or if they are general polytopes
   label_celltype();
 
   // Initialize data structures for various entities - vertices/nodes
@@ -3626,8 +3644,11 @@ void Mesh_MSTK::init_cells() {
   MEntity_ptr ment;
   int nowned = MSet_Num_Entries(OwnedCells);
   int nghost = MSet_Num_Entries(GhostCells);
+  int nboundary_ghost = Mesh::boundary_ghosts_requested_ ?
+      MSet_Num_Entries(BoundaryGhostCells) : 0;
+  int nall = nowned + nghost + nboundary_ghost;
 
-  Mesh::cellids_all_.resize(nowned+nghost);
+  Mesh::cellids_all_.resize(nall);
   j = 0;
 
   Mesh::cellids_owned_.resize(nowned);
@@ -3644,6 +3665,16 @@ void Mesh_MSTK::init_cells() {
     int id = MEnt_ID(ment)-1;
     cellids_ghost_[i++] = id;
     cellids_all_[j++] = id;
+  }
+
+  if (Mesh::boundary_ghosts_requested_) {
+    Mesh::cellids_boundary_ghost_.resize(nboundary_ghost);
+    idx = 0; i = 0;
+    while ((ment = MSet_Next_Entry(BoundaryGhostCells, &idx))) {
+      int id = MEnt_ID(ment)-1;
+      cellids_boundary_ghost_[i++] = id;
+      cellids_all_[j++] = id;
+    }
   }
 }
 
@@ -3770,6 +3801,15 @@ void Mesh_MSTK::init_cell_id2handle_maps() {
     lid++;
   }
 
+  if (Mesh::boundary_ghosts_requested_) {
+    idx = 0;
+    while ((gencell = MSet_Next_Entry(BoundaryGhostCells, &idx))) {
+      MEnt_Set_ID(gencell, lid);
+      cell_id_to_handle[lid-1] = gencell;
+      lid++;
+    }
+  }
+
 }  // Mesh_MSTK::init_id_handle_maps
 
 
@@ -3877,7 +3917,7 @@ void Mesh_MSTK::init_pedge_dirs() {
           remote_vertexid0 == local_vertexid1) {
         int lid = MEnt_ID(edge);
         edgeflip[lid-1] = true;
-      } else { // Sanity Check
+      } else {  // Sanity Check
 
         if (remote_vertexid1 != local_vertexid1 &&
             remote_vertexid0 != local_vertexid0) {
@@ -4112,26 +4152,36 @@ void Mesh_MSTK::init_pcell_lists() {
 
     OwnedCells = MSet_New(mesh, "OwnedCells", MREGION);
     GhostCells = MSet_New(mesh, "GhostCells", MREGION);
+    BoundaryGhostCells = MSet_New(mesh, "BoundaryGhostCells", MREGION);
 
     idx = 0;
     while ((region = MESH_Next_Region(mesh, &idx))) {
       if (MR_PType(region) == PGHOST)
         MSet_Add(GhostCells, region);
-      else
-        MSet_Add(OwnedCells, region);
+      else {
+        if (MEnt_IsMarked(region, boundary_ghost_mark))
+          MSet_Add(BoundaryGhostCells, region);
+        else
+          MSet_Add(OwnedCells, region);
+      }
     }
   } else if (cell_dimension() == 2) {
     MFace_ptr face;
 
     OwnedCells = MSet_New(mesh, "OwnedCells", MFACE);
     GhostCells = MSet_New(mesh, "GhostCells", MFACE);
+    BoundaryGhostCells = MSet_New(mesh, "BoundaryGhostCells", MFACE);
 
     idx = 0;
     while ((face = MESH_Next_Face(mesh, &idx))) {
       if (MF_PType(face) == PGHOST)
         MSet_Add(GhostCells, face);
-      else
-        MSet_Add(OwnedCells, face);
+      else {
+        if (MEnt_IsMarked(face, boundary_ghost_mark))
+          MSet_Add(BoundaryGhostCells, face);
+        else
+          MSet_Add(OwnedCells, face);
+      }
     }
   } else {
     Errors::Message mesg("Implemented only for 2D and 3D");
@@ -4380,6 +4430,46 @@ void Mesh_MSTK::collapse_degen_edges() {
   }
 
 } /* end Mesh_MSTK::collapse_degen_edges */
+
+
+void Mesh_MSTK::create_boundary_ghosts() {
+  if (Mesh::cell_dimension() == 2) {
+    MEdge_ptr me;
+    int idx = 0;
+    while ((me = MESH_Next_Edge(mesh, &idx))) {
+      List_ptr efaces = ME_Faces(me);
+      if (List_Num_Entries(efaces) == 1 &&
+          ME_PType(me) != PGHOST && !ME_OnParBoundary(me)) {
+        MFace_ptr mfint = List_Entry(efaces, 0);
+        int dir = MF_EdgeDir(mfint, me);
+
+        MFace_ptr mfbndry = MF_New(mesh);
+        dir = !dir;
+        MF_Set_Edges(mfbndry, 1, &me, &dir);  // One edge for the face
+        MEnt_Mark(mfbndry, boundary_ghost_mark);
+      }
+      List_Delete(efaces);
+    }
+  } else if (Mesh::cell_dimension() == 3) {
+    MFace_ptr mf;
+    int idx = 0;
+    while ((mf = MESH_Next_Face(mesh, &idx))) {
+      List_ptr fregions = MF_Regions(mf);
+      if (List_Num_Entries(fregions) == 1 &&
+          MF_PType(mf) != PGHOST && !MF_OnParBoundary(mf)) {
+        MRegion_ptr mrint = List_Entry(fregions, 0);
+        int dir = MR_FaceDir(mrint, mf);
+
+        MRegion_ptr mrbndry = MR_New(mesh);
+        dir = !dir;
+        MR_Set_Faces(mrbndry, 1, &mf, &dir);  // One face for the region
+        MEnt_Mark(mrbndry, boundary_ghost_mark);
+      }
+      List_Delete(fregions);
+    }
+  } else {
+  }
+}
 
 
 Cell_type Mesh_MSTK::MFace_Celltype(MFace_ptr face) {
@@ -4954,9 +5044,14 @@ void Mesh_MSTK::pre_create_steps_(const int space_dimension,
   OwnedVerts = NotOwnedVerts = NULL;
   OwnedEdges = NotOwnedEdges = NULL;
   OwnedFaces = NotOwnedFaces = NULL;
-  OwnedCells = GhostCells = NULL;
+  OwnedCells = GhostCells = BoundaryGhostCells = NULL;
   deleted_vertices = deleted_edges = deleted_faces = deleted_regions = NULL;
   entities_deleted = false;
+  
+  if (Mesh::boundary_ghosts_requested_)
+    boundary_ghost_mark = MSTK_GetMarker();
+  else
+    boundary_ghost_mark = 0;
 }
 
 
