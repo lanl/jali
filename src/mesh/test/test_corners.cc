@@ -212,7 +212,7 @@ TEST(MESH_CORNERS_2D) {
 
     for (auto const & n : mesh->nodes()) {
       Jali::Entity_ID_List corners;
-      mesh->node_get_corners(n, Jali::Entity_type::PARALLEL_ALL, &corners);
+      mesh->node_get_corners(n, Jali::Entity_type::ALL, &corners);
 
       for (auto const & cn : corners)
         totalvol2 += mesh->corner_volume(cn);
@@ -397,7 +397,7 @@ TEST(MESH_CORNERS_3D) {
 
     for (auto const & n : mesh->nodes()) {
       Jali::Entity_ID_List corners;
-      mesh->node_get_corners(n, Jali::Entity_type::PARALLEL_ALL, &corners);
+      mesh->node_get_corners(n, Jali::Entity_type::ALL, &corners);
 
       for (auto const & cn : corners)
         totalvol2 += mesh->corner_volume(cn);

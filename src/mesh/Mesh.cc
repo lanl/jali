@@ -71,7 +71,7 @@ void Mesh::cache_type_info() const {
 // declaration of Mesh class for further explanation
 
 void Mesh::cache_cell2face_info() const {
-  int ncells = num_cells<Entity_type::PARALLEL_ALL>();
+  int ncells = num_cells<Entity_type::ALL>();
   cell_face_ids.resize(ncells);
   cell_face_dirs.resize(ncells);
 
@@ -90,13 +90,13 @@ void Mesh::cache_cell2face_info() const {
 // declaration of Mesh class for further explanation
 
 void Mesh::cache_face2cell_info() const {
-  int nfaces = num_faces<Entity_type::PARALLEL_ALL>();
+  int nfaces = num_faces<Entity_type::ALL>();
   face_cell_ids.resize(nfaces);
 
   std::vector<Entity_ID> fcells;
 
   for (int f = 0; f < nfaces; f++) {
-    face_get_cells_internal(f, Entity_type::PARALLEL_ALL, &fcells);
+    face_get_cells_internal(f, Entity_type::ALL, &fcells);
 
     face_cell_ids[f].resize(2);
 
@@ -116,7 +116,7 @@ void Mesh::cache_face2cell_info() const {
 // declaration of Mesh class for further explanation
 
 void Mesh::cache_face2edge_info() const {
-  int nfaces = num_faces<Entity_type::PARALLEL_ALL>();
+  int nfaces = num_faces<Entity_type::ALL>();
   face_edge_ids.resize(nfaces);
   face_edge_dirs.resize(nfaces);
 
@@ -134,7 +134,7 @@ void Mesh::cache_face2edge_info() const {
 // declaration of Mesh class for further explanation
 
 void Mesh::cache_cell2edge_info() const {
-  int ncells = num_cells<Entity_type::PARALLEL_ALL>();
+  int ncells = num_cells<Entity_type::ALL>();
   cell_edge_ids.resize(ncells);
 
   if (spacedim == 1) {
@@ -161,7 +161,7 @@ void Mesh::cache_cell2edge_info() const {
 // declaration of Mesh class for further explanation
 
 void Mesh::cache_edge2node_info() const {
-  int nedges = num_edges<Entity_type::PARALLEL_ALL>();
+  int nedges = num_edges<Entity_type::ALL>();
   edge_node_ids.resize(nedges);
 
   if (spacedim == 1) {
@@ -289,7 +289,7 @@ void Mesh::cache_side_info() const {
                                     -1 : sideid+2;
     }
   } else {
-    int nedges = num_edges<Entity_type::PARALLEL_ALL>();
+    int nedges = num_edges<Entity_type::ALL>();
     std::vector<std::vector<Entity_ID>> sides_of_edge(nedges);  // Temp. var.
 
     int sideid = 0;
@@ -687,7 +687,7 @@ void Mesh::face_get_cells(const Entity_ID faceid, const Entity_type ptype,
   cellids->clear();
 
   switch (ptype) {
-  case Entity_type::PARALLEL_ALL:
+  case Entity_type::ALL:
     for (int i = 0; i < 2; i++) {
       Entity_ID c = face_cell_ids[faceid][i];
       if (c != -1) cellids->push_back(c);
@@ -717,12 +717,12 @@ void Mesh::face_get_cells(const Entity_ID faceid, const Entity_type ptype,
 
   Entity_ID_List fcells;
 
-  face_get_cells_internal(faceid, Entity_type::PARALLEL_ALL, &fcells);
+  face_get_cells_internal(faceid, Entity_type::ALL, &fcells);
 
   cellids->clear();
 
   switch (ptype) {
-  case Entity_type::PARALLEL_ALL:
+  case Entity_type::ALL:
     for (int i = 0; i < fcells.size(); i++)
       cellids->push_back(fcells[i]);
     break;
@@ -943,7 +943,7 @@ void Mesh::node_get_wedges(const Entity_ID nodeid, Entity_type ptype,
     for (auto const& w : cnwedges) {
       Entity_ID s = static_cast<Entity_ID>(w/2);
       Entity_ID c = side_cell_id[s];
-      if (ptype == Entity_type::PARALLEL_ALL || cell_type[c] == ptype)
+      if (ptype == Entity_type::ALL || cell_type[c] == ptype)
         wedgeids->push_back(w);
     }
   }
@@ -956,7 +956,7 @@ void Mesh::node_get_corners(const Entity_ID nodeid, Entity_type ptype,
   assert(corner_info_cached);
 
   switch (ptype) {
-    case Entity_type::PARALLEL_ALL:
+    case Entity_type::ALL:
       cornerids->resize(node_corner_ids[nodeid].size());
       std::copy(node_corner_ids[nodeid].begin(), node_corner_ids[nodeid].end(),
                 cornerids->begin());
@@ -976,7 +976,7 @@ void Mesh::node_get_corners(const Entity_ID nodeid, Entity_type ptype,
 
 
 int Mesh::compute_cell_geometric_quantities() const {
-  int ncells = num_cells<Entity_type::PARALLEL_ALL>();
+  int ncells = num_cells<Entity_type::ALL>();
 
   cell_volumes.resize(ncells);
   cell_centroids.resize(ncells);
@@ -1004,7 +1004,7 @@ int Mesh::compute_cell_geometric_quantities() const {
 
 
 int Mesh::compute_face_geometric_quantities() const {
-  int nfaces = num_faces<Entity_type::PARALLEL_ALL>();
+  int nfaces = num_faces<Entity_type::ALL>();
 
   face_areas.resize(nfaces);
   face_centroids.resize(nfaces);
@@ -1036,7 +1036,7 @@ int Mesh::compute_face_geometric_quantities() const {
 
 
 int Mesh::compute_edge_geometric_quantities() const {
-  int nedges = num_edges<Entity_type::PARALLEL_ALL>();
+  int nedges = num_edges<Entity_type::ALL>();
 
   edge_vectors.resize(nedges);
   edge_lengths.resize(nedges);
@@ -1193,7 +1193,7 @@ int Mesh::compute_face_geometry(const Entity_ID faceid, double *area,
                                                    &normal);
 
     Entity_ID_List cellids;
-    face_get_cells(faceid, Entity_type::PARALLEL_ALL, &cellids);
+    face_get_cells(faceid, Entity_type::ALL, &cellids);
 
     for (int i = 0; i < cellids.size(); i++) {
       Entity_ID_List cellfaceids;
@@ -1234,7 +1234,7 @@ int Mesh::compute_face_geometry(const Entity_ID faceid, double *area,
       JaliGeometry::Point normal(evec[1], -evec[0]);
 
       Entity_ID_List cellids;
-      face_get_cells(faceid, Entity_type::PARALLEL_ALL, &cellids);
+      face_get_cells(faceid, Entity_type::ALL, &cellids);
 
       for (int i = 0; i < cellids.size(); i++) {
         Entity_ID_List cellfaceids;
@@ -1273,7 +1273,7 @@ int Mesh::compute_face_geometry(const Entity_ID faceid, double *area,
       *centroid = 0.5*(fcoords[0]+fcoords[1]);
 
       Entity_ID_List cellids;
-      face_get_cells(faceid, Entity_type::PARALLEL_ALL, &cellids);
+      face_get_cells(faceid, Entity_type::ALL, &cellids);
 
       for (int i = 0; i < cellids.size(); i++) {
         Entity_ID_List cellfaceids;
@@ -1319,7 +1319,7 @@ int Mesh::compute_face_geometry(const Entity_ID faceid, double *area,
     normal.set(*area);
 
     Entity_ID_List cellids;
-    face_get_cells(faceid, Entity_type::PARALLEL_ALL, &cellids);
+    face_get_cells(faceid, Entity_type::ALL, &cellids);
 
     for (int i = 0; i < cellids.size(); i++) {
       Entity_ID_List cellfaceids;
@@ -2528,8 +2528,8 @@ void Mesh::get_partitioning_with_metis(int const num_parts,
 
   int ncells_owned = num_cells<Entity_type::PARALLEL_OWNED>();
   int nfaces_owned = num_faces<Entity_type::PARALLEL_OWNED>();
-  int ncells_all = num_cells<Entity_type::PARALLEL_ALL>();
-  int nfaces_all = num_faces<Entity_type::PARALLEL_ALL>();
+  int ncells_all = num_cells<Entity_type::ALL>();
+  int nfaces_all = num_faces<Entity_type::ALL>();
   idx_t *xadj = new idx_t[ncells_all+1];  // offset indicator into adjacency
   //                                      // array - overallocate
   idx_t *adjncy = new idx_t[2*nfaces_all];  // adjacency array (nbrs of a cell)

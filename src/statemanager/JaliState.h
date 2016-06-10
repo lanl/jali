@@ -158,7 +158,7 @@ class State {
   iterator find(std::string const name,
                 std::shared_ptr<DomainType> const domain,
                 Entity_kind const on_what = Entity_kind::ANY_KIND,
-                Entity_type const parallel_type = Entity_type::PARALLEL_ALL) {
+                Entity_type const parallel_type = Entity_type::ALL) {
 
     iterator it = state_vectors_.begin();
     while (it != state_vectors_.end()) {
@@ -168,7 +168,7 @@ class State {
       if (sv && (sv->name() == name) &&
           (sv->domain() == domain) &&
           ((on_what == Entity_kind::ANY_KIND) || (sv->on_what() == on_what)) &&
-          ((parallel_type == Entity_type::PARALLEL_ALL) || (sv->parallel_type() == parallel_type)))
+          ((parallel_type == Entity_type::ALL) || (sv->parallel_type() == parallel_type)))
         break;
       else
         ++it;
@@ -199,7 +199,7 @@ class State {
   iterator find(int const identifier,
                 std::shared_ptr<DomainType> const domain,
                 Jali::Entity_kind const on_what = Entity_kind::ANY_KIND,
-                Entity_type const parallel_type = Entity_type::PARALLEL_ALL) {
+                Entity_type const parallel_type = Entity_type::ALL) {
   
     return find<T>(BaseStateVector::int_to_string(identifier), domain, on_what,
                    parallel_type);  // DomainType deduced automatically
@@ -229,7 +229,7 @@ class State {
   const_iterator find(std::string const name,
                       std::shared_ptr<DomainType> const domain,
                       Entity_kind const on_what = Entity_kind::ANY_KIND,
-                      Entity_type const parallel_type = Entity_type::PARALLEL_ALL)
+                      Entity_type const parallel_type = Entity_type::ALL)
       const {
     
     const_iterator it = state_vectors_.cbegin();
@@ -240,7 +240,7 @@ class State {
       if ((sv->name() == name) &&
           (sv->domain() == domain) &&
           ((on_what == Entity_kind::ANY_KIND) || (sv->on_what() == on_what)) &&
-          ((parallel_type == Entity_type::PARALLEL_ALL) || (sv->parallel_type() == parallel_type)))
+          ((parallel_type == Entity_type::ALL) || (sv->parallel_type() == parallel_type)))
         break;
       else
         ++it;
@@ -270,7 +270,7 @@ class State {
   const_iterator find(int const identifier,
                       std::shared_ptr<DomainType> const domain,
                       Entity_kind const on_what = Entity_kind::ANY_KIND,
-                      Entity_type const parallel_type = Entity_type::PARALLEL_ALL)
+                      Entity_type const parallel_type = Entity_type::ALL)
       const {
     return find<T>(BaseStateVector::int_to_string(identifier), domain, on_what,
                    parallel_type);  // DomainType deduced automatically
@@ -381,7 +381,7 @@ class State {
 
   template <class T, class DomainType>
   bool get(std::string const name, StateVector<T, DomainType> *vector_ptr) {
-    return get(name, mymesh_, Entity_kind::ANY_KIND, Entity_type::PARALLEL_ALL,
+    return get(name, mymesh_, Entity_kind::ANY_KIND, Entity_type::ALL,
                vector_ptr);
   }
   
@@ -484,7 +484,7 @@ class State {
            std::shared_ptr<DomainType> const domain,
            std::shared_ptr<StateVector<T, DomainType>> *vector_ptr) {
 
-    return get(name, domain, Entity_kind::ANY_KIND, Entity_type::PARALLEL_ALL,
+    return get(name, domain, Entity_kind::ANY_KIND, Entity_type::ALL,
                vector_ptr);
   }
 

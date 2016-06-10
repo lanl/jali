@@ -611,7 +611,7 @@ TEST(MESH_TILES_SETS) {
         CHECK_EQUAL(0, boxcells.size());
 
       t->get_set_entities("box1", Jali::Entity_kind::CELL,
-                          Jali::Entity_type::PARALLEL_ALL, &boxcells);
+                          Jali::Entity_type::ALL, &boxcells);
 
       // Make sure we got as many we expected - each 2x2 set of cells
       // of the tile within the box will touch other tiles in the box
@@ -637,7 +637,7 @@ TEST(MESH_TILES_SETS) {
 
         for (auto const& f : planefaces) {
           Jali::Entity_ID_List fcells;
-          mesh->face_get_cells(f, Jali::Entity_type::PARALLEL_ALL, &fcells);
+          mesh->face_get_cells(f, Jali::Entity_type::ALL, &fcells);
           CHECK_EQUAL(1, fcells.size());
 
           // Get outward normal of face (normalized)

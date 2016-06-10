@@ -95,12 +95,12 @@ int main(int argc, char *argv[]) {
   // Print out the number of cells in the mesh
 
   std::cerr << "Number of mesh cells: " <<
-    mymesh->num_cells<Entity_type::PARALLEL_ALL>() << std::endl;
+    mymesh->num_cells<Entity_type::ALL>() << std::endl;
 
   // Print out the number of nodes in the mesh
 
   std::cerr << "Number of mesh nodes: " <<
-    mymesh->num_nodes<Entity_type::PARALLEL_ALL>() << std::endl;
+    mymesh->num_nodes<Entity_type::ALL>() << std::endl;
 
 
   // Create a Jali State Manager
@@ -128,14 +128,14 @@ int main(int argc, char *argv[]) {
 
   StateVector<double> & myvec = mystate.add("myzonevar", mymesh,
                                             Entity_kind::CELL,
-                                            Entity_type::PARALLEL_ALL, data);
+                                            Entity_type::ALL, data);
 
 
   // Try to retrieve it through a get function
 
   StateVector<double, Jali::Mesh> myvec_copy;
   bool found = mystate.get("myzonevar", mymesh, Entity_kind::CELL,
-                           Entity_type::PARALLEL_ALL, &myvec_copy);
+                           Entity_type::ALL, &myvec_copy);
 
   int ndata = myvec_copy.size();
   if (myvec.size() != myvec_copy.size()) {

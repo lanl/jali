@@ -2029,7 +2029,7 @@ void Mesh_MSTK::node_get_cells(const Entity_ID nodeid,
     while ((ment = List_Next_Entry(cell_list, &idx))) {
       if (MEnt_PType(ment) == PGHOST) {
         if (ptype == Entity_type::PARALLEL_GHOST ||
-            ptype == Entity_type::PARALLEL_ALL) {
+            ptype == Entity_type::ALL) {
           lid = MEnt_ID(ment);
           *it = lid-1;  // assign to next spot by dereferencing iterator
           ++it;
@@ -2037,7 +2037,7 @@ void Mesh_MSTK::node_get_cells(const Entity_ID nodeid,
         }
       } else {
         if (ptype == Entity_type::PARALLEL_OWNED ||
-            ptype == Entity_type::PARALLEL_ALL) {
+            ptype == Entity_type::ALL) {
           lid = MEnt_ID(ment);
           *it = lid-1;  // assign to next spot by dereferencing iterator
           ++it;
@@ -2117,7 +2117,7 @@ void Mesh_MSTK::node_get_faces(const Entity_ID nodeid,
     while ((ment = List_Next_Entry(face_list, &idx))) {
       if (MEnt_PType(ment) == PGHOST) {
         if (ptype == Entity_type::PARALLEL_GHOST ||
-            ptype == Entity_type::PARALLEL_ALL) {
+            ptype == Entity_type::ALL) {
           lid = MEnt_ID(ment);
           *it = lid-1;  // assign to next spot by dereferencing iterator
           ++it;
@@ -2125,7 +2125,7 @@ void Mesh_MSTK::node_get_faces(const Entity_ID nodeid,
         }
       } else {
         if (ptype == Entity_type::PARALLEL_OWNED ||
-            ptype == Entity_type::PARALLEL_ALL) {
+            ptype == Entity_type::ALL) {
           lid = MEnt_ID(ment);
           *it = lid-1;  // assign to next spot by dereferencing iterator
           ++it;
@@ -2179,7 +2179,7 @@ void Mesh_MSTK::node_get_cell_faces(const Entity_ID nodeid,
 
       if (MEnt_PType(mf) == PGHOST) {
         if (ptype == Entity_type::PARALLEL_GHOST ||
-            ptype == Entity_type::PARALLEL_ALL) {
+            ptype == Entity_type::ALL) {
           lid = MEnt_ID(mf);
           *it = lid-1;  // assign to next spot by dereferencing iterator
           ++it;
@@ -2187,7 +2187,7 @@ void Mesh_MSTK::node_get_cell_faces(const Entity_ID nodeid,
         }
       } else {
         if (ptype == Entity_type::PARALLEL_OWNED ||
-            ptype == Entity_type::PARALLEL_ALL) {
+            ptype == Entity_type::ALL) {
           lid = MEnt_ID(mf);
           *it = lid-1;  // assign to next spot by dereferencing iterator
           ++it;
@@ -2210,7 +2210,7 @@ void Mesh_MSTK::node_get_cell_faces(const Entity_ID nodeid,
 
       if (MEnt_PType(me) == PGHOST) {
         if (ptype == Entity_type::PARALLEL_GHOST ||
-            ptype == Entity_type::PARALLEL_ALL) {
+            ptype == Entity_type::ALL) {
           lid = MEnt_ID(me);
           *it = lid-1;  // assign to next spot by dereferencing iterator
           ++it;
@@ -2218,7 +2218,7 @@ void Mesh_MSTK::node_get_cell_faces(const Entity_ID nodeid,
         }
       } else {
         if (ptype == Entity_type::PARALLEL_OWNED ||
-            ptype == Entity_type::PARALLEL_ALL) {
+            ptype == Entity_type::ALL) {
           lid = MEnt_ID(me);
           *it = lid-1;  // assign to next spot by dereferencing iterator
           ++it;
@@ -2252,7 +2252,7 @@ void Mesh_MSTK::face_get_cells_internal(const Entity_ID faceid,
 
     List_ptr fregs = MF_Regions(mf);
     MRegion_ptr mr;
-    if (ptype == Entity_type::PARALLEL_ALL) {
+    if (ptype == Entity_type::ALL) {
       int idx = 0;
       while ((mr = List_Next_Entry(fregs, &idx))) {
         *it = MR_ID(mr)-1;  // assign to next spot by dereferencing iterator
@@ -2282,7 +2282,7 @@ void Mesh_MSTK::face_get_cells_internal(const Entity_ID faceid,
 
     List_ptr efaces = ME_Faces(me);
     MFace_ptr mf;
-    if (ptype == Entity_type::PARALLEL_ALL) {
+    if (ptype == Entity_type::ALL) {
       int idx = 0;
       while ((mf = List_Next_Entry(efaces, &idx))) {
         *it = MF_ID(mf)-1;  // assign to next spot by dereferencing iterator
@@ -2351,13 +2351,13 @@ void Mesh_MSTK::cell_get_face_adj_cells(const Entity_ID cellid,
         if (mr2 != mr) {
           if (MEnt_PType(mr2) == PGHOST) {
             if (ptype == Entity_type::PARALLEL_GHOST ||
-                ptype == Entity_type::PARALLEL_ALL) {
+                ptype == Entity_type::ALL) {
               lid = MEnt_ID(mr2);
               fadj_cellids->push_back(lid-1);
             }
           } else {
             if (ptype == Entity_type::PARALLEL_OWNED ||
-                ptype == Entity_type::PARALLEL_ALL) {
+                ptype == Entity_type::ALL) {
               lid = MEnt_ID(mr2);
               fadj_cellids->push_back(lid-1);
             }
@@ -2384,13 +2384,13 @@ void Mesh_MSTK::cell_get_face_adj_cells(const Entity_ID cellid,
         if (mf2 != mf) {
           if (MEnt_PType(mf2) == PGHOST) {
             if (ptype == Entity_type::PARALLEL_GHOST ||
-                ptype == Entity_type::PARALLEL_ALL) {
+                ptype == Entity_type::ALL) {
               lid = MEnt_ID(mf2);
               fadj_cellids->push_back(lid-1);
             }
           } else {
             if (ptype == Entity_type::PARALLEL_OWNED ||
-                ptype == Entity_type::PARALLEL_ALL) {
+                ptype == Entity_type::ALL) {
               lid = MEnt_ID(mf2);
               fadj_cellids->push_back(lid-1);
             }
@@ -2445,13 +2445,13 @@ void Mesh_MSTK::cell_get_node_adj_cells(const Entity_ID cellid,
           List_Add(cell_list, mr2);
           if (MEnt_PType(mr2) == PGHOST) {
             if (ptype == Entity_type::PARALLEL_GHOST ||
-                ptype == Entity_type::PARALLEL_ALL) {
+                ptype == Entity_type::ALL) {
               lid = MEnt_ID(mr2);
               nadj_cellids->push_back(lid-1);
             }
           } else {
             if (ptype == Entity_type::PARALLEL_OWNED ||
-                ptype == Entity_type::PARALLEL_ALL) {
+                ptype == Entity_type::ALL) {
               lid = MEnt_ID(mr2);
               nadj_cellids->push_back(lid-1);
             }
@@ -2480,13 +2480,13 @@ void Mesh_MSTK::cell_get_node_adj_cells(const Entity_ID cellid,
           List_Add(cell_list, mf2);
           if (MEnt_PType(mf2) == PGHOST) {
             if (ptype == Entity_type::PARALLEL_GHOST ||
-                ptype == Entity_type::PARALLEL_ALL) {
+                ptype == Entity_type::ALL) {
               lid = MEnt_ID(mf2);
               nadj_cellids->push_back(lid-1);
             }
           } else {
             if (ptype == Entity_type::PARALLEL_OWNED ||
-                ptype == Entity_type::PARALLEL_ALL) {
+                ptype == Entity_type::ALL) {
               lid = MEnt_ID(mf2);
               nadj_cellids->push_back(lid-1);
             }
@@ -2712,7 +2712,7 @@ MSet_ptr Mesh_MSTK::build_set(const JaliGeometry::RegionPtr region,
         region->type() == JaliGeometry::Region_type::COLORFUNCTION) {
 
       int ncell = Mesh::num_entities(Entity_kind::CELL,
-                                     Entity_type::PARALLEL_ALL);
+                                     Entity_type::ALL);
 
       for (int icell = 0; icell < ncell; icell++)
         if (region->inside(cell_centroid(icell)))
@@ -2725,7 +2725,7 @@ MSet_ptr Mesh_MSTK::build_set(const JaliGeometry::RegionPtr region,
       rgnpnt = ((JaliGeometry::PointRegionPtr)region)->point();
 
       int nnode = Mesh::num_entities(Entity_kind::NODE,
-                                     Entity_type::PARALLEL_ALL);
+                                     Entity_type::ALL);
       double mindist2 = 1.e+16;
       int minnode = -1;
 
@@ -2745,7 +2745,7 @@ MSet_ptr Mesh_MSTK::build_set(const JaliGeometry::RegionPtr region,
 
       Entity_ID_List cells, cells1;
 
-      node_get_cells(minnode, Entity_type::PARALLEL_ALL, &cells);
+      node_get_cells(minnode, Entity_type::ALL, &cells);
 
       int ncells = cells.size();
       for (int ic = 0; ic < ncells; ic++) {
@@ -2761,7 +2761,7 @@ MSet_ptr Mesh_MSTK::build_set(const JaliGeometry::RegionPtr region,
       if (celldim == 2) {
 
         int ncells = Mesh::num_entities(Entity_kind::CELL,
-                                        Entity_type::PARALLEL_ALL);
+                                        Entity_type::ALL);
         for (int ic = 0; ic < ncells; ic++) {
 
           std::vector<JaliGeometry::Point> ccoords(spacedim);
@@ -2846,7 +2846,7 @@ MSet_ptr Mesh_MSTK::build_set(const JaliGeometry::RegionPtr region,
     if (region->type() == JaliGeometry::Region_type::BOX)  {
 
       int nface = Mesh::num_entities(Entity_kind::FACE,
-                                     Entity_type::PARALLEL_ALL);
+                                     Entity_type::ALL);
 
       for (int iface = 0; iface < nface; iface++) {
         if (region->inside(face_centroid(iface)))
@@ -2857,7 +2857,7 @@ MSet_ptr Mesh_MSTK::build_set(const JaliGeometry::RegionPtr region,
                region->type() == JaliGeometry::Region_type::POLYGON) {
 
       int nface = Mesh::num_entities(Entity_kind::FACE,
-                                     Entity_type::PARALLEL_ALL);
+                                     Entity_type::ALL);
 
       for (int iface = 0; iface < nface; iface++) {
         std::vector<JaliGeometry::Point> fcoords(spacedim);
@@ -2909,7 +2909,7 @@ MSet_ptr Mesh_MSTK::build_set(const JaliGeometry::RegionPtr region,
         region->type() == JaliGeometry::Region_type::POINT) {
 
       int nnode = Mesh::num_entities(Entity_kind::NODE,
-                                     Entity_type::PARALLEL_ALL);
+                                     Entity_type::ALL);
 
       for (int inode = 0; inode < nnode; inode++) {
 
@@ -3294,7 +3294,7 @@ void Mesh_MSTK::get_set_entities(const std::string setname,
         }
       }
       break;
-    case Entity_type::PARALLEL_ALL:
+    case Entity_type::ALL:
       idx = 0;
       while ((ment = MSet_Next_Entry(mset1, &idx))) {
         *it = MEnt_ID(ment)-1;  // assign to next spot by dereferencing iterator

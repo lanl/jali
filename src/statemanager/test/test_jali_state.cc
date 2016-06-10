@@ -55,13 +55,13 @@ TEST(Jali_State_Define_Mesh) {
   std::vector<double> data1 = {1.0, 3.0, 2.5, 4.5};
   Jali::StateVector<double, Jali::Mesh> myvec1("cellvars", mesh1,
                                                Jali::Entity_kind::CELL,
-                                               Jali::Entity_type::PARALLEL_ALL,
+                                               Jali::Entity_type::ALL,
                                                &(data1[0]));
 
   std::vector<double> data2 = {0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0};
   Jali::StateVector<double, Jali::Mesh> myvec2("nodevars", mesh1,
                                                Jali::Entity_kind::NODE,
-                                               Jali::Entity_type::PARALLEL_ALL,
+                                               Jali::Entity_type::ALL,
                                                &(data2[0]));
 
   // Define another mesh and another statevector on that mesh
@@ -71,7 +71,7 @@ TEST(Jali_State_Define_Mesh) {
   std::vector<double> data3 = {1.0, 3.0, 2.5, 4.5, 1.0, 2.0, 7.0, 2.0, 9.0};
   Jali::StateVector<double, Jali::Mesh> myvec3("cellvars2", mesh2,
                                                Jali::Entity_kind::CELL,
-                                               Jali::Entity_type::PARALLEL_ALL,
+                                               Jali::Entity_type::ALL,
                                                &(data3[0]));
 
   // Create a state object and add the first two vectors to it
@@ -86,7 +86,7 @@ TEST(Jali_State_Define_Mesh) {
 
   Jali::StateVector<double, Jali::Mesh> &addvec2 =
       mystate.add("nodevars", mesh1, Jali::Entity_kind::NODE,
-                  Jali::Entity_type::PARALLEL_ALL, &(data2[0]));
+                  Jali::Entity_type::ALL, &(data2[0]));
   CHECK_EQUAL(addvec2.size(), myvec2.size());
   for (int i = 0; i < addvec2.size(); ++i)
     CHECK_EQUAL(addvec2[i], myvec2[i]);
@@ -111,7 +111,7 @@ TEST(Jali_State_Define_Mesh) {
   // Make sure we can retrieve the object by name
 
   itc = mystate.find<double>("cellvars", mesh1, Jali::Entity_kind::CELL,
-                             Jali::Entity_type::PARALLEL_ALL);
+                             Jali::Entity_type::ALL);
   CHECK(mystate.end() != itc);
 
   // Make sure the object we retrieved is identical to the one we put in
@@ -129,7 +129,7 @@ TEST(Jali_State_Define_Mesh) {
   bool found;
   found = mystate.get<double, Jali::Mesh>("cellvars", mesh1,
                                           Jali::Entity_kind::CELL,
-                                          Jali::Entity_type::PARALLEL_ALL,
+                                          Jali::Entity_type::ALL,
                                           &myvec1_ptr);
 
   CHECK(found);
@@ -141,7 +141,7 @@ TEST(Jali_State_Define_Mesh) {
 
   found = mystate.get<double, Jali::Mesh>("cellvars", mesh1,
                                           Jali::Entity_kind::CELL,
-                                          Jali::Entity_type::PARALLEL_ALL,
+                                          Jali::Entity_type::ALL,
                                           &myvec1_copy);
 
   CHECK(found);
@@ -154,14 +154,14 @@ TEST(Jali_State_Define_Mesh) {
   // Make sure the code fails if we ask for the right name but wrong entity type
 
   itc = mystate.find<double>("cellvars", mesh1, Jali::Entity_kind::FACE,
-                             Jali::Entity_type::PARALLEL_ALL);
+                             Jali::Entity_type::ALL);
   CHECK(mystate.end() == itc);
 
 
   // Try to retrieve a different vector by name
 
   itc = mystate.find<double>("nodevars", mesh1, Jali::Entity_kind::NODE,
-                             Jali::Entity_type::PARALLEL_ALL);
+                             Jali::Entity_type::ALL);
   CHECK(mystate.end() != itc);
 
   // Make sure the object we retrieved is identical to the one we put in
@@ -198,15 +198,15 @@ TEST(Jali_State_Define_Mesh) {
 
     CHECK((myvec4.name() == "cellvars" &&
            myvec4.on_what() == Jali::Entity_kind::CELL &&
-           myvec4.parallel_type() == Jali::Entity_type::PARALLEL_ALL)
+           myvec4.parallel_type() == Jali::Entity_type::ALL)
           ||
           (myvec4.name() == "cellvars2" &&
            myvec4.on_what() == Jali::Entity_kind::CELL &&
-           myvec4.parallel_type() == Jali::Entity_type::PARALLEL_ALL)
+           myvec4.parallel_type() == Jali::Entity_type::ALL)
           ||
           (myvec4.name() == "nodevars" &&
            myvec4.on_what() == Jali::Entity_kind::NODE &&
-           myvec4.parallel_type() == Jali::Entity_type::PARALLEL_ALL));
+           myvec4.parallel_type() == Jali::Entity_type::ALL));
 
     ++it;
   }
@@ -216,13 +216,13 @@ TEST(Jali_State_Define_Mesh) {
       *(std::static_pointer_cast<Jali::StateVector<double, Jali::Mesh>>(mystate[0]));
   CHECK(myvec1_copy.name() == "cellvars" &&
         myvec1_copy.on_what() == Jali::Entity_kind::CELL &&
-        myvec1_copy.parallel_type() == Jali::Entity_type::PARALLEL_ALL);
+        myvec1_copy.parallel_type() == Jali::Entity_type::ALL);
 
   myvec2_copy =
       *(std::static_pointer_cast<Jali::StateVector<double, Jali::Mesh>>(mystate[1]));
   CHECK(myvec2_copy.name() == "nodevars" &&
         myvec2_copy.on_what() == Jali::Entity_kind::NODE &&
-        myvec2_copy.parallel_type() == Jali::Entity_type::PARALLEL_ALL);
+        myvec2_copy.parallel_type() == Jali::Entity_type::ALL);
 
   // Print out state
 
@@ -243,11 +243,11 @@ TEST(Jali_State_Define_Mesh) {
   std::shared_ptr<Jali::Mesh> dataMesh = factory(0.0, 0.0, 1.0, 1.0, 2, 2);
   Jali::State dstate(dataMesh);
 
-  dstate.add("f1", dataMesh, Jali::Entity_kind::CELL, Jali::Entity_type::PARALLEL_ALL,
+  dstate.add("f1", dataMesh, Jali::Entity_kind::CELL, Jali::Entity_type::ALL,
              ftest);
-  dstate.add("i1", dataMesh, Jali::Entity_kind::NODE, Jali::Entity_type::PARALLEL_ALL,
+  dstate.add("i1", dataMesh, Jali::Entity_kind::NODE, Jali::Entity_type::ALL,
              itest);
-  dstate.add("v1", dataMesh, Jali::Entity_kind::CELL, Jali::Entity_type::PARALLEL_ALL,
+  dstate.add("v1", dataMesh, Jali::Entity_kind::CELL, Jali::Entity_type::ALL,
              vtest);
 
   // Iterate through all state vectors and count them
@@ -306,13 +306,13 @@ TEST(Jali_State_Define_Mesh_Enum) {
   std::vector<double> data1 = {1.0, 3.0, 2.5, 4.5};
   Jali::StateVector<double, Jali::Mesh> myvec1(FieldNames::cellvars, mesh1,
                                                Jali::Entity_kind::CELL,
-                                               Jali::Entity_type::PARALLEL_ALL,
+                                               Jali::Entity_type::ALL,
                                                &(data1[0]));
 
   std::vector<double> data2 = {0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0};
   Jali::StateVector<double, Jali::Mesh> myvec2(FieldNames::nodevars, mesh1,
                                                Jali::Entity_kind::NODE,
-                                               Jali::Entity_type::PARALLEL_ALL,
+                                               Jali::Entity_type::ALL,
                                                &(data2[0]));
 
   // Define another mesh and another statevector on that mesh
@@ -322,7 +322,7 @@ TEST(Jali_State_Define_Mesh_Enum) {
   std::vector<double> data3 = {1.0, 3.0, 2.5, 4.5, 1.0, 2.0, 7.0, 2.0, 9.0};
   Jali::StateVector<double, Jali::Mesh> myvec3(FieldNames::cellvars2, mesh2,
                                                Jali::Entity_kind::CELL,
-                                               Jali::Entity_type::PARALLEL_ALL,
+                                               Jali::Entity_type::ALL,
                                                &(data3[0]));
 
 
@@ -338,7 +338,7 @@ TEST(Jali_State_Define_Mesh_Enum) {
 
   Jali::StateVector<double, Jali::Mesh> &addvec2 =
       mystate.add(FieldNames::nodevars, mesh1,
-                  Jali::Entity_kind::NODE, Jali::Entity_type::PARALLEL_ALL,
+                  Jali::Entity_kind::NODE, Jali::Entity_type::ALL,
                   &(data2[0]));
   CHECK_EQUAL(addvec2.size(), myvec2.size());
   for (int i = 0; i < addvec2.size(); ++i)
@@ -359,7 +359,7 @@ TEST(Jali_State_Define_Mesh_Enum) {
   // Make sure we can retrieve the object by enum type
 
   itc = mystate.find<double>(FieldNames::cellvars, mesh1,
-                             Jali::Entity_kind::CELL, Jali::Entity_type::PARALLEL_ALL);
+                             Jali::Entity_kind::CELL, Jali::Entity_type::ALL);
   CHECK(mystate.end() != itc);
 
   // Make sure the object we retrieved is identical to the one we put in
@@ -376,7 +376,7 @@ TEST(Jali_State_Define_Mesh_Enum) {
   std::shared_ptr<Jali::StateVector<double>> myvec1_ptr;
   bool found;
   found = mystate.get(FieldNames::cellvars, mesh1, Jali::Entity_kind::CELL,
-                      Jali::Entity_type::PARALLEL_ALL, &myvec1_ptr);
+                      Jali::Entity_type::ALL, &myvec1_ptr);
 
   CHECK(found);
   CHECK_EQUAL(myvec1.size(), myvec1_ptr->size());
@@ -386,7 +386,7 @@ TEST(Jali_State_Define_Mesh_Enum) {
   // Retrieve the state vector even more easily
 
   found = mystate.get(FieldNames::cellvars, mesh1, Jali::Entity_kind::CELL,
-                      Jali::Entity_type::PARALLEL_ALL, &myvec1_copy);
+                      Jali::Entity_type::ALL, &myvec1_copy);
 
   CHECK(found);
   CHECK_EQUAL(myvec1.size(), myvec1_copy.size());
@@ -398,14 +398,14 @@ TEST(Jali_State_Define_Mesh_Enum) {
   // Make sure the code fails if we ask for the right name but wrong entity type
 
   itc = mystate.find<double>(FieldNames::cellvars, mesh1,
-                             Jali::Entity_kind::FACE, Jali::Entity_type::PARALLEL_ALL);
+                             Jali::Entity_kind::FACE, Jali::Entity_type::ALL);
   CHECK(mystate.end() == itc);
 
 
   // Try to retrieve a different vector by name
 
   itc = mystate.find<double>(FieldNames::nodevars, mesh1,
-                             Jali::Entity_kind::NODE, Jali::Entity_type::PARALLEL_ALL);
+                             Jali::Entity_kind::NODE, Jali::Entity_type::ALL);
   CHECK(mystate.end() != itc);
 
   // Make sure the object we retrieved is identical to the one we put in
@@ -535,7 +535,7 @@ TEST(Jali_State_Define_MeshTiles) {
 
     auto& myvec1 = mystate.add("cellvars", meshtile,
                               Jali::Entity_kind::CELL,
-                              Jali::Entity_type::PARALLEL_ALL,
+                              Jali::Entity_type::ALL,
                               &(zeroscalar1[0]));
     for (int j = 0; j < NCELLS_PER_TILE_OWNED; j++)
       myvec1[j] = data1[tileID][j];
@@ -546,14 +546,14 @@ TEST(Jali_State_Define_MeshTiles) {
         mystate.add("cornervars",
                     meshtile,
                     Jali::Entity_kind::CORNER,
-                    Jali::Entity_type::PARALLEL_ALL,
+                    Jali::Entity_type::ALL,
                     &(zeroscalar2[0]));
     for (int j = 0; j < NCORNERS_PER_TILE_OWNED; j++)
       myvec2[j] = data2[tileID][j];
 
     auto& myvec3 = mystate.add("cellarrays", meshtile,
                               Jali::Entity_kind::CELL,
-                              Jali::Entity_type::PARALLEL_ALL,
+                              Jali::Entity_type::ALL,
                               &(zeroarray3[0]));
     for (int j = 0; j < NCELLS_PER_TILE_OWNED; j++)
       myvec3[j] = data3[tileID][j];
@@ -571,17 +571,17 @@ TEST(Jali_State_Define_MeshTiles) {
   tileID = 0;
   for (auto const& meshtile : meshtiles) {
     bool found = mystate.get("cellvars", meshtile,
-                             Jali::Entity_kind::CELL, Jali::Entity_type::PARALLEL_ALL,
+                             Jali::Entity_kind::CELL, Jali::Entity_type::ALL,
                              &(tilevec1[tileID]));
     CHECK(found);
     
     found = mystate.get("cornervars", meshtile,
-                        Jali::Entity_kind::CORNER, Jali::Entity_type::PARALLEL_ALL,
+                        Jali::Entity_kind::CORNER, Jali::Entity_type::ALL,
                         &(tilevec2[tileID]));
     CHECK(found);
     
     found = mystate.get("cellarrays", meshtile,
-                        Jali::Entity_kind::CELL, Jali::Entity_type::PARALLEL_ALL,
+                        Jali::Entity_kind::CELL, Jali::Entity_type::ALL,
                         &(tilearray3[tileID]));
     CHECK(found);
     ++tileID;
@@ -691,7 +691,7 @@ TEST(Jali_State_Define_MeshTiles) {
 
     Jali::StateVector<double, Jali::MeshTile> svec1;
     bool found = mystate.get("cellvars", meshtile,
-                        Jali::Entity_kind::CELL, Jali::Entity_type::PARALLEL_ALL,
+                        Jali::Entity_kind::CELL, Jali::Entity_type::ALL,
                         &svec1);
     CHECK(found);
 
@@ -722,7 +722,7 @@ TEST(Jali_State_Define_MeshTiles) {
     }
       
     found = mystate.get("cornervars", meshtile,
-                        Jali::Entity_kind::CORNER, Jali::Entity_type::PARALLEL_ALL,
+                        Jali::Entity_kind::CORNER, Jali::Entity_type::ALL,
                         &svec1);
     CHECK(found);
 
@@ -755,7 +755,7 @@ TEST(Jali_State_Define_MeshTiles) {
 
     Jali::StateVector<std::array<double, 3>, Jali::MeshTile> svec2;
     found = mystate.get("cellarrays", meshtile,
-                        Jali::Entity_kind::CELL, Jali::Entity_type::PARALLEL_ALL,
+                        Jali::Entity_kind::CELL, Jali::Entity_type::ALL,
                         &svec2);
     CHECK(found);
 
@@ -810,7 +810,7 @@ TEST(State_Write_Read_With_Mesh) {
   std::vector<double> data1 = {1.0, 3.0, 2.5, 4.5};
   Jali::StateVector<double> & outvec1 =
       mystate1.add("cellvars", mesh1, Jali::Entity_kind::CELL,
-                   Jali::Entity_type::PARALLEL_ALL, &(data1[0]));
+                   Jali::Entity_type::ALL, &(data1[0]));
 
   std::vector<std::array<double, 2>> data2(9);
   // Intel compiler 15.0.3 is not allowing me to initialize with curly brace list
@@ -820,7 +820,7 @@ TEST(State_Write_Read_With_Mesh) {
 
   Jali::StateVector<std::array<double, 2>> & outvec2 =
       mystate1.add("nodevars", mesh1, Jali::Entity_kind::NODE,
-                   Jali::Entity_type::PARALLEL_ALL, &(data2[0]));
+                   Jali::Entity_type::ALL, &(data2[0]));
 
   // Export the fields to the mesh
 
@@ -851,7 +851,7 @@ TEST(State_Write_Read_With_Mesh) {
 
   Jali::StateVector<double, Jali::Mesh> invec1;
   bool status = mystate2.get("cellvars", mesh2, Jali::Entity_kind::CELL,
-                             Jali::Entity_type::PARALLEL_ALL, &invec1);
+                             Jali::Entity_type::ALL, &invec1);
   CHECK(status);
 
   CHECK_EQUAL(outvec1.size(), invec1.size());
@@ -863,7 +863,7 @@ TEST(State_Write_Read_With_Mesh) {
 
   Jali::StateVector<std::array<double, 2>> invec2;
   status = mystate2.get("nodevars", mesh2, Jali::Entity_kind::NODE,
-                        Jali::Entity_type::PARALLEL_ALL, &invec2);
+                        Jali::Entity_type::ALL, &invec2);
   CHECK(status);
 
   CHECK_EQUAL(outvec2.size(), invec2.size());

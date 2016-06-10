@@ -36,7 +36,7 @@ TEST(MSTK_EDGES_2D) {
   int ne_owned = mesh->num_entities(Jali::Entity_kind::EDGE,
                                     Jali::Entity_type::PARALLEL_OWNED);
   int ne_all = mesh->num_entities(Jali::Entity_kind::EDGE,
-                                  Jali::Entity_type::PARALLEL_ALL);
+                                  Jali::Entity_type::ALL);
 
   // This assumes a symmetric partitioning - not always the case with
   // ZOLTAN graph partitioning
@@ -129,7 +129,7 @@ TEST(MSTK_EDGES_3D) {
   int ne_owned = mesh->num_entities(Jali::Entity_kind::EDGE,
                                     Jali::Entity_type::PARALLEL_OWNED);
   int ne_all = mesh->num_entities(Jali::Entity_kind::EDGE,
-                                  Jali::Entity_type::PARALLEL_ALL);
+                                  Jali::Entity_type::ALL);
 
   // Check that we got a non-zero number
 

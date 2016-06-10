@@ -63,7 +63,7 @@ MeshTile::MeshTile(Mesh& parent_mesh,
 
       for (auto const& c : cellids_all_) {
         Entity_ID_List nbrs;
-        mesh_.cell_get_node_adj_cells(c, Entity_type::PARALLEL_ALL, &nbrs);
+        mesh_.cell_get_node_adj_cells(c, Entity_type::ALL, &nbrs);
         
         for (auto const& cnbr : nbrs) {
           // Check if the neighbor is already in the all cells list or
@@ -345,7 +345,7 @@ void MeshTile::get_nodes_of_set(const Set_Name setname, const Entity_type type,
   switch (type) {
     case Entity_type::PARALLEL_OWNED: entlist_tile = &nodeids_owned_; break;
     case Entity_type::PARALLEL_GHOST: entlist_tile = &nodeids_ghost_; break;
-    case Entity_type::PARALLEL_ALL: entlist_tile = &nodeids_all_; break;
+    case Entity_type::ALL: entlist_tile = &nodeids_all_; break;
     default: {
       std::cerr << "Meaningless to ask for nodes of type " << type <<
           " in a set\n";
@@ -369,7 +369,7 @@ void MeshTile::get_edges_of_set(const Set_Name setname, const Entity_type type,
   switch (type) {
     case Entity_type::PARALLEL_OWNED: entlist_tile = &edgeids_owned_; break;
     case Entity_type::PARALLEL_GHOST: entlist_tile = &edgeids_ghost_; break;
-    case Entity_type::PARALLEL_ALL: entlist_tile = &edgeids_all_; break;
+    case Entity_type::ALL: entlist_tile = &edgeids_all_; break;
     default: {
       std::cerr << "Meaningless to ask for edges of type " << type <<
           " in a set\n";
@@ -393,7 +393,7 @@ void MeshTile::get_faces_of_set(const Set_Name setname, const Entity_type type,
   switch (type) {
     case Entity_type::PARALLEL_OWNED: entlist_tile = &faceids_owned_; break;
     case Entity_type::PARALLEL_GHOST: entlist_tile = &faceids_ghost_; break;
-    case Entity_type::PARALLEL_ALL: entlist_tile = &faceids_all_; break;
+    case Entity_type::ALL: entlist_tile = &faceids_all_; break;
     default: {
       std::cerr << "Meaningless to ask for faces of type " << type <<
           " in a set\n";
@@ -417,7 +417,7 @@ void MeshTile::get_sides_of_set(const Set_Name setname, const Entity_type type,
   switch (type) {
     case Entity_type::PARALLEL_OWNED: entlist_tile = &sideids_owned_; break;
     case Entity_type::PARALLEL_GHOST: entlist_tile = &sideids_ghost_; break;
-    case Entity_type::PARALLEL_ALL: entlist_tile = &sideids_all_; break;
+    case Entity_type::ALL: entlist_tile = &sideids_all_; break;
     default: {
       std::cerr << "Meaningless to ask for sides of type " << type <<
           " in a set\n";
@@ -441,7 +441,7 @@ void MeshTile::get_wedges_of_set(const Set_Name setname, const Entity_type type,
   switch (type) {
     case Entity_type::PARALLEL_OWNED: entlist_tile = &wedgeids_owned_; break;
     case Entity_type::PARALLEL_GHOST: entlist_tile = &wedgeids_ghost_; break;
-    case Entity_type::PARALLEL_ALL: entlist_tile = &wedgeids_all_; break;
+    case Entity_type::ALL: entlist_tile = &wedgeids_all_; break;
     default: {
       std::cerr << "Meaningless to ask for wedges of type " << type <<
           " in a set\n";
@@ -466,7 +466,7 @@ void MeshTile::get_corners_of_set(const Set_Name setname,
   switch (type) {
     case Entity_type::PARALLEL_OWNED: entlist_tile = &cornerids_owned_; break;
     case Entity_type::PARALLEL_GHOST: entlist_tile = &cornerids_ghost_; break;
-    case Entity_type::PARALLEL_ALL: entlist_tile = &cornerids_all_; break;
+    case Entity_type::ALL: entlist_tile = &cornerids_all_; break;
     default: {
       std::cerr << "Meaningless to ask for corners of type " << type <<
           " in a set\n";
@@ -490,7 +490,7 @@ void MeshTile::get_cells_of_set(const Set_Name setname, const Entity_type type,
   switch (type) {
     case Entity_type::PARALLEL_OWNED: entlist_tile = &cellids_owned_; break;
     case Entity_type::PARALLEL_GHOST: entlist_tile = &cellids_ghost_; break;
-    case Entity_type::PARALLEL_ALL: entlist_tile = &cellids_all_; break;
+    case Entity_type::ALL: entlist_tile = &cellids_all_; break;
     default: {
       std::cerr << "Meaningless to ask for cells of type " << type <<
           " in a set\n";

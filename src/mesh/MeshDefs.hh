@@ -111,7 +111,7 @@ bool entity_valid_kind(const Entity_kind kind) {
 
 
 // Entity type - includes UNKNOWN_TYPE, PARALLEL_OWNED, PARALLEL_GHOST,
-// PARALLEL_ALL, BOUNDARY_GHOST, DELETED
+// ALL, BOUNDARY_GHOST, DELETED
 
 enum class Entity_type : std::int8_t {
     TYPE_UNKNOWN = -1,
@@ -119,7 +119,7 @@ enum class Entity_type : std::int8_t {
     PARALLEL_OWNED = 1,    // Owned by this processor
     PARALLEL_GHOST = 2,    // Owned by another processor
     BOUNDARY_GHOST = 3,    // Ghost/Virtual entity on boundary
-    PARALLEL_ALL  = 4      // PARALLEL_OWNED + PARALLEL_GHOST + BOUNDARY_GHOST
+    ALL  = 4      // PARALLEL_OWNED + PARALLEL_GHOST + BOUNDARY_GHOST
 };
 
 const int NUM_ENTITY_TYPES = 6;
@@ -138,7 +138,7 @@ std::string Entity_type_string(Entity_type const type) {
   static const std::string type_str[6] =
       {"Entity_type::TYPE_UNKNOWN", "Entity_type::DELETED",
        "Entity_type::PARALLEL_OWNED", "Entity_type::PARALLEL_GHOST",
-       "Entity_type::BOUNDARY_GHOST", "Entity_type::PARALLEL_ALL"};
+       "Entity_type::BOUNDARY_GHOST", "Entity_type::ALL"};
 
   int itype = static_cast<int>(type);
   return valid_entity_type(type) ? type_str[itype] : "";

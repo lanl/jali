@@ -127,7 +127,7 @@ TEST(MESH_BOUNDARY_GHOSTS_2D) {
           Jali::Entity_type::PARALLEL_GHOST) continue;
 
       Jali::Entity_ID_List fcells;
-      mesh->face_get_cells(f, Jali::Entity_type::PARALLEL_ALL, &fcells);
+      mesh->face_get_cells(f, Jali::Entity_type::ALL, &fcells);
       CHECK_EQUAL(2, fcells.size());
     }
 
@@ -145,7 +145,7 @@ TEST(MESH_BOUNDARY_GHOSTS_2D) {
         // boundary ghosts
 
         Jali::Entity_ID_List ncells;
-        mesh->node_get_cells(n, Jali::Entity_type::PARALLEL_ALL, &ncells);
+        mesh->node_get_cells(n, Jali::Entity_type::ALL, &ncells);
 
         bool found_bndry_ghost = false;
         for (auto const& c : ncells) {
@@ -277,7 +277,7 @@ TEST(MESH_BOUNDARY_GHOSTS_3D) {
           Jali::Entity_type::PARALLEL_GHOST) continue;
 
       Jali::Entity_ID_List fcells;
-      mesh->face_get_cells(f, Jali::Entity_type::PARALLEL_ALL, &fcells);
+      mesh->face_get_cells(f, Jali::Entity_type::ALL, &fcells);
       CHECK_EQUAL(2, fcells.size());
     }
 
@@ -296,7 +296,7 @@ TEST(MESH_BOUNDARY_GHOSTS_3D) {
         // boundary ghosts
 
         Jali::Entity_ID_List ncells;
-        mesh->node_get_cells(n, Jali::Entity_type::PARALLEL_ALL, &ncells);
+        mesh->node_get_cells(n, Jali::Entity_type::ALL, &ncells);
 
         bool found_bndry_ghost = false;
         for (auto const& c : ncells) {

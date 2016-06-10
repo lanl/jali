@@ -100,14 +100,14 @@ TEST(ENTITY_ITERATORS) {
 
 
     id3 = 0;
-    for (auto const & nodeid : mesh->nodes<Jali::Entity_type::PARALLEL_ALL>()) {
+    for (auto const & nodeid : mesh->nodes<Jali::Entity_type::ALL>()) {
       CHECK_EQUAL(id3, nodeid);
       ++id3;
     }
     CHECK_EQUAL(id1 + id2, mesh->num_entities(Jali::Entity_kind::NODE,
-                                              Jali::Entity_type::PARALLEL_ALL));
-    CHECK_EQUAL(id1+id2, mesh->num_nodes<Jali::Entity_type::PARALLEL_ALL>());
-    CHECK_EQUAL(id3, mesh->num_nodes<Jali::Entity_type::PARALLEL_ALL>());
+                                              Jali::Entity_type::ALL));
+    CHECK_EQUAL(id1+id2, mesh->num_nodes<Jali::Entity_type::ALL>());
+    CHECK_EQUAL(id3, mesh->num_nodes<Jali::Entity_type::ALL>());
 
 
 
@@ -132,14 +132,14 @@ TEST(ENTITY_ITERATORS) {
       CHECK_EQUAL(id2, mesh->num_edges<Jali::Entity_type::PARALLEL_GHOST>());
       
       id3 = 0;
-      for (auto const & edgeid : mesh->edges<Jali::Entity_type::PARALLEL_ALL>()) {
+      for (auto const & edgeid : mesh->edges<Jali::Entity_type::ALL>()) {
         CHECK_EQUAL(id3, edgeid);
         ++id3;
       }
       CHECK_EQUAL(id1 + id2, mesh->num_entities(Jali::Entity_kind::EDGE,
-                                                Jali::Entity_type::PARALLEL_ALL));
-      CHECK_EQUAL(id1+id2, mesh->num_edges<Jali::Entity_type::PARALLEL_ALL>());
-      CHECK_EQUAL(id3, mesh->num_edges<Jali::Entity_type::PARALLEL_ALL>());
+                                                Jali::Entity_type::ALL));
+      CHECK_EQUAL(id1+id2, mesh->num_edges<Jali::Entity_type::ALL>());
+      CHECK_EQUAL(id3, mesh->num_edges<Jali::Entity_type::ALL>());
     }
 
 
@@ -163,14 +163,14 @@ TEST(ENTITY_ITERATORS) {
     CHECK_EQUAL(id2, mesh->num_faces<Jali::Entity_type::PARALLEL_GHOST>());
 
     id3 = 0;
-    for (auto const & faceid : mesh->faces<Jali::Entity_type::PARALLEL_ALL>()) {
+    for (auto const & faceid : mesh->faces<Jali::Entity_type::ALL>()) {
       CHECK_EQUAL(id3, faceid);
       ++id3;
     }
     CHECK_EQUAL(id1 + id2, mesh->num_entities(Jali::Entity_kind::FACE,
-                                              Jali::Entity_type::PARALLEL_ALL));
-    CHECK_EQUAL(id1+id2, mesh->num_faces<Jali::Entity_type::PARALLEL_ALL>());
-    CHECK_EQUAL(id3, mesh->num_faces<Jali::Entity_type::PARALLEL_ALL>());
+                                              Jali::Entity_type::ALL));
+    CHECK_EQUAL(id1+id2, mesh->num_faces<Jali::Entity_type::ALL>());
+    CHECK_EQUAL(id3, mesh->num_faces<Jali::Entity_type::ALL>());
 
 
 
@@ -194,14 +194,14 @@ TEST(ENTITY_ITERATORS) {
       CHECK_EQUAL(id2, mesh->num_sides<Jali::Entity_type::PARALLEL_GHOST>());
       
       id3 = 0;
-      for (auto const & sideid : mesh->sides<Jali::Entity_type::PARALLEL_ALL>()) {
+      for (auto const & sideid : mesh->sides<Jali::Entity_type::ALL>()) {
         CHECK_EQUAL(id3, sideid);
         ++id3;
       }
       CHECK_EQUAL(id1 + id2, mesh->num_entities(Jali::Entity_kind::SIDE,
-                                                Jali::Entity_type::PARALLEL_ALL));
-      CHECK_EQUAL(id1+id2, mesh->num_sides<Jali::Entity_type::PARALLEL_ALL>());
-      CHECK_EQUAL(id3, mesh->num_sides<Jali::Entity_type::PARALLEL_ALL>());
+                                                Jali::Entity_type::ALL));
+      CHECK_EQUAL(id1+id2, mesh->num_sides<Jali::Entity_type::ALL>());
+      CHECK_EQUAL(id3, mesh->num_sides<Jali::Entity_type::ALL>());
 
       
       
@@ -224,14 +224,14 @@ TEST(ENTITY_ITERATORS) {
       CHECK_EQUAL(id2, mesh->num_wedges<Jali::Entity_type::PARALLEL_GHOST>());
       
       id3 = 0;
-      for (auto const & wedgeid : mesh->wedges<Jali::Entity_type::PARALLEL_ALL>()) {
+      for (auto const & wedgeid : mesh->wedges<Jali::Entity_type::ALL>()) {
         CHECK_EQUAL(id3, wedgeid);
         ++id3;
       }
       CHECK_EQUAL(id1 + id2, mesh->num_entities(Jali::Entity_kind::WEDGE,
-                                                Jali::Entity_type::PARALLEL_ALL));
-      CHECK_EQUAL(id1+id2, mesh->num_wedges<Jali::Entity_type::PARALLEL_ALL>());
-      CHECK_EQUAL(id3, mesh->num_wedges<Jali::Entity_type::PARALLEL_ALL>());
+                                                Jali::Entity_type::ALL));
+      CHECK_EQUAL(id1+id2, mesh->num_wedges<Jali::Entity_type::ALL>());
+      CHECK_EQUAL(id3, mesh->num_wedges<Jali::Entity_type::ALL>());
       
       
 
@@ -254,14 +254,14 @@ TEST(ENTITY_ITERATORS) {
       CHECK_EQUAL(id2, mesh->num_corners<Jali::Entity_type::PARALLEL_GHOST>());
       
       id3 = 0;
-      for (auto const & cornerid : mesh->corners<Jali::Entity_type::PARALLEL_ALL>()) {
+      for (auto const & cornerid : mesh->corners<Jali::Entity_type::ALL>()) {
         CHECK_EQUAL(id3, cornerid);
         ++id3;
       }
       CHECK_EQUAL(id1 + id2, mesh->num_entities(Jali::Entity_kind::CORNER,
-                                                Jali::Entity_type::PARALLEL_ALL));
-      CHECK_EQUAL(id1 + id2, mesh->num_corners<Jali::Entity_type::PARALLEL_ALL>());
-      CHECK_EQUAL(id3, mesh->num_corners<Jali::Entity_type::PARALLEL_ALL>());
+                                                Jali::Entity_type::ALL));
+      CHECK_EQUAL(id1 + id2, mesh->num_corners<Jali::Entity_type::ALL>());
+      CHECK_EQUAL(id3, mesh->num_corners<Jali::Entity_type::ALL>());
     }
 
 
@@ -284,14 +284,14 @@ TEST(ENTITY_ITERATORS) {
     CHECK_EQUAL(id2, mesh->num_cells<Jali::Entity_type::PARALLEL_GHOST>());
 
     id3 = 0;
-    for (auto const & cellid : mesh->cells<Jali::Entity_type::PARALLEL_ALL>()) {
+    for (auto const & cellid : mesh->cells<Jali::Entity_type::ALL>()) {
       CHECK_EQUAL(id3, cellid);
       ++id3;
     }
     CHECK_EQUAL(id1 + id2, mesh->num_entities(Jali::Entity_kind::CELL,
-                                              Jali::Entity_type::PARALLEL_ALL));
-    CHECK_EQUAL(id1 + id2, mesh->num_cells<Jali::Entity_type::PARALLEL_ALL>());
-    CHECK_EQUAL(id3, mesh->num_cells<Jali::Entity_type::PARALLEL_ALL>());
+                                              Jali::Entity_type::ALL));
+    CHECK_EQUAL(id1 + id2, mesh->num_cells<Jali::Entity_type::ALL>());
+    CHECK_EQUAL(id3, mesh->num_cells<Jali::Entity_type::ALL>());
   }  // for each framework i
 
 }

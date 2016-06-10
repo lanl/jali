@@ -190,12 +190,12 @@ int main(int argc, char *argv[]) {
   // Print out the number of cells in the mesh
 
   std::cerr << "Number of mesh cells: " <<
-      mymesh->num_cells<Entity_type::PARALLEL_ALL>() << std::endl;
+      mymesh->num_cells<Entity_type::ALL>() << std::endl;
 
   // Print out the number of nodes in the mesh
 
   std::cerr << "Number of mesh nodes: " <<
-      mymesh->num_nodes<Entity_type::PARALLEL_ALL>() << std::endl;
+      mymesh->num_nodes<Entity_type::ALL>() << std::endl;
 
 
   
