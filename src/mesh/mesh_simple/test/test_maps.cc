@@ -100,7 +100,7 @@ SUITE(MeshSimple) {
     // Make sure we have the right number of entities
     CHECK_EQUAL(1, Mm.num_entities(Jali::Entity_kind::CELL,
                                    Jali::Entity_type::PARALLEL_OWNED));
-    CHECK_EQUAL(1, Mm.num_entities(Jali::Entity_kind::EDGE,
+    CHECK_EQUAL(2, Mm.num_entities(Jali::Entity_kind::EDGE,
                                    Jali::Entity_type::PARALLEL_OWNED));
     CHECK_EQUAL(2, Mm.num_entities(Jali::Entity_kind::FACE,
                                    Jali::Entity_type::PARALLEL_OWNED));
