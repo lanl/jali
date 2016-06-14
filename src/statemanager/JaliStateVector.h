@@ -25,8 +25,8 @@ namespace Jali {
   A StateVector class inherits from this class and is templated on
   specific types of data. The DomainType class has to be of type mesh
   or a type that is part of a mesh and therefore, can answer the
-  question "What is your mesh" and "How many entities of type
-  'on_what' do you have"?
+  question "What is your mesh" and "How many entities of a particular kind
+  (CELL, NODE, etc) do you have"?
 */
 
 class BaseStateVector {
@@ -35,17 +35,17 @@ class BaseStateVector {
   //! Constructor
   
   explicit BaseStateVector(std::string const name,
-                           Entity_kind const on_what,
-                           Entity_type const parallel_type) :
-      myname_(name), on_what_(on_what), parallel_type_(parallel_type) {}
+                           Entity_kind const kind,
+                           Entity_type const type) :
+      myname_(name), entity_kind_(kind), entity_type_(type) {}
 
   //! Constructor using int/enum as identifier instead of string
 
   BaseStateVector(int const identifier,
-                  Entity_kind const on_what,
-                  Entity_type const parallel_type) :
-      myname_(int_to_string(identifier)), on_what_(on_what),
-      parallel_type_(parallel_type) {}
+                  Entity_kind const kind,
+                  Entity_type const type) :
+      myname_(int_to_string(identifier)), entity_kind_(kind),
+      entity_type_(type) {}
 
   //! Destructor
 
@@ -69,18 +69,19 @@ class BaseStateVector {
 
   std::string name() const { return myname_; }
 
-  /// What type of entity does it live on (CELL, WEDGE, NODE)?
+  /// what kind of entity does it live on (CELL, WEDGE, NODE)?
 
-  Entity_kind on_what() const { return on_what_; }
+  Entity_kind entity_kind() const { return entity_kind_; }
 
-  /// What type of parallel entity does it live on (OWNED, GHOST or ALL)?
+  /// What type of entity does it live on (PARALLEL_OWNED, PARALLEL_GHOST or 
+  /// BOUNDARY_GHOST or ALL)?
 
-  Entity_type parallel_type() const { return parallel_type_; }
+  Entity_type entity_type() const { return entity_type_; }
 
  protected:
   std::string myname_;
-  Entity_kind on_what_;
-  Entity_type parallel_type_;
+  Entity_kind entity_kind_;
+  Entity_type entity_type_;
 };
 
 
@@ -109,17 +110,17 @@ class StateVector : public BaseStateVector {
   /*!
     @brief Meaningful constructor with data and a string identifier
     @param name            String identifier of vector
-    @param on_what         Data corresponds to what type of entity in the Domain
-    @param parallel_type   Whether data lives on OWNED, GHOST or ALL entities
+    @param kind            What kind of entity in the Domain does data live on
+    @param type            What type of entity data lives on (PARALLEL_OWNED, PARALLEL_GHOST, etc)
     @param data            Pointer to array data to be used to initialize vector (optional)
   */
   
   StateVector(std::string const name, std::shared_ptr<DomainType> domain,
-              Entity_kind const on_what, Entity_type const parallel_type,
+              Entity_kind const kind, Entity_type const type,
               T const * const data = nullptr) :
-      BaseStateVector(name, on_what, parallel_type), mydomain_(domain) {
+      BaseStateVector(name, kind, type), mydomain_(domain) {
 
-    int num = mydomain_->num_entities(on_what, parallel_type);
+    int num = mydomain_->num_entities(kind, type);
     if (data == nullptr)
       mydata_ = std::make_shared<std::vector<T>>(num);
     else
@@ -129,17 +130,17 @@ class StateVector : public BaseStateVector {
   /*!
     @brief Meaningful constructor with data and a integer identifier
     @param name            String identifier of vector
-    @param on_what         Data corresponds to what type of entity in the Domain
-    @param parallel_type   Whether data lives on OWNED, GHOST or ALL entities
+    @param kind            What kind of entity in the Domain does data live on
+    @param type            What type of entity data lives on (PARALLEL_OWNED, PARALLEL_GHOST, etc)
     @param data            Pointer to array data to be used to initialize vector (optional)
   */
   
   StateVector(int const identifier, std::shared_ptr<DomainType> domain,
-              Entity_kind const on_what, Entity_type const parallel_type,
+              Entity_kind const kind, Entity_type const type,
               T const * const data = nullptr) :
-      BaseStateVector(identifier, on_what, parallel_type), mydomain_(domain) {
+      BaseStateVector(identifier, kind, type), mydomain_(domain) {
 
-    int num = mydomain_->num_entities(on_what, parallel_type);
+    int num = mydomain_->num_entities(kind, type);
     if (data == nullptr)
       mydata_ = std::make_shared<std::vector<T>>(num);
     else
@@ -149,34 +150,34 @@ class StateVector : public BaseStateVector {
   /*!
     @brief Meaningful constructor with uniform initializer and a string identifier
     @param name            String identifier of vector
-    @param on_what         Data corresponds to what type of entity in the Domain
-    @param parallel_type   Whether data lives on OWNED, GHOST or ALL entities
+    @param kind            What kind of entity in the Domain does data live on
+    @param type            What type of entity data lives on (PARALLEL_OWNED, PARALLEL_GHOST, etc)
     @param initval         Value to which all elements should be initialized to 
   */
   
   StateVector(std::string const name, std::shared_ptr<DomainType> domain,
-              Entity_kind const on_what, Entity_type const parallel_type,
-              T const initval) :
-      BaseStateVector(name, on_what, parallel_type), mydomain_(domain) {
+              Entity_kind const kind, Entity_type const type,
+              T const& initval) :
+      BaseStateVector(name, kind, type), mydomain_(domain) {
 
-    int num = mydomain_->num_entities(on_what, parallel_type);
+    int num = mydomain_->num_entities(kind, type);
     mydata_ = std::make_shared<std::vector<T>>(num, initval);
   }
 
   /*!
     @brief Meaningful constructor with data and a integer identifier
     @param name            String identifier of vector
-    @param on_what         Data corresponds to what type of entity in the Domain
-    @param parallel_type   Whether data lives on OWNED, GHOST or ALL entities
+    @param kind            What kind of entity in the Domain does data live on
+    @param type            What type of entity data lives on (PARALLEL_OWNED, PARALLEL_GHOST, etc)
     @param initval         Value to which all elements should be initialized to 
   */
   
   StateVector(int const identifier, std::shared_ptr<DomainType> domain,
-              Entity_kind const on_what, Entity_type const parallel_type,
-              T const initval) :
-      BaseStateVector(identifier, on_what, parallel_type), mydomain_(domain) {
-
-    int num = mydomain_->num_entities(on_what, parallel_type);
+              Entity_kind const kind, Entity_type const type,
+              T const& initval) :
+      BaseStateVector(identifier, kind, type), mydomain_(domain) {
+    
+    int num = mydomain_->num_entities(kind, type);
     mydata_ = std::make_shared<std::vector<T>>(num, initval);
   }
 
@@ -190,8 +191,8 @@ class StateVector : public BaseStateVector {
   */
 
   StateVector(StateVector const & in_vector) :
-      BaseStateVector(in_vector.myname_, in_vector.on_what_,
-                      in_vector.parallel_type_),
+      BaseStateVector(in_vector.myname_, in_vector.entity_kind_,
+                      in_vector.entity_type_),
       mydomain_(in_vector.mydomain_) {
     
     mydata_ = std::make_shared<std::vector<T>>((in_vector.mydata_)->begin(),
@@ -208,8 +209,8 @@ class StateVector : public BaseStateVector {
 
   StateVector & operator=(StateVector const & in_vector) {
     BaseStateVector::myname_ = in_vector.myname_;
-    BaseStateVector::on_what_ = in_vector.on_what_;
-    BaseStateVector::parallel_type_ = in_vector.parallel_type_;
+    BaseStateVector::entity_kind_ = in_vector.entity_kind_;
+    BaseStateVector::entity_type_ = in_vector.entity_type_;
     mydomain_ = in_vector.mydomain_;
     mydata_ = in_vector.mydata_;  // shared_ptr counter will increment
   }
@@ -268,7 +269,7 @@ class StateVector : public BaseStateVector {
 
   std::ostream& print(std::ostream& os) const {
     os << "\n";
-    os << "Vector \"" << myname_ << "\" on entity kind " << on_what_ <<
+    os << "Vector \"" << myname_ << "\" on entity kind " << entity_kind_ <<
         " :\n";
     os << size() << " elements\n";
 
