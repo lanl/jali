@@ -331,29 +331,34 @@ TEST(Jali_State_On_Mesh) {
 
   Jali::State::iterator it = mystate.begin();
   while (it != mystate.end()) {
-    Jali::StateVector<double, Jali::Mesh> myvec6 =
-        *(std::static_pointer_cast<Jali::StateVector<double, Jali::Mesh>>(*it));
+    std::shared_ptr<Jali::BaseStateVector> bvec = *it;
 
-    CHECK((myvec6.name() == "cellvars" &&
-           myvec6.entity_kind() == Jali::Entity_kind::CELL &&
-           myvec6.entity_type() == Jali::Entity_type::ALL)
-          ||
-          (myvec6.name() == "cellvars2" &&
-           myvec6.entity_kind() == Jali::Entity_kind::CELL &&
-           myvec6.entity_type() == Jali::Entity_type::ALL)
-          ||
-          (myvec6.name() == "nodevars" &&
-           myvec6.entity_kind() == Jali::Entity_kind::NODE &&
-           myvec6.entity_type() == Jali::Entity_type::ALL)
-          ||
-          (myvec6.name() == "~0" &&
-           myvec6.entity_kind() == Jali::Entity_kind::CELL &&
-           myvec6.entity_type() == Jali::Entity_type::ALL)
-          ||
-          (myvec6.name() == "~1" &&
-           myvec6.entity_kind() == Jali::Entity_kind::NODE &&
-           myvec6.entity_type() == Jali::Entity_type::ALL));
-
+    if (bvec->name() == "~1") {
+      Jali::StateVector<int, Jali::Mesh> myvec6 =
+          *(std::static_pointer_cast<Jali::StateVector<int, Jali::Mesh>>(*it));
+          
+      CHECK(myvec6.entity_kind() == Jali::Entity_kind::NODE &&
+            myvec6.entity_type() == Jali::Entity_type::ALL);
+    } else {
+      Jali::StateVector<double, Jali::Mesh> myvec6 =
+          *(std::static_pointer_cast<Jali::StateVector<double, Jali::Mesh>>(*it));
+      
+      CHECK((myvec6.name() == "cellvars" &&
+             myvec6.entity_kind() == Jali::Entity_kind::CELL &&
+             myvec6.entity_type() == Jali::Entity_type::ALL)
+            ||
+            (myvec6.name() == "cellvars2" &&
+             myvec6.entity_kind() == Jali::Entity_kind::CELL &&
+             myvec6.entity_type() == Jali::Entity_type::ALL)
+            ||
+            (myvec6.name() == "nodevars" &&
+             myvec6.entity_kind() == Jali::Entity_kind::NODE &&
+             myvec6.entity_type() == Jali::Entity_type::ALL)
+            ||
+            (myvec6.name() == "~0" &&
+             myvec6.entity_kind() == Jali::Entity_kind::CELL &&
+             myvec6.entity_type() == Jali::Entity_type::ALL));
+    }
     ++it;
   }
 
