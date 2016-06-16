@@ -127,25 +127,25 @@ int main(int argc, char *argv[]) {
   // that is figured out from the arguments to the add function. 
 
   StateVector<double> & myvec = mystate.add("myzonevar", mymesh,
-                                            Entity_kind::CELL,
-                                            Entity_type::ALL, data);
+                                             Entity_kind::CELL,
+                                             Entity_type::ALL, data);
 
 
   // Try to retrieve it through a get function
 
-  StateVector<double, Jali::Mesh> myvec_copy;
+  StateVector<double, Jali::Mesh> myvec_copy1;
   bool found = mystate.get("myzonevar", mymesh, Entity_kind::CELL,
-                           Entity_type::ALL, &myvec_copy);
+                           Entity_type::ALL, &myvec_copy1);
 
-  int ndata = myvec_copy.size();
-  if (myvec.size() != myvec_copy.size()) {
+  int ndata = myvec_copy1.size();
+  if (myvec.size() != myvec_copy1.size()) {
     std::cerr << "Stored and retrieved vectors have different sizes?" <<
       std::endl;
     exit(-1);
   }
    
   for (int i = 0; i < ndata; i++) {
-    if (myvec[i] != myvec_copy[i]) {
+    if (myvec[i] != myvec_copy1[i]) {
       std::cerr << "Stored and retrieved vectors differ at element " << i <<
         std::endl;
     }
@@ -162,12 +162,12 @@ int main(int argc, char *argv[]) {
 
   // Modify a value in the state vector
 
-  myvec_copy[3] = 25;
+  myvec_copy1[3] = 25;
 
 
   // It should get reflected in myvec since it points to the same data
 
-  if (myvec[3] != myvec_copy[3]) {
+  if (myvec[3] != myvec_copy1[3]) {
     std::cerr << "Stored and retrieved vectors don't point to the same data?" <<
         std::endl;
     std::cerr << "A change in one was not reflected in the other" << std::endl;
@@ -184,24 +184,37 @@ int main(int argc, char *argv[]) {
   }
 
 
-  // Make a new state vector using a copy constructor - DEEP COPY OF DATA
+  // Add a new uninitialized state vector - Note that we have to
+  // explicitly tell the state manager the data type (double) since
+  // there is no input data for it to infer it from
 
-  StateVector<double> newvec = myvec;  // Also note: newvec is not in mystate!
+  StateVector<double>& newvec = mystate.add<double>("vector2", mymesh, 
+                                                   Entity_kind::CELL,
+                                                   Entity_type::ALL);
+
+  // Modify newvec 
+
+  for (auto const& c : mymesh->cells())
+    newvec[c] = 2.0*c;
+    
+
+  // Retrieve the vector from the state manager separately and make sure
+  // that the changes in newvec were reflected in the state manager
+
+  StateVector<double, Mesh> newvec_copy;
+  found = mystate.get("vector2", mymesh, Entity_kind::CELL,
+                      Entity_type::ALL, &newvec_copy);
 
 
-
-  // changing an element in myvec will not change newvec since new vec
-  // has its own data space
-
-  double old_val = myvec[2];
-  myvec[2] = 33;
-
-  if (newvec[2] == myvec[2] || newvec[2] != old_val) {
-    std::cerr << "Original and copy constructed vectors share data space?" <<
-        std::endl;
-    exit(-1);
+  ndata = newvec.size();
+  for (int i = 0; i < ndata; ++i) {
+    if (newvec[i] != newvec_copy[i]) {
+      std::cerr <<
+          "Changes to state vector reference not reflected in State Manager?" <<
+          std::endl;
+      break;
+    }
   }
-
 
   // Print out myvec
 

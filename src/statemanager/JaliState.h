@@ -136,18 +136,20 @@ class State {
   int size() const {return state_vectors_.size();}
 
 
+
+
   /*! 
     @brief Find iterator to state vector by name
-    @tparam T  Data type
+    @tparam T          Data type
     @tparam DomainType Type of domain data is defined on (Mesh, MeshTile)
-    @param name  String identifier for vector
-    @param domain Shared pointer to the domain
-    @param on_what What kind of entity data is defined on (CELL, NODE, etc.)
-    @param parallel_type What type of parallel entity data is defined on (OWNED, GHOST, etc.)
+    @param name        String identifier for vector
+    @param domain      Shared pointer to the domain
+    @param kind        What kind of entity data is defined on (CELL, NODE, etc.)
+    @param type        What type of entity data is defined on (PARALLEL_OWNED, PARALLEL_GHOST, BOUNDARY_GHOST, ALL etc.)
 
     Find iterator to state vector by NAME and what kind of entity and
     what type of parallel entity it is defined on.  The type of entity
-    (parameter on_what) may be specified as ANY_KIND if caller does
+    (parameter kind) may be specified as ANY_KIND if caller does
     not care if the vector is on a particular entity type or knows
     that there is only one vector by this name defined on a specific
     entity kind. The function returns an iterator to a state vector in
@@ -157,8 +159,8 @@ class State {
   template<class T, class DomainType>
   iterator find(std::string const name,
                 std::shared_ptr<DomainType> const domain,
-                Entity_kind const on_what = Entity_kind::ANY_KIND,
-                Entity_type const parallel_type = Entity_type::ALL) {
+                Entity_kind const kind = Entity_kind::ANY_KIND,
+                Entity_type const type = Entity_type::ALL) {
 
     iterator it = state_vectors_.begin();
     while (it != state_vectors_.end()) {
@@ -167,8 +169,8 @@ class State {
           std::dynamic_pointer_cast<StateVector<T, DomainType>>(bv);
       if (sv && (sv->name() == name) &&
           (sv->domain() == domain) &&
-          ((on_what == Entity_kind::ANY_KIND) || (sv->on_what() == on_what)) &&
-          ((parallel_type == Entity_type::ALL) || (sv->parallel_type() == parallel_type)))
+          ((kind == Entity_kind::ANY_KIND) || (sv->entity_kind() == kind)) &&
+          ((type == Entity_type::ALL) || (sv->entity_type() == type)))
         break;
       else
         ++it;
@@ -179,16 +181,16 @@ class State {
 
   /*! 
     @brief Find iterator to state vector by integer identifier
-    @tparam T  Data type
+    @tparam T          Data type
     @tparam DomainType Type of domain data is defined on (Mesh, MeshTile)
-    @param name  String identifier for vector
-    @param domain Shared pointer to the domain
-    @param on_what What kind of entity data is defined on (CELL, NODE, etc.)
-    @param parallel_type What type of parallel entity data is defined on (OWNED, GHOST, etc.)
+    @param name        String identifier for vector
+    @param domain      Shared pointer to the domain
+    @param kind        What kind of entity data is defined on (CELL, NODE, etc.)
+    @param type        What type of entity data is defined on (PARALLEL_OWNED, PARALLEL_GHOST, etc.)
 
     Find iterator to state vector by NAME and what kind of entity and
-    what type of parallel entity it is defined on.  The type of entity
-    (parameter on_what) may be specified as ANY_KIND if caller does
+    what type of entity it is defined on.  The type of entity
+    (parameter kind) may be specified as ANY_KIND if caller does
     not care if the vector is on a particular entity type or knows
     that there is only one vector by this name defined on a specific
     entity kind. The function returns an iterator to a state vector in
@@ -198,27 +200,29 @@ class State {
   template <class T, class DomainType>
   iterator find(int const identifier,
                 std::shared_ptr<DomainType> const domain,
-                Jali::Entity_kind const on_what = Entity_kind::ANY_KIND,
-                Entity_type const parallel_type = Entity_type::ALL) {
+                Jali::Entity_kind const kind = Entity_kind::ANY_KIND,
+                Entity_type const type = Entity_type::ALL) {
   
-    return find<T>(BaseStateVector::int_to_string(identifier), domain, on_what,
-                   parallel_type);  // DomainType deduced automatically
+    return find<T>(BaseStateVector::int_to_string(identifier), domain, kind,
+                   type);  // DomainType deduced automatically
   }
+
+
 
 
 
   /*! 
     @brief Find iterator to state vector by integer identifier (const version)
-    @tparam T  Data type
+    @tparam T          Data type
     @tparam DomainType Type of domain data is defined on (Mesh, MeshTile)
-    @param name  String identifier for vector
-    @param domain Shared pointer to the domain
-    @param on_what What kind of entity data is defined on (CELL, NODE, etc.)
-    @param parallel_type What type of parallel entity data is defined on (OWNED, GHOST, etc.)
+    @param name        String identifier for vector
+    @param domain      Shared pointer to the domain
+    @param kind        What kind of entity data is defined on (CELL, NODE, etc.)
+    @param type        What type of entity data is defined on (PARALLEL_OWNED, {PARALLEL_GHOST, etc.)
 
     Find iterator to state vector by NAME and what kind of entity and
-    what type of parallel entity it is defined on.  The type of entity
-    (parameter on_what) may be specified as ANY_KIND if caller does
+    what type of entity it is defined on.  The type of entity
+    (parameter kind) may be specified as ANY_KIND if caller does
     not care if the vector is on a particular entity type or knows
     that there is only one vector by this name defined on a specific
     entity kind. The function returns an iterator to a state vector in
@@ -228,8 +232,8 @@ class State {
   template <class T, class DomainType>
   const_iterator find(std::string const name,
                       std::shared_ptr<DomainType> const domain,
-                      Entity_kind const on_what = Entity_kind::ANY_KIND,
-                      Entity_type const parallel_type = Entity_type::ALL)
+                      Entity_kind const kind = Entity_kind::ANY_KIND,
+                      Entity_type const type = Entity_type::ALL)
       const {
     
     const_iterator it = state_vectors_.cbegin();
@@ -239,8 +243,8 @@ class State {
           dynamic_cast<StateVector<T, DomainType> *>(bv.get());
       if ((sv->name() == name) &&
           (sv->domain() == domain) &&
-          ((on_what == Entity_kind::ANY_KIND) || (sv->on_what() == on_what)) &&
-          ((parallel_type == Entity_type::ALL) || (sv->parallel_type() == parallel_type)))
+          ((kind == Entity_kind::ANY_KIND) || (sv->entity_kind() == kind)) &&
+          ((type == Entity_type::ALL) || (sv->entity_type() == type)))
         break;
       else
         ++it;
@@ -248,18 +252,21 @@ class State {
     return it;
   }
   
+
+
+
   /*! 
     @brief Find iterator to state vector by integer identifier (const version)
-    @tparam T  Data type
+    @tparam T          Data type
     @tparam DomainType Type of domain data is defined on (Mesh, MeshTile)
-    @param name  String identifier for vector
-    @param domain Shared pointer to the domain
-    @param on_what What kind of entity data is defined on (CELL, NODE, etc.)
-    @param parallel_type What type of parallel entity data is defined on (OWNED, GHOST, etc.)
+    @param name        String identifier for vector
+    @param domain      Shared pointer to the domain
+    @param kind        What kind of entity data is defined on (CELL, NODE, etc.)
+    @param type        What type of entity data is defined on (PARALLEL_OWNED, PARALLEL_GHOST, etc.)
 
     Find iterator to state vector by NAME and what kind of entity and
-    what type of parallel entity it is defined on.  The type of entity
-    (parameter on_what) may be specified as ANY_KIND if caller does
+    what type of entity it is defined on.  The type of entity
+    (parameter kind) may be specified as ANY_KIND if caller does
     not care if the vector is on a particular entity type or knows
     that there is only one vector by this name defined on a specific
     entity kind. The function returns an iterator to a state vector in
@@ -269,45 +276,47 @@ class State {
   template <class T, class DomainType>
   const_iterator find(int const identifier,
                       std::shared_ptr<DomainType> const domain,
-                      Entity_kind const on_what = Entity_kind::ANY_KIND,
-                      Entity_type const parallel_type = Entity_type::ALL)
+                      Entity_kind const kind = Entity_kind::ANY_KIND,
+                      Entity_type const type = Entity_type::ALL)
       const {
-    return find<T>(BaseStateVector::int_to_string(identifier), domain, on_what,
-                   parallel_type);  // DomainType deduced automatically
+    return find<T>(BaseStateVector::int_to_string(identifier), domain, kind,
+                   type);  // DomainType deduced automatically
   }
+
+
+
+
 
   /*! 
     @brief Retrieve a state vector by name given the domain and entity type it
     is defined on
-    @tparam T  Data type
+    @tparam T          Data type
     @tparam DomainType Type of domain data is defined on (Mesh, MeshTile)
-    @param name  String identifier for vector
-    @param domain Shared pointer to the domain
-    @param on_what What kind of entity data is defined on (CELL, NODE, etc.)
-    @param parallel_type What type of parallel entity data is defined on (OWNED, GHOST, etc.)
-    @param vector Raw pointer to the state vector
+    @param name        String identifier for vector
+    @param domain      Shared pointer to the domain
+    @param kind        What kind of entity data is defined on (CELL, NODE, etc.)
+    @param type        What type of entity data is defined on (PARALLEL_OWNED, PARALLEL_GHOST, etc.)
+    @param vector      Pointer to the state vector
 
-    @todo MUST GET RID OF THIS AND FORCE USAGE OF SHARED POINTER VERSION
-  
-    Get a statevector with the given name, particular entity kind
-    and parallel type of entity it is defined on. The function returns
-    true if such a vector was found; false otherwise. The caller must
-    know the type of elements in the state vector, int, double,
-    std::array<double, 3> or whatever else. The calling routine must
-    declare the state vector as "T vector" where T is StateVector<int>
-    or StateVector<double> or StateVector<some_other_type>. Even
-    though this is a copy into *vector, its an inexpensive shallow
-    copy of the meta data only
+    Get a statevector with the given name, particular entity kind and
+    type of entity it is defined on. The function returns true if such
+    a vector was found; false otherwise. The caller must know the type
+    of elements in the state vector, int, double, std::array<double,
+    3> or whatever else. The calling routine must declare the state
+    vector as "T vector" where T is StateVector<int> or
+    StateVector<double> or StateVector<some_other_type>. Even though
+    this is a copy into *vector, its an inexpensive shallow copy of
+    the meta data only
    */
   
   template <class T, class DomainType>
   bool get(std::string const name,
            std::shared_ptr<DomainType> const domain,
-           Entity_kind const on_what,
-           Entity_type const parallel_type,
+           Entity_kind const kind,
+           Entity_type const type,
            StateVector<T, DomainType> *vector) {
     
-    iterator it = find<T>(name, domain, on_what, parallel_type);
+    iterator it = find<T>(name, domain, kind, type);
     if (it != state_vectors_.end()) {
       *vector = *(std::static_pointer_cast<StateVector<T, DomainType>>(*it));
       return true;
@@ -316,26 +325,27 @@ class State {
     }
   }
 
+
+
+
   /*! 
     @brief Retrieve a state vector by integer identifier given the domain and
     entity type it is defined on
-    @tparam T  Data type
+    @tparam T          Data type
     @tparam DomainType Type of domain data is defined on (Mesh, MeshTile)
     @param identifier  Integer identifier for vector
-    @param domain Shared pointer to the domain
-    @param on_what What kind of entity data is defined on (CELL, NODE, etc.)
-    @param parallel_type What type of parallel entity data is defined on (OWNED, GHOST, etc.)
-    @param vector Raw pointer to the state vector
+    @param domain      Shared pointer to the domain
+    @param kind        What kind of entity data is defined on (CELL, NODE, etc.)
+    @param type        What type of entity data is defined on (PARALLEL_OWNED, PARALLEL_GHOST, etc.)
+    @param vector      Pointer to the state vector
 
-    @todo MUST GET RID OF THIS AND FORCE USAGE OF SHARED POINTER VERSION
-  
     Get a statevector with the given integer identifier and particular
-    entity kind and parallel type of entity it is defined on. The
-    function returns true if such a vector was found; false
-    otherwise. The caller must know the type of elements in the state
-    vector, int, double, std::array<double, 3> or whatever else. The
-    calling routine must declare the state vector as "T vector" where
-    T is StateVector<int> or StateVector<double> or
+    entity kind and type of entity it is defined on. The function
+    returns true if such a vector was found; false otherwise. The
+    caller must know the type of elements in the state vector, int,
+    double, std::array<double, 3> or whatever else. The calling
+    routine must declare the state vector as "T vector" where T is
+    StateVector<int> or StateVector<double> or
     StateVector<some_other_type>. Even though this is a copy into
     *vector, its an inexpensive shallow copy of the meta data only
    */
@@ -343,12 +353,12 @@ class State {
   template <class T, class DomainType>
   bool get(int const identifier,
            std::shared_ptr<DomainType> const domain,
-           Entity_kind const on_what,
-           Entity_type const parallel_type,
+           Entity_kind const kind,
+           Entity_type const type,
            StateVector<T, DomainType> *vector) {
     
     iterator it = find<T>(BaseStateVector::int_to_string(identifier), domain,
-                          on_what, parallel_type);
+                          kind, type);
     if (it != state_vectors_.end()) {
       *vector = *(std::static_pointer_cast<StateVector<T, DomainType>>(*it));
       return true;
@@ -356,6 +366,7 @@ class State {
       return false;
     }
   }
+
 
 
   /*! 
@@ -364,10 +375,8 @@ class State {
     @tparam T           Data type
     @tparam DomainType  Type of domain data is defined on (Mesh, MeshTile)
     @param name         String identifier for vector
-    @param vector       Raw pointer to the state vector
+    @param vector       Pointer to the state vector
 
-    @todo MUST GET RID OF THIS AND FORCE USAGE OF SHARED POINTER VERSION
-  
     Get a statevector on the mesh with the given name without regard
     to what kind of entity it is defined on. The function returns true
     if such a vector was found; false otherwise. The caller must know
@@ -379,12 +388,15 @@ class State {
     copy of the meta data only
    */
 
-  template <class T, class DomainType>
-  bool get(std::string const name, StateVector<T, DomainType> *vector_ptr) {
-    return get(name, mymesh_, Entity_kind::ANY_KIND, Entity_type::ALL,
-               vector_ptr);
-  }
+   template <class T, class DomainType>
+   bool get(std::string const name, StateVector<T, DomainType> *vector_ptr) {
+     return get(name, mymesh_, Entity_kind::ANY_KIND, Entity_type::ALL,
+                vector_ptr);
+   }
   
+
+
+
 
   /*! 
     @brief Retrieve a shared pointer to a state vector by name given the domain
@@ -393,29 +405,36 @@ class State {
     @tparam DomainType   Type of domain data is defined on (Mesh, MeshTile)
     @param name          String identifier for vector
     @param domain        Shared pointer to the domain
-    @param on_what       What kind of entity data is defined on (CELL, NODE, etc.)
-    @param parallel_type What type of parallel entity data is defined on (OWNED, GHOST, etc.)
+    @param kind          What kind of entity data is defined on (CELL, NODE, etc.)
+    @param type          What type of entity data is defined on (PARALLEL_OWNED, PARALLEL_GHOST, etc.)
     @param vector_ptr    Shared pointer to the state vector
 
     Get a statevector on given domain with the given name, particular
-    entity kind and parallel type of entity it is defined on The
-    function returns true if such a vector was found; false
-    otherwise. The caller must know the type of elements in the state
-    vector, int, double, std::array<double, 3> or whatever else. The
-    calling routine must declare the state vector as "T vector" where
-    T is StateVector<int> or StateVector<double> or
+    entity kind and type of entity it is defined on The function
+    returns true if such a vector was found; false otherwise. The
+    caller must know the type of elements in the state vector, int,
+    double, std::array<double, 3> or whatever else. The calling
+    routine must declare the state vector as "T vector" where T is
+    StateVector<int> or StateVector<double> or
     StateVector<some_other_type>. Even though this is a copy into
     *vector, its an inexpensive shallow copy of the meta data only
+
+
+    NOT SURE THAT THERE IS ANY UTILITY IN RETURNING A SHARED POINTER
+    HERE - THE DATA IS ALREADY STORED AS A SHARED POINTER, SO THERE IS
+    NO RISK OF DELETING THE DATA WHEN AT LEAST ONE COPY OF THE STATE
+    VECTOR POINTS TO THE DATA. THE STATE VECTOR ITSELF IS EASIER TO
+    DEAL WITH DIRECTLY INSTEAD OF THROUGH A SHARED POINTER
    */
 
   template <class T, class DomainType>
   bool get(std::string const name,
            std::shared_ptr<DomainType> const domain,
-           Entity_kind const on_what,
-           Entity_type const parallel_type,
+           Entity_kind const kind,
+           Entity_type const type,
            std::shared_ptr<StateVector<T, DomainType>> *vector_ptr) {
     
-    iterator it = find<T>(name, domain, on_what, parallel_type);
+    iterator it = find<T>(name, domain, kind, type);
     if (it != state_vectors_.end()) {
       *vector_ptr =
           std::static_pointer_cast<StateVector<T, DomainType>>(*it);
@@ -425,6 +444,10 @@ class State {
     }
   }
 
+
+
+
+
   /*! 
     @brief Retrieve a shared pointer to a state vector by integer identifier
     given the domain and type of entity it is defined on
@@ -432,31 +455,39 @@ class State {
     @tparam DomainType   Type of domain data is defined on (Mesh, MeshTile)
     @param identifier    Integer identifier for vector
     @param domain        Shared pointer to the domain
-    @param on_what       What kind of entity data is defined on (CELL, NODE, etc.)
-    @param parallel_type What type of parallel entity data is defined on (OWNED, GHOST, etc.)
+    @param kind          What kind of entity data is defined on (CELL, NODE, etc.)
+    @param type          What type of parallel entity data is defined on (PARALLEL_OWNED, PARALLEL_GHOST, etc.)
     @param vector_ptr    Shared pointer to the state vector
 
     Get a statevector on given domain with the given integer
-    identifier, particular entity kind and parallel type of entity it
-    is defined on. The function returns true if such a vector was
-    found; false otherwise. The caller must know the type of elements
-    in the state vector, int, double, std::array<double, 3> or
-    whatever else. The calling routine must declare the state vector
-    as "T vector" where T is StateVector<int> or StateVector<double>
-    or StateVector<some_other_type>. Even though this is a copy into
+    identifier, particular entity kind and type of entity it is
+    defined on. The function returns true if such a vector was found;
+    false otherwise. The caller must know the type of elements in the
+    state vector, int, double, std::array<double, 3> or whatever
+    else. The calling routine must declare the state vector as "T
+    vector" where T is StateVector<int> or StateVector<double> or
+    StateVector<some_other_type>. Even though this is a copy into
     *vector, its an inexpensive shallow copy of the meta data only
+
+    NOT SURE THAT THERE IS ANY UTILITY IN RETURNING A SHARED POINTER
+    HERE - THE DATA IS ALREADY STORED AS A SHARED POINTER, SO THERE IS
+    NO RISK OF DELETING THE DATA WHEN AT LEAST ONE COPY OF THE STATE
+    VECTOR POINTS TO THE DATA. THE STATE VECTOR ITSELF IS EASIER TO
+    DEAL WITH DIRECTLY INSTEAD OF THROUGH A SHARED POINTER
    */
 
   template <class T, class DomainType>
   bool get(int const identifier,
            std::shared_ptr<DomainType> const domain,
-           Entity_kind const on_what,
-           Entity_type const parallel_type,
+           Entity_kind const kind,
+           Entity_type const type,
            std::shared_ptr<StateVector<T, DomainType>> *vector_ptr) {
  
     return get(BaseStateVector::int_to_string(identifier), domain,
-               on_what, parallel_type, vector_ptr);
+               kind, type, vector_ptr);
   }
+
+
 
 
   /*! 
@@ -477,6 +508,12 @@ class State {
     or StateVector<double> or StateVector<some_other_type>. Even
     though this is a copy into *vector, its an inexpensive shallow
     copy of the meta data only
+
+    NOT SURE THAT THERE IS ANY UTILITY IN RETURNING A SHARED POINTER
+    HERE - THE DATA IS ALREADY STORED AS A SHARED POINTER, SO THERE IS
+    NO RISK OF DELETING THE DATA WHEN AT LEAST ONE COPY OF THE STATE
+    VECTOR POINTS TO THE DATA. THE STATE VECTOR ITSELF IS EASIER TO
+    DEAL WITH DIRECTLY INSTEAD OF THROUGH A SHARED POINTER
    */
 
   template <class T, class DomainType>
@@ -487,6 +524,8 @@ class State {
     return get(name, domain, Entity_kind::ANY_KIND, Entity_type::ALL,
                vector_ptr);
   }
+
+
 
 
   /*! 
@@ -507,6 +546,12 @@ class State {
     or StateVector<double> or StateVector<some_other_type>. Even
     though this is a copy into *vector, its an inexpensive shallow
     copy of the meta data only
+
+    NOT SURE THAT THERE IS ANY UTILITY IN RETURNING A SHARED POINTER
+    HERE - THE DATA IS ALREADY STORED AS A SHARED POINTER, SO THERE IS
+    NO RISK OF DELETING THE DATA WHEN AT LEAST ONE COPY OF THE STATE
+    VECTOR POINTS TO THE DATA. THE STATE VECTOR ITSELF IS EASIER TO
+    DEAL WITH DIRECTLY INSTEAD OF THROUGH A SHARED POINTER
    */
 
   template <class T, class DomainType>
@@ -517,29 +562,36 @@ class State {
     return get(BaseStateVector::int_to_string(identifier), domain, vector_ptr);
   }
 
+
+
+
+
   /*! 
-    @brief Add state vector using a string identifier
+    @brief Add state vector using a string identifier and optional array data
     @tparam T          Data type
     @tparam DomainType Type of domain data is defined on (Mesh, MeshTile)
     @param name        String identifier for vector
     @param domain      Shared pointer to the domain
-    @param on_what     What kind of entity data is defined on (CELL, NODE, etc.)
-    @param ptype       What type of parallel entity data is defined on (OWNED, GHOST, etc.)
-    @param data        Raw pointer to data array
+    @param kind        What kind of entity data is defined on (CELL, NODE, etc.)
+    @param type        What type of entity data is defined on (PARALLEL_OWNED, PARALLEL_GHOST, etc.)
+    @param data        Raw pointer to data array (optional)
 
     Add state vector - returns reference to the added StateVector.
     The data is copied from the input memory location into an
     internal buffer.
+
+    If you invoke this without the last argument, you have to tell it
+    what the type of the argument T is
   */
 
   template <class T, class DomainType>
   StateVector<T, DomainType>& add(std::string const name,
                                   std::shared_ptr<DomainType> domain,
-                                  Entity_kind const on_what,
-                                  Entity_type const ptype,
-                                  T* data) {
+                                  Entity_kind const kind,
+                                  Entity_type const type,
+                                  T const * const data = nullptr) {
     
-    iterator it = find<T>(name, domain, on_what, ptype);
+    iterator it = find<T>(name, domain, kind, type);
     if (it == end()) {
       // a search of the state vectors by name and kind of entity turned up
       // empty, so add the vector to the list; if not, warn about duplicate
@@ -547,7 +599,7 @@ class State {
       
       auto vector =
           std::make_shared<StateVector<T, DomainType>>(name, domain,
-                                                       on_what, ptype,
+                                                       kind, type,
                                                        data);
       state_vectors_.emplace_back(vector);
 
@@ -555,7 +607,125 @@ class State {
       // indexes for this entity type, to allow iteration over state
       // vectors on this entity type with a permutation iterator
 
-      int ikind = static_cast<int>(on_what);
+      int ikind = static_cast<int>(kind);
+      entity_indexes_[ikind].emplace_back(state_vectors_.size()-1);
+      names_.emplace_back(name);
+
+      // emplace back may cause reallocation of the vector so the iterator
+      // may not be valid. Use [] operator to get reference to vector
+
+      return (*vector);
+    } else {
+      // found a state vector by same name
+      std::cerr <<
+          "Attempted to add duplicate state vector. Ignoring\n" << std::endl;
+      return
+          (*(std::static_pointer_cast<StateVector<T, DomainType>>(*it)));
+    }
+  }
+
+
+
+
+
+  /*! 
+    @brief Add state vector using an integer identifier and optional array data
+    @tparam T            Data type
+    @tparam DomainType   Type of domain data is defined on (Mesh, MeshTile)
+    @param identifier    Integer identifier for vector
+    @param domain        Shared pointer to the domain
+    @param kind          What kind of entity data is defined on (CELL, NODE, etc.)
+    @param type          What type of entity data is defined on (PARALLEL_OWNED, PARALLEL_GHOST, etc.)
+    @param data          Raw pointer to data array (optional)
+
+    Add state vector - returns reference to the added StateVector.
+    The data is copied from the input memory location into an
+    internal buffer.
+
+    If you invoke this without the last argument, you have to tell it
+    what the type of the argument T is
+  */
+
+  template <class T, class DomainType>
+  StateVector<T, DomainType>& add(int const identifier,
+                                  std::shared_ptr<DomainType> domain,
+                                  Entity_kind const kind,
+                                  Entity_type const type,
+                                  T const * const data = nullptr) {
+
+    return add(BaseStateVector::int_to_string(identifier), domain, kind,
+               type, data);
+  }
+
+
+
+
+  /*! 
+    @brief Add state vector using a string identifier and a single value
+    @tparam T          Data type
+    @tparam DomainType Type of domain data is defined on (Mesh, MeshTile)
+    @param name        String identifier for vector
+    @param domain      Shared pointer to the domain
+    @param kind        What kind of entity data is defined on (CELL, NODE, etc.)
+    @param type        What type of entity data is defined on (PARALLEL_OWNED, PARALLEL_GHOST, etc.)
+    @param data        Value of all elements
+
+    Add state vector - returns reference to the added StateVector.
+    The data is copied from the input memory location into an
+    internal buffer.
+
+    ************************** NOTE *******************************
+    This version of the overloaded operator is being DISABLED for
+    pointer and array types (via the line 'typename
+    std::enable_if....type') because complex template deduction rules
+    are making the compiler invoke the reference version, when we call
+    it with a non-const pointer.
+    
+    So, if we call
+
+        double data[10];
+        std::vector<double>& myvec = mystate.add(......, data)
+
+    it thinks the template argument T is "double *" instead of "double"
+
+    See, stackoverflow.com Q&A
+
+    http://stackoverflow.com/questions/13665574/template-argument-deduction-and-pointers-to-constants
+
+    The alternate approach to avoid this mess is to make the pointer
+    version of the routine take a non-const pointer.
+
+    ******************************************************************
+
+  */
+
+  template <class T, class DomainType>
+  typename 
+  std::enable_if<(!std::is_pointer<T>::value && !std::is_array<T>::value),
+                 StateVector<T, DomainType>&>::type
+  add(std::string const name,
+      std::shared_ptr<DomainType> domain,
+      Entity_kind const kind,
+      Entity_type const type,
+      T const& data) {
+    
+    iterator it = find<T>(name, domain, kind, type);
+    if (it == end()) {
+      // a search of the state vectors by name and kind of entity turned up
+      // empty, so add the vector to the list; if not, warn about duplicate
+      // state data
+      
+      auto vector =
+          std::make_shared<StateVector<T, DomainType>>(name, domain,
+                                                       kind, type,
+                                                       data);
+      state_vectors_.emplace_back(vector);
+
+      // add the index of this vector in state_vectors_ to the vector of
+      // indexes for this entity type, to allow iteration over state
+      // vectors on this entity type with a permutation iterator
+
+      int ikind = static_cast<int>(kind);
       entity_indexes_[ikind].emplace_back(state_vectors_.size()-1);
       names_.emplace_back(name);
 
@@ -575,29 +745,54 @@ class State {
 
 
   /*! 
-    @brief Add state vector using an integer identifier
+    @brief Add state vector using an integer identifier and a single value
     @tparam T            Data type
     @tparam DomainType   Type of domain data is defined on (Mesh, MeshTile)
     @param identifier    Integer identifier for vector
     @param domain        Shared pointer to the domain
-    @param on_what       What kind of entity data is defined on (CELL, NODE, etc.)
-    @param parallel_type What type of parallel entity data is defined on (OWNED, GHOST, etc.)
-    @param data          Raw pointer to data array
+    @param kind          What kind of entity data is defined on (CELL, NODE, etc.)
+    @param type          What type of entity data is defined on (PARALLEL_OWNED, PARALLEL_GHOST, etc.)
+    @param data          Value of all elements
 
     Add state vector - returns reference to the added StateVector.
     The data is copied from the input memory location into an
     internal buffer.
+
+    ************************** NOTE *******************************
+    This version of the overloaded operator is being DISABLED for
+    pointer and array types (via the line 'typename
+    std::enable_if....type') because complex template deduction rules
+    are making the compiler invoke the reference version, when we call
+    it with a non-const pointer.
+    
+    So, if we call
+
+        double data[10];
+        std::vector<double>& myvec = mystate.add(......, data)
+
+    it thinks the template argument is "double *" instead of "double"
+
+    See, stackoverflow.com Q&A
+
+    http://stackoverflow.com/questions/13665574/template-argument-deduction-and-pointers-to-constants
+
+    The alternate approach to avoid this mess is to make the pointer
+    version of the routine take a non-const pointer.
+
   */
 
   template <class T, class DomainType>
-  StateVector<T, DomainType>& add(int const identifier,
-                                  std::shared_ptr<DomainType> domain,
-                                  Entity_kind const on_what,
-                                  Entity_type const parallel_type,
-                                  T* data) {
+  typename 
+  std::enable_if<(!std::is_pointer<T>::value && !std::is_array<T>::value),
+                 StateVector<T, DomainType>&>::type
+  add(int const identifier,
+      std::shared_ptr<DomainType> domain,
+      Entity_kind const kind,
+      Entity_type const type,
+      T const& data) {
 
-    return add(BaseStateVector::int_to_string(identifier), domain, on_what,
-               parallel_type, data);
+    return add(BaseStateVector::int_to_string(identifier), domain, kind,
+               type, data);
   }
 
 
@@ -615,10 +810,10 @@ class State {
   StateVector<T, DomainType>&
   add(StateVector<T, DomainType> const& in_vec) {
 
-    Entity_kind on_what = in_vec.on_what();
-    Entity_type ptype = in_vec.parallel_type();
+    Entity_kind kind = in_vec.entity_kind();
+    Entity_type type = in_vec.entity_type();
 
-    iterator it = find<T>(in_vec.name(), in_vec.domain(), on_what, ptype);
+    iterator it = find<T>(in_vec.name(), in_vec.domain(), kind, type);
     if (it == end()) {
 
       std::shared_ptr<StateVector<T, DomainType>> vector_copy;
@@ -642,8 +837,8 @@ class State {
         vector_copy =
             std::make_shared<StateVector<T, DomainType>>(in_vec.name(),
                                                          mymesh_,
-                                                         on_what,
-                                                         ptype,
+                                                         kind,
+                                                         type,
                                                          &(in_vec[0]));
       } else {
         vector_copy = std::make_shared<StateVector<T, DomainType>>(in_vec);
@@ -655,7 +850,7 @@ class State {
       // vectors on this entity type with a permutation iterator
 
       int nvec = state_vectors_.size();
-      int ikind = static_cast<int>(on_what);
+      int ikind = static_cast<int>(kind);
       entity_indexes_[ikind].emplace_back(nvec-1);
       names_.emplace_back(in_vec.name());
 

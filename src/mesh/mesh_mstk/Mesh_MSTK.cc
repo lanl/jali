@@ -3960,8 +3960,8 @@ void Mesh_MSTK::init_pface_lists() {
 
     MEdge_ptr edge;
 
-    NotOwnedFaces = MSet_New(mesh, "NotOwnedFaces", MFACE);
-    OwnedFaces = MSet_New(mesh, "OwnedFaces", MFACE);
+    NotOwnedFaces = MSet_New(mesh, "NotOwnedFaces", MEDGE);
+    OwnedFaces = MSet_New(mesh, "OwnedFaces", MEDGE);
 
     idx = 0;
     while ((edge = MESH_Next_Edge(mesh, &idx))) {
@@ -3971,7 +3971,7 @@ void Mesh_MSTK::init_pface_lists() {
         MSet_Add(OwnedFaces, edge);
     }
   } else {
-    std::cerr << "Not implemented for face dimension" << std::endl;
+    std::cerr << "Not implemented for cell dimension 1" << std::endl;
   }
 
   return;

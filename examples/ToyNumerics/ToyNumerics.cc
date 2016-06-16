@@ -236,40 +236,36 @@ void initialize_data(const std::shared_ptr<Mesh> mesh, State& state) {
   // number of cells in the mesh - ALL means OWNED+GHOST
   int nc = mesh->num_cells<Entity_type::ALL>();
 
+  // Add a state vector, called "rho99", of densities on cells.
+  // This says to create a vector named "rhoMetal" on each cell
+  // initialized to 0.0
+
+  StateVector<double, Mesh>& density =
+      state.add(density_name, mesh, Entity_kind::CELL, Entity_type::ALL, 0.0);
+
+
   // Create a density vector that will be used to initialize a state
   // variable called 'rho99' on cells
 
-  std::vector<double> density(nc);
   for (auto c : mesh->cells<Entity_type::PARALLEL_OWNED>()) {
     Point ccen = mesh->cell_centroid(c);
     density[c] = ccen[0]+ccen[1]+ccen[2];
   }
 
-  // Create a state vector of densities on cells using the
-  // initialization data.  This says to create a vector named
-  // "rhoMetal" on each cell and populate it with the given
-  // data. Since density is a std::vector<double> we have to send in
-  // the address of the first element.  as &(density[0]).
 
-  state.add(density_name, mesh, Entity_kind::CELL, Entity_type::ALL,
-            &(density[0]));
-
-
-  // Create a velocity vector
+  // Add a state vector for velocities 
 
   int dim = mesh->space_dimension();
   int nn = mesh->num_nodes<Entity_type::ALL>();
 
-  // Initialize to zero
-
   std::array<double, 3> initarray;
   for (int i = 0; i < dim; ++i) initarray[i] = 0.0;
 
-  std::vector<std::array<double, 3>> vels(nn, initarray);
+  // Note that we did not send in the second template parameter Mesh -
+  // it is the default
 
-  // Add it to the state manager
-
-  state.add(velocity_name, mesh, Entity_kind::NODE, Entity_type::ALL,
-            &(vels[0]));
+  StateVector<std::array<double, 3>>& velocity = 
+      state.add(velocity_name, mesh, Entity_kind::NODE, Entity_type::ALL,
+                initarray);
 }
 
