@@ -35,6 +35,7 @@
 #   1.0.3       - Trilinos updated to 12.2.2
 #   1.0.4       - MSTK updated to 2.25
 #   1.0.5       - MSTK updated to 2.26rc1 and Jali-tpl-config.cmake includes variables indicating if METIS and/or ZOLTAN are enabled
+#   1.0.6       - MSTK updated to 2.26rc2
 
 include(CMakeParseArguments)
 
@@ -223,11 +224,12 @@ set(ExodusII_MD5_SUM       cfd240dbc1251b08fb1d0ee2de40a44c)
 #
 set(MSTK_VERSION_MAJOR 2)
 set(MSTK_VERSION_MINOR 26)
-set(MSTK_VERSION_PATCH rc1)
+set(MSTK_VERSION_PATCH rc2)
 set(MSTK_VERSION ${MSTK_VERSION_MAJOR}.${MSTK_VERSION_MINOR}${MSTK_VERSION_PATCH})
-set(MSTK_URL_STRING     "http://software.lanl.gov/ascem/tpls")
-set(MSTK_ARCHIVE_FILE   mstk-${MSTK_VERSION}.tgz)
-set(MSTK_MD5_SUM        38d806d42dfa480952c54158bbbb5988)
+set(MSTK_ALT_VERSION ${MSTK_VERSION_MAJOR}_${MSTK_VERSION_MINOR}_${MSTK_VERSION_PATCH})
+set(MSTK_URL_STRING     "https://github.com/MeshToolkit/MSTK/archive")
+set(MSTK_ARCHIVE_FILE   MSTK-${MSTK_VERSION}.tar.gz)
+set(MSTK_MD5_SUM       9063e949962c3ad6e16d1ce118e42bee)
 
 #
 # TPL: MOAB
