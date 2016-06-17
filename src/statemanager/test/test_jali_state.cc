@@ -114,6 +114,7 @@ TEST(Jali_State_Var_Types) {
 TEST(Jali_State_On_Mesh) {
 
   Jali::MeshFactory mf(MPI_COMM_WORLD);
+  mf.boundary_ghosts_requested(true);
   std::shared_ptr<Jali::Mesh> mesh1 = mf(0.0, 0.0, 1.0, 1.0, 2, 2);
 
   CHECK(mesh1 != nullptr);
@@ -127,9 +128,12 @@ TEST(Jali_State_On_Mesh) {
 
 
 
-  // Define state vector on cells with string ids and initialized from array
+  // Define state vector on cells with string ids and initialized from
+  // array. We requested boundary ghosts (have 8 of them in this mesh)
+  // and they have to be initialized too
 
-  std::vector<double> data1 = {1.0, 3.0, 2.5, 4.5};
+  std::vector<double> data1 = {1.0, 3.0, 2.5, 4.5, -1.0, -1.0, -1.0, -1.0,
+                               -1.0, -1.0, -1.0, -1.0};
   Jali::StateVector<double, Jali::Mesh> myvec1("cellvars", mesh1,
                                                Jali::Entity_kind::CELL,
                                                Jali::Entity_type::ALL,
@@ -146,7 +150,9 @@ TEST(Jali_State_On_Mesh) {
 
 
 
-  // Define state vector on nodes with string ids and initialized from array
+  // Define state vector on nodes with string ids and initialized from
+  // array. Even if we ask for boundary ghost cells, there will be no
+  // boundary ghost nodes
 
   double data2[9] = {0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0};
   Jali::StateVector<double, Jali::Mesh> myvec2("nodevars", mesh1,
@@ -210,7 +216,7 @@ TEST(Jali_State_On_Mesh) {
   std::vector<double> data5 = {1.0, 3.0, 2.5, 4.5, 1.0, 2.0, 7.0, 2.0, 9.0};
   Jali::StateVector<double, Jali::Mesh> myvec5("cellvars2", mesh2,
                                                Jali::Entity_kind::CELL,
-                                               Jali::Entity_type::ALL,
+                                               Jali::Entity_type::PARALLEL_OWNED,
                                                &(data5[0]));
 
   // Try to add the fifth vector (defined on a different mesh) to it - it
@@ -357,7 +363,7 @@ TEST(Jali_State_On_Mesh) {
             ||
             (myvec6.name() == "cellvars2" &&
              myvec6.entity_kind() == Jali::Entity_kind::CELL &&
-             myvec6.entity_type() == Jali::Entity_type::ALL)
+             myvec6.entity_type() == Jali::Entity_type::PARALLEL_OWNED)
             ||
             (myvec6.name() == "nodevars" &&
              myvec6.entity_kind() == Jali::Entity_kind::NODE &&
@@ -738,6 +744,7 @@ TEST(State_Write_Read_With_Mesh) {
   // Define mesh with 4 cells and 9 nodes
 
   Jali::MeshFactory mf(MPI_COMM_WORLD);
+  mf.boundary_ghosts_requested(true);
   std::shared_ptr<Jali::Mesh> mesh1 = mf(0.0, 0.0, 1.0, 1.0, 2, 2);
 
   CHECK(mesh1);
@@ -746,13 +753,20 @@ TEST(State_Write_Read_With_Mesh) {
 
   Jali::State mystate1(mesh1);
 
-  // Add a state vector of scalars on cells
+  // Add a state vector of scalars on cells - remember that we
+  // requested boundary ghost cells - so there are 8 boundary ghosts.
+  // The value assigned to the boundary ghosts has to be 0.0 because
+  // when we read back the mesh (without boundary ghosts) and recreate
+  // them, their values will be 0.0
 
-  std::vector<double> data1 = {1.0, 3.0, 2.5, 4.5};
+  std::vector<double> data1 = {1.0, 3.0, 2.5, 4.5, 0.0, 0.0, 0.0, 0.0,
+                               0.0, 0.0, 0.0, 0.0};
   Jali::StateVector<double> & outvec1 =
       mystate1.add("cellvars", mesh1, Jali::Entity_kind::CELL,
                    Jali::Entity_type::ALL, &(data1[0]));
 
+  // Even though we requested boundary ghost cells, there are no
+  // boundary ghost nodes - so ALL nodes implies OWNED nodes only
   std::vector<std::array<double, 2>> data2(9);
   // Intel compiler 15.0.3 is not allowing me to initialize with curly brace list
   for (int i = 0; i < 9; i++)
