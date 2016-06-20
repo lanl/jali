@@ -2583,6 +2583,10 @@ void Mesh::get_partitioning_with_metis(int const num_parts,
     int ipart = idxpart[i];
     (*partitions)[ipart].push_back(i);
   }
+
+  delete [] xadj;
+  delete [] adjncy;
+  delete [] idxpart;
 }
 
 #endif
