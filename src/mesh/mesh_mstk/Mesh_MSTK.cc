@@ -5,6 +5,8 @@
 
 // Mesh class based on MSTK framework
 
+#include <cstring>
+
 #include "Mesh_MSTK.hh"
 
 #include <mpi.h>

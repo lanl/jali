@@ -6,6 +6,8 @@
 #ifndef _JALI_MESHTILE_H_
 #define _JALI_MESHTILE_H_
 
+#include <iostream>
+
 #include <vector>
 #include <algorithm>
 #include <memory>
