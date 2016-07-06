@@ -12,6 +12,7 @@
 #ifndef _MeshDefs_hh_
 #define _MeshDefs_hh_
 
+#include <iostream>
 #include <vector>
 #include <string>
 #include <cstdint>
