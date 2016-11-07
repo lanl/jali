@@ -1,3 +1,5 @@
+/* Copyright Los Alamos National Laboratory, 2009-2016 */
+
 #include <UnitTest++.h>
 
 #include <iostream>
