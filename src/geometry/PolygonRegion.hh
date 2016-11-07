@@ -31,12 +31,6 @@ public:
                 const std::vector<Point>& polypoints,
                 const LifeCycle_type lifecycle = LifeCycle_type::PERMANENT);
 
-  PolygonRegion(const char *name, const unsigned int id,
-                const unsigned int npolypoints,
-                const std::vector<Point>& polypoints,
-                const LifeCycle_type lifecycle = LifeCycle_type::PERMANENT);
-
-
   /// Protected copy constructor to avoid unwanted copies.
   PolygonRegion(const PolygonRegion& old);
 

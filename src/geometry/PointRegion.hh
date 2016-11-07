@@ -29,8 +29,6 @@ public:
 
   PointRegion(const std::string name, const unsigned int id, const Point& p,
               const LifeCycle_type lifecycle = LifeCycle_type::PERMANENT);
-  PointRegion(const char *name, const unsigned int id, const Point& p,
-              const LifeCycle_type lifecycle = LifeCycle_type::PERMANENT);
 
   /// Protected copy constructor to avoid unwanted copies.
   PointRegion(const PointRegion& old);
