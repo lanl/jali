@@ -571,8 +571,8 @@ Mesh_MSTK::Mesh_MSTK(const std::shared_ptr<Mesh> inmesh,
     // access the set in Jali so that the set gets created in 'inmesh'
     // if it already does not exist
 
-    int setsize = inmesh_mstk->get_set_size(setnames[i], setkind,
-                                            Entity_type::PARALLEL_OWNED);
+    int setsize = inmesh->get_set_size(setnames[i], setkind,
+                                       Entity_type::PARALLEL_OWNED);
 
     // Now retrieve the entities in the set from MSTK
 
@@ -638,9 +638,8 @@ Mesh_MSTK::Mesh_MSTK(const Mesh& inmesh,
     // access the set in Jali so that the set gets created in 'inmesh'
     // if it already does not exist
 
-    int setsize = ((Mesh_MSTK &) inmesh).get_set_size(setnames[i],
-                                                      setkind,
-                                                      Entity_type::PARALLEL_OWNED);
+    int setsize = inmesh.get_set_size(setnames[i], setkind,
+                                      Entity_type::PARALLEL_OWNED);
 
     //  Now retrieve the entities in the set from MSTK
 
@@ -720,67 +719,6 @@ mpicomm(inmesh.get_comm()),
 
   List_Delete(src_ents);
 }
-
-// Translate a setname into a special string with decorations
-// indicating which type of entity is in that set
-
-std::string
-Mesh_MSTK::internal_name_of_set(const JaliGeometry::RegionPtr r,
-                                const Entity_kind entity_kind) const {
-
-  std::string internal_name;
-
-  if (r->type() == JaliGeometry::Region_type::LABELEDSET) {
-
-    JaliGeometry::LabeledSetRegionPtr lsrgn =
-      dynamic_cast<JaliGeometry::LabeledSetRegionPtr> (r);
-    std::string label = lsrgn->label();
-
-    if (entity_kind == Entity_kind::CELL)
-      internal_name = "matset_" + label;
-    else if (entity_kind == Entity_kind::FACE)
-      internal_name = "sideset_" + label;
-    else if (entity_kind == Entity_kind::EDGE)
-      internal_name = "edgeset_not_supported";
-    else if (entity_kind == Entity_kind::NODE)
-      internal_name = "nodeset_" + label;
-  } else {
-    if (entity_kind == Entity_kind::CELL)
-      internal_name = "Entity_kind::CELLSET_" + r->name();
-    else if (entity_kind == Entity_kind::FACE)
-      internal_name = "FACESET_" + r->name();
-    else if (entity_kind == Entity_kind::EDGE)
-      internal_name = "EDGESET_not_supported";
-    else if (entity_kind == Entity_kind::NODE)
-      internal_name = "NODESET_" + r->name();
-  }
-
-  return internal_name;
-}
-
-// Get an alternate name (elemset_N instead of matset_N) for sets of type
-// Labeled Set and entity kind Cell. For everything else return regular name
-
-std::string
-Mesh_MSTK::other_internal_name_of_set(const JaliGeometry::RegionPtr r,
-                                      const Entity_kind entity_kind) const {
-
-  std::string internal_name;
-
-  if (r->type() == JaliGeometry::Region_type::LABELEDSET &&
-      entity_kind == Entity_kind::CELL) {
-
-    JaliGeometry::LabeledSetRegionPtr lsrgn =
-      dynamic_cast<JaliGeometry::LabeledSetRegionPtr> (r);
-    std::string label = lsrgn->label();
-
-    internal_name = "elemset_" + label;
-    return internal_name;
-  }
-  else
-    return internal_name_of_set(r, entity_kind);
-}
-
 
 
 // Extract a list of MSTK entities and make a new MSTK mesh
@@ -2687,8 +2625,453 @@ void Mesh_MSTK::node_set_coordinates(const Jali::Entity_ID nodeid,
 }
 
 
-MSet_ptr Mesh_MSTK::build_set(const JaliGeometry::RegionPtr region,
-                              const Entity_kind kind) const {
+// std::shared_ptr<MeshSet>
+// Mesh_MSTK::build_set(const JaliGeometry::RegionPtr region,
+//                      const Entity_kind kind,
+//                      const bool with_reverse_map) const {
+
+//   int celldim = Mesh::cell_dimension();
+//   int spacedim = Mesh::space_dimension();
+//   JaliGeometry::GeometricModelPtr gm = Mesh::geometric_model();
+
+//   // Modify region/set name by prefixing it with the type of entity requested
+
+//   std::string internal_name = internal_name_of_set(region, kind);
+
+//   // Create entity set based on the region defintion
+//   std::shared_ptr<MeshSet> mset;
+//   MType enttype;
+//   switch (kind) {
+//     case Entity_kind::CELL: {   // cellsets
+
+//       Entity_ID_List owned_cells, ghost_cells;
+
+//       if (region->type() == JaliGeometry::Region_type::BOX ||
+//           region->type() == JaliGeometry::Region_type::COLORFUNCTION) {
+
+//         int ncell_owned = Mesh::num_entities(Entity_kind::CELL,
+//                                              Entity_type::PARALLEL_OWNED);
+//         int ncell_all = Mesh::num_entities(Entity_kind::CELL,
+//                                            Entity_type::PARALLEL_ALL);
+
+//         for (int icell = 0; icell < ncell_owned; icell++)
+//           if (region->inside(cell_centroid(icell)))
+//             owned_cells.push_back(icell);
+//         for (int icell = 0; icell < ncell_ghost; icell++)
+//           if (region->inside(cell_centroid(ncell_owned+icell)))
+//             owned_cells.push_back(ncell_owned+icell);
+
+//         mset = make_meshset(internal_name, *this, Entity_kind::CELL,
+//                             owned_cells, ghost_cells, with_reverse_map);
+
+//       } else if (region->type() == JaliGeometry::Region_type::POINT) {
+//         JaliGeometry::Point vpnt(spacedim);
+//         JaliGeometry::Point rgnpnt(spacedim);
+
+//         rgnpnt = ((JaliGeometry::PointRegionPtr)region)->point();
+
+//         int nnode = Mesh::num_entities(Entity_kind::NODE,
+//                                        Entity_type::ALL);
+
+//         double mindist2 = 1.e+16;
+//         int minnode = -1;
+//         for (int inode = 0; inode < nnode; inode++) {
+//           node_get_coordinates(inode, &vpnt);
+
+//           double dist2 = (vpnt-rgnpnt)*(vpnt-rgnpnt);
+//           if (dist2 < mindist2) {
+//             mindist2 = dist2;
+//             minnode = inode;
+//             if (mindist2 <= 1.0e-32)
+//               break;
+//           }
+//         }
+
+//         Entity_ID_List cells;
+//         node_get_cells(minnode, Entity_type::ALL, &cells);
+
+//         int ncells = cells.size();
+//         for (int ic = 0; ic < ncells; ic++) {
+//           Entity_ID icell = cells[ic];
+
+//           // Check if point is contained in cell
+//           if (point_in_cell(rgnpnt, icell)) {
+//             Entity_type ctype = get_entity_type(Entity_kind::CELL, icell);
+//             if (ctype == Entity_type::PARALLEL_OWNED)
+//               owned_cells.push_back(icell);
+//             else if (ctype == Entity_type::PARALLEL_GHOST)
+//               ghost_cells.push_back(icell);
+//           }
+//         }
+
+//       } else if (region->type() == JaliGeometry::Region_type::PLANE) {
+
+//         if (celldim == 2) {
+
+//           int ncells = Mesh::num_entities(Entity_kind::CELL,
+//                                           Entity_type::ALL);
+//           for (int ic = 0; ic < ncells; ic++) {
+
+//             std::vector<JaliGeometry::Point> ccoords(spacedim);
+
+//             cell_get_coordinates(ic, &ccoords);
+
+//             bool on_plane = true;
+//             for (int j = 0; j < ccoords.size(); ++j) {
+//               if (!region->inside(ccoords[j])) {
+//                 on_plane = false;
+//                 break;
+//               }
+//             }
+
+//             if (on_plane) {
+//               Entity_type ctype = get_entity_type(Entity_kind::CELL, ic);
+//               if (ctype == Entity_type::PARALLEL_OWNED)
+//                 owned_cells.push_back(ic);
+//               else if (ctype == Entity_type::PARALLEL_GHOST)
+//                 ghost_cells.push_back(ic);
+//             }
+//           }
+
+//         } else if (region->type() == JaliGeometry::Region_type::LOGICAL) {
+//           // will process later in this subroutine
+//         } else if (region->type() == JaliGeometry::Region_type::LABELEDSET) {
+//           // Just retrieve and return the set
+
+//           JaliGeometry::LabeledSetRegionPtr lsrgn =
+//               dynamic_cast<JaliGeometry::LabeledSetRegionPtr> (region);
+//           std::string label = lsrgn->label();
+//           std::string entity_type = lsrgn->entity_str();
+
+//           if (entity_type != "Entity_kind::CELL") {
+//             Errors::Message mesg("Entity type of labeled set region and build_set request do not match");
+//             Exceptions::Jali_throw(mesg);
+//           }
+
+//           MSet_ptr mstk_mset = MESH_MSetByName(mesh, internal_name.c_str());
+
+//           std::string other_internal_name = other_internal_name_of_set(region,
+//                                                                        kind);
+//           MSet_ptr mstk_mset2 = MESH_MSetByName(mesh, other_internal_name.c_str());
+
+//           if (mset) {
+//             if (mset2) {
+//               std::stringstream mesg_stream;
+//               mesg_stream << "Exodus II file has element block and element set with the same ID " << label << " - Jali cannot handle this case.";
+//               Errors::Message mesg(mesg_stream.str());
+//               Exceptions::Jali_throw(mesg);
+//             } else {
+//               int idx = 0;
+//               MEntity_ptr ment;
+//               while ((ment = MSet_Next_Entry(mset, &idx))) {
+//                 if (MEnt_PType(ment) == PGHOST)
+//                   ghost_cells.push_back(MEnt_ID(ment));
+//                 else
+//                   owned_cells.push_back(MEnt_ID(ment));
+//               }
+//             }
+//           } else {
+//             if (mset2) {
+//               int idx = 0;
+//               MEntity_ptr ment;
+//               while ((ment = MSet_Next_Entry(mset2, &idx))) {
+//                 if (MEnt_PType(ment) == PGHOST)
+//                   ghost_cells.push_back(MEnt_ID(ment));
+//                 else
+//                   owned_cells.push_back(MEnt_ID(ment));
+//               }
+//             } else {
+//               std::stringstream mesg_stream;
+//               mesg_stream << "Exodus II file has no labeled cell set with ID " <<
+//                   label;
+//               Errors::Message mesg(mesg_stream.str());
+//               Exceptions::Jali_throw(mesg);
+//             }
+//           }
+
+//         } else {
+//           Errors::Message mesg("Region type not applicable/supported for cell sets");
+//           Exceptions::Jali_throw(mesg);
+//         }
+//       }
+
+//       break;
+//     }
+//     case Entity_kind::FACE: {  // sidesets
+      
+//       //
+//       // Commented out so that we can ask for a face set in a 3D box
+//       //
+//       //          if (region->dimension() != celldim-1)
+//       //            {
+//       //              std::cerr << "No region of dimension " << celldim-1 <<
+//       //              " defined in geometric model" << std::endl;
+//       //              std::cerr << "Cannot construct cell set from region " <<
+//       //                  setname << std::endl;
+//       //            }
+
+//       Entity_ID_List owned_faces, ghost_faces;
+
+//       if (region->type() == JaliGeometry::Region_type::BOX)  {
+
+//         int nface = Mesh::num_entities(Entity_kind::FACE,
+//                                        Entity_type::ALL);
+
+//         for (int iface = 0; iface < nface; iface++) {
+//           if (region->inside(face_centroid(iface))) {
+//             Entity_type ftype = get_entity_type(Entity_kind::FACE, iface);
+//             if (get_entity_type(iface) == Entity_type::PARALLEL_OWNED)
+//               owned_faces.push_back(iface);
+//             else if (get_entity_type(iface) == Entity_type::PARALLEL_GHOST)
+//               ghost_faces.push_back(iface);
+//           }
+//         }
+//       } else if (region->type() == JaliGeometry::Region_type::PLANE ||
+//                  region->type() == JaliGeometry::Region_type::POLYGON) {
+
+//         int nface = Mesh::num_entities(Entity_kind::FACE,
+//                                        Entity_type::ALL);
+
+//         for (int iface = 0; iface < nface; iface++) {
+//           std::vector<JaliGeometry::Point> fcoords(spacedim);
+
+//           face_get_coordinates(iface, &fcoords);
+
+//           bool on_plane = true;
+//           for (int j = 0; j < fcoords.size(); ++j) {
+//             if (!region->inside(fcoords[j])) {
+//               on_plane = false;
+//               break;
+//             }
+//           }
+
+//           if (on_plane) {
+//             Entity_type ftype = get_entity_type(Entity_kind::FACE, iface);
+//             if (ftype == Entity_type::PARALLEL_OWNED)
+//               owned_faces.push_back(iface);
+//             else if (ftype == Entity_type::PARALLEL_GHOST)
+//               ghost_faces.push_back(iface);
+//           }
+//         }
+//       } else if (region->type() == JaliGeometry::Region_type::LABELEDSET) {
+//         // Just retrieve and return the set
+
+//         JaliGeometry::LabeledSetRegionPtr lsrgn =
+//             dynamic_cast<JaliGeometry::LabeledSetRegionPtr> (region);
+//         std::string label = lsrgn->label();
+//         std::string entity_type = lsrgn->entity_str();
+
+//         if (entity_type != "Entity_kind::FACE") {
+//           Errors::Message mesg("Entity type of labeled set region and build_set request do not match");
+//           Exceptions::Jali_throw(mesg);
+//         }
+
+//         MSet_ptr mstk_mset = MESH_MSetByName(mesh, internal_name.c_str());
+//         int idx = 0;
+//         MEntity_ptr ment;
+//         while ((ment = MSet_Next_Entry(mstk_mset, &idx))) {
+//           if (MEnt_PType(ment) == PGHOST)
+//             ghost_faces.push_back(MEnt_ID(ment));
+//           else
+//             owned_faces.push_back(MEnt_ID(ment));
+//         }
+//       } else if (region->type() == JaliGeometry::Region_type::LOGICAL) {
+//         // Will handle it later in the routine
+//       } else {
+//         Errors::Message mesg("Region type not applicable/supported for face sets");
+//         Exceptions::Jali_throw(mesg);
+//       }
+
+//       mset = make_meshset(internal_name, *this, Entity_kind::FACE,
+//                           owned_faces, ghost_faces, with_reverse_map);
+
+//       break;
+//     }
+//     case Entity_kind::NODE: {  // Nodesets
+
+//       std::vector<int> owned_nodes, ghost_nodes;
+
+//       if (region->type() == JaliGeometry::Region_type::BOX ||
+//           region->type() == JaliGeometry::Region_type::PLANE ||
+//           region->type() == JaliGeometry::Region_type::POLYGON ||
+//           region->type() == JaliGeometry::Region_type::POINT) {
+
+//         int nnode = Mesh::num_entities(Entity_kind::NODE,
+//                                        Entity_type::ALL);
+
+//         for (int inode = 0; inode < nnode; inode++) {
+
+//           JaliGeometry::Point vpnt(spacedim);
+//           node_get_coordinates(inode, &vpnt);
+
+//           if (region->inside(vpnt)) {
+//             Entity_type ntype = get_entity_type(Entity_kind::NODE, inode);
+//             if (ntype == Entity_type::PARALLEL_OWNED)
+//               owned_nodes.push_back(inode);
+//             else if (ntype == Entity_type::PARALLEL_GHOST)
+//               ghost_nodes.push_back(inode);
+
+//             // Only one node per point region
+//             if (region->type() == JaliGeometry::Region_type::POINT)
+//               break;
+//           }
+//         }
+//       } else if (region->type() == JaliGeometry::Region_type::LABELEDSET) {
+//         // Just retrieve and return the set
+
+//         JaliGeometry::LabeledSetRegionPtr lsrgn =
+//             dynamic_cast<JaliGeometry::LabeledSetRegionPtr> (region);
+//         std::string label = lsrgn->label();
+//         std::string entity_type = lsrgn->entity_str();
+
+//         if (entity_type != "Entity_kind::FACE") {
+//           Errors::Message mesg("Entity type of labeled set region and build_set request do not match");
+//           Exceptions::Jali_throw(mesg);
+//         }
+
+//         MSet_ptr mstk_mset = MESH_MSetByName(mesh, internal_name.c_str());
+//         int idx = 0;
+//         MEntity_ptr ment;
+//         while ((ment = MSet_Next_Entry(mstk_mset, &idx))) {
+//           if (MEnt_PType(ment) == PGHOST)
+//             ghost_nodes.push_back(MEnt_ID(ment));
+//           else
+//             owned_nodes.push_back(MEnt_ID(ment));
+//         }
+//       } else if (region->type() == JaliGeometry::Region_type::LOGICAL) {
+//         // We will handle it later in the routine
+//       } else {
+//         Errors::Message mesg("Region type not applicable/supported for node sets");
+//         Exceptions::Jali_throw(mesg);
+//       }
+
+//       mset = make_meshset(internal_name, *this, Entity_type::NODE,
+//                           owned_nodes, ghost_nodes, with_reverse_map);
+//       break;
+//     }
+//   }
+
+
+//   if (region->type() == JaliGeometry::Region_type::LOGICAL) {
+//     JaliGeometry::LogicalRegionPtr boolregion =
+//         (JaliGeometry::LogicalRegionPtr) region;
+//     std::vector<std::string> region_names = boolregion->component_regions();
+//     int nreg = region_names.size();
+
+//     std::vector<std::shared_ptr<MeshSet>> msets;
+//     std::vector<JaliGeometry::RegionPtr> regions;
+
+//     for (int r = 0; r < nreg; r++) {
+//       JaliGeometry::RegionPtr rgn1 = gm->FindRegion(region_names[r]);
+//       regions.push_back(rgn1);
+
+//       // Did not find the region
+//       if (rgn1 == NULL) {
+//         std::stringstream mesg_stream;
+//         mesg_stream << "Geometric model has no region named " <<
+//           region_names[r];
+//         Errors::Message mesg(mesg_stream.str());
+//         Exceptions::Jali_throw(mesg);
+//       }
+
+//       internal_name = internal_name_of_set(rgn1, kind);
+//       std::shared_ptr<MeshSet> mset1 = Mesh::find_meshset_by_name(internal_name);
+//       if (!mset1)
+//         mset1 = build_set(rgn1, kind);  // Recursive call
+
+//       msets.push_back(mset1);
+//     }
+
+//     // Check the entity types of the sets are consistent with the
+//     // entity type of the requested set
+
+//     for (int ms = 0; ms < msets.size(); ms++)
+//       if (msets[ms]->kind() != kind) {
+//         Errors::Message
+//           mesg("Jali cannot operate on sets of different entity types");
+//         Exceptions::Jali_throw(mesg);
+//       }
+
+
+//     bool temporary = 
+//         (boolregion->lifecycle() == JaliGeometry::Lifecycle::TEMPORARY) ?
+//         true :
+//         false;
+
+//     if (boolregion->operation() == JaliGeometry::Bool_type::COMPLEMENT)
+//       mset = complement(msets, temporary);
+//     else if (boolregion->operation() == JaliGeometry::Bool_type::UNION)
+//       mset = union(msets, temporary);
+//     else if (boolregion->operation() == JaliGeometry::Bool_type::INTERSECT)
+//       mset = intersect(msets, temporary);
+//     else if (boolregion->operation() == JaliGeometry::Bool_type::SUBTRACT) {
+//       std::vector<std::shared_ptr<MeshSet>> msets1;
+//       for (auto const& set : msets)
+//         msets1.push_back(set);
+//       mset = subtract(mset, msets1, temporary);
+//     }
+//   }
+   
+//   return mset;
+// }
+
+
+std::string
+Mesh_MSTK::internal_name_of_set(const JaliGeometry::RegionPtr r,
+                                const Entity_kind entity_kind) const {
+
+  if (r->type() == JaliGeometry::Region_type::LABELEDSET) {
+
+    JaliGeometry::LabeledSetRegionPtr lsrgn =
+      dynamic_cast<JaliGeometry::LabeledSetRegionPtr> (r);
+    std::string label = lsrgn->label();
+
+    std::string internal_name;
+
+    if (entity_kind == Entity_kind::CELL)
+      internal_name = "matset_" + label;
+    else if (entity_kind == Entity_kind::FACE)
+      internal_name = "sideset_" + label;
+    else if (entity_kind == Entity_kind::EDGE)
+      internal_name = "edgeset_not_supported";
+    else if (entity_kind == Entity_kind::NODE)
+      internal_name = "nodeset_" + label;
+
+    return internal_name;
+
+  } else 
+    return r->name();
+}
+
+// Get an alternate name (elemset_N instead of matset_N) for sets of type
+// Labeled Set and entity kind Cell. For everything else return regular name
+
+std::string
+Mesh_MSTK::other_internal_name_of_set(const JaliGeometry::RegionPtr r,
+                                      const Entity_kind entity_kind) const {
+
+  std::string internal_name;
+
+  if (r->type() == JaliGeometry::Region_type::LABELEDSET &&
+      entity_kind == Entity_kind::CELL) {
+
+    JaliGeometry::LabeledSetRegionPtr lsrgn =
+      dynamic_cast<JaliGeometry::LabeledSetRegionPtr> (r);
+    std::string label = lsrgn->label();
+
+    internal_name = "elemset_" + label;
+    return internal_name;
+  }
+  else
+    return internal_name_of_set(r, entity_kind);
+}
+
+
+void
+Mesh_MSTK::get_labeled_set_entities(const JaliGeometry::LabeledSetRegionPtr rgn,
+                                    const Entity_kind kind,
+                                    Entity_ID_List *owned_entities,
+                                    Entity_ID_List *ghost_entities) const {
 
   int celldim = Mesh::cell_dimension();
   int spacedim = Mesh::space_dimension();
@@ -2696,665 +3079,261 @@ MSet_ptr Mesh_MSTK::build_set(const JaliGeometry::RegionPtr region,
 
   // Modify region/set name by prefixing it with the type of entity requested
 
-  std::string internal_name = internal_name_of_set(region, kind);
+  std::string internal_name = internal_name_of_set(rgn, kind);
+  std::string label = rgn->label();
+  std::string entity_type = rgn->entity_str();
 
-  // Create entity set based on the region defintion
+  owned_entities->clear();
+  ghost_entities->clear();
 
-  MSet_ptr mset;
-  MType enttype;
   switch (kind) {
-  case Entity_kind::CELL:    // cellsets
-
-    enttype = (celldim == 3) ? MREGION : MFACE;
-    mset = MSet_New(mesh, internal_name.c_str(), enttype);
-
-    if (region->type() == JaliGeometry::Region_type::BOX ||
-        region->type() == JaliGeometry::Region_type::COLORFUNCTION) {
-
-      int ncell = Mesh::num_entities(Entity_kind::CELL,
-                                     Entity_type::ALL);
-
-      for (int icell = 0; icell < ncell; icell++)
-        if (region->inside(cell_centroid(icell)))
-          MSet_Add(mset, cell_id_to_handle[icell]);
-
-    } else if (region->type() == JaliGeometry::Region_type::POINT) {
-      JaliGeometry::Point vpnt(spacedim);
-      JaliGeometry::Point rgnpnt(spacedim);
-
-      rgnpnt = ((JaliGeometry::PointRegionPtr)region)->point();
-
-      int nnode = Mesh::num_entities(Entity_kind::NODE,
-                                     Entity_type::ALL);
-      double mindist2 = 1.e+16;
-      int minnode = -1;
-
-      int inode;
-      for (inode = 0; inode < nnode; inode++) {
-
-        node_get_coordinates(inode, &vpnt);
-        double dist2 = (vpnt-rgnpnt)*(vpnt-rgnpnt);
-
-        if (dist2 < mindist2) {
-          mindist2 = dist2;
-          minnode = inode;
-          if (mindist2 <= 1.0e-32)
-            break;
-        }
-      }
-
-      Entity_ID_List cells, cells1;
-
-      node_get_cells(minnode, Entity_type::ALL, &cells);
-
-      int ncells = cells.size();
-      for (int ic = 0; ic < ncells; ic++) {
-        Entity_ID icell = cells[ic];
-
-        // Check if point is contained in cell
-        if (point_in_cell(rgnpnt, icell))
-          MSet_Add(mset, cell_id_to_handle[icell]);
-      }
-
-    } else if (region->type() == JaliGeometry::Region_type::PLANE) {
-
-      if (celldim == 2) {
-
-        int ncells = Mesh::num_entities(Entity_kind::CELL,
-                                        Entity_type::ALL);
-        for (int ic = 0; ic < ncells; ic++) {
-
-          std::vector<JaliGeometry::Point> ccoords(spacedim);
-
-          cell_get_coordinates(ic, &ccoords);
-
-          bool on_plane = true;
-          for (int j = 0; j < ccoords.size(); ++j) {
-            if (!region->inside(ccoords[j])) {
-              on_plane = false;
-              break;
-            }
-          }
-
-          if (on_plane)
-            MSet_Add(mset, cell_id_to_handle[ic]);
-        }
-      }
-
-    } else if (region->type() == JaliGeometry::Region_type::LOGICAL) {
-      // will process later in this subroutine
-    } else if (region->type() == JaliGeometry::Region_type::LABELEDSET) {
-      // Just retrieve and return the set
-
-      JaliGeometry::LabeledSetRegionPtr lsrgn =
-        dynamic_cast<JaliGeometry::LabeledSetRegionPtr> (region);
-      std::string label = lsrgn->label();
-      std::string entity_type = lsrgn->entity_str();
-
-      if (entity_type != "Entity_kind::CELL") {
-        Errors::Message mesg("Entity type of labeled set region and build_set request do not match");
+    case Entity_kind::CELL: {   // cellsets
+      if (entity_type != "CELL" && entity_type != "Entity_kind::CELL") {
+        Errors::Message mesg("Entity type of labeled set region and get_labeled_set_entities request do not match");
         Exceptions::Jali_throw(mesg);
       }
 
-      mset = MESH_MSetByName(mesh, internal_name.c_str());
+      MSet_ptr mstk_mset = MESH_MSetByName(mesh, internal_name.c_str());
 
-      std::string other_internal_name =
-          other_internal_name_of_set(region, kind);
-      MSet_ptr mset2 = MESH_MSetByName(mesh, other_internal_name.c_str());
+      std::string other_internal_name = other_internal_name_of_set(rgn, kind);
+      MSet_ptr mstk_mset2 = MESH_MSetByName(mesh, other_internal_name.c_str());
 
-      if (mset) {
-        if (mset2) {
+      if (mstk_mset) {
+        if (mstk_mset2) {
           std::stringstream mesg_stream;
           mesg_stream << "Exodus II file has element block and element set with the same ID " << label << " - Jali cannot handle this case.";
           Errors::Message mesg(mesg_stream.str());
           Exceptions::Jali_throw(mesg);
-        }
-      } else {
-        if (mset2)
-          mset = mset2;
-        else {
-          std::stringstream mesg_stream;
-          mesg_stream << "Exodus II file has no labeled cell set with ID " <<
-              label;
-          Errors::Message mesg(mesg_stream.str());
-          Exceptions::Jali_throw(mesg);
-        }
-      }
-    } else {
-      Errors::Message mesg("Region type not applicable/supported for cell sets");
-      Exceptions::Jali_throw(mesg);
-    }
-
-    break;
-
-  case Entity_kind::FACE:  // sidesets
-
-    //
-    // Commented out so that we can ask for a face set in a 3D box
-    //
-    //          if (region->dimension() != celldim-1)
-    //            {
-    //              std::cerr << "No region of dimension " << celldim-1 <<
-    //              " defined in geometric model" << std::endl;
-    //              std::cerr << "Cannot construct cell set from region " <<
-    //                  setname << std::endl;
-    //            }
-
-    enttype = (celldim == 3) ? MFACE : MEDGE;
-    mset = MSet_New(mesh, internal_name.c_str(), enttype);
-
-    if (region->type() == JaliGeometry::Region_type::BOX)  {
-
-      int nface = Mesh::num_entities(Entity_kind::FACE,
-                                     Entity_type::ALL);
-
-      for (int iface = 0; iface < nface; iface++) {
-        if (region->inside(face_centroid(iface)))
-          MSet_Add(mset, face_id_to_handle[iface]);
-
-      }
-    } else if (region->type() == JaliGeometry::Region_type::PLANE ||
-               region->type() == JaliGeometry::Region_type::POLYGON) {
-
-      int nface = Mesh::num_entities(Entity_kind::FACE,
-                                     Entity_type::ALL);
-
-      for (int iface = 0; iface < nface; iface++) {
-        std::vector<JaliGeometry::Point> fcoords(spacedim);
-
-        face_get_coordinates(iface, &fcoords);
-
-        bool on_plane = true;
-        for (int j = 0; j < fcoords.size(); ++j) {
-          if (!region->inside(fcoords[j])) {
-            on_plane = false;
-            break;
+        } else {
+          int idx = 0;
+          MEntity_ptr ment;
+          while ((ment = MSet_Next_Entry(mstk_mset, &idx))) {
+            if (MEnt_PType(ment) == PGHOST)
+              ghost_entities->push_back(MEnt_ID(ment)-1);
+            else
+              owned_entities->push_back(MEnt_ID(ment)-1);
           }
         }
-
-        if (on_plane)
-          MSet_Add(mset, face_id_to_handle[iface]);
-      }
-
-    } else if (region->type() == JaliGeometry::Region_type::LABELEDSET) {
-      // Just retrieve and return the set
-
-      JaliGeometry::LabeledSetRegionPtr lsrgn =
-        dynamic_cast<JaliGeometry::LabeledSetRegionPtr> (region);
-      std::string label = lsrgn->label();
-      std::string entity_type = lsrgn->entity_str();
-
-      if (entity_type != "Entity_kind::FACE") {
-        Errors::Message mesg("Entity type of labeled set region and build_set request do not match");
-        Exceptions::Jali_throw(mesg);
-      }
-
-      mset = MESH_MSetByName(mesh, internal_name.c_str());
-    } else if (region->type() == JaliGeometry::Region_type::LOGICAL) {
-      // Will handle it later in the routine
-    } else {
-      Errors::Message mesg("Region type not applicable/supported for face sets");
-      Exceptions::Jali_throw(mesg);
-    }
-    break;
-
-  case Entity_kind::NODE:  // Nodesets
-
-    enttype = MVERTEX;
-    mset = MSet_New(mesh, internal_name.c_str(), enttype);
-
-    if (region->type() == JaliGeometry::Region_type::BOX ||
-        region->type() == JaliGeometry::Region_type::PLANE ||
-        region->type() == JaliGeometry::Region_type::POLYGON ||
-        region->type() == JaliGeometry::Region_type::POINT) {
-
-      int nnode = Mesh::num_entities(Entity_kind::NODE,
-                                     Entity_type::ALL);
-
-      for (int inode = 0; inode < nnode; inode++) {
-
-        JaliGeometry::Point vpnt(spacedim);
-        node_get_coordinates(inode, &vpnt);
-
-        if (region->inside(vpnt)) {
-          MSet_Add(mset, vtx_id_to_handle[inode]);
-
-          // Only one node per point region
-          if (region->type() == JaliGeometry::Region_type::POINT)
-            break;
+      } else if (mstk_mset2) {
+        int idx = 0;
+        MEntity_ptr ment;
+        while ((ment = MSet_Next_Entry(mstk_mset2, &idx))) {
+          if (MEnt_PType(ment) == PGHOST)
+            ghost_entities->push_back(MEnt_ID(ment)-1);
+          else
+            owned_entities->push_back(MEnt_ID(ment)-1);
         }
       }
-    } else if (region->type() == JaliGeometry::Region_type::LABELEDSET) {
-      // Just retrieve and return the set
-
-      JaliGeometry::LabeledSetRegionPtr lsrgn =
-        dynamic_cast<JaliGeometry::LabeledSetRegionPtr> (region);
-      std::string label = lsrgn->label();
-      std::string entity_type = lsrgn->entity_str();
-
-      if (entity_type != "Entity_kind::FACE") {
-        Errors::Message mesg("Entity type of labeled set region and build_set request do not match");
+      break;
+    }
+    case Entity_kind::FACE: {  // sidesets
+      if (entity_type != "FACE" && entity_type != "Entity_kind::FACE") {
+        Errors::Message mesg("Entity type of labeled set region and get_labeled_set_entities request do not match");
         Exceptions::Jali_throw(mesg);
       }
-
-      mset = MESH_MSetByName(mesh, internal_name.c_str());
-    } else if (region->type() == JaliGeometry::Region_type::LOGICAL) {
-      // We will handle it later in the routine
-    } else {
-      Errors::Message mesg("Region type not applicable/supported for node sets");
-      Exceptions::Jali_throw(mesg);
+      
+      MSet_ptr mstk_mset = MESH_MSetByName(mesh, internal_name.c_str());
+      if (mstk_mset) {
+        int idx = 0;
+        MEntity_ptr ment;
+        while ((ment = MSet_Next_Entry(mstk_mset, &idx))) {
+          if (MEnt_PType(ment) == PGHOST)
+            ghost_entities->push_back(MEnt_ID(ment)-1);
+          else
+            owned_entities->push_back(MEnt_ID(ment)-1);
+        }
+      }
+      break;
     }
-
-    break;
+    case Entity_kind::NODE: {  // Nodesets
+      if (entity_type != "NODE" && entity_type != "Entity_kind::NODE") {
+        Errors::Message mesg("Entity type of labeled set region and get_labeled_set_entities request do not match");
+        Exceptions::Jali_throw(mesg);
+      }
+      
+      MSet_ptr mstk_mset = MESH_MSetByName(mesh, internal_name.c_str());
+      if (mstk_mset) {
+        int idx = 0;
+        MEntity_ptr ment;
+        while ((ment = MSet_Next_Entry(mstk_mset, &idx))) {
+          if (MEnt_PType(ment) == PGHOST)
+            ghost_entities->push_back(MEnt_ID(ment)-1);
+          else
+            owned_entities->push_back(MEnt_ID(ment)-1);
+        }
+      }
+      break;
+    }
   }
 
-
-  if (region->type() == JaliGeometry::Region_type::LOGICAL) {
-    JaliGeometry::LogicalRegionPtr boolregion =
-        (JaliGeometry::LogicalRegionPtr) region;
-    std::vector<std::string> region_names = boolregion->component_regions();
-    int nreg = region_names.size();
-
-    std::vector<MSet_ptr> msets;
-    std::vector<JaliGeometry::RegionPtr> regions;
-
-    for (int r = 0; r < nreg; r++) {
-      JaliGeometry::RegionPtr rgn1 = gm->FindRegion(region_names[r]);
-      regions.push_back(rgn1);
-
-      // Did not find the region
-      if (rgn1 == NULL) {
-        std::stringstream mesg_stream;
-        mesg_stream << "Geometric model has no region named " <<
-          region_names[r];
-        Errors::Message mesg(mesg_stream.str());
-        Exceptions::Jali_throw(mesg);
-      }
-
-      internal_name = internal_name_of_set(rgn1, kind);
-      MSet_ptr mset1 = MESH_MSetByName(mesh, internal_name.c_str());
-      if (!mset1)
-        mset1 = build_set(rgn1, kind);  // Recursive call
-
-      msets.push_back(mset1);
-    }
-
-    // Check the entity types of the sets are consistent with the
-    // entity type of the requested set
-
-    for (int ms = 0; ms < msets.size(); ms++)
-      if (MSet_EntDim(msets[ms]) != enttype) {
-        Errors::Message
-          mesg("Jali cannot operate on sets of different entity types");
-        Exceptions::Jali_throw(mesg);
-      }
-
-    int mkid = MSTK_GetMarker();
-
-    if (boolregion->operation() == JaliGeometry::Bool_type::COMPLEMENT) {
-
-      for (int ms = 0; ms < msets.size(); ms++)
-        MSet_Mark(msets[ms], mkid);
-
-      int idx = 0;
-      switch (enttype) {
-      case MREGION:
-        MRegion_ptr mr;
-        while ((mr = MESH_Next_Region(mesh, &idx)))
-          if (!MEnt_IsMarked(mr, mkid))
-            MSet_Add(mset, mr);
-        break;
-      case MFACE:
-        MFace_ptr mf;
-        while ((mf = MESH_Next_Face(mesh, &idx)))
-          if (!MEnt_IsMarked(mf, mkid))
-            MSet_Add(mset, mf);
-        break;
-      case MEDGE:
-        MEdge_ptr me;
-        while ((me = MESH_Next_Edge(mesh, &idx)))
-          if (!MEnt_IsMarked(me, mkid))
-            MSet_Add(mset, me);
-      case MVERTEX:
-        MVertex_ptr mv;
-        while ((mv = MESH_Next_Vertex(mesh, &idx)))
-          if (!MEnt_IsMarked(mv, mkid))
-            MSet_Add(mset, mv);
-        break;
-      }
-
-      for (int ms = 0; ms < msets.size(); ms++)
-        MSet_Unmark(msets[ms], mkid);
-
-    } else if (boolregion->operation() == JaliGeometry::Bool_type::UNION) {
-
-      for (int ms = 0; ms < msets.size(); ms++) {
-        MEntity_ptr ment;
-        int idx = 0;
-        while ((ment = MSet_Next_Entry(msets[ms], &idx)))
-          if (!MEnt_IsMarked(ment, mkid)) {
-            MSet_Add(mset, ment);
-            MEnt_Mark(ment, mkid);
-          }
-      }
-      MSet_Unmark(mset, mkid);
-
-    } else if (boolregion->operation() == JaliGeometry::Bool_type::SUBTRACT) {
-
-      /* Mark entities in all sets except the first */
-
-      for (int ms = 1; ms < msets.size(); ms++)
-        MSet_Mark(msets[ms], mkid);
-
-      /* Look for entities in the first set but not in
-         any of the other sets */
-      MEntity_ptr ment;
-      int idx = 0;
-      while ((ment = MSet_Next_Entry(msets[0], &idx)))
-        if (!MEnt_IsMarked(ment, mkid)) {
-          MSet_Add(mset, ment);
-          MEnt_Mark(ment, mkid);
-        }
-
-      for (int ms = 1; ms < msets.size(); ms++)
-        MSet_Unmark(msets[ms], mkid);
-
-    } else if (boolregion->operation() == JaliGeometry::Bool_type::INTERSECT) {
-
-      /* Can't do this using markers alone - need attributes */
-
-      MAttrib_ptr matt = MAttrib_New(mesh, "XSECTATT", INT, MALLTYPE);
-
-      for (int ms = 0; ms < msets.size(); ms++) {
-        MEntity_ptr ment;
-        int idx = 0;
-        while ((ment = MSet_Next_Entry(msets[ms], &idx))) {
-          int ival;
-          double rval;
-          void *pval;
-          MEnt_Get_AttVal(ment, matt, &ival, &rval, &pval);
-          ival++;
-          MEnt_Set_AttVal(ment, matt, ival, rval, pval);
-        }
-      }
-
-      for (int ms = 0; ms < msets.size(); ms++) {
-        MEntity_ptr ment;
-        int idx = 0;
-        while ((ment = MSet_Next_Entry(msets[ms], &idx))) {
-          int ival;
-          double rval;
-          void *pval;
-          MEnt_Get_AttVal(ment, matt, &ival, &rval, &pval);
-          if ((ival == msets.size()) && !MEnt_IsMarked(ment, mkid)) {
-            /* entity is in all sets */
-            MSet_Add(mset, ment);
-            MEnt_Mark(ment, mkid);
-          }
-        }
-      }
-
-      MSet_Unmark(mset, mkid);
-
-      for (int ms = 0; ms < msets.size(); ms++) {
-        MEntity_ptr ment;
-        int idx = 0;
-        while ((ment = MSet_Next_Entry(msets[ms], &idx)))
-          MEnt_Rem_AttVal(ment, matt);
-      }
-      MAttrib_Delete(matt);
-    }
-
-    MSTK_FreeMarker(mkid);
-
-    for (int ms = 0; ms < msets.size(); ms++) {
-      MSet_Unmark(msets[ms], mkid);
-      if (regions[ms]->lifecycle() == JaliGeometry::LifeCycle_type::TEMPORARY)
-        MSet_Delete(msets[ms]);
-    }
-
+#ifdef DEBUG
+  int nproc;
+  MPI_Comm_size(get_comm(), &nproc);
+  int nent_owned = 0;
+  int nent_owned_local = owned_entities->size();
+  if (nproc == 1) 
+    nent_owned = nent_owned_local;
+  else {
+    MPI_Allreduce(&nent_owned_local, &nent_owned, 1, MPI_INT, MPI_SUM,
+                  get_comm());
   }
+  if (nent_owned == 0) {
+    std::stringstream mesgstream;
+    mesgstream << "Could not find labeled set " <<
+    internal_name << " containing entities of kind " << kind << "\n";
+    Errors::Message mesg(mesgstream.str());
+    Exceptions::Jali_throw(mesg);
+  }
+#endif
 
-  return mset;
 }
 
 
-// Get list of entities of type 'category' in set specified by setname
+// // Get list of entities of type 'category' in set specified by setname
 
-void Mesh_MSTK::get_set_entities(const std::string setname,
-                                 const Entity_kind kind,
-                                 const Entity_type ptype,
-                                 std::vector<Entity_ID> *setents) const {
-  int idx, i, lid;
-  MSet_ptr mset = NULL, mset1 = NULL;
-  MEntity_ptr ment;
-  bool found(false);
-  int celldim = Mesh::cell_dimension();
-  int spacedim = Mesh::space_dimension();
-  const MPI_Comm comm = get_comm();
+// void Mesh_MSTK::get_set_entities(const std::string setname,
+//                                  const Entity_kind kind,
+//                                  const Entity_type ptype,
+//                                  std::vector<Entity_ID> *setents) const {
+//   int idx, i, lid;
+//   MSet_ptr mset = NULL, mset1 = NULL;
+//   MEntity_ptr ment;
+//   bool found(false);
+//   int celldim = Mesh::cell_dimension();
+//   int spacedim = Mesh::space_dimension();
+//   const MPI_Comm comm = get_comm();
 
-  ASSERT(setents != NULL);
+//   ASSERT(setents != NULL);
 
-  setents->clear();
+//   setents->clear();
 
-  JaliGeometry::GeometricModelPtr gm = Mesh::geometric_model();
+//   JaliGeometry::GeometricModelPtr gm = Mesh::geometric_model();
 
-  // Is there an appropriate region by this name?
+//   // Is there an appropriate region by this name?
 
-  JaliGeometry::RegionPtr rgn = gm->FindRegion(setname);
+//   JaliGeometry::RegionPtr rgn = gm->FindRegion(setname);
 
-  // Did not find the region
+//   // Did not find the region
 
-  if (rgn == NULL) {
-    std::stringstream mesg_stream;
-    mesg_stream << "Geometric model has no region named " << setname;
-    Errors::Message mesg(mesg_stream.str());
-    Exceptions::Jali_throw(mesg);
-  }
-
-
-  std::string internal_name = internal_name_of_set(rgn, kind);
-
-  // If region is of type labeled set and a mesh set should have been
-  // initialized from the input file
-
-  if (rgn->type() == JaliGeometry::Region_type::LABELEDSET) {
-    JaliGeometry::LabeledSetRegionPtr lsrgn =
-        dynamic_cast<JaliGeometry::LabeledSetRegionPtr> (rgn);
-    std::string label = lsrgn->label();
-    std::string entity_type = lsrgn->entity_str();
-
-    if ((kind == Entity_kind::CELL && entity_type != "CELL") ||
-        (kind == Entity_kind::FACE && entity_type != "FACE") ||
-        (kind == Entity_kind::NODE && entity_type != "NODE")) {
-      std::cerr << "Found labeled set region named " << setname <<
-          " but it contains entities of type " << entity_type <<
-          ", not the requested type of " << Entity_kind_string(kind) << "\n";
-    } else {
-      mset1 = MESH_MSetByName(mesh, internal_name.c_str());
-
-      if (!mset1 && kind == Entity_kind::CELL) {
-        // Since both element blocks and cell sets are referenced
-        // with the region type 'Labeled Set' and Entity kind 'Cell'
-        // we have to account for both possibilities. NOTE: THIS
-        // MEANS THAT IF AN ELEMENT BLOCK AND ELEMENT SET HAVE THE
-        // SAME ID, ONLY THE ELEMENT BLOCK WILL GET PICKED UP - WE
-        // CHECKED FOR THIS IN BUILD SET
-
-        std::string internal_name2 = other_internal_name_of_set(rgn, kind);
-        mset1 = MESH_MSetByName(mesh, internal_name2.c_str());
-      }
-
-      /// Due to the parallel partitioning its possible that this
-      /// set is not on this processor
-
-      if (!mset1) {
-        int nprocs;
-        MPI_Comm_size(comm, &nprocs);
-        if (nprocs == 1) {
-          std::stringstream mesg_stream;
-          mesg_stream << "Could not find labeled set " << label <<
-              " in mesh file in order to initialize mesh set " << setname <<
-              ". Verify mesh file.";
-          Errors::Message mesg(mesg_stream.str());
-          Exceptions::Jali_throw(mesg);
-        }
-      }
-    }
-  } else {
-    // Modify region/set name by prefixing it with the type of
-    // entity requested
-
-    mset1 = MESH_MSetByName(mesh, internal_name.c_str());
-
-    // Make sure we retrieved a mesh set with the right kind of entities
-
-    MType entdim;
-
-    switch (kind) {
-      case Entity_kind::CELL:
-        if (celldim == 3)
-          entdim = MREGION;
-        else if (celldim == 2)
-          entdim = MFACE;
-        break;
-      case Entity_kind::FACE:
-        if (celldim == 3)
-          entdim = MFACE;
-        else if (celldim == 2)
-          entdim = MEDGE;
-        break;
-      case Entity_kind::NODE:
-        entdim = MVERTEX;
-    }
-
-    // If not, can we find a mesh set with the right name and right
-    // kind of entities
-
-    char setname1[256];
-
-    if (mset1 && MSet_EntDim(mset1) != entdim) {
-      idx = 0;
-      while ((mset1 = MESH_Next_MSet(mesh, &idx))) {
-        MSet_Name(mset1, setname1);
-
-        if (MSet_EntDim(mset1) == entdim &&
-            strcmp(setname1, internal_name.c_str()) == 0)
-          break;
-      }
-    }
-  }
-
-  // All attempts to find the set failed so it must not exist - build it
-
-  if (mset1 == NULL && rgn->type() != JaliGeometry::Region_type::LABELEDSET)
-    mset1 = build_set(rgn, kind);
-
-  /* Check if no processor got any mesh entities */
-
-  int nent_loc = (mset1 == NULL) ? 0 : MSet_Num_Entries(mset1);
+//   if (rgn == NULL) {
+//     std::stringstream mesg_stream;
+//     mesg_stream << "Geometric model has no region named " << setname;
+//     Errors::Message mesg(mesg_stream.str());
+//     Exceptions::Jali_throw(mesg);
+//   }
 
 
-#ifdef DEBUG
-  int nent_glob;
+//   std::string internal_name = internal_name_of_set(rgn, kind);
 
-  MPI_Allreduce(&nent_loc, &nent_glob, 1, MPI_INT, MPI_SUM, mpicomm);
-  if (nent_glob == 0) {
-    std::stringstream mesg_stream;
-    mesg_stream << "Could not retrieve any mesh entities for set " << setname << std::endl;
-    Errors::Message mesg(mesg_stream.str());
-    Exceptions::Jali_throw(mesg);
-  }
-#endif
+//   // If region is of type labeled set and a mesh set should have been
+//   // initialized from the input file
 
-  setents->resize(nent_loc);
-  Entity_ID_List::iterator it = setents->begin();
-  if (nent_loc) {
+//   if (rgn->type() == JaliGeometry::Region_type::LABELEDSET) {
+//     JaliGeometry::LabeledSetRegionPtr lsrgn =
+//         dynamic_cast<JaliGeometry::LabeledSetRegionPtr> (rgn);
+//     std::string label = lsrgn->label();
+//     std::string entity_type = lsrgn->entity_str();
 
-    nent_loc = 0;  // reset and count to get the real number
+//     if ((kind == Entity_kind::CELL && entity_type != "CELL") ||
+//         (kind == Entity_kind::FACE && entity_type != "FACE") ||
+//         (kind == Entity_kind::NODE && entity_type != "NODE")) {
+//       std::cerr << "Found labeled set region named " << setname <<
+//           " but it contains entities of type " << entity_type <<
+//           ", not the requested type of " << Entity_kind_string(kind) << "\n";
+//     } else {
+//       MeshSet *mset1 = Mesh::find_meshset(internal_name);
 
-    switch (ptype) {
-    case Entity_type::PARALLEL_OWNED:
-      idx = 0;
-      while ((ment = MSet_Next_Entry(mset1, &idx))) {
-        if (MEnt_PType(ment) != PGHOST) {
-          *it = MEnt_ID(ment) - 1;  // assign to next spot by dereferencing iterator
-          ++it;
-          ++nent_loc;
-        }
-      }
-      break;
-    case Entity_type::PARALLEL_GHOST:
-      idx = 0;
-      while ((ment = MSet_Next_Entry(mset1, &idx))) {
-        if (MEnt_PType(ment) == PGHOST) {
-          *it = MEnt_ID(ment) - 1;  // assign to next spot by dereferencing iterator
-          ++it;
-          ++nent_loc;
-        }
-      }
-      break;
-    case Entity_type::ALL:
-      idx = 0;
-      while ((ment = MSet_Next_Entry(mset1, &idx))) {
-        *it = MEnt_ID(ment)-1;  // assign to next spot by dereferencing iterator
-        ++it;
-        ++nent_loc;
-      }
-      break;
-    }
+//       if (mset1->num_entities() == 0 && kind == Entity_kind::CELL) {
+//         // Since both element blocks and cell sets are referenced
+//         // with the region type 'Labeled Set' and Entity kind 'Cell'
+//         // we have to account for both possibilities. NOTE: THIS
+//         // MEANS THAT IF AN ELEMENT BLOCK AND ELEMENT SET HAVE THE
+//         // SAME ID, ONLY THE ELEMENT BLOCK WILL GET PICKED UP - WE
+//         // CHECKED FOR THIS IN BUILD SET
 
-    setents->resize(nent_loc);
-  }
+//         std::string internal_name2 = other_internal_name_of_set(rgn, kind);
+//         mset1 = Mesh::find_meshset(internal_name2);
+//       }
 
-    /* Check if there were no entities left on any processor after
-       extracting the appropriate category of entities */
+//       /// Due to the parallel partitioning its possible that this
+//       /// set is not on this processor
 
-#ifdef DEBUG
-  MPI_Allreduce(&nent_loc, &nent_glob, 1, MPI_INT, MPI_SUM, mpicomm);
+//       if (!mset1) {
+//         int nprocs;
+//         MPI_Comm_size(comm, &nprocs);
+//         if (nprocs == 1) {
+//           std::stringstream mesg_stream;
+//           mesg_stream << "Could not find labeled set " << label <<
+//               " in mesh file in order to initialize mesh set " << setname <<
+//               ". Verify mesh file.";
+//           Errors::Message mesg(mesg_stream.str());
+//           Exceptions::Jali_throw(mesg);
+//         }
+//       }
+//     }
+//   } else {
+//     // Modify region/set name by prefixing it with the type of
+//     // entity requested
 
-  if (nent_glob == 0) {
-    std::stringstream mesg_stream;
-    mesg_stream << "Could not retrieve any mesh entities of type " <<
-        setkind << " for set " << setname << std::endl;
-    Errors::Message mesg(mesg_stream.str());
-    Exceptions::Jali_throw(mesg);
-  }
-#endif
+//     mset1 = Mesh::find_meshset(internal_name);
 
-}  // Mesh_MSTK::get_set_entities (by set name)
+//   }
+
+//   // All attempts to find the set failed so it must not exist - build it
+
+//   if (mset1 == NULL && rgn->type() != JaliGeometry::Region_type::LABELEDSET)
+//     mset1 = build_set(rgn, kind);
+
+//   /* Check if no processor got any mesh entities */
+
+//   int nent_loc = (mset1 == NULL) ? 0 : mset1->size();
 
 
-void Mesh_MSTK::get_set_entities(const char *setname,
-                                 const Entity_kind kind,
-                                 const Entity_type ptype,
-                                 std::vector<Entity_ID> *setents) const {
-  std::string setname1(setname);
-  get_set_entities(setname1, kind, ptype, setents);
-}  // Mesh_MSTK::get_set_entities (by set name)
+// #ifdef DEBUG
+//   int nent_glob;
 
+//   MPI_Allreduce(&nent_loc, &nent_glob, 1, MPI_INT, MPI_SUM, mpicomm);
+//   if (nent_glob == 0) {
+//     std::stringstream mesg_stream;
+//     mesg_stream << "Could not retrieve any mesh entities for set " << setname << std::endl;
+//     Errors::Message mesg(mesg_stream.str());
+//     Exceptions::Jali_throw(mesg);
+//   }
+// #endif
 
-// Get number of entities of type 'ptype' in set
+//   if (nent_loc) {
+//     switch (ptype) {
+//       case Entity_type::PARALLEL_OWNED:
+//         *setents = mset1->entities<Entity_type::PARALLEL_OWNED>();
+//         break;
+//       case Entity_type::PARALLEL_GHOST:
+//         *setents = mset1->entities<Entity_type::PARALLEL_GHOST>();
+//         break;
+//       case Entity_type::ALL:
+//         *setents = mset1->entities<Entity_type::ALL>();
+//         break;
+//       default:
+//         setents->clear();
+//         break;
+//     }
+//   }
 
-unsigned int Mesh_MSTK::get_set_size(const char *setname,
-                                     const Entity_kind kind,
-                                     const Entity_type ptype) const {
-  Entity_ID_List setents;
-  std::string setname1(setname);
-  get_set_entities(setname1, kind, ptype, &setents);
-  return setents.size();
-}  // Mesh_MSTK::get_set_size (by set name)
+//   /* Check if there were no entities left on any processor after
+//      extracting the appropriate category of entities */
+  
+// #ifdef DEBUG
+//   MPI_Allreduce(&nent_loc, &nent_glob, 1, MPI_INT, MPI_SUM, mpicomm);
 
-// Get number of entities of type 'ptype' in set
+//   if (nent_glob == 0) {
+//     std::stringstream mesg_stream;
+//     mesg_stream << "Could not retrieve any mesh entities of type " <<
+//         setkind << " for set " << setname << std::endl;
+//     Errors::Message mesg(mesg_stream.str());
+//     Exceptions::Jali_throw(mesg);
+//   }
+// #endif
 
-unsigned int Mesh_MSTK::get_set_size(const std::string setname,
-                                     const Entity_kind kind,
-                                     const Entity_type ptype) const {
-  Entity_ID_List setents;
-  get_set_entities(setname, kind, ptype, &setents);
-  return setents.size();
-}  // Mesh_MSTK::get_set_size (by set name)
-
+// }  // Mesh_MSTK::get_set_entities (by set name)
 
 // Parent entity in the source mesh if mesh was derived from another mesh
 

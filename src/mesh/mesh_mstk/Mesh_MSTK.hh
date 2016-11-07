@@ -491,6 +491,11 @@ class Mesh_MSTK : public Mesh {
     return store_field_internal(field_name, on_what, data);
   }
 
+  void get_labeled_set_entities(const JaliGeometry::LabeledSetRegionPtr rgn,
+                                const Entity_kind kind,
+                                Entity_ID_List *owned_entities,
+                                Entity_ID_List *ghost_entities) const;
+
  private:
 
   // Private methods
@@ -534,11 +539,6 @@ class Mesh_MSTK : public Mesh {
 
   void init_set_info();
   void inherit_labeled_sets(MAttrib_ptr copyatt);
-  std::string internal_name_of_set(const JaliGeometry::RegionPtr region,
-                                   const Entity_kind entity_kind) const;
-  std::string other_internal_name_of_set(const JaliGeometry::RegionPtr r,
-                                         const Entity_kind entity_kind) const;
-
   int  generate_regular_mesh(Mesh_ptr mesh, double x0, double y0, double z0,
                              double x1, double y1, double z1, int nx,
                              int ny, int nz);
@@ -557,8 +557,18 @@ class Mesh_MSTK : public Mesh {
                          const Partitioner_type partitioner =
                          Partitioner_type::METIS);
 
-  MSet_ptr build_set(const JaliGeometry::RegionPtr region,
-                     const Entity_kind kind) const;
+  // internal name of sets (particularly labeled sets)
+
+  std::string
+  internal_name_of_set(const JaliGeometry::RegionPtr r,
+                       const Entity_kind entity_kind) const;
+
+  // internal name of sets (particularly labeled sets of cells)
+
+  std::string
+  other_internal_name_of_set(const JaliGeometry::RegionPtr r,
+                             const Entity_kind entity_kind) const;
+
 
 
   // Downward Adjacencies
