@@ -8,6 +8,7 @@
 #include <cstdint>
 #include <memory>
 #include <vector>
+#include <string>
 #include "mpi.h"
 
 #include "Mesh.hh"
@@ -277,32 +278,6 @@ public:
 
   void node_set_coordinates(const Entity_ID nodeid, const double *coords);
 
-  //
-  // Boundary Conditions or Sets
-  //----------------------------
-  //
-
-  unsigned int get_set_size(const Set_Name setname,
-                            const Entity_kind kind,
-                            const Entity_type ptype) const;
-
-
-  unsigned int get_set_size(const char *setname,
-                            const Entity_kind kind,
-                            const Entity_type ptype) const;
-
-
-  void get_set_entities(const Set_Name setname,
-                        const Entity_kind kind,
-                        const Entity_type ptype,
-                        Entity_ID_List *entids) const;
-
-
-  void get_set_entities(const char *setname,
-                        const Entity_kind kind,
-                        const Entity_type ptype,
-                        Entity_ID_List *entids) const;
-
 
   // this should be used with extreme caution:
   // modify coordinates
@@ -318,8 +293,21 @@ public:
                          const bool with_fields) const
   {}
 
+ protected:
+  //
+  // Boundary Conditions or Sets
+  //----------------------------
+  //
 
-private:
+  void get_labeled_set_entities(const JaliGeometry::LabeledSetRegionPtr r,
+                                const Entity_kind kind,
+                                Entity_ID_List *owned_entities,
+                                Entity_ID_List *ghost_entities) const;
+
+
+
+
+ private:
   void update_internals_3d_();
   void update_internals_1d_();
   void clear_internals_3d_();

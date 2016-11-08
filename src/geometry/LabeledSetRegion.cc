@@ -37,19 +37,6 @@ LabeledSetRegion::LabeledSetRegion(const std::string name,
   // entities in the mesh will determine the dimension
 }
 
-LabeledSetRegion::LabeledSetRegion(const char *name,
-                                   const unsigned int id,
-				   const std::string entity_str,
-                                   const std::string file,
-                                   const std::string format,
-                                   const std::string label,
-                                   const LifeCycle_type lifecycle)
-  : Region(name,id,3,lifecycle),entity_str_(entity_str),
-    file_(file), format_(format), label_(label)
-{
-  // empty
-}
-
 LabeledSetRegion::LabeledSetRegion(const LabeledSetRegion& old)
   : Region(old)
 {

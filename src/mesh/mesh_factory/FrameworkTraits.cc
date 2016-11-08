@@ -314,34 +314,16 @@ class bogus_mesh : public Jali::Mesh {
   { return *bogus_importer_; }
   */
 
-  unsigned int get_set_size(const Jali::Set_Name setname,
-                            const Jali::Entity_kind kind,
-                            const Jali::Entity_type ptype) const
-  { return 0; }
-
-  unsigned int get_set_size(const char *setname,
-                            const Jali::Entity_kind kind,
-                            const Jali::Entity_type ptype) const
-  { return 0; }
-
-  void get_set_entities(const Jali::Set_Name setname,
-                        const Jali::Entity_kind kind,
-                        const Jali::Entity_type ptype,
-                        Jali::Entity_ID_List *entids) const
-  {}
-
-  void get_set_entities(const char *setname,
-                        const Jali::Entity_kind kind,
-                        const Jali::Entity_type ptype,
-                        Jali::Entity_ID_List *entids) const
-  {}
-
   void write_to_exodus_file(const std::string filename, bool with_fields)
       const {}
 
   void write_to_gmv_file(const std::string filename, bool with_fields)
       const {}
 
+  void get_labeled_set_entities(const JaliGeometry::LabeledSetRegionPtr lsrgn,
+                                const Jali::Entity_kind kind,
+                                Jali::Entity_ID_List *entityids_owned,
+                                Jali::Entity_ID_List *entityids_ghost) const {}
  private:
 
 };

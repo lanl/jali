@@ -44,29 +44,6 @@ BoxRegion::BoxRegion(const std::string name, const unsigned int id,
   if (dim < p0.dim()) Region::set_dimension(dim);
 }
 
-BoxRegion::BoxRegion(const char *name, const unsigned int id,
-                     const Point& p0, const Point& p1,
-                     const LifeCycle_type lifecycle)
-  : Region(name,id,p0.dim(),lifecycle), p0_(p0), p1_(p1)
-{
-
-  if (p0_.dim() != p1_.dim()) {
-    std::stringstream tempstr;
-    tempstr << "\nMismatch in dimensions of corner points of BoxRegion \"" << Region::name() << "\"\nPerhaps the region is improperly defined?\n";
-    Errors::Message mesg(tempstr.str());
-    Exceptions::Jali_throw(mesg);
-  }
-
-  // Check if this is a reduced dimensionality box (e.g. even though
-  // it is in 3D space it is a 2D box)
-
-  int dim = p0.dim();
-  for (int i = 0; i < p0.dim(); i++)
-    if (p0[i] == p1[i]) dim--;
-
-  if (dim < p0.dim()) Region::set_dimension(dim);
-}
-
 BoxRegion::BoxRegion(const BoxRegion& old)
   : Region(old), p0_(old.p0_), p1_(old.p1_)
 {

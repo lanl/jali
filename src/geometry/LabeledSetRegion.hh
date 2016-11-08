@@ -48,15 +48,6 @@ public:
                    const std::string label,
                    const LifeCycle_type lifecycle = LifeCycle_type::PERMANENT);
 
-  LabeledSetRegion(const char *name,
-                   const unsigned int id,
-                   const std::string entity_str,
-                   const std::string file,
-                   const std::string format,
-                   const std::string label,
-                   const LifeCycle_type lifecycle = LifeCycle_type::PERMANENT);
-
-
   /// Protected copy constructor to avoid unwanted copies.
   LabeledSetRegion(const LabeledSetRegion& old);
 

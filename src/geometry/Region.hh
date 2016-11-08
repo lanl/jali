@@ -66,8 +66,7 @@ public:
 
   /// Constructor with name and ID
   Region(const std::string name, const unsigned int id,
-         const unsigned int dim=3, const LifeCycle_type lifecycle = LifeCycle_type::PERMANENT);
-  Region(const char *name, const unsigned int id, const unsigned int dim=3,
+         const unsigned int dim = 3,
          const LifeCycle_type lifecycle = LifeCycle_type::PERMANENT);
 
   /// Copy constructor

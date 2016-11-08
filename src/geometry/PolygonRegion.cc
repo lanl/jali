@@ -31,16 +31,6 @@ PolygonRegion::PolygonRegion(const std::string name, const unsigned int id,
   init();
 }
 
-PolygonRegion::PolygonRegion(const char *name, const unsigned int id,
-                             const unsigned int num_points,
-                             const std::vector<Point>& points,
-                             const LifeCycle_type lifecycle)
-  : Region(name,id,points[0].dim(),lifecycle), num_points_(num_points),
-    points_(points),normal_(points[0].dim()),elim_dir_(0)
-{
-  init();
-}
-
 PolygonRegion::PolygonRegion(const PolygonRegion& old)
   : Region(old), num_points_(old.num_points_), points_(old.points_),
     normal_(old.normal_), elim_dir_(old.elim_dir_)

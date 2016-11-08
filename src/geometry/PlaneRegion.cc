@@ -37,21 +37,6 @@ PlaneRegion::PlaneRegion(const std::string name,
 
 }
 
-PlaneRegion::PlaneRegion(const char *name, const unsigned int id,
-			 const Point& p, const Point& normal,
-                         const LifeCycle_type lifecycle)
-  : Region(name,id,p.dim()-1,lifecycle), p_(p), n_(normal)
-{
-
-  if (p_.dim() != n_.dim()) {
-    std::stringstream tempstr;
-    tempstr << "\nMismatch in point and normal dimensions of PlaneRegion " << Region::name() << "Perhaps the region is improperly defined?\n";
-    Errors::Message mesg(tempstr.str());
-    Exceptions::Jali_throw(mesg);
-  }
-
-}
-
 PlaneRegion::PlaneRegion(const PlaneRegion& old)
   : Region(old), p_(old.p_), n_(old.n_)
 {

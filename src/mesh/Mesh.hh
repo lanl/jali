@@ -20,9 +20,10 @@
 #include "Point.hh"
 #include "GeometricModel.hh"
 #include "Region.hh"
+#include "LabeledSetRegion.hh"
 #include "Geometry.hh"
-
 #include "MeshTile.hh"
+#include "MeshSet.hh"
 
 #define JALI_CACHE_VARS 1  // Switch to 0 to turn caching off
 
@@ -984,39 +985,63 @@ class Mesh {
   //--------------------------------------------------------------
   //
 
+  //! Number of sets
+
+  int num_sets(const Entity_kind kind = Entity_kind::ANY_KIND) const;
+
+  //! Return a list of sets on entities of 'kind'
+
+  std::vector<std::shared_ptr<MeshSet>> sets(const Entity_kind kind) const;
+
   //! Is this is a valid name of a set containing entities of 'kind'
 
   bool valid_set_name(const std::string setname,
-                       const Entity_kind kind) const;
+                      const Entity_kind kind) const;
 
+  //! Find a meshset with 'setname' containing entities of 'kind'
+  //! (non-const variant - create the set if it is missing and it
+  //! corresponds to a valid region).
 
-  //! Get number of entities of type 'category' in set
+  std::shared_ptr<MeshSet> find_meshset(const std::string setname,
+                                        const Entity_kind kind);
 
-  virtual
-  unsigned int get_set_size(const Set_Name setname,
+  //! Find a meshset with 'setname' containing entities of 'kind'
+  //! (const version - do nothing if the set does not exist)
+
+  std::shared_ptr<MeshSet> find_meshset(const std::string setname,
+                                        const Entity_kind kind) const;
+
+  //! Get number of entities of 'type' in set (non-const version -
+  //! create the set if it is missing and it corresponds to a valid
+  //! region).
+
+  unsigned int get_set_size(const std::string setname,
                              const Entity_kind kind,
-                             const Entity_type type) const = 0;
+                             const Entity_type type);
 
-  virtual
-  unsigned int get_set_size(const char *setname,
+  //! Get number of entities of 'type' in set (const version - return
+  //! 0 if the set does not exist)
+
+  unsigned int get_set_size(const std::string setname,
                              const Entity_kind kind,
-                             const Entity_type type) const = 0;
+                             const Entity_type type) const;
 
 
-  //! Get list of entities of type 'category' in set
+  //! Get entities of 'type' in set (non-const version - create the
+  //! set if it is missing and it corresponds to a valid region).
 
-  virtual
-  void get_set_entities(const Set_Name setname,
+  void get_set_entities(const std::string setname,
                          const Entity_kind kind,
                          const Entity_type type,
-                         Entity_ID_List *entids) const = 0;
+                         Entity_ID_List *entids);
 
-  virtual
-  void get_set_entities(const char *setname,
+  //! Get entities of 'type' in set (const version - return empty list
+  //! if the set does not exist)
+
+  void get_set_entities(const std::string setname,
                          const Entity_kind kind,
                          const Entity_type type,
-                         Entity_ID_List *entids) const = 0;
-
+                         Entity_ID_List *entids) const;
 
 
   //! \brief Export to Exodus II file
@@ -1101,6 +1126,29 @@ class Mesh {
   virtual
   void edge_get_nodes_internal(const Entity_ID edgeid,
                                Entity_ID *enode0, Entity_ID *enode1) const = 0;
+
+  //! Some functionality for mesh sets
+
+  void init_sets();
+  void add_set(std::shared_ptr<MeshSet> set);
+
+  //! build a mesh set
+
+  std::shared_ptr<MeshSet> build_set(const std::string setname,
+                                     const Entity_kind kind,
+                                     const bool build_reverse_map = true);
+
+  //! get labeled set entities
+  //
+  // Labeled sets are pre-existing mesh sets with a "name" in the mesh
+  // as read from a file. Each mesh framework may have its own way of
+  // retrieving these sets and so this is implemented in the derived class
+
+  virtual
+  void get_labeled_set_entities(const JaliGeometry::LabeledSetRegionPtr rgn,
+                                const Entity_kind kind,
+                                Entity_ID_List *owned_entities,
+                                Entity_ID_List *ghost_entities) const = 0;
 
   //! \brief Get info about mesh fields on a particular type of entity
 
@@ -1278,6 +1326,11 @@ class Mesh {
   std::vector<int> node_master_tile_ID_, edge_master_tile_ID_;
   std::vector<int> face_master_tile_ID_, cell_master_tile_ID_;
 
+  // MeshSets (collection of entities of a particular kind)
+
+  bool meshsets_initialized_ = false;
+  std::vector<std::shared_ptr<MeshSet>> meshsets_;
+
   // Some geometric quantities
 
   mutable std::vector<double> cell_volumes, face_areas, edge_lengths,
@@ -1415,6 +1468,17 @@ class Mesh {
                                           bool const request_sides,
                                           bool const request_wedges,
                                           bool const request_corners);
+
+  // Make the make_meshset function a friend so that it can access the
+  // protected functions init_sets and add_set
+
+  friend
+  std::shared_ptr<MeshSet> make_meshset(std::string const& name,
+                                      Mesh& parent_mesh,
+                                      Entity_kind const& kind,
+                                      Entity_ID_List const& entityids_owned,
+                                      Entity_ID_List const& entityids_ghost,
+                                        bool build_reverse_map);
 
  private:
 
