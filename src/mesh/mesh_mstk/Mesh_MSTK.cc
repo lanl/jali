@@ -1231,12 +1231,14 @@ Mesh_MSTK::~Mesh_MSTK() {
   if (NotOwnedFaces) MSet_Delete(NotOwnedFaces);
   if (OwnedCells) MSet_Delete(OwnedCells);
   if (GhostCells) MSet_Delete(GhostCells);
-  if (BoundaryGhostCells) {
-    int idx = 0;
-    MEntity_ptr ment;
-    while ((ment = MSet_Next_Entry(BoundaryGhostCells, &idx)))
-      MEnt_Rem_AttVal(ment, boundary_ghost_att);
-    MSet_Delete(BoundaryGhostCells);
+  if (Mesh::boundary_ghosts_requested_) {
+    if (BoundaryGhostCells) {
+      int idx = 0;
+      MEntity_ptr ment;
+      while ((ment = MSet_Next_Entry(BoundaryGhostCells, &idx)))
+        MEnt_Rem_AttVal(ment, boundary_ghost_att);
+      MSet_Delete(BoundaryGhostCells);
+    }
     MAttrib_Delete(boundary_ghost_att);
   }
 
@@ -1371,7 +1373,7 @@ void Mesh_MSTK::cell_get_faces_and_dirs_ordered(const Entity_ID cellid,
                 (*face_dirs)[nf] = static_cast<dir_t>(fdir);
               }
 
-              List_add(rflist, fadj);
+              List_Add(rflist, fadj);
               nf++;
             }
           }
@@ -4125,7 +4127,8 @@ void Mesh_MSTK::init_pcell_lists() {
         MSet_Add(GhostCells, region);
       else {
         
-        if (MEnt_Get_IntAttVal(region, boundary_ghost_att) == 1)
+        if (Mesh::boundary_ghosts_requested_ &&
+            MEnt_Get_IntAttVal(region, boundary_ghost_att) == 1)
           MSet_Add(BoundaryGhostCells, region);
         else
           MSet_Add(OwnedCells, region);
@@ -4143,7 +4146,8 @@ void Mesh_MSTK::init_pcell_lists() {
       if (MF_PType(face) == PGHOST)
         MSet_Add(GhostCells, face);
       else {
-        if (MEnt_Get_IntAttVal(face, boundary_ghost_att) == 1)
+        if (Mesh::boundary_ghosts_requested_ &&
+            MEnt_Get_IntAttVal(face, boundary_ghost_att) == 1)
           MSet_Add(BoundaryGhostCells, face);
         else
           MSet_Add(OwnedCells, face);
