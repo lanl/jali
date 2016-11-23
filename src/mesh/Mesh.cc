@@ -2425,8 +2425,12 @@ std::shared_ptr<MeshSet> Mesh::find_meshset(const std::string setname,
         return set;
     }
     return build_set(setname, kind);
-  } else
-    return nullptr;
+  } else {
+    //    return nullptr; // intel on barugon is barfing on this
+
+    std::shared_ptr<MeshSet> temp_ptr;
+    return temp_ptr;
+  }
 }
 
 // Find a meshset with 'setname' containing entities of 'kind' (const
