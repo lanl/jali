@@ -698,7 +698,7 @@ class Mesh_MSTK : public Mesh {
 
   // Marker to indicate if a cell is a boundary ghost cell
 
-  int boundary_ghost_mark = 0;
+  MAttrib_ptr boundary_ghost_att = NULL;
 
   // Deleted entity lists if some pre-processing had to be done
   // to the mesh to eliminate degenerate entities

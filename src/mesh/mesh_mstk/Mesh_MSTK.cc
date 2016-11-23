@@ -562,7 +562,6 @@ Mesh_MSTK::Mesh_MSTK(const std::shared_ptr<Mesh> inmesh,
   Mesh_MSTK *inmesh_mstk = dynamic_cast<Mesh_MSTK *>(inmesh.get());
   Mesh_ptr mstk_source_mesh = inmesh_mstk->mesh;
 
-  int mkid = MSTK_GetMarker();
   List_ptr src_ents = List_New(10);
   for (int i = 0; i < setnames.size(); ++i) {
     MSet_ptr mset;
@@ -586,10 +585,8 @@ Mesh_MSTK::Mesh_MSTK(const std::shared_ptr<Mesh> inmesh,
       int idx = 0;
       MEntity_ptr ment;
       while ((ment = (MEntity_ptr) MSet_Next_Entry(mset, &idx))) {
-        if (!MEnt_IsMarked(ment, mkid) && MEnt_PType(ment) != PGHOST) {
-          List_Add(src_ents, ment);
-          MEnt_Mark(ment, mkid);
-        }
+        if (!MEnt_PType(ment) != PGHOST)
+          List_ChknAdd(src_ents, ment);
       }
     }
   }
@@ -628,7 +625,6 @@ Mesh_MSTK::Mesh_MSTK(const Mesh& inmesh,
 
   Mesh_ptr inmesh_mstk = ((Mesh_MSTK&) inmesh).mesh;
 
-  int mkid = MSTK_GetMarker();
   List_ptr src_ents = List_New(10);
   for (int i = 0; i < setnames.size(); ++i) {
     MSet_ptr mset;
@@ -653,10 +649,8 @@ Mesh_MSTK::Mesh_MSTK(const Mesh& inmesh,
       int idx = 0;
       MEntity_ptr ment;
       while ((ment = (MEntity_ptr) MSet_Next_Entry(mset, &idx))) {
-        if (!MEnt_IsMarked(ment, mkid) && MEnt_PType(ment) != PGHOST) {
-          List_Add(src_ents, ment);
-          MEnt_Mark(ment, mkid);
-        }
+        if (MEnt_PType(ment) != PGHOST)
+          List_ChknAdd(src_ents, ment);
       }
     }
   }
@@ -1237,13 +1231,15 @@ Mesh_MSTK::~Mesh_MSTK() {
   if (NotOwnedFaces) MSet_Delete(NotOwnedFaces);
   if (OwnedCells) MSet_Delete(OwnedCells);
   if (GhostCells) MSet_Delete(GhostCells);
-  if (BoundaryGhostCells) {
-    int idx = 0;
-    MEntity_ptr ment;
-    while ((ment = MSet_Next_Entry(BoundaryGhostCells, &idx)))
-      MEnt_Unmark(ment, boundary_ghost_mark);
-    MSet_Delete(BoundaryGhostCells);
-    if (boundary_ghost_mark) MSTK_FreeMarker(boundary_ghost_mark);
+  if (Mesh::boundary_ghosts_requested_) {
+    if (BoundaryGhostCells) {
+      int idx = 0;
+      MEntity_ptr ment;
+      while ((ment = MSet_Next_Entry(BoundaryGhostCells, &idx)))
+        MEnt_Rem_AttVal(ment, boundary_ghost_att);
+      MSet_Delete(BoundaryGhostCells);
+    }
+    MAttrib_Delete(boundary_ghost_att);
   }
 
   if (entities_deleted) {
@@ -1346,10 +1342,8 @@ void Mesh_MSTK::cell_get_faces_and_dirs_ordered(const Entity_ID cellid,
         }
       }
 
-      /* Markers for faces to avoid searching */
-
-      int mkid = MSTK_GetMarker();
-      MEnt_Mark(face0, mkid);
+      List_ptr rflist = List_New(0);
+      List_Add(rflist, face0);  // List to keep track of processed faces
 
       /* Add all lateral faces first (faces adjacent to the base face) */
 
@@ -1366,7 +1360,7 @@ void Mesh_MSTK::cell_get_faces_and_dirs_ordered(const Entity_ID cellid,
         MFace_ptr fadj;
         int i = 0;
         while ((fadj = List_Next_Entry(rfaces, &idx2))) {
-          if (fadj != face0 && !MEnt_IsMarked(fadj, mkid)) {
+          if (fadj != face0 && !List_Contains(rflist, fadj)) {
 
             if (MF_UsesEntity(fadj, fe, MEDGE)) {
 
@@ -1379,7 +1373,7 @@ void Mesh_MSTK::cell_get_faces_and_dirs_ordered(const Entity_ID cellid,
                 (*face_dirs)[nf] = static_cast<dir_t>(fdir);
               }
 
-              MEnt_Mark(fadj, mkid);
+              List_Add(rflist, fadj);
               nf++;
             }
           }
@@ -1406,7 +1400,7 @@ void Mesh_MSTK::cell_get_faces_and_dirs_ordered(const Entity_ID cellid,
       idx = 0;
       int i = 0;
       while ((fopp = List_Next_Entry(rfaces, &idx))) {
-        if (fopp != face0 && !MEnt_IsMarked(fopp, mkid)) {
+        if (fopp != face0 && !List_Contains(rflist, fopp)) {
 
           lid = MEnt_ID(fopp);
           (*faceids)[nf] = lid-1;
@@ -1423,10 +1417,8 @@ void Mesh_MSTK::cell_get_faces_and_dirs_ordered(const Entity_ID cellid,
         ++i;
       }
 
-      List_Unmark(rfaces, mkid);
-      MSTK_FreeMarker(mkid);
-
       List_Delete(rfaces);
+      List_Delete(rflist);
     } else {
       cell_get_faces_and_dirs_unordered(cellid, faceids, face_dirs);
     }
@@ -2365,8 +2357,6 @@ void Mesh_MSTK::cell_get_node_adj_cells(const Entity_ID cellid,
 
   nadj_cellids->clear();
 
-  mkid = MSTK_GetMarker();
-
   cell_list = List_New(0);
   if (cell_dimension() == 3) {
 
@@ -2380,8 +2370,7 @@ void Mesh_MSTK::cell_get_node_adj_cells(const Entity_ID cellid,
       int idx2 = 0;
       MRegion_ptr mr2;
       while ((mr2 = List_Next_Entry(vregs, &idx2))) {
-        if (mr2 != mr && !MEnt_IsMarked(mr2, mkid)) {
-          MEnt_Mark(mr2, mkid);
+        if (mr2 != mr && !List_Contains(cell_list, mr2)) {
           List_Add(cell_list, mr2);
           if (MEnt_PType(mr2) == PGHOST) {
             if (ptype == Entity_type::PARALLEL_GHOST ||
@@ -2415,8 +2404,7 @@ void Mesh_MSTK::cell_get_node_adj_cells(const Entity_ID cellid,
       int idx2 = 0;
       MFace_ptr mf2;
       while ((mf2 = List_Next_Entry(vfaces, &idx2))) {
-        if (mf2 != mf && !MEnt_IsMarked(mf2, mkid)) {
-          MEnt_Mark(mf2, mkid);
+        if (mf2 != mf && !List_Contains(cell_list, mf2)) {
           List_Add(cell_list, mf2);
           if (MEnt_PType(mf2) == PGHOST) {
             if (ptype == Entity_type::PARALLEL_GHOST ||
@@ -2440,9 +2428,7 @@ void Mesh_MSTK::cell_get_node_adj_cells(const Entity_ID cellid,
 
   }
 
-  List_Unmark(cell_list, mkid);
   List_Delete(cell_list);
-  MSTK_FreeMarker(mkid);
 
 }  // Mesh_MSTK::cell_get_node_adj_cells
 
@@ -4127,7 +4113,10 @@ void Mesh_MSTK::init_pface_dirs() {
 
 void Mesh_MSTK::init_pcell_lists() {
   int idx = 0;
-
+  int is_boundary_ghost;
+  double rval;
+  void *pval;
+  
   if (cell_dimension() == 3) {
     MRegion_ptr region;
 
@@ -4140,7 +4129,11 @@ void Mesh_MSTK::init_pcell_lists() {
       if (MR_PType(region) == PGHOST)
         MSet_Add(GhostCells, region);
       else {
-        if (MEnt_IsMarked(region, boundary_ghost_mark))
+        is_boundary_ghost = 0;
+        if (Mesh::boundary_ghosts_requested_)
+          MEnt_Get_AttVal(region, boundary_ghost_att, &is_boundary_ghost,
+                          &rval, &pval);
+        if (is_boundary_ghost)
           MSet_Add(BoundaryGhostCells, region);
         else
           MSet_Add(OwnedCells, region);
@@ -4158,7 +4151,11 @@ void Mesh_MSTK::init_pcell_lists() {
       if (MF_PType(face) == PGHOST)
         MSet_Add(GhostCells, face);
       else {
-        if (MEnt_IsMarked(face, boundary_ghost_mark))
+        is_boundary_ghost = 0;
+        if (Mesh::boundary_ghosts_requested_)
+          MEnt_Get_AttVal(face, boundary_ghost_att, &is_boundary_ghost,
+                          &rval, &pval);
+        if (is_boundary_ghost)
           MSet_Add(BoundaryGhostCells, face);
         else
           MSet_Add(OwnedCells, face);
@@ -4415,6 +4412,9 @@ void Mesh_MSTK::collapse_degen_edges() {
 
 void Mesh_MSTK::create_boundary_ghosts() {
   if (Mesh::cell_dimension() == 2) {
+
+    boundary_ghost_att = MAttrib_New(mesh, "bndry_ghost", INT, MFACE);
+
     MEdge_ptr me;
     int idx = 0;
     while ((me = MESH_Next_Edge(mesh, &idx))) {
@@ -4427,11 +4427,14 @@ void Mesh_MSTK::create_boundary_ghosts() {
         MFace_ptr mfbndry = MF_New(mesh);
         dir = !dir;
         MF_Set_Edges(mfbndry, 1, &me, &dir);  // One edge for the face
-        MEnt_Mark(mfbndry, boundary_ghost_mark);
+        MEnt_Set_AttVal(mfbndry, boundary_ghost_att, 1, 0.0, NULL);
       }
       List_Delete(efaces);
     }
   } else if (Mesh::cell_dimension() == 3) {
+
+    boundary_ghost_att = MAttrib_New(mesh, "bndry_ghost", INT, MREGION);
+
     MFace_ptr mf;
     int idx = 0;
     while ((mf = MESH_Next_Face(mesh, &idx))) {
@@ -4444,7 +4447,7 @@ void Mesh_MSTK::create_boundary_ghosts() {
         MRegion_ptr mrbndry = MR_New(mesh);
         dir = !dir;
         MR_Set_Faces(mrbndry, 1, &mf, &dir);  // One face for the region
-        MEnt_Mark(mrbndry, boundary_ghost_mark);
+        MEnt_Set_AttVal(mrbndry, boundary_ghost_att, 1, 0.0, NULL);
       }
       List_Delete(fregions);
     }
@@ -5028,11 +5031,6 @@ void Mesh_MSTK::pre_create_steps_(const int space_dimension,
   OwnedCells = GhostCells = BoundaryGhostCells = NULL;
   deleted_vertices = deleted_edges = deleted_faces = deleted_regions = NULL;
   entities_deleted = false;
-  
-  if (Mesh::boundary_ghosts_requested_)
-    boundary_ghost_mark = MSTK_GetMarker();
-  else
-    boundary_ghost_mark = 0;
 }
 
 
@@ -5101,8 +5099,6 @@ void Mesh_MSTK::inherit_labeled_sets(MAttrib_ptr copyatt) {
 
       // Populate the set
 
-      int mkid = MSTK_GetMarker();
-
       MEntity_ptr ent;
       idx = 0;
       while ((ent = MSet_Next_Entry(mset_parent, &idx))) {
@@ -5125,10 +5121,8 @@ void Mesh_MSTK::inherit_labeled_sets(MAttrib_ptr copyatt) {
               MEnt_Get_AttVal(rf, copyatt, &ival, &rval, &copyent);
               if (!copyent) continue;
 
-              if (!MEnt_IsMarked(copyent, mkid)) {
+              if (!MSet_Contains(mset, copyent))
                 MSet_Add(mset, copyent);
-                MEnt_Mark(copyent, mkid);
-              }
             }
             List_Delete(rfaces);
           } else if (entdim == MFACE) {
@@ -5139,20 +5133,14 @@ void Mesh_MSTK::inherit_labeled_sets(MAttrib_ptr copyatt) {
               MEnt_Get_AttVal(fe, copyatt, &ival, &rval, &copyent);
               if (!copyent) continue;
 
-              if (!MEnt_IsMarked(copyent, mkid)) {
+              if (!MSet_Contains(mset, copyent))
                 MSet_Add(mset, copyent);
-                MEnt_Mark(copyent, mkid);
-              }
             }
             List_Delete(fedges);
           }
         }
 
       }
-
-      MSet_Unmark(mset, mkid);
-      MSTK_FreeMarker(mkid);
-
     }
   }
 
