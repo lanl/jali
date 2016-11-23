@@ -2439,9 +2439,16 @@ std::shared_ptr<MeshSet> Mesh::find_meshset(const std::string setname,
       if (set->name() == setname && set->kind() == kind)
         return set;
     }
-    return std::shared_ptr<MeshSet>(nullptr);
-  } else
-    return std::shared_ptr<MeshSet>(nullptr);
+    //    return nullptr; // intel on barugon is barfing on this
+
+    std::shared_ptr<MeshSet> temp_ptr;
+    return temp_ptr;
+  } else {
+    //    return nullptr; // intel on barugon is barfing on this
+
+    std::shared_ptr<MeshSet> temp_ptr;
+    return temp_ptr;
+  }
 }
 
 // Get number of entities of 'type' in set (non-const version - create
