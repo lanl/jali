@@ -22,9 +22,8 @@
 # Standard CMake modules see CMAKE_ROOT/Modules
 #include(FindPackageHandleStandardArgs)
 
-message (STATUS "JDM>> MSTK: Entering FindMSTK.cmake.")
-message (STATUS "JDM>> MSTK: MSTK_LIBRARY_DIR=${MSTK_LIBRARY_DIR} ")
-message (STATUS "JDM>> MSTK: MSTK_INCLUDE_DIR=${MSTK_INCLUDE_DIR} ")
+message (STATUS "MSTK: MSTK_LIBRARY_DIR=${MSTK_LIBRARY_DIR} ")
+message (STATUS "MSTK: MSTK_INCLUDE_DIR=${MSTK_INCLUDE_DIR} ")
 
 # Jali CMake functions see <root>/tools/cmake for source
 include(PrintVariable)
@@ -208,25 +207,9 @@ else(MSTK_LIBRARIES AND MSTK_INCLUDE_DIRS)
 
 endif(MSTK_LIBRARIES AND MSTK_INCLUDE_DIRS )    
 
-# Check MSTK Version to set interface compatibility
-if ( MSTK_VERSION_MINOR )
-   MESSAGE(STATUS "JDM>> MSTK: MSTK_VERSION = ${MSTK_VERSION}")
-   MESSAGE(STATUS "JDM>> MSTK: MSTK_VERSION_MINOR = ${MSTK_VERSION_MINOR}")
-   if ( MSTK_VERSION_MINOR LESS 21 )
-       set ( WITH_MSTK_2_21rc1_OR_NEWER FALSE )
-   else() 
-      set ( WITH_MSTK_2_21rc1_OR_NEWER TRUE )
-   endif()
-else()
-   MESSAGE(STATUS "JDM>> MSTK: MSTK_VERSION unknown, assuming older than 2.21rc1.")
-   set ( WITH_MSTK_2_21rc1_OR_NEWER FALSE )
-endif()
-MESSAGE(STATUS "JDM>> MSTK: WITH_MSTK_2_21rc1_OR_NEWER = ${WITH_MSTK_2_21rc1_OR_NEWER}")
-
 # Look for installed utilities
-if (MSTK_LIBRARIES AND MSTK_INCLUDE_DIRS AND WITH_MSTK_2_21rc1_OR_NEWER)
+if (MSTK_LIBRARIES AND MSTK_INCLUDE_DIRS)
 
-   MESSAGE(STATUS "JDM>> MSTK: searching for utilities in ${MSTK_INCLUDE_DIR}/../bin/")
    set(mstk_utility_names "chkmesh;exoatt;meshconvert")
    foreach (utility ${mstk_utility_names})
      if (EXISTS "${MSTK_INCLUDE_DIR}/../bin/${utility}")
@@ -234,7 +217,6 @@ if (MSTK_LIBRARIES AND MSTK_INCLUDE_DIRS AND WITH_MSTK_2_21rc1_OR_NEWER)
         LIST(APPEND MSTK_UTILITIES_shortnames ${utility})
      endif()
    endforeach()
-   MESSAGE(STATUS "JDM>> MSTK: found utilities ${MSTK_UTILITIES_shortnames}")
 
 endif()
 
