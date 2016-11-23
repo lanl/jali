@@ -4113,7 +4113,10 @@ void Mesh_MSTK::init_pface_dirs() {
 
 void Mesh_MSTK::init_pcell_lists() {
   int idx = 0;
-
+  int is_boundary_ghost;
+  double rval;
+  void *pval;
+  
   if (cell_dimension() == 3) {
     MRegion_ptr region;
 
@@ -4126,9 +4129,11 @@ void Mesh_MSTK::init_pcell_lists() {
       if (MR_PType(region) == PGHOST)
         MSet_Add(GhostCells, region);
       else {
-        
-        if (Mesh::boundary_ghosts_requested_ &&
-            MEnt_Get_IntAttVal(region, boundary_ghost_att) == 1)
+        is_boundary_ghost = 0;
+        if (Mesh::boundary_ghosts_requested_)
+          MEnt_Get_AttVal(region, boundary_ghost_att, &is_boundary_ghost,
+                          &rval, &pval);
+        if (is_boundary_ghost)
           MSet_Add(BoundaryGhostCells, region);
         else
           MSet_Add(OwnedCells, region);
@@ -4146,8 +4151,11 @@ void Mesh_MSTK::init_pcell_lists() {
       if (MF_PType(face) == PGHOST)
         MSet_Add(GhostCells, face);
       else {
-        if (Mesh::boundary_ghosts_requested_ &&
-            MEnt_Get_IntAttVal(face, boundary_ghost_att) == 1)
+        is_boundary_ghost = 0;
+        if (Mesh::boundary_ghosts_requested_)
+          MEnt_Get_AttVal(face, boundary_ghost_att, &is_boundary_ghost,
+                          &rval, &pval);
+        if (is_boundary_ghost)
           MSet_Add(BoundaryGhostCells, face);
         else
           MSet_Add(OwnedCells, face);
@@ -4419,7 +4427,7 @@ void Mesh_MSTK::create_boundary_ghosts() {
         MFace_ptr mfbndry = MF_New(mesh);
         dir = !dir;
         MF_Set_Edges(mfbndry, 1, &me, &dir);  // One edge for the face
-        MEnt_Set_IntAttVal(mfbndry, boundary_ghost_att, 1);
+        MEnt_Set_AttVal(mfbndry, boundary_ghost_att, 1, 0.0, NULL);
       }
       List_Delete(efaces);
     }
@@ -4439,7 +4447,7 @@ void Mesh_MSTK::create_boundary_ghosts() {
         MRegion_ptr mrbndry = MR_New(mesh);
         dir = !dir;
         MR_Set_Faces(mrbndry, 1, &mf, &dir);  // One face for the region
-        MEnt_Set_IntAttVal(mrbndry, boundary_ghost_att, 1);
+        MEnt_Set_AttVal(mrbndry, boundary_ghost_att, 1, 0.0, NULL);
       }
       List_Delete(fregions);
     }
