@@ -19,7 +19,7 @@ import/export, mesh partitioning and MPI communication. To build Jali,
 you must point the build system to a directory containing the TPLs or
 build the third party libraries as described below.
 
-Jali *0.6.5*  uses version *1.0.2* or higher of the TPL set. See
+Jali *0.9.2*  uses version *1.0.7* or higher of the TPL set. See
 $JALI_SOURCE/config/SuperBuild/TPLVersions.cmake for details.
 
 # Installation instructions
