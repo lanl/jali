@@ -30,7 +30,7 @@ Jali_tpl_version_write(FILENAME ${TPL_VERSIONS_INCLUDE_FILE}
 #endif()
 
 # List of packages enabled in the Trilinos build
-#set(Trilinos_PACKAGE_LIST Teuchos Epetra NOX)
+set(Trilinos_PACKAGE_LIST Epetra NOX AztecOO)
 #if ( ENABLE_STK_Mesh )
 #  list(APPEND Trilinos_PACKAGE_LIST STK)
 #endif()
@@ -118,6 +118,7 @@ endif()
 set(Trilinos_CMAKE_EXTRA_ARGS
     "-DTrilinos_VERBOSE_CONFIGURE:BOOL=ON"
     "-DTrilinos_ENABLE_TESTS:BOOL=OFF"
+    "-DTrilinos_ENABLE_Gtest:BOOL=OFF"
     "-DCMAKE_VERBOSE_MAKEFILE:BOOL=ON"
     )
 if ( CMAKE_BUILD_TYPE )

@@ -46,8 +46,7 @@ int main(int argc, char *argv[]) {
     // with 3, 3 and 3 elements in the X, Y and Z directions.
     // Request faces, edges, wedges and corners
 
-    mesh_factory.included_entities({Entity_kind::EDGE, Entity_kind::FACE,
-            Entity_kind::WEDGE, Entity_kind::CORNER});
+    mesh_factory.included_entities(Entity_kind::ALL_KIND);
 
     mymesh = mesh_factory(0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 3, 3, 3);
   }
@@ -56,7 +55,7 @@ int main(int argc, char *argv[]) {
   // Iterate through the cells of the mesh and get their node vertices and
   // their volumes+centroids
   
-  for (auto c : mymesh->cells<Parallel_type::OWNED>()) {
+  for (auto c : mymesh->cells<Entity_type::PARALLEL_OWNED>()) {
     std::cerr << "Cell " << c << ":" << std::endl;
     
     // Get coordinates of nodes of cell

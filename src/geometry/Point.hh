@@ -75,7 +75,7 @@ class Point {
   void set(const int N, const double *val) {
     ASSERT(val);
     d = N;
-    std::copy(val,val+d,xyz);
+    std::copy(val, val+d, xyz);
   }
   void set(const double& x, const double& y) {
     d = 2;

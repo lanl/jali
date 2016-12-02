@@ -164,14 +164,10 @@ int main(int argc, char *argv[]) {
   if (framework_available(MSTK)) {  // check if framework is available
     mesh_factory.preference(pref);
   
-    // Read in an exodus file. Request faces, edges, wedges and
-    // corners
+    // Read in an exodus file. Request faces (in addition to the
+    // default cells and nodes)
 
-    std::vector<Entity_kind> entitylist = {Entity_kind::EDGE,
-                                           Entity_kind::FACE,
-                                           Entity_kind::WEDGE,
-                                           Entity_kind::CORNER};
-    mesh_factory.included_entities(entitylist);
+    mesh_factory.included_entities(Entity_kind::FACE);
 
     // MAKE SURE TO SPECIFY THE GEOMETRIC MODEL
     
@@ -194,12 +190,12 @@ int main(int argc, char *argv[]) {
   // Print out the number of cells in the mesh
 
   std::cerr << "Number of mesh cells: " <<
-      mymesh->num_cells<Parallel_type::ALL>() << std::endl;
+      mymesh->num_cells<Entity_type::ALL>() << std::endl;
 
   // Print out the number of nodes in the mesh
 
   std::cerr << "Number of mesh nodes: " <<
-      mymesh->num_nodes<Parallel_type::ALL>() << std::endl;
+      mymesh->num_nodes<Entity_type::ALL>() << std::endl;
 
 
   
@@ -210,7 +206,7 @@ int main(int argc, char *argv[]) {
 
   for (int i = 0; i < ncellsets; ++i) {
     int ncells = mymesh->get_set_size(cellsetnames[i], Entity_kind::CELL,
-                                      Parallel_type::OWNED);
+                                      Entity_type::PARALLEL_OWNED);
     if (ncells != expected_cells[i].size()) {
       std::cerr << "Wrong number of cells in cell set " << cellsetnames[i] <<
           "(Expected " << expected_cells[i].size() << " Got " << ncells <<
@@ -220,7 +216,7 @@ int main(int argc, char *argv[]) {
 
     Entity_ID_List cellids;
     mymesh->get_set_entities(cellsetnames[i], Entity_kind::CELL,
-                             Parallel_type::OWNED, &cellids);
+                             Entity_type::PARALLEL_OWNED, &cellids);
     int j = 0;
     for (auto const & c : cellids) {
       if (expected_cells[i][j] != c) {
@@ -240,7 +236,7 @@ int main(int argc, char *argv[]) {
 
   for (int i = 0; i < nfacesets; ++i) {
     int nfaces = mymesh->get_set_size(facesetnames[i], Entity_kind::FACE,
-                                      Parallel_type::OWNED);
+                                      Entity_type::PARALLEL_OWNED);
     if (nfaces != expected_faces[i].size()) {
       std::cerr << "Wrong number of faces in face set " << facesetnames[i] <<
           "(Expected " << expected_faces[i].size() << " Got " << nfaces <<
@@ -250,7 +246,7 @@ int main(int argc, char *argv[]) {
 
     Entity_ID_List faceids;
     mymesh->get_set_entities(facesetnames[i], Entity_kind::FACE,
-                             Parallel_type::OWNED, &faceids);
+                             Entity_type::PARALLEL_OWNED, &faceids);
     int j = 0;
     for (auto const & f : faceids) {
       if (expected_faces[i][j] != f) {
@@ -270,7 +266,7 @@ int main(int argc, char *argv[]) {
 
   for (int i = 0; i < nnodesets; ++i) {
     int nnodes = mymesh->get_set_size(nodesetnames[i], Entity_kind::NODE,
-                                      Parallel_type::OWNED);
+                                      Entity_type::PARALLEL_OWNED);
     if (nnodes != expected_nodes[i].size()) {
       std::cerr << "Wrong number of nodes in node set " << nodesetnames[i] <<
           "(Expected " << expected_nodes[i].size() << " Got " << nnodes <<
@@ -280,7 +276,7 @@ int main(int argc, char *argv[]) {
 
     Entity_ID_List nodeids;
     mymesh->get_set_entities(nodesetnames[i], Entity_kind::NODE,
-                             Parallel_type::OWNED, &nodeids);
+                             Entity_type::PARALLEL_OWNED, &nodeids);
     int j = 0;
     for (auto const & n : nodeids) {
       if (expected_nodes[i][j] != n) {

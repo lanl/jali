@@ -31,11 +31,11 @@ SUITE(MeshSimple) {
                               {1, 3, 7, 5}};
 
     CHECK_EQUAL(1, Mm.num_entities(Jali::Entity_kind::CELL,
-                                   Jali::Parallel_type::OWNED));
+                                   Jali::Entity_type::PARALLEL_OWNED));
     CHECK_EQUAL(6, Mm.num_entities(Jali::Entity_kind::FACE,
-                                   Jali::Parallel_type::OWNED));
+                                   Jali::Entity_type::PARALLEL_OWNED));
     CHECK_EQUAL(8, Mm.num_entities(Jali::Entity_kind::NODE,
-                                   Jali::Parallel_type::OWNED));
+                                   Jali::Entity_type::PARALLEL_OWNED));
 
     std::vector<JaliGeometry::Point> x(8);
     std::vector<Jali::Entity_ID> nodes(8);
@@ -43,7 +43,7 @@ SUITE(MeshSimple) {
 
     for (Jali::Entity_ID i = 0;
          i < Mm.num_entities(Jali::Entity_kind::CELL,
-                             Jali::Parallel_type::OWNED);
+                             Jali::Entity_type::PARALLEL_OWNED);
          ++i) {
       Mm.cell_get_nodes(i, &nodes);
 
@@ -82,7 +82,7 @@ SUITE(MeshSimple) {
     // Make a 1 cell, 1d cartesian mesh
     std::vector<double> node_pts = {0.0, 1.0};
     Jali::Mesh_simple Mm(node_pts, MPI_COMM_WORLD, NULL,
-                         true, true, true, true);
+                         true, true, true, true, true);
 
     // Move one of the nodes
     double xc[] = { 2.0 };
@@ -99,17 +99,17 @@ SUITE(MeshSimple) {
 
     // Make sure we have the right number of entities
     CHECK_EQUAL(1, Mm.num_entities(Jali::Entity_kind::CELL,
-                                   Jali::Parallel_type::OWNED));
-    CHECK_EQUAL(1, Mm.num_entities(Jali::Entity_kind::EDGE,
-                                   Jali::Parallel_type::OWNED));
+                                   Jali::Entity_type::PARALLEL_OWNED));
+    CHECK_EQUAL(2, Mm.num_entities(Jali::Entity_kind::EDGE,
+                                   Jali::Entity_type::PARALLEL_OWNED));
     CHECK_EQUAL(2, Mm.num_entities(Jali::Entity_kind::FACE,
-                                   Jali::Parallel_type::OWNED));
+                                   Jali::Entity_type::PARALLEL_OWNED));
     CHECK_EQUAL(2, Mm.num_entities(Jali::Entity_kind::NODE,
-                                   Jali::Parallel_type::OWNED));
-    CHECK_EQUAL(2, Mm.num_entities(Jali::Entity_kind::WEDGE,
-                                   Jali::Parallel_type::OWNED));
+                                   Jali::Entity_type::PARALLEL_OWNED));
+    CHECK_EQUAL(4, Mm.num_entities(Jali::Entity_kind::WEDGE,
+                                   Jali::Entity_type::PARALLEL_OWNED));
     CHECK_EQUAL(2, Mm.num_entities(Jali::Entity_kind::CORNER,
-                                   Jali::Parallel_type::OWNED));
+                                   Jali::Entity_type::PARALLEL_OWNED));
 
     std::vector<JaliGeometry::Point> x(2);
     std::vector<Jali::Entity_ID> nodes(2);
@@ -117,7 +117,7 @@ SUITE(MeshSimple) {
 
     for (Jali::Entity_ID i = 0;
          i < Mm.num_entities(Jali::Entity_kind::CELL,
-                             Jali::Parallel_type::OWNED);
+                             Jali::Entity_type::PARALLEL_OWNED);
          ++i) {
       Mm.cell_get_nodes(i, &nodes);
 

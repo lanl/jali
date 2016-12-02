@@ -43,13 +43,9 @@ int main(int argc, char *argv[]) {
 
     // Create a 3D mesh from (0.0,0.0,0.0) to (1.0,1.0,1.0)
     // with 3, 3 and 3 elements in the X, Y and Z directions. 
-    // Request faces, edges, wedges and corners
+    // Request faces, edges but not wedges or corners
 
-    std::vector<Entity_kind> entitylist = {Entity_kind::EDGE,
-                                           Entity_kind::FACE,
-                                           Entity_kind::WEDGE,
-                                           Entity_kind::CORNER};
-    mesh_factory.included_entities(entitylist);
+    mesh_factory.included_entities({Entity_kind::EDGE, Entity_kind::FACE});
 
     mymesh = mesh_factory(0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 3, 3, 3);
   }
@@ -63,12 +59,22 @@ int main(int argc, char *argv[]) {
   // Print out the number of cells in the mesh
 
   std::cerr << "Number of mesh cells: " <<
-    mymesh->num_entities(Entity_kind::CELL, Parallel_type::ALL) << std::endl;
+      mymesh->num_cells<Entity_type::ALL>() << std::endl;
 
   // Print out the number of nodes in the mesh
 
   std::cerr << "Number of mesh nodes: " <<
-    mymesh->num_entities(Entity_kind::NODE, Parallel_type::ALL) << std::endl;
+      mymesh->num_nodes<Entity_type::ALL>() << std::endl;
+
+  // Print out the number of edges in the mesh
+
+  std::cerr << "Number of mesh edges: " <<
+      mymesh->num_edges<Entity_type::ALL>() << std::endl;
+
+  // Print out the number of nodes in the mesh
+
+  std::cerr << "Number of mesh faces: " <<
+      mymesh->num_faces<Entity_type::ALL>() << std::endl;
 
 
 

@@ -84,11 +84,7 @@ int main(int argc, char *argv[]) {
 
     int num_tiles = 4;
 
-    std::vector<Entity_kind> entitylist = {Entity_kind::EDGE,
-                                           Entity_kind::FACE,
-                                           Entity_kind::WEDGE,
-                                           Entity_kind::CORNER};
-    mesh_factory.included_entities(entitylist);
+    mesh_factory.included_entities(Entity_kind::ALL_KIND);
 
     mesh_factory.num_tiles(num_tiles);
 
@@ -99,12 +95,12 @@ int main(int argc, char *argv[]) {
   // Print out the number of cells in the mesh
 
   std::cerr << "Number of mesh cells: " <<
-    mymesh->num_cells<Parallel_type::ALL>() << std::endl;
+    mymesh->num_cells<Entity_type::ALL>() << std::endl;
 
   // Print out the number of nodes in the mesh
 
   std::cerr << "Number of mesh nodes: " <<
-    mymesh->num_nodes<Parallel_type::ALL>() << std::endl;
+    mymesh->num_nodes<Entity_type::ALL>() << std::endl;
 
 
   // Create a Jali State Manager
@@ -131,25 +127,25 @@ int main(int argc, char *argv[]) {
   // that is figured out from the arguments to the add function. 
 
   StateVector<double> & myvec = mystate.add("myzonevar", mymesh,
-                                            Entity_kind::CELL,
-                                            Parallel_type::ALL, data);
+                                             Entity_kind::CELL,
+                                             Entity_type::ALL, data);
 
 
   // Try to retrieve it through a get function
 
-  StateVector<double, Jali::Mesh> myvec_copy;
+  StateVector<double, Jali::Mesh> myvec_copy1;
   bool found = mystate.get("myzonevar", mymesh, Entity_kind::CELL,
-                           Parallel_type::ALL, &myvec_copy);
+                           Entity_type::ALL, &myvec_copy1);
 
-  int ndata = myvec_copy.size();
-  if (myvec.size() != myvec_copy.size()) {
+  int ndata = myvec_copy1.size();
+  if (myvec.size() != myvec_copy1.size()) {
     std::cerr << "Stored and retrieved vectors have different sizes?" <<
       std::endl;
     exit(-1);
   }
    
   for (int i = 0; i < ndata; i++) {
-    if (myvec[i] != myvec_copy[i]) {
+    if (myvec[i] != myvec_copy1[i]) {
       std::cerr << "Stored and retrieved vectors differ at element " << i <<
         std::endl;
     }
@@ -166,12 +162,12 @@ int main(int argc, char *argv[]) {
 
   // Modify a value in the state vector
 
-  myvec_copy[3] = 25;
+  myvec_copy1[3] = 25;
 
 
   // It should get reflected in myvec since it points to the same data
 
-  if (myvec[3] != myvec_copy[3]) {
+  if (myvec[3] != myvec_copy1[3]) {
     std::cerr << "Stored and retrieved vectors don't point to the same data?" <<
         std::endl;
     std::cerr << "A change in one was not reflected in the other" << std::endl;
@@ -188,24 +184,37 @@ int main(int argc, char *argv[]) {
   }
 
 
-  // Make a new state vector using a copy constructor - DEEP COPY OF DATA
+  // Add a new uninitialized state vector - Note that we have to
+  // explicitly tell the state manager the data type (double) since
+  // there is no input data for it to infer it from
 
-  StateVector<double> newvec = myvec;  // Also note: newvec is not in mystate!
+  StateVector<double>& newvec = mystate.add<double>("vector2", mymesh, 
+                                                   Entity_kind::CELL,
+                                                   Entity_type::ALL);
+
+  // Modify newvec 
+
+  for (auto const& c : mymesh->cells())
+    newvec[c] = 2.0*c;
+    
+
+  // Retrieve the vector from the state manager separately and make sure
+  // that the changes in newvec were reflected in the state manager
+
+  StateVector<double, Mesh> newvec_copy;
+  found = mystate.get("vector2", mymesh, Entity_kind::CELL,
+                      Entity_type::ALL, &newvec_copy);
 
 
-
-  // changing an element in myvec will not change newvec since new vec
-  // has its own data space
-
-  double old_val = myvec[2];
-  myvec[2] = 33;
-
-  if (newvec[2] == myvec[2] || newvec[2] != old_val) {
-    std::cerr << "Original and copy constructed vectors share data space?" <<
-        std::endl;
-    exit(-1);
+  ndata = newvec.size();
+  for (int i = 0; i < ndata; ++i) {
+    if (newvec[i] != newvec_copy[i]) {
+      std::cerr <<
+          "Changes to state vector reference not reflected in State Manager?" <<
+          std::endl;
+      break;
+    }
   }
-
 
   // Print out myvec
 
@@ -234,7 +243,7 @@ int main(int argc, char *argv[]) {
 
 
   StateVector<std::array<double, 3>> vec2d("vec3", mymesh, Entity_kind::NODE,
-                                           Parallel_type::OWNED,
+                                           Entity_type::PARALLEL_OWNED,
                                            &(arrdata[0]));
 
   std::cerr << vec2d << std::endl;
@@ -246,11 +255,11 @@ int main(int argc, char *argv[]) {
   int i = 0;
   for (auto const& meshtile : mymesh->tiles()) {
     auto tilevec_put = mystate.add("vector_on_tile", meshtile,
-                                   Entity_kind::CELL, Parallel_type::OWNED,
+                                   Entity_kind::CELL, Entity_type::PARALLEL_OWNED,
                                    &(data[4*i]));
     
     auto tilevec2d_put = mystate.add("2Darray_on_tile", meshtile,
-                                     Entity_kind::CORNER, Parallel_type::OWNED,
+                                     Entity_kind::CORNER, Entity_type::PARALLEL_OWNED,
                                      &(arrdata[0]));
     i++;
   }
@@ -262,7 +271,7 @@ int main(int argc, char *argv[]) {
   for (auto const& meshtile : mymesh->tiles()) {
     StateVector<double, MeshTile> tilevec_get;
     found = mystate.get("vector_on_tile", meshtile, Entity_kind::CELL,
-                        Parallel_type::OWNED, &tilevec_get);
+                        Entity_type::PARALLEL_OWNED, &tilevec_get);
 
     std::cerr << "1D vector on tile cells: " << std::endl;
     std::cerr << tilevec_get << std::endl;
@@ -270,7 +279,7 @@ int main(int argc, char *argv[]) {
 
     StateVector<std::array<double, 3>, MeshTile> tilevec2d_get;
     found = mystate.get("2Darray_on_tile", meshtile, Entity_kind::CORNER,
-                        Parallel_type::OWNED, &tilevec2d_get);
+                        Entity_type::PARALLEL_OWNED, &tilevec2d_get);
 
 
     std::cerr << "2D vector on tile cells: " << std::endl;

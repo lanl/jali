@@ -1,7 +1,12 @@
-#include <UnitTest++.h>
+/* Copyright 2016, Los Alamos National Laboratory */
 
 #include <iostream>
+#include <cstdint>
+
 #include "mpi.h"
+
+
+#include <UnitTest++.h>
 
 #include "../Mesh_MSTK.hh"
 
@@ -11,7 +16,7 @@ TEST(MSTK_HEX1)
   int i, j, k, err, nc, nv;
   std::vector<Jali::Entity_ID> faces(6), facenodes(4), cellnodes(8),
       expfacenodes(4);
-  std::vector<int> facedirs(6);
+  std::vector<Jali::dir_t> facedirs(6);
   std::vector<JaliGeometry::Point> ccoords(8), fcoords(4);
 
   int NV = 8;
@@ -42,7 +47,8 @@ TEST(MSTK_HEX1)
 
   // Check number of nodes and their coordinates
 
-  nv = mesh->num_entities(Jali::Entity_kind::NODE, Jali::Parallel_type::OWNED);
+  nv = mesh->num_entities(Jali::Entity_kind::NODE,
+                          Jali::Entity_type::PARALLEL_OWNED);
   CHECK_EQUAL(NV, nv);
 
   for (i = 0; i < nv; i++) {
@@ -57,7 +63,8 @@ TEST(MSTK_HEX1)
 
   // Check number of cells and their face nodes and their face coordinates
 
-  nc = mesh->num_entities(Jali::Entity_kind::CELL, Jali::Parallel_type::OWNED);
+  nc = mesh->num_entities(Jali::Entity_kind::CELL,
+                          Jali::Entity_type::PARALLEL_OWNED);
   CHECK_EQUAL(NC, nc);
 
 

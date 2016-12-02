@@ -1,4 +1,4 @@
-/* -*-  mode: c++; c-default-style: "google"; indent-tabs-mode: nil -*- */
+// Copyright Los Alamos National Security, LLC 2009-2016
 /**
  * @file   LogicalRegion.hh
  * @author Rao Garimella
@@ -13,9 +13,12 @@
 #ifndef _LogicalRegion_hh_
 #define _LogicalRegion_hh_
 
+#include <vector>
+#include <string>
+
 #include "Region.hh"
 
-  namespace JaliGeometry {
+namespace JaliGeometry {
 
 // -------------------------------------------------------------
 //  class LogicalRegion
@@ -29,7 +32,7 @@
 ///
 
 class LogicalRegion : public Region {
-public:
+ public:
 
   /// Default constructor
 
@@ -40,9 +43,9 @@ public:
                 const LifeCycle_type lifecycle = LifeCycle_type::PERMANENT);
 
 
-  LogicalRegion(const char *name,
+  LogicalRegion(const std::string,
                 const unsigned int id,
-                const std::string operation_str,
+                const Bool_type bool_op_type,
                 const std::vector<std::string> region_names,
                 const LifeCycle_type lifecycle = LifeCycle_type::PERMANENT);
 
@@ -66,9 +69,9 @@ public:
   { return region_names_; }
 
 
-protected:
-  JaliGeometry::Bool_type operation_; // what logical operation should be performed
-  const std::vector<std::string> region_names_; // names of regions in operation
+ protected:
+  JaliGeometry::Bool_type operation_;  // logical operation to be performed
+  const std::vector<std::string> region_names_;  // participating region names
 };
 
 /// A smart pointer to LogicalRegion instances
@@ -79,7 +82,7 @@ protected:
 
 typedef LogicalRegion *LogicalRegionPtr;
 
-} // namespace JaliGeometry
+}  // namespace JaliGeometry
 
 
 #endif

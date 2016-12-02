@@ -1,13 +1,15 @@
-#include <UnitTest++.h>
+/* Copyright 2016, Los Alamos National Laboratory */
 
+#include <cstdint>
 #include <iostream>
+
+#include <UnitTest++.h>
 
 #include "../Mesh_MSTK.hh"
 
 // Test edge functions in 2D
 
-TEST(MSTK_EDGES_2D)
-{
+TEST(MSTK_EDGES_2D) {
 
   int rank, size;
 
@@ -32,9 +34,9 @@ TEST(MSTK_EDGES_2D)
   // Check that we get the expected number of edges
 
   int ne_owned = mesh->num_entities(Jali::Entity_kind::EDGE,
-                                    Jali::Parallel_type::OWNED);
+                                    Jali::Entity_type::PARALLEL_OWNED);
   int ne_all = mesh->num_entities(Jali::Entity_kind::EDGE,
-                                  Jali::Parallel_type::ALL);
+                                  Jali::Entity_type::ALL);
 
   // This assumes a symmetric partitioning - not always the case with
   // ZOLTAN graph partitioning
@@ -45,17 +47,17 @@ TEST(MSTK_EDGES_2D)
   // global IDs for a cell must match
 
   int nc_owned = mesh->num_entities(Jali::Entity_kind::CELL,
-                                    Jali::Parallel_type::OWNED);
+                                    Jali::Entity_type::PARALLEL_OWNED);
 
   for (int c = 0; c < nc_owned; ++c) {
     Jali::Entity_ID_List cedges, cfaces, fedges;
-    std::vector<int> cfdirs, fedirs, cedirs;
+    std::vector<Jali::dir_t> cfdirs, fedirs, cedirs;
 
     mesh->cell_get_edges(c, &cedges);
     mesh->cell_get_faces_and_dirs(c, &cfaces, &cfdirs);
 
     for (int e = 0; e < cedges.size(); ++e) {
-      CHECK_EQUAL(mesh->GID(cedges[e], Jali::Entity_kind::EDGE), 
+      CHECK_EQUAL(mesh->GID(cedges[e], Jali::Entity_kind::EDGE),
                   mesh->GID(cfaces[e], Jali::Entity_kind::FACE));
     }
 
@@ -101,8 +103,7 @@ TEST(MSTK_EDGES_2D)
 
 // Test edge functions in 3D
 
-TEST(MSTK_EDGES_3D)
-{
+TEST(MSTK_EDGES_3D) {
 
   int rank, size;
 
@@ -126,9 +127,9 @@ TEST(MSTK_EDGES_3D)
   // How many owned and used edges are there?
 
   int ne_owned = mesh->num_entities(Jali::Entity_kind::EDGE,
-                                    Jali::Parallel_type::OWNED);
+                                    Jali::Entity_type::PARALLEL_OWNED);
   int ne_all = mesh->num_entities(Jali::Entity_kind::EDGE,
-                                  Jali::Parallel_type::ALL);
+                                  Jali::Entity_type::ALL);
 
   // Check that we got a non-zero number
 
@@ -141,11 +142,11 @@ TEST(MSTK_EDGES_3D)
   // of these faces and do additional checks
 
   int nc_owned = mesh->num_entities(Jali::Entity_kind::CELL,
-                                    Jali::Parallel_type::OWNED);
+                                    Jali::Entity_type::PARALLEL_OWNED);
 
   for (int c = 0; c < nc_owned; ++c) {
     Jali::Entity_ID_List cedges, cfaces, fedges;
-    std::vector<int> cfdirs, fedirs;
+    std::vector<Jali::dir_t> cfdirs, fedirs;
 
     mesh->cell_get_edges(c, &cedges);
     mesh->cell_get_faces_and_dirs(c, &cfaces, &cfdirs);

@@ -48,30 +48,14 @@ LogicalRegion::LogicalRegion(const std::string name,
 
 }
 
-LogicalRegion::LogicalRegion(const char *name,
+LogicalRegion::LogicalRegion(const std::string name,
                              const unsigned int id,
-                             const std::string operation_str,
+                             const Bool_type bool_op_type,
                              const std::vector<std::string> region_names,
                              const LifeCycle_type lifecycle)
-    : Region(name,id,3,lifecycle), operation_(Bool_type::NOBOOLEAN),
+    : Region(name,id,3,lifecycle), operation_(bool_op_type),
     region_names_(region_names)
 {
-  // Region dimension is set arbitrarily as 3 since the set of
-  // entities in the mesh will determine the dimension
-
-
-  if (operation_str == "Complement")
-    operation_ = Bool_type::COMPLEMENT;
-  else if (operation_str == "Union")
-    operation_ = Bool_type::UNION;
-  else if (operation_str == "Intersect")
-    operation_ = Bool_type::INTERSECT;
-  else if (operation_str == "Subtract")
-    operation_ = Bool_type::SUBTRACT;
-  else {
-    Errors::Message mesg("Unknown logical operation type requested on regions");
-    Exceptions::Jali_throw(mesg);
-  }
 }
 
 LogicalRegion::LogicalRegion(const LogicalRegion& old)

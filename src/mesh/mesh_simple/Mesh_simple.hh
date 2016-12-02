@@ -5,8 +5,10 @@
 #ifndef _MESH_SIMPLE_H_
 #define _MESH_SIMPLE_H_
 
+#include <cstdint>
 #include <memory>
 #include <vector>
+#include <string>
 #include "mpi.h"
 
 #include "Mesh.hh"
@@ -38,11 +40,13 @@ public:
                (JaliGeometry::GeometricModelPtr) NULL,
                const bool request_faces = true,
                const bool request_edges = false,
+               const bool request_sides = false,
                const bool request_wedges = false,
                const bool request_corners = false,
                const int num_tiles_ini = 0,
                const int num_ghost_layers_tile = 0,
                const int num_ghost_layers_distmesh = 0,
+               const bool request_boundary_ghosts = false,
                const Partitioner_type partitioner = Partitioner_type::METIS);
 
   Mesh_simple (double x0, double y0,
@@ -52,26 +56,30 @@ public:
                (JaliGeometry::GeometricModelPtr) NULL,
                const bool request_faces = true,
                const bool request_edges = false,
+               const bool request_sides = false,
                const bool request_wedges = false,
                const bool request_corners = false,
                const int num_tiles_ini = 0,
                const int num_ghost_layers_tile = 0,
                const int num_ghost_layers_distmesh = 0,
+               const bool request_boundary_ghosts = false,
                const Partitioner_type partitioner = Partitioner_type::METIS,
                const JaliGeometry::Geom_type geom_type =
                JaliGeometry::Geom_type::CARTESIAN);
 
 
-  Mesh_simple (std::vector<double> x, const MPI_Comm& communicator,
+  Mesh_simple (const std::vector<double>& x, const MPI_Comm& communicator,
                const JaliGeometry::GeometricModelPtr &gm =
                (JaliGeometry::GeometricModelPtr) NULL,
                const bool request_faces = true,
                const bool request_edges = false,
+               const bool request_sides = false,
                const bool request_wedges = false,
                const bool request_corners = false,
                const int num_tiles_ini = 0,
                const int num_ghost_layers_tile = 0,
                const int num_ghost_layers_distmesh = 0,
+               const bool request_boundary_ghosts = false,
                const Partitioner_type partitioner = Partitioner_type::METIS,
                const JaliGeometry::Geom_type geom_type =
                JaliGeometry::Geom_type::CARTESIAN);
@@ -89,11 +97,13 @@ public:
               const bool extrude = false,
               const bool request_faces = true,
               const bool request_edges = false,
+              const bool request_sides = false,
               const bool request_wedges = false,
               const bool request_corners = false,
               const int num_tiles = 0,
               const int num_ghost_layers_tile = 0,
-               const int num_ghost_layers_distmesh = 0,
+              const int num_ghost_layers_distmesh = 0,
+               const bool request_boundary_ghosts = false,
               const Partitioner_type partitioner = Partitioner_type::METIS,
               const JaliGeometry::Geom_type geom_type =
               JaliGeometry::Geom_type::CARTESIAN);
@@ -105,11 +115,13 @@ public:
               const bool extrude = false,
               const bool request_faces = true,
               const bool request_edges = false,
+              const bool request_sides = false,
               const bool request_wedges = false,
               const bool request_corners = false,
               const int num_tiles = 0,
               const int num_ghost_layers_tile = 0,
               const int num_ghost_layers_distmesh = 0,
+               const bool request_boundary_ghosts = false,
               const Partitioner_type partitioner = Partitioner_type::METIS,
               const JaliGeometry::Geom_type geom_type =
               JaliGeometry::Geom_type::CARTESIAN);
@@ -121,20 +133,18 @@ public:
               const bool extrude = false,
               const bool request_faces = true,
               const bool request_edges = false,
+              const bool request_sides = false,
               const bool request_wedges = false,
               const bool request_corners = false,
               const int num_tiles = 0,
               const int num_ghost_layers_tile = 0,
               const int num_ghost_layers_distmesh = 0,
+               const bool request_boundary_ghosts = false,
               const Partitioner_type partitioner = Partitioner_type::METIS,
               const JaliGeometry::Geom_type geom_type =
               JaliGeometry::Geom_type::CARTESIAN);
 
   virtual ~Mesh_simple ();
-
-  // Get parallel type of entity
-  Parallel_type entity_get_ptype(const Entity_kind kind,
-                                 const Entity_ID entid) const;
 
 
   // Get cell type
@@ -175,14 +185,14 @@ public:
 
   // Get nodes of edge
 
-  void edge_get_nodes(const Entity_ID edgeid, Entity_ID *nodeid0,
-                      Entity_ID *nodeid1) const {
+  void edge_get_nodes_internal(const Entity_ID edgeid, Entity_ID *nodeid0,
+                               Entity_ID *nodeid1) const {
     if (spacedim == 1) {
-      std::vector<Entity_ID> cell_nodes;
-      // edgeid and cellid are the same in 1d
-      cell_get_nodes(edgeid, &cell_nodes);
-      *nodeid0 = cell_nodes[0];
-      *nodeid1 = cell_nodes[1];
+      // In 1D will define faces, edges and nodes to be the same
+      // So the edge will be degenerate
+      // edgeid and nodeid are the same in 1d
+      *nodeid0 = edgeid;
+      *nodeid1 = edgeid;
     } else {
       Errors::Message mesg("Edges not implemented in this framework. Use MSTK");
       Exceptions::Jali_throw(mesg);
@@ -194,19 +204,19 @@ public:
 
   // Cells of type 'ptype' connected to a node
   void node_get_cells(const Entity_ID nodeid,
-                      const Parallel_type ptype,
+                      const Entity_type ptype,
                       std::vector<Entity_ID> *cellids) const;
 
   // Faces of type 'ptype' connected to a node
   void node_get_faces(const Entity_ID nodeid,
-                      const Parallel_type ptype,
+                      const Entity_type ptype,
                       std::vector<Entity_ID> *faceids) const;
 
   // Get faces of ptype of a particular cell that are connected to the
   // given node
   void node_get_cell_faces(const Entity_ID nodeid,
                            const Entity_ID cellid,
-                           const Parallel_type ptype,
+                           const Entity_type ptype,
                            std::vector<Entity_ID> *faceids) const;
 
   // Same level adjacencies
@@ -221,7 +231,7 @@ public:
   // faces given by cell_get_faces
 
   void cell_get_face_adj_cells(const Entity_ID cellid,
-                               const Parallel_type ptype,
+                               const Entity_type ptype,
                                std::vector<Entity_ID> *fadj_cellids) const;
 
   // Node connected neighboring cells of given cell
@@ -229,7 +239,7 @@ public:
   // The cells are returned in no particular order
 
   void cell_get_node_adj_cells(const Entity_ID cellid,
-                               const Parallel_type ptype,
+                               const Entity_type ptype,
                                std::vector<Entity_ID> *nadj_cellids) const;
 
   //
@@ -240,6 +250,12 @@ public:
   // Node coordinates - 3 in 3D and 2 in 2D
   void node_get_coordinates(const Entity_ID nodeid,
                             JaliGeometry::Point *ncoord) const;
+
+  // Node coordinates - 3D points
+  void node_get_coordinates(const Entity_ID nodeid,
+                            std::array<double, 3> *ncoord) const;
+  // Node coordinates - 1D points
+  void node_get_coordinates(const Entity_ID nodeid, double *ncoord) const;
 
   // Face coordinates - conventions same as face_to_nodes call
   // Number of nodes is the vector size divided by number of spatial dimensions
@@ -262,32 +278,6 @@ public:
 
   void node_set_coordinates(const Entity_ID nodeid, const double *coords);
 
-  //
-  // Boundary Conditions or Sets
-  //----------------------------
-  //
-
-  unsigned int get_set_size(const Set_Name setname,
-                            const Entity_kind kind,
-                            const Parallel_type ptype) const;
-
-
-  unsigned int get_set_size(const char *setname,
-                            const Entity_kind kind,
-                            const Parallel_type ptype) const;
-
-
-  void get_set_entities(const Set_Name setname,
-                        const Entity_kind kind,
-                        const Parallel_type ptype,
-                        Entity_ID_List *entids) const;
-
-
-  void get_set_entities(const char *setname,
-                        const Entity_kind kind,
-                        const Parallel_type ptype,
-                        Entity_ID_List *entids) const;
-
 
   // this should be used with extreme caution:
   // modify coordinates
@@ -303,8 +293,21 @@ public:
                          const bool with_fields) const
   {}
 
+ protected:
+  //
+  // Boundary Conditions or Sets
+  //----------------------------
+  //
 
-private:
+  void get_labeled_set_entities(const JaliGeometry::LabeledSetRegionPtr r,
+                                const Entity_kind kind,
+                                Entity_ID_List *owned_entities,
+                                Entity_ID_List *ghost_entities) const;
+
+
+
+
+ private:
   void update_internals_3d_();
   void update_internals_1d_();
   void clear_internals_3d_();
@@ -340,7 +343,7 @@ private:
 
   // Local-id tables of entities
   std::vector<Entity_ID> cell_to_face_;
-  std::vector<int> cell_to_face_dirs_;
+  std::vector<dir_t> cell_to_face_dirs_;
   std::vector<Entity_ID> cell_to_node_;
   std::vector<Entity_ID> face_to_node_;
   std::vector<Entity_ID> face_to_cell_;
@@ -379,12 +382,12 @@ private:
 
   void cell_get_faces_and_dirs_internal(const Entity_ID cellid,
                                         Entity_ID_List *faceids,
-                                        std::vector<int> *face_dirs,
+                                        std::vector<dir_t> *face_dirs,
                                         const bool ordered=false) const;
 
   // Cells connected to a face
   void face_get_cells_internal(const Entity_ID faceid,
-                               const Parallel_type ptype,
+                               const Entity_type ptype,
                                std::vector<Entity_ID> *cellids) const;
 
 
@@ -406,7 +409,7 @@ private:
 
   void cell_2D_get_edges_and_dirs_internal(const Entity_ID cellid,
                                            Entity_ID_List *edgeids,
-                                           std::vector<int> *edge_dirs) const {
+                                           std::vector<dir_t> *edge_dirs) const {
     Errors::Message mesg("Edges not implemented in this framework. Use MSTK");
     Exceptions::Jali_throw(mesg);
   }
@@ -417,7 +420,7 @@ private:
 
   void face_get_edges_and_dirs_internal(const Entity_ID cellid,
                                         Entity_ID_List *edgeids,
-                                        std::vector<int> *edgedirs,
+                                        std::vector<dir_t> *edgedirs,
                                         bool ordered=true) const {
     if (spacedim == 1) {
       edgeids->clear();

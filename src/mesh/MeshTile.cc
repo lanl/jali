@@ -30,7 +30,9 @@ namespace Jali {
 
   Meshtiles can have a layer of halo or ghost cells for ease of
   computations.  Note that ghost cells of a meshtile may or may not be
-  an MPI ghost (Parallel_type::GHOST)
+  an MPI ghost (Entity_type::PARALLEL_GHOST). MPI ghost entities will not
+  have a master tile ID (since they do not belong to any tile on this
+  processor)
 */
 
 
@@ -42,7 +44,8 @@ MeshTile::MeshTile(Mesh& parent_mesh,
                    std::vector<Entity_ID> const& meshcells_owned,
                    int const num_halo_layers,
                    bool const request_faces, bool const request_edges,
-                   bool const request_wedges, bool const request_corners) :
+                   bool const request_sides, bool const request_wedges,
+                   bool const request_corners) :
     mesh_(parent_mesh),
     mytileid_(parent_mesh.tiles().size()) {
 
@@ -60,7 +63,7 @@ MeshTile::MeshTile(Mesh& parent_mesh,
 
       for (auto const& c : cellids_all_) {
         Entity_ID_List nbrs;
-        mesh_.cell_get_node_adj_cells(c, Parallel_type::ALL, &nbrs);
+        mesh_.cell_get_node_adj_cells(c, Entity_type::ALL, &nbrs);
         
         for (auto const& cnbr : nbrs) {
           // Check if the neighbor is already in the all cells list or
@@ -205,6 +208,26 @@ MeshTile::MeshTile(Mesh& parent_mesh,
 
   if (request_wedges) {
     for (auto const& c : cellids_owned_) {
+      std::vector<int> csides;
+      mesh_.cell_get_sides(c, &csides);
+      for (auto const& s : csides)
+        sideids_owned_.emplace_back(s);
+    }
+
+    for (auto const& c : cellids_ghost_) {
+      std::vector<int> csides;
+      mesh_.cell_get_sides(c, &csides);
+      for (auto const& s : csides)
+        sideids_ghost_.emplace_back(s);
+    }
+
+    sideids_all_ = sideids_owned_;
+    sideids_all_.insert(sideids_all_.end(),
+                        sideids_ghost_.begin(), sideids_ghost_.end());
+  }
+
+  if (request_wedges) {
+    for (auto const& c : cellids_owned_) {
       std::vector<int> cwedges;
       mesh_.cell_get_wedges(c, &cwedges);
       for (auto const& w : cwedges)
@@ -253,6 +276,7 @@ std::shared_ptr<MeshTile> make_meshtile(Mesh& parent_mesh,
                                         int const num_halo_layers,
                                         bool const request_faces,
                                         bool const request_edges,
+                                        bool const request_sides,
                                         bool const request_wedges,
                                         bool const request_corners) {
   if (parent_mesh.num_tiles() == 0)
@@ -270,12 +294,217 @@ std::shared_ptr<MeshTile> make_meshtile(Mesh& parent_mesh,
                                           num_halo_layers,
                                           request_faces,
                                           request_edges,
+                                          request_sides,
                                           request_wedges,
                                           request_corners);
   
   parent_mesh.add_tile(tile);
   return tile;
 }
+
+
+//! Get list of tile entities of type 'kind' and 'type' in set ('setname')
+
+void MeshTile::get_set_entities(const Set_Name setname, const Entity_kind kind,
+                                const Entity_type type,
+                                Entity_ID_List *entids) const {
+  entids->clear();
+  switch (kind) {
+    case Entity_kind::NODE:
+      get_nodes_of_set(setname, type, entids);
+      break;
+    case Entity_kind::EDGE:
+      get_edges_of_set(setname, type, entids);
+      break;
+    case Entity_kind::FACE:
+      get_faces_of_set(setname, type, entids);
+      break;
+    case Entity_kind::SIDE:
+      get_sides_of_set(setname, type, entids);
+      break;
+    case Entity_kind::WEDGE:
+      get_wedges_of_set(setname, type, entids);
+      break;
+    case Entity_kind::CORNER:
+      get_corners_of_set(setname, type, entids);
+      break;
+    case Entity_kind::CELL:
+      get_cells_of_set(setname, type, entids);
+      break;
+    default:
+      return;
+  }
+}
+
+void MeshTile::get_nodes_of_set(const Set_Name setname, const Entity_type type,
+                                Entity_ID_List *entids) const {
+  Entity_ID_List setents_mesh;
+  mesh_.get_set_entities(setname, Entity_kind::NODE, type, &setents_mesh);
+
+  Entity_ID_List const *entlist_tile;
+  switch (type) {
+    case Entity_type::PARALLEL_OWNED: entlist_tile = &nodeids_owned_; break;
+    case Entity_type::PARALLEL_GHOST: entlist_tile = &nodeids_ghost_; break;
+    case Entity_type::ALL: entlist_tile = &nodeids_all_; break;
+    default: {
+      std::cerr << "Meaningless to ask for nodes of type " << type <<
+          " in a set\n";
+      return;
+    }
+  }
+
+  for (auto const& ent : setents_mesh) {
+    if (std::find(entlist_tile->begin(), entlist_tile->end(), ent) !=
+        entlist_tile->end())
+      entids->push_back(ent);
+  }
+}
+
+void MeshTile::get_edges_of_set(const Set_Name setname, const Entity_type type,
+                                Entity_ID_List *entids) const {
+  Entity_ID_List setents_mesh;
+  mesh_.get_set_entities(setname, Entity_kind::EDGE, type, &setents_mesh);
+
+  Entity_ID_List const *entlist_tile;
+  switch (type) {
+    case Entity_type::PARALLEL_OWNED: entlist_tile = &edgeids_owned_; break;
+    case Entity_type::PARALLEL_GHOST: entlist_tile = &edgeids_ghost_; break;
+    case Entity_type::ALL: entlist_tile = &edgeids_all_; break;
+    default: {
+      std::cerr << "Meaningless to ask for edges of type " << type <<
+          " in a set\n";
+      return;
+    }
+  }
+
+  for (auto const& ent : setents_mesh) {
+    if (std::find(entlist_tile->begin(), entlist_tile->end(), ent) !=
+        entlist_tile->end())
+      entids->push_back(ent);
+  }
+}
+
+void MeshTile::get_faces_of_set(const Set_Name setname, const Entity_type type,
+                                Entity_ID_List *entids) const {
+  Entity_ID_List setents_mesh;
+  mesh_.get_set_entities(setname, Entity_kind::FACE, type, &setents_mesh);
+
+  Entity_ID_List const *entlist_tile;
+  switch (type) {
+    case Entity_type::PARALLEL_OWNED: entlist_tile = &faceids_owned_; break;
+    case Entity_type::PARALLEL_GHOST: entlist_tile = &faceids_ghost_; break;
+    case Entity_type::ALL: entlist_tile = &faceids_all_; break;
+    default: {
+      std::cerr << "Meaningless to ask for faces of type " << type <<
+          " in a set\n";
+      return;
+    }
+  }
+
+  for (auto const& ent : setents_mesh) {
+    if (std::find(entlist_tile->begin(), entlist_tile->end(), ent) !=
+        entlist_tile->end())
+      entids->push_back(ent);
+  }
+}
+
+void MeshTile::get_sides_of_set(const Set_Name setname, const Entity_type type,
+                                Entity_ID_List *entids) const {
+  Entity_ID_List setents_mesh;
+  mesh_.get_set_entities(setname, Entity_kind::SIDE, type, &setents_mesh);
+
+  Entity_ID_List const *entlist_tile;
+  switch (type) {
+    case Entity_type::PARALLEL_OWNED: entlist_tile = &sideids_owned_; break;
+    case Entity_type::PARALLEL_GHOST: entlist_tile = &sideids_ghost_; break;
+    case Entity_type::ALL: entlist_tile = &sideids_all_; break;
+    default: {
+      std::cerr << "Meaningless to ask for sides of type " << type <<
+          " in a set\n";
+      return;
+    }
+  }
+
+  for (auto const& ent : setents_mesh) {
+    if (std::find(entlist_tile->begin(), entlist_tile->end(), ent) !=
+        entlist_tile->end())
+      entids->push_back(ent);
+  }
+}
+
+void MeshTile::get_wedges_of_set(const Set_Name setname, const Entity_type type,
+                                Entity_ID_List *entids) const {
+  Entity_ID_List setents_mesh;
+  mesh_.get_set_entities(setname, Entity_kind::WEDGE, type, &setents_mesh);
+
+  Entity_ID_List const *entlist_tile;
+  switch (type) {
+    case Entity_type::PARALLEL_OWNED: entlist_tile = &wedgeids_owned_; break;
+    case Entity_type::PARALLEL_GHOST: entlist_tile = &wedgeids_ghost_; break;
+    case Entity_type::ALL: entlist_tile = &wedgeids_all_; break;
+    default: {
+      std::cerr << "Meaningless to ask for wedges of type " << type <<
+          " in a set\n";
+      return;
+    }
+  }
+
+  for (auto const& ent : setents_mesh) {
+    if (std::find(entlist_tile->begin(), entlist_tile->end(), ent) !=
+        entlist_tile->end())
+      entids->push_back(ent);
+  }
+}
+
+void MeshTile::get_corners_of_set(const Set_Name setname,
+                                  const Entity_type type,
+                                  Entity_ID_List *entids) const {
+  Entity_ID_List setents_mesh;
+  mesh_.get_set_entities(setname, Entity_kind::CORNER, type, &setents_mesh);
+
+  Entity_ID_List const *entlist_tile;
+  switch (type) {
+    case Entity_type::PARALLEL_OWNED: entlist_tile = &cornerids_owned_; break;
+    case Entity_type::PARALLEL_GHOST: entlist_tile = &cornerids_ghost_; break;
+    case Entity_type::ALL: entlist_tile = &cornerids_all_; break;
+    default: {
+      std::cerr << "Meaningless to ask for corners of type " << type <<
+          " in a set\n";
+      return;
+    }
+  }
+
+  for (auto const& ent : setents_mesh) {
+    if (std::find(entlist_tile->begin(), entlist_tile->end(), ent) !=
+        entlist_tile->end())
+      entids->push_back(ent);
+  }
+}
+
+void MeshTile::get_cells_of_set(const Set_Name setname, const Entity_type type,
+                                Entity_ID_List *entids) const {
+  Entity_ID_List setents_mesh;
+  mesh_.get_set_entities(setname, Entity_kind::CELL, type, &setents_mesh);
+
+  Entity_ID_List const *entlist_tile;
+  switch (type) {
+    case Entity_type::PARALLEL_OWNED: entlist_tile = &cellids_owned_; break;
+    case Entity_type::PARALLEL_GHOST: entlist_tile = &cellids_ghost_; break;
+    case Entity_type::ALL: entlist_tile = &cellids_all_; break;
+    default: {
+      std::cerr << "Meaningless to ask for cells of type " << type <<
+          " in a set\n";
+      return;
+    }
+  }
+
+  for (auto const& ent : setents_mesh) {
+    if (std::find(entlist_tile->begin(), entlist_tile->end(), ent) !=
+        entlist_tile->end())
+      entids->push_back(ent);
+  }
+}
+ 
 
 }  // end namespace Jali
 

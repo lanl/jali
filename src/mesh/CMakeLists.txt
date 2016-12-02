@@ -58,7 +58,8 @@ if (ENABLE_ZOLTAN)
   list(APPEND mesh_link_libs ${ZOLTAN_LIBRARIES})
 endif (ENABLE_ZOLTAN)
 
-add_Jali_library(mesh SOURCE Mesh.cc MeshTile.cc LINK_LIBS ${mesh_link_libs})
+add_Jali_library(mesh SOURCE Mesh.cc MeshTile.cc MeshSet.cc 
+  LINK_LIBS ${mesh_link_libs})
 
 #
 # Library: mesh_audit
@@ -151,6 +152,13 @@ if (BUILD_TESTS)
                   SOURCE test/Main.cc test/test_entity_iterators.cc
 		  LINK_LIBS ${test_link_libs})
 
+    # Test side entities
+
+    add_Jali_test(side_tests test_sides
+                  KIND unit
+		  SOURCE test/Main.cc test/test_sides.cc
+                  LINK_LIBS ${test_link_libs})
+
     # Test wedge entities
 
     add_Jali_test(wedge_tests test_wedges
@@ -182,6 +190,34 @@ if (BUILD_TESTS)
 		  NPROCS 4
 		  SOURCE test/Main.cc test/test_meshtiles.cc
 		  LINK_LIBS ${test_link_libs})
+
+    # Test boundary ghosts
+
+    add_Jali_test(mesh_boundary_ghost_tests_serial test_boundary_ghosts_serial
+                  KIND unit
+		  SOURCE test/Main.cc test/test_boundary_ghosts.cc
+		  LINK_LIBS ${test_link_libs})
+
+    add_Jali_test(mesh_boundary_ghost_tests_parallel test_boundary_ghosts_parallel
+                  KIND unit
+		  NPROCS 4
+		  SOURCE test/Main.cc test/test_boundary_ghosts.cc
+		  LINK_LIBS ${test_link_libs})
+
+
+    # Test mesh sets
+
+    add_Jali_test(mesh_set_tests_serial test_meshsets_serial
+                  KIND unit
+		  SOURCE test/Main.cc test/test_meshsets.cc
+		  LINK_LIBS ${test_link_libs})
+
+    add_Jali_test(mesh_set_tests_parallel test_meshsets_parallel
+                  KIND unit
+		  NPROCS 4
+		  SOURCE test/Main.cc test/test_meshsets.cc
+		  LINK_LIBS ${test_link_libs})
+    
 
 endif()
   

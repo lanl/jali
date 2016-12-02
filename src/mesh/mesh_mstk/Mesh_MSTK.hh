@@ -3,6 +3,7 @@
 
 #include "MSTK.h"
 
+#include <cstdint>
 #include <memory>
 #include <vector>
 #include <sstream>
@@ -49,11 +50,13 @@ class Mesh_MSTK : public Mesh {
             (JaliGeometry::GeometricModelPtr) NULL,
             const bool request_faces = true,
             const bool request_edges = false,
+            const bool request_sides = false,
             const bool request_wedges = false,
             const bool request_corners = false,
             const int num_tiles = 0,
             const int num_ghost_layers_tile = 0,
             const int num_ghost_layers_distmesh = 1,
+            const bool request_boundary_ghosts = false,
             const Partitioner_type partitioner = Partitioner_type::METIS,
             const JaliGeometry::Geom_type geom_type =
             JaliGeometry::Geom_type::CARTESIAN);
@@ -64,11 +67,13 @@ class Mesh_MSTK : public Mesh {
             (JaliGeometry::GeometricModelPtr) NULL,
             const bool request_faces = true,
             const bool request_edges = false,
+            const bool request_sides = false,
             const bool request_wedges = false,
             const bool request_corners = false,
             const int num_tiles = 0,
             const int num_ghost_layers_tile = 0,
             const int num_ghost_layers_distmesh = 1,
+            const bool request_boundary_ghosts = false,
             const Partitioner_type partitioner = Partitioner_type::METIS,
             const JaliGeometry::Geom_type geom_type =
             JaliGeometry::Geom_type::CARTESIAN);
@@ -85,11 +90,13 @@ class Mesh_MSTK : public Mesh {
             (JaliGeometry::GeometricModelPtr) NULL,
             const bool request_faces = true,
             const bool request_edges = false,
+            const bool request_sides = false,
             const bool request_wedges = false,
             const bool request_corners = false,
             const int num_tiles = 0,
             const int num_ghost_layers_tile = 0,
             const int num_ghost_layers_distmesh = 1,
+            const bool request_boundary_ghosts = false,
             const Partitioner_type partitioner = Partitioner_type::METIS);
 
 
@@ -102,11 +109,13 @@ class Mesh_MSTK : public Mesh {
             (JaliGeometry::GeometricModelPtr) NULL,
             const bool request_faces = true,
             const bool request_edges = false,
+            const bool request_sides = false,
             const bool request_wedges = false,
             const bool request_corners = false,
             const int num_tiles = 0,
             const int num_ghost_layers_tile = 0,
             const int num_ghost_layers_distmesh = 1,
+            const bool request_boundary_ghosts = false,
             const Partitioner_type partitioner = Partitioner_type::METIS,
             const JaliGeometry::Geom_type geom_type =
             JaliGeometry::Geom_type::CARTESIAN);
@@ -125,11 +134,13 @@ class Mesh_MSTK : public Mesh {
             const bool extrude = false,
             const bool request_faces = true,
             const bool request_edges = false,
+            const bool request_sides = false,
             const bool request_wedges = false,
             const bool request_corners = false,
             const int num_tiles = 0,
             const int num_ghost_layers_tile = 0,
             const int num_ghost_layers_distmesh = 1,
+            const bool request_boundary_ghosts = false,
             const Partitioner_type partitioner = Partitioner_type::METIS,
             const JaliGeometry::Geom_type geom_type =
             JaliGeometry::Geom_type::CARTESIAN);
@@ -141,11 +152,13 @@ class Mesh_MSTK : public Mesh {
             const bool extrude = false,
             const bool request_faces = true,
             const bool request_edges = false,
+            const bool request_sides = false,
             const bool request_wedges = false,
             const bool request_corners = false,
             const int num_tiles = 0,
             const int num_ghost_layers_tile = 0,
             const int num_ghost_layers_distmesh = 1,
+            const bool request_boundary_ghosts = false,
             const Partitioner_type partitioner = Partitioner_type::METIS,
             const JaliGeometry::Geom_type geom_type =
             JaliGeometry::Geom_type::CARTESIAN);
@@ -157,23 +170,19 @@ class Mesh_MSTK : public Mesh {
             const bool extrude = false,
             const bool request_faces = true,
             const bool request_edges = false,
+            const bool request_sides = false,
             const bool request_wedges = false,
             const bool request_corners = false,
             const int num_tiles = 0,
             const int num_ghost_layers_tile = 0,
             const int num_ghost_layers_distmesh = 1,
+            const bool request_boundary_ghosts = false,
             const Partitioner_type partitioner = Partitioner_type::METIS,
             const JaliGeometry::Geom_type geom_type =
             JaliGeometry::Geom_type::CARTESIAN);
 
 
   ~Mesh_MSTK();
-
-
-  // Get parallel type of entity
-
-  Parallel_type entity_get_ptype(const Entity_kind kind,
-                                 const Entity_ID entid) const;
 
 
   // Get cell type
@@ -229,11 +238,11 @@ class Mesh_MSTK : public Mesh {
                       Entity_ID_List *nodeids) const;
 
 
-  // Get nodes of edge On a distributed mesh all nodes (Parallel_type::OWNED or
-  // Parallel_type::GHOST) of the face are returned
+  // Get nodes of edge On a distributed mesh all nodes (Entity_type::PARALLEL_OWNED or
+  // Entity_type::PARALLEL_GHOST) of the face are returned
 
-  void edge_get_nodes(const Entity_ID edgeid, Entity_ID *point0,
-                      Entity_ID *point1) const;
+  void edge_get_nodes_internal(const Entity_ID edgeid, Entity_ID *point0,
+                               Entity_ID *point1) const;
 
   // Upward adjacencies
   //-------------------
@@ -241,13 +250,13 @@ class Mesh_MSTK : public Mesh {
   // Cells of type 'ptype' connected to a node
 
   void node_get_cells(const Entity_ID nodeid,
-                      const Parallel_type ptype,
+                      const Entity_type ptype,
                       Entity_ID_List *cellids) const;
 
   // Faces of type 'ptype' connected to a node
 
   void node_get_faces(const Entity_ID nodeid,
-                      const Parallel_type ptype,
+                      const Entity_type ptype,
                       Entity_ID_List *faceids) const;
 
   // Get faces of ptype of a particular cell that are connected to the
@@ -255,7 +264,7 @@ class Mesh_MSTK : public Mesh {
 
   void node_get_cell_faces(const Entity_ID nodeid,
                            const Entity_ID cellid,
-                           const Parallel_type ptype,
+                           const Entity_type ptype,
                            Entity_ID_List *faceids) const;
 
 
@@ -271,7 +280,7 @@ class Mesh_MSTK : public Mesh {
   // faces given by cell_get_faces
 
   void cell_get_face_adj_cells(const Entity_ID cellid,
-                               const Parallel_type ptype,
+                               const Entity_type ptype,
                                Entity_ID_List *fadj_cellids) const;
 
   // Node connected neighboring cells of given cell
@@ -279,7 +288,7 @@ class Mesh_MSTK : public Mesh {
   // The cells are returned in no particular order
 
   void cell_get_node_adj_cells(const Entity_ID cellid,
-                               const Parallel_type ptype,
+                               const Entity_type ptype,
                                Entity_ID_List *nadj_cellids) const;
 
 
@@ -292,6 +301,11 @@ class Mesh_MSTK : public Mesh {
 
   void node_get_coordinates(const Entity_ID nodeid,
                             JaliGeometry::Point *ncoord) const;
+  void node_get_coordinates(const Entity_ID nodeid,
+                            std::array<double, 3> *ncoord) const;
+  void node_get_coordinates(const Entity_ID nodeid,
+                            std::array<double, 2> *ncoord) const;
+
 
 
   // Face coordinates - conventions same as face_to_nodes call
@@ -328,24 +342,24 @@ class Mesh_MSTK : public Mesh {
 
   unsigned int get_set_size(const Set_Name setname,
                             const Entity_kind kind,
-                            const Parallel_type ptype) const;
+                            const Entity_type ptype) const;
 
 
   unsigned int get_set_size(const char *setname,
                             const Entity_kind kind,
-                            const Parallel_type ptype) const;
+                            const Entity_type ptype) const;
 
   // Get list of entities of type 'category' in set
 
   void get_set_entities(const Set_Name setname,
                         const Entity_kind kind,
-                        const Parallel_type ptype,
+                        const Entity_type ptype,
                         std::vector<Entity_ID> *entids) const;
 
 
   void get_set_entities(const char *setname,
                         const Entity_kind kind,
-                        const Parallel_type ptype,
+                        const Entity_type ptype,
                         std::vector<Entity_ID> *entids) const;
 
 
@@ -477,6 +491,10 @@ class Mesh_MSTK : public Mesh {
     return store_field_internal(field_name, on_what, data);
   }
 
+  void get_labeled_set_entities(const JaliGeometry::LabeledSetRegionPtr rgn,
+                                const Entity_kind kind,
+                                Entity_ID_List *owned_entities,
+                                Entity_ID_List *ghost_entities) const;
 
  private:
 
@@ -517,13 +535,10 @@ class Mesh_MSTK : public Mesh {
   void init_faces();
   void init_cells();
 
+  void create_boundary_ghosts();
+
   void init_set_info();
   void inherit_labeled_sets(MAttrib_ptr copyatt);
-  std::string internal_name_of_set(const JaliGeometry::RegionPtr region,
-                                   const Entity_kind entity_kind) const;
-  std::string other_internal_name_of_set(const JaliGeometry::RegionPtr r,
-                                         const Entity_kind entity_kind) const;
-
   int  generate_regular_mesh(Mesh_ptr mesh, double x0, double y0, double z0,
                              double x1, double y1, double z1, int nx,
                              int ny, int nz);
@@ -538,11 +553,22 @@ class Mesh_MSTK : public Mesh {
                          const bool request_faces = true,
                          const bool request_edges = false,
                          const int num_ghost_layers_distmesh = 1,
+                         const bool request_boundary_ghosts = false,
                          const Partitioner_type partitioner =
                          Partitioner_type::METIS);
 
-  MSet_ptr build_set(const JaliGeometry::RegionPtr region,
-                     const Entity_kind kind) const;
+  // internal name of sets (particularly labeled sets)
+
+  std::string
+  internal_name_of_set(const JaliGeometry::RegionPtr r,
+                       const Entity_kind entity_kind) const;
+
+  // internal name of sets (particularly labeled sets of cells)
+
+  std::string
+  other_internal_name_of_set(const JaliGeometry::RegionPtr r,
+                             const Entity_kind entity_kind) const;
+
 
 
   // Downward Adjacencies
@@ -566,22 +592,22 @@ class Mesh_MSTK : public Mesh {
 
   void cell_get_faces_and_dirs_internal(const Entity_ID cellid,
                                         Entity_ID_List *faceids,
-                                        std::vector<int> *face_dirs,
+                                        std::vector<dir_t> *face_dirs,
                                         const bool ordered = false) const;
 
   void cell_get_faces_and_dirs_ordered(const Entity_ID cellid,
                                        Entity_ID_List *faceids,
-                                       std::vector<int> *face_dirs) const;
+                                       std::vector<dir_t> *face_dirs) const;
 
   void cell_get_faces_and_dirs_unordered(const Entity_ID cellid,
                                          Entity_ID_List *faceids,
-                                         std::vector<int> *face_dirs) const;
+                                         std::vector<dir_t> *face_dirs) const;
 
 
   // Cells connected to a face
 
   void face_get_cells_internal(const Entity_ID faceid,
-                               const Parallel_type ptype,
+                               const Entity_type ptype,
                                Entity_ID_List *cellids) const;
 
 
@@ -594,13 +620,13 @@ class Mesh_MSTK : public Mesh {
 
   void cell_2D_get_edges_and_dirs_internal(const Entity_ID cellid,
                                            Entity_ID_List *edgeids,
-                                           std::vector<int> *edgedirs) const;
+                                           std::vector<dir_t> *edgedirs) const;
 
   // Edges and edge directions of a face
 
   void face_get_edges_and_dirs_internal(const Entity_ID cellid,
                                         Entity_ID_List *edgeids,
-                                        std::vector<int> *edgedirs,
+                                        std::vector<dir_t> *edgedirs,
                                         bool ordered = true) const;
 
   // Map from Jali's mesh entity kind to MSTK's mesh type.
@@ -619,10 +645,10 @@ class Mesh_MSTK : public Mesh {
     // type, and cells are MFACE type
 
     static MType const
-      kind2mtype[4][4] = {{MVERTEX, MVERTEX, MVERTEX, MVERTEX},  // 0d meshes
-                          {MVERTEX, MVERTEX, MVERTEX, MEDGE},    // 1d meshes
-                          {MVERTEX, MEDGE,   MEDGE,   MFACE},    // 2d meshes
-                          {MVERTEX, MEDGE,   MFACE,   MREGION}}; // 3d meshes
+      kind2mtype[4][4] = {{MVERTEX, MVERTEX, MVERTEX, MVERTEX},   // 0d meshes
+                          {MVERTEX, MVERTEX, MVERTEX, MEDGE},     // 1d meshes
+                          {MVERTEX, MEDGE,   MEDGE,   MFACE},     // 2d meshes
+                          {MVERTEX, MEDGE,   MFACE,   MREGION}};  // 3d meshes
 
     return kind2mtype[cell_dimension()][(int)kind];
   }
@@ -652,11 +678,11 @@ class Mesh_MSTK : public Mesh {
   //
   // There are 2 types of entities relevant to this code - Owned and Ghost
   //
-  // 1. Parallel_type::OWNED - owned by this processor
+  // 1. Entity_type::PARALLEL_OWNED - owned by this processor
   //
-  // 2. Parallel_type::GHOST - not owned by this processor
+  // 2. Entity_type::PARALLEL_GHOST - not owned by this processor
   //
-  // Parallell_type::ALL = Parallel_type::OWNED + Parallel_type::GHOST 
+  // Parallell_type::ALL = Entity_type::PARALLEL_OWNED + Entity_type::PARALLEL_GHOST 
 
   MSet_ptr OwnedVerts, NotOwnedVerts;
 
@@ -664,15 +690,15 @@ class Mesh_MSTK : public Mesh {
 
   mutable MSet_ptr OwnedFaces, NotOwnedFaces;
 
-  MSet_ptr OwnedCells, GhostCells;
+  MSet_ptr OwnedCells, GhostCells, BoundaryGhostCells;
 
   // Flags to indicate if face and edge info is initialized
 
   mutable bool faces_initialized, edges_initialized;
 
-  // Marker to indicate if an entity is not owned
+  // Marker to indicate if a cell is a boundary ghost cell
 
-  int notwownedmark;
+  MAttrib_ptr boundary_ghost_att = NULL;
 
   // Deleted entity lists if some pre-processing had to be done
   // to the mesh to eliminate degenerate entities
@@ -715,30 +741,6 @@ class Mesh_MSTK : public Mesh {
   double *target_cell_volumes, *min_cell_volumes, *target_weights;
 
 };
-
-
-
-inline Parallel_type Mesh_MSTK::entity_get_ptype(const Entity_kind kind,
-                                                 const Entity_ID entid) const {
-  MEntity_ptr ment;
-
-  switch (kind) {
-    case Entity_kind::CELL:
-      ment = (MEntity_ptr) cell_id_to_handle[entid];
-      break;
-    case Entity_kind::FACE:
-      ment = (MEntity_ptr) face_id_to_handle[entid];
-      break;
-    case Entity_kind::NODE:
-      ment = (MEntity_ptr) vtx_id_to_handle[entid];
-      break;
-  }
-
-  if (MEnt_PType(ment) == PGHOST)
-    return Parallel_type::GHOST;
-  else
-    return Parallel_type::OWNED;
-}
 
 
 // Retrieve field data from the mesh - special implementation for

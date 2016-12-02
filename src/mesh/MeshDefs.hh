@@ -12,8 +12,10 @@
 #ifndef _MeshDefs_hh_
 #define _MeshDefs_hh_
 
+#include <iostream>
 #include <vector>
 #include <string>
+#include <cstdint>
 
 namespace Jali {
 
@@ -24,6 +26,7 @@ typedef int Set_ID;
 typedef std::string Set_Name;
 typedef std::vector<Entity_ID> Entity_ID_List;
 typedef std::vector<Set_ID> Set_ID_List;
+typedef std::int8_t dir_t;
 
 // Mesh Type
 
@@ -60,29 +63,31 @@ enum class Mesh_type {
 //
 
 
-enum class Entity_kind {
+enum class Entity_kind : std::int8_t {
   ALL_KIND = -3,
   ANY_KIND = -2,
   UNKNOWN_KIND = -1,
-  NODE,
-  EDGE,
-  FACE,
-  CELL,
-  WEDGE,
-  CORNER,
-  FACET,
-  BOUNDARY_FACE
+  NODE = 0,
+  EDGE = 1,
+  FACE = 2,
+  CELL = 3,
+  SIDE = 4,
+  WEDGE = 5,
+  CORNER = 6,
+  FACET = 7,
+  BOUNDARY_FACE = 8
 };
 
-const int NUM_ENTITY_KINDS = 8;  // Don't want to count the 3 catch-all types
+const int NUM_ENTITY_KINDS = 9;  // Don't want to count the 3 catch-all types
 
 // Return a string describing the entity kind that can be printed out
 inline
 std::string Entity_kind_string(Entity_kind kind) {
-  static const std::string entity_kind_string[8] =
+  static const std::string entity_kind_string[9] =
       {"Entity_kind::NODE", "Entity_kind::EDGE", "Entity_kind::FACE",
-       "Entity_kind::CELL", "Entity_kind::WEDGE", "Entity_kind::CORNER",
-       "Entity_kind::FACET", "Entity_kind::BOUNDARY_FACE"};
+       "Entity_kind::CELL", "Entity_kind::SIDE", "Entity_kind::WEDGE",
+       "Entity_kind::CORNER", "Entity_kind::FACET",
+       "Entity_kind::BOUNDARY_FACE"};
 
   int ikind = static_cast<int>(kind);
   return (ikind >= 0 && ikind < NUM_ENTITY_KINDS) ?
@@ -106,42 +111,46 @@ bool entity_valid_kind(const Entity_kind kind) {
 
 
 
-// Parallel status of entity
+// Entity type - includes UNKNOWN_TYPE, PARALLEL_OWNED, PARALLEL_GHOST,
+// ALL, BOUNDARY_GHOST, DELETED
 
-enum class Parallel_type {
-  PTYPE_UNKNOWN = 0,  // Initializer
-  OWNED = 1,         // Owned by this processor
-  GHOST = 2,         // Owned by another processor
-  ALL  = 3           // Parallel_type::OWNED + Parall_type::Parallel_type::GHOST
+enum class Entity_type : std::int8_t {
+    TYPE_UNKNOWN = -1,
+    DELETED = 0,
+    PARALLEL_OWNED = 1,    // Owned by this processor
+    PARALLEL_GHOST = 2,    // Owned by another processor
+    BOUNDARY_GHOST = 3,    // Ghost/Virtual entity on boundary
+    ALL  = 4      // PARALLEL_OWNED + PARALLEL_GHOST + BOUNDARY_GHOST
 };
 
-const int NUM_PARALLEL_TYPES = 4;
+const int NUM_ENTITY_TYPES = 6;
+
+// Check if Entity_type is valid
+
+inline
+bool valid_entity_type(const Entity_type type) {
+  int itype = static_cast<int>(type);
+  return (itype >= 0 && itype < NUM_ENTITY_TYPES);
+}
 
 // Return a string describing the entity kind that can be printed out
 inline
-std::string Parallel_type_string(Parallel_type const ptype) {
-  static const std::string parallel_type_str[4] =
-      {"Parallel_type::PTYPE_UNKNOWN", "Parallel_type::OWNED",
-       "Parallel_type::GHOST", "Parallel_type::ALL"};
+std::string Entity_type_string(Entity_type const type) {
+  static const std::string type_str[6] =
+      {"Entity_type::TYPE_UNKNOWN", "Entity_type::DELETED",
+       "Entity_type::PARALLEL_OWNED", "Entity_type::PARALLEL_GHOST",
+       "Entity_type::BOUNDARY_GHOST", "Entity_type::ALL"};
 
-  int iptype = static_cast<int>(ptype);
-  return (iptype >= 0 && iptype < NUM_PARALLEL_TYPES) ?
-      parallel_type_str[iptype] : "";
+  int itype = static_cast<int>(type);
+  return valid_entity_type(type) ? type_str[itype] : "";
 }
 
 
-// Output operator for Parallel_type
+// Output operator for Entity_type
 inline
-std::ostream& operator<<(std::ostream& os, const Parallel_type& ptype) {
-  os << " " << Parallel_type_string(ptype) << " ";
+std::ostream& operator<<(std::ostream& os, const Entity_type& ptype) {
+  os << " " << Entity_type_string(ptype) << " ";
   return os;
-}
-
-// Check if Parallel_type is valid
-
-inline
-bool entity_valid_ptype(const Parallel_type ptype) {
-  return (ptype >= Parallel_type::OWNED && ptype <= Parallel_type::ALL);
 }
 
 
@@ -149,7 +158,7 @@ bool entity_valid_ptype(const Parallel_type ptype) {
 
 // Standard element types and catchall (POLYGON/POLYHED)
 
-enum class Cell_type {
+enum class Cell_type : std::uint8_t {
   CELLTYPE_UNKNOWN = 0,
   TRI = 1,
   QUAD,
@@ -193,14 +202,21 @@ bool cell_valid_type(const Cell_type type) {
 
 // Types of partitioners (partitioning scheme bundled into the name)
 
-enum class Partitioner_type {INDEX, METIS, ZOLTAN_GRAPH, ZOLTAN_RCB};
-constexpr int NUM_PARTITIONER_TYPES = 4;
+enum class Partitioner_type : std::uint8_t {
+    INDEX,
+    BLOCK,
+    METIS,
+    ZOLTAN_GRAPH,
+    ZOLTAN_RCB
+};
+constexpr int NUM_PARTITIONER_TYPES = 5;
 
 // Return an string description for each partitioner type
 inline
 std::string Partitioner_type_string(const Partitioner_type partitioner_type) {
   static std::string partitioner_type_str[NUM_PARTITIONER_TYPES] =
-      {"Partitioner_type::INDEX", "Partitioner_type::METIS",
+      {"Partitioner_type::INDEX", "Partitioner_type::BLOCK",
+       "Partitioner_type::METIS",
        "Partitioner_type::ZOLTAN_GRAPH", "Partitioner_type::ZOLTAN_RCB"};
 
   int iptype = static_cast<int>(partitioner_type);

@@ -329,6 +329,7 @@ function (CREATE_EXPORTS)
 set(Jali_INCLUDE_DIRS "${CMAKE_INSTALL_PREFIX}/include")
 set(Jali_LIBRARY_DIRS "${CMAKE_INSTALL_PREFIX}/lib")
 get_property(Jali_LIBRARIES GLOBAL PROPERTY Jali_LIBRARY_TARGETS)
+list(REVERSE Jali_LIBRARIES)
 
 # Find the packages found for Jali
 get_property(Jali_TPL_LIST GLOBAL PROPERTY PACKAGES_FOUND)

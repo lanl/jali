@@ -37,8 +37,6 @@ build_whitespace_string(mstk_ldflags ${mstk_ldflags_list})
 # --- Set the patch command
 #set(MSTK_PATCH_COMMAND ${CMAKE_COMMAND} -P ${MSTK_cmake_patch})     
 
-message(STATUS "JDM ----> PREFER_STATIC_LIBRARIES = ${PREFER_STATIC_LIBRARIES}")
-
 # The CMake cache args
 set(MSTK_CMAKE_CACHE_ARGS
                     ${Jali_CMAKE_C_COMPILER_ARGS}
@@ -48,6 +46,7 @@ set(MSTK_CMAKE_CACHE_ARGS
                     -DCMAKE_EXE_LINKER_FLAGS:STRING=${mstk_ldflags}
 		    -DPREFER_STATIC_LIBRARIES:BOOL=${PREFER_STATIC_LIBRARIES}
                     -DENABLE_PARALLEL:BOOL=TRUE
+		    -DMSTK_USE_MARKERS:BOOL=FALSE  
                     -DENABLE_ExodusII:BOOL=TRUE
                     -DENABLE_ZOLTAN:BOOL=TRUE
                     -DENABLE_METIS:BOOL=TRUE

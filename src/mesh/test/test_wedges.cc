@@ -73,6 +73,24 @@ TEST(MESH_WEDGES_2D) {
     MPI_Allreduce(&ierr, &aerr, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
     CHECK_EQUAL(aerr, 0);
 
+    int nwedges_owned = mesh->num_entities(Jali::Entity_kind::WEDGE,
+                                           Jali::Entity_type::PARALLEL_OWNED);
+    int nwedges_ghost = mesh->num_entities(Jali::Entity_kind::WEDGE,
+                                           Jali::Entity_type::PARALLEL_GHOST);
+    CHECK(nwedges_owned > 0);
+    if (nproc > 1)
+      CHECK(nwedges_ghost);
+    else
+      CHECK(!nwedges_ghost);
+
+    nwedges_owned = mesh->num_wedges<Jali::Entity_type::PARALLEL_OWNED>();
+    nwedges_ghost = mesh->num_wedges<Jali::Entity_type::PARALLEL_GHOST>();
+    CHECK(nwedges_owned > 0);
+    if (nproc > 1)
+      CHECK(nwedges_ghost);
+    else
+      CHECK(!nwedges_ghost);
+
     double dp;
 
     for (auto const & c : mesh->cells()) {
@@ -98,25 +116,25 @@ TEST(MESH_WEDGES_2D) {
         // Make sure the wedge knows which edge its associated with
 
         Jali::Entity_ID e = mesh->wedge_get_edge(w);
-        CHECK(e != -1);
+        CHECK(e >= 0);
 
         // Make sure the wedge knows which face its associated with
 
         Jali::Entity_ID f = mesh->wedge_get_face(w);
-        CHECK(f != -1);
+        CHECK(f >= 0);
         JaliGeometry::Point fcen = mesh->face_centroid(f);
 
         // Make sure the wedge knows which node its associated with
 
         Jali::Entity_ID n = mesh->wedge_get_node(w);
-        CHECK(n != -1);
+        CHECK(n >= 0);
         JaliGeometry::Point npnt;
         mesh->node_get_coordinates(n, &npnt);
 
         // Get the normal to facet0 of w (facet0 lies on the face)
 
         JaliGeometry::Point normal0 = mesh->wedge_facet_normal(w, 0);
-        double norm0 = norm(normal0);
+        double norm0 = JaliGeometry::norm(normal0);
 
         // Make sure it points out of the cell by comparing with
         // the outward facing face normal
@@ -129,7 +147,7 @@ TEST(MESH_WEDGES_2D) {
         // Get the normal to facet1 of w (facet1 is perpendicular to the edge)
 
         JaliGeometry::Point normal1 = mesh->wedge_facet_normal(w, 1);
-        double norm1 = norm(normal1);
+        double norm1 = JaliGeometry::norm(normal1);
 
         // Make sure that it points away from the node of the wedge by
         // comparing with the edge vector going from node n to the
@@ -140,10 +158,11 @@ TEST(MESH_WEDGES_2D) {
         dp = normal1*evec;
         CHECK(dp > 0);
 
-        // Make sure the link between the edge and the opposite wedge
+        // Make sure the link between the wedge and the opposite wedge
         // are correct
 
         Jali::Entity_ID w2 = mesh->wedge_get_opposite_wedge(w);
+        CHECK(w2 >= -1);
         if (w2 != -1) {
           CHECK_EQUAL(w, mesh->wedge_get_opposite_wedge(w2));
           CHECK_EQUAL(f, mesh->wedge_get_face(w2));
@@ -155,7 +174,7 @@ TEST(MESH_WEDGES_2D) {
           // normals for their facet 0
 
           JaliGeometry::Point normal20 = mesh->wedge_facet_normal(w2, 0);
-          double norm20 = norm(normal20);
+          double norm20 = JaliGeometry::norm(normal20);
           CHECK_CLOSE(norm0, norm20, 1.0e-6);
           dp = (normal0*normal20)/(norm0*norm20);
           CHECK_CLOSE(-1.0, dp, 1.0e-6);
@@ -164,7 +183,7 @@ TEST(MESH_WEDGES_2D) {
           // normals to facet 1
 
           JaliGeometry::Point normal21 = mesh->wedge_facet_normal(w2, 1);
-          double norm21 = norm(normal21);
+          double norm21 = JaliGeometry::norm(normal21);
           CHECK_CLOSE(norm1, norm21, 1.0e-6);
           dp = (normal1*normal21)/(norm1*norm21);
           CHECK_CLOSE(1.0, dp, 1.0e-6);
@@ -183,7 +202,7 @@ TEST(MESH_WEDGES_2D) {
         // normals for their facet 0
 
         JaliGeometry::Point normal30 = mesh->wedge_facet_normal(w3, 0);
-        double norm30 = norm(normal30);
+        double norm30 = JaliGeometry::norm(normal30);
         CHECK_CLOSE(norm0, norm30, 1.0e-6);
         dp = (normal0*normal30)/(norm0*norm30);
         CHECK_CLOSE(1.0, dp, 1.0e-6);
@@ -192,7 +211,7 @@ TEST(MESH_WEDGES_2D) {
         // normals to facet 1
 
         JaliGeometry::Point normal31 = mesh->wedge_facet_normal(w3, 1);
-        double norm31 = norm(normal31);
+        double norm31 = JaliGeometry::norm(normal31);
         CHECK_CLOSE(norm1, norm31, 1.0e-6);
         dp = (normal1*normal31)/(norm1*norm31);
         CHECK_CLOSE(-1.0, dp, 1.0e-6);
@@ -203,6 +222,7 @@ TEST(MESH_WEDGES_2D) {
         // (w2) of w.
 
         Jali::Entity_ID w4 = mesh->wedge_get_opposite_wedge(w3);
+        CHECK(w4 >= -1);
         if (w4 != -1 && w2 != -1)
           CHECK_EQUAL(w4, mesh->wedge_get_adjacent_wedge(w2));
 
@@ -336,27 +356,27 @@ TEST(MESH_WEDGES_3D) {
         // Make sure the wedge knows which edge its associated with
 
         Jali::Entity_ID e = mesh->wedge_get_edge(w);
-        CHECK(e != -1);
+        CHECK(e >= 0);
 
         JaliGeometry::Point ecen = mesh->edge_centroid(e);
 
         // Make sure the wedge knows which face its associated with
 
         Jali::Entity_ID f = mesh->wedge_get_face(w);
-        CHECK(f != -1);
+        CHECK(f >= 0);
         JaliGeometry::Point fcen = mesh->face_centroid(f);
 
         // Make sure the wedge knows which node its associated with
 
         Jali::Entity_ID n = mesh->wedge_get_node(w);
-        CHECK(n != -1);
+        CHECK(n >= 0);
         JaliGeometry::Point npnt;
         mesh->node_get_coordinates(n, &npnt);
 
         // Get the normal to facet0 of w (facet0 lies on the face)
 
         JaliGeometry::Point normal0 = mesh->wedge_facet_normal(w, 0);
-        double norm0 = norm(normal0);
+        double norm0 = JaliGeometry::norm(normal0);
 
         // Make sure it points out of the cell by comparing with
         // the outward facing face normal
@@ -369,7 +389,7 @@ TEST(MESH_WEDGES_3D) {
         // Get the normal to facet1 of w (facet1 is perpendicular to the edge)
 
         JaliGeometry::Point normal1 = mesh->wedge_facet_normal(w, 1);
-        double norm1 = norm(normal1);
+        double norm1 = JaliGeometry::norm(normal1);
 
         // Make sure that it points away from the node of the wedge by
         // comparing with the edge vector going from node n to the
@@ -380,10 +400,11 @@ TEST(MESH_WEDGES_3D) {
         dp = normal1*evec;
         CHECK(dp > 0);
 
-        // Make sure the link between the edge and the opposite wedge
+        // Make sure the link between the wedge and the opposite wedge
         // are correct
 
         Jali::Entity_ID w2 = mesh->wedge_get_opposite_wedge(w);
+        CHECK(w2 >= -1);
         if (w2 != -1) {
           CHECK_EQUAL(w, mesh->wedge_get_opposite_wedge(w2));
           CHECK_EQUAL(f, mesh->wedge_get_face(w2));
@@ -395,7 +416,7 @@ TEST(MESH_WEDGES_3D) {
           // normals for their facet 0
 
           JaliGeometry::Point normal20 = mesh->wedge_facet_normal(w2, 0);
-          double norm20 = norm(normal20);
+          double norm20 = JaliGeometry::norm(normal20);
           CHECK_CLOSE(norm0, norm20, 1.0e-6);
           dp = (normal0*normal20)/(norm0*norm20);
           CHECK_CLOSE(-1.0, dp, 1.0e-6);
@@ -404,7 +425,7 @@ TEST(MESH_WEDGES_3D) {
           // normals to facet 1
 
           JaliGeometry::Point normal21 = mesh->wedge_facet_normal(w2, 1);
-          double norm21 = norm(normal21);
+          double norm21 = JaliGeometry::norm(normal21);
           CHECK_CLOSE(norm1, norm21, 1.0e-6);
           dp = (normal1*normal21)/(norm1*norm21);
           CHECK_CLOSE(1.0, dp, 1.0e-6);
@@ -423,7 +444,7 @@ TEST(MESH_WEDGES_3D) {
         // normals for their facet 0
 
         JaliGeometry::Point normal30 = mesh->wedge_facet_normal(w3, 0);
-        double norm30 = norm(normal30);
+        double norm30 = JaliGeometry::norm(normal30);
         CHECK_CLOSE(norm0, norm30, 1.0e-6);
         dp = (normal0*normal30)/(norm0*norm30);
         CHECK_CLOSE(1.0, dp, 1.0e-6);
@@ -432,7 +453,7 @@ TEST(MESH_WEDGES_3D) {
         // normals to facet 1
 
         JaliGeometry::Point normal31 = mesh->wedge_facet_normal(w3, 1);
-        double norm31 = norm(normal31);
+        double norm31 = JaliGeometry::norm(normal31);
         CHECK_CLOSE(norm1, norm31, 1.0e-6);
         dp = (normal1*normal31)/(norm1*norm31);
         CHECK_CLOSE(-1.0, dp, 1.0e-6);
@@ -443,6 +464,7 @@ TEST(MESH_WEDGES_3D) {
         // (w2) of w.
 
         Jali::Entity_ID w4 = mesh->wedge_get_opposite_wedge(w3);
+        CHECK(w4 >= -1);
         if (w4 != -1 && w2 != -1)
           CHECK_EQUAL(w4, mesh->wedge_get_adjacent_wedge(w2));
 

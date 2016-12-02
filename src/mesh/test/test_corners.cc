@@ -63,6 +63,25 @@ TEST(MESH_CORNERS_2D) {
     MPI_Allreduce(&ierr, &aerr, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
     CHECK_EQUAL(aerr, 0);
 
+    int ncorners_owned = mesh->num_entities(Jali::Entity_kind::CORNER,
+                                            Jali::Entity_type::PARALLEL_OWNED);
+    int ncorners_ghost = mesh->num_entities(Jali::Entity_kind::CORNER,
+                                            Jali::Entity_type::PARALLEL_GHOST);
+    CHECK(ncorners_owned > 0);
+    if (nproc > 1)
+      CHECK(ncorners_ghost);
+    else
+      CHECK(!ncorners_ghost);
+
+    ncorners_owned = mesh->num_corners<Jali::Entity_type::PARALLEL_OWNED>();
+    ncorners_ghost = mesh->num_corners<Jali::Entity_type::PARALLEL_GHOST>();
+    CHECK(ncorners_owned > 0);
+    if (nproc > 1)
+      CHECK(ncorners_ghost);
+    else
+      CHECK(!ncorners_ghost);
+
+
     double totalvol = 0.0;  // total volume of domain
 
     for (auto const & c : mesh->cells()) {
@@ -193,7 +212,7 @@ TEST(MESH_CORNERS_2D) {
 
     for (auto const & n : mesh->nodes()) {
       Jali::Entity_ID_List corners;
-      mesh->node_get_corners(n, Jali::Parallel_type::ALL, &corners);
+      mesh->node_get_corners(n, Jali::Entity_type::ALL, &corners);
 
       for (auto const & cn : corners)
         totalvol2 += mesh->corner_volume(cn);
@@ -378,7 +397,7 @@ TEST(MESH_CORNERS_3D) {
 
     for (auto const & n : mesh->nodes()) {
       Jali::Entity_ID_List corners;
-      mesh->node_get_corners(n, Jali::Parallel_type::ALL, &corners);
+      mesh->node_get_corners(n, Jali::Entity_type::ALL, &corners);
 
       for (auto const & cn : corners)
         totalvol2 += mesh->corner_volume(cn);

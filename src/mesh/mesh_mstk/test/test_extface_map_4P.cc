@@ -49,7 +49,7 @@ TEST(MSTK_EXTFACE_MAP_4P)
       CHECK_EQUAL(face_map.GID(f2), gid);
 
       Jali::Entity_ID_List fcells;
-      mesh->face_get_cells(f2, Jali::Parallel_type::OWNED, &fcells);
+      mesh->face_get_cells(f2, Jali::Entity_type::PARALLEL_OWNED, &fcells);
       CHECK_EQUAL(1, fcells.size());
     }
 

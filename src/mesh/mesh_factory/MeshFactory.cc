@@ -50,6 +50,7 @@ void MeshFactory::reset_options(void) {
   request_edges_ = false;
   request_faces_ = true;  // always needed (for now) to compute cell geom
   request_cells_ = true;
+  request_sides_ = false;
   request_wedges_ = false;
   request_corners_ = false;
 
@@ -61,6 +62,9 @@ void MeshFactory::reset_options(void) {
 
   /// Number of ghost/halo layers for mesh partitions across compute nodes
   num_ghost_layers_distmesh_ = 1;
+
+  /// Whether ghost/virtual elements outside external boundaries are requested
+  request_boundary_ghosts_ = false;
 
   /// Partitioner type
   partitioner_ = Partitioner_type::METIS;
@@ -140,10 +144,12 @@ MeshFactory::create(const std::string& filename) {
       try {
         result = framework_read(my_comm_, *i, filename, geometric_model_,
                                 request_faces_, request_edges_,
-                                request_wedges_, request_corners_,
+                                request_sides_, request_wedges_,
+                                request_corners_,
                                 num_tiles_,
                                 num_ghost_layers_tile_,
                                 num_ghost_layers_distmesh_,
+                                request_boundary_ghosts_,
                                 partitioner_,
                                 geom_type_);
         if (geometric_model_ &&
@@ -236,10 +242,12 @@ MeshFactory::create(double x0, double y0, double z0,
                                     x0, y0, z0, x1, y1, z1, nx, ny, nz,
                                     geometric_model_,
                                     request_faces_, request_edges_,
-                                    request_wedges_, request_corners_,
+                                    request_sides_, request_wedges_,
+                                    request_corners_,
                                     num_tiles_,
                                     num_ghost_layers_tile_,
                                     num_ghost_layers_distmesh_,
+                                    request_boundary_ghosts_,
                                     partitioner_);
         return result;
       } catch (const Message& msg) {
@@ -323,10 +331,12 @@ MeshFactory::create(double x0, double y0,
                                     x0, y0, x1, y1, nx, ny,
                                     geometric_model_,
                                     request_faces_, request_edges_,
-                                    request_wedges_, request_corners_,
+                                    request_sides_, request_wedges_,
+                                    request_corners_,
                                     num_tiles_,
                                     num_ghost_layers_tile_,
                                     num_ghost_layers_distmesh_,
+                                    request_boundary_ghosts_,
                                     partitioner_,
                                     geom_type_);
         return result;
@@ -361,7 +371,7 @@ MeshFactory::create(double x0, double y0,
  */
 
 std::shared_ptr<Mesh>
-MeshFactory::create(std::vector<double> x) {
+MeshFactory::create(std::vector<double> const& x) {
   std::shared_ptr<Mesh> result;
   Message e("MeshFactory::create: error: ");
   int ierr[1], aerr[1];
@@ -402,10 +412,12 @@ MeshFactory::create(std::vector<double> x) {
                                     x,
                                     geometric_model_,
                                     request_faces_, request_edges_,
-                                    request_wedges_, request_corners_,
+                                    request_sides_, request_wedges_,
+                                    request_corners_,
                                     num_tiles_,
                                     num_ghost_layers_tile_,
                                     num_ghost_layers_distmesh_,
+                                    request_boundary_ghosts_,
                                     partitioner_,
                                     geom_type_);
         return result;
@@ -461,10 +473,12 @@ MeshFactory::create(const std::shared_ptr<Mesh> inmesh,
                                    setnames, setkind,
                                    flatten, extrude,
                                    request_faces_, request_edges_,
-                                   request_wedges_, request_corners_,
+                                   request_sides_, request_wedges_,
+                                   request_corners_,
                                    num_tiles_,
                                    num_ghost_layers_tile_,
                                    num_ghost_layers_distmesh_,
+                                   request_boundary_ghosts_,
                                    partitioner_,
                                    geom_type_);
         return result;

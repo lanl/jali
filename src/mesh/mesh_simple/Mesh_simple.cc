@@ -16,11 +16,13 @@ Mesh_simple::Mesh_simple(double x0, double y0, double z0,
                          const JaliGeometry::GeometricModelPtr gm,
                          const bool request_faces,
                          const bool request_edges,
+                         const bool request_sides,
                          const bool request_wedges,
                          const bool request_corners,
                          const int num_tiles_ini,
                          const int num_ghost_layers_tile,
                          const int num_ghost_layers_distmesh,
+                         const bool boundary_ghosts_requested,
                          const Partitioner_type partitioner) :
     nx_(nx), ny_(ny), nz_(nz),
     x0_(x0), x1_(x1),
@@ -28,9 +30,12 @@ Mesh_simple::Mesh_simple(double x0, double y0, double z0,
     z0_(z0), z1_(z1),
     nodes_per_face_(4), faces_per_cell_(6), nodes_per_cell_(8),
     faces_per_node_aug_(13), cells_per_node_aug_(9),
-  Mesh(request_faces, request_edges, request_wedges, request_corners,
-       num_tiles_ini, num_ghost_layers_tile, num_ghost_layers_distmesh,
+  Mesh(request_faces, request_edges, request_sides, request_wedges,
+       request_corners, num_tiles_ini, num_ghost_layers_tile,
+       num_ghost_layers_distmesh, boundary_ghosts_requested,
        partitioner, JaliGeometry::Geom_type::CARTESIAN, comm) {
+
+  assert(!boundary_ghosts_requested);  // Cannot yet make boundary ghosts
 
   Mesh::set_mesh_type(Mesh_type::RECTANGULAR);
   if (gm != (JaliGeometry::GeometricModelPtr) NULL)
@@ -38,6 +43,8 @@ Mesh_simple::Mesh_simple(double x0, double y0, double z0,
 
   clear_internals_3d_();
   update_internals_3d_();
+
+  cache_extra_variables();
 
   if (Mesh::num_tiles_ini_)
     Mesh::build_tiles();
@@ -55,11 +62,13 @@ Mesh_simple::Mesh_simple(double x0, double y0,
                          const JaliGeometry::GeometricModelPtr &gm,
                          const bool request_faces,
                          const bool request_edges,
+                         const bool request_sides,
                          const bool request_wedges,
                          const bool request_corners,
                          const int num_tiles_ini,
                          const int num_ghost_layers_tile,
                          const int num_ghost_layers_distmesh,
+                         const bool boundary_ghosts_requested,
                          const Partitioner_type partitioner,
                          const JaliGeometry::Geom_type geom_type) {
   Exceptions::Jali_throw(Errors::Message("Simple mesh cannot generate 2D meshes"));
@@ -69,27 +78,32 @@ Mesh_simple::Mesh_simple(double x0, double y0,
 // keeping faces_per_node_aug and cells_per_node_aug to reuse 3d SimpleMesh
 // logic
 
-Mesh_simple::Mesh_simple(std::vector<double> x,
+Mesh_simple::Mesh_simple(const std::vector<double>& x,
                          const MPI_Comm& comm,
                          const JaliGeometry::GeometricModelPtr &gm,
                          const bool request_faces,
                          const bool request_edges,
+                         const bool request_sides,
                          const bool request_wedges,
                          const bool request_corners,
                          const int num_tiles_ini,
                          const int num_ghost_layers_tile,
                          const int num_ghost_layers_distmesh,
+                         const bool boundary_ghosts_requested,
                          const Partitioner_type partitioner,
                          const JaliGeometry::Geom_type geom_type) :
-    nx_(x.size()-1), ny_(-3), nz_(-3),
-    coordinates_(x),
-    nodes_per_face_(1), faces_per_cell_(2), nodes_per_cell_(2),
-    faces_per_node_aug_(2), cells_per_node_aug_(3),
-    Mesh(request_faces, request_edges, request_wedges, request_corners,
-         num_tiles_ini, num_ghost_layers_tile, num_ghost_layers_distmesh,
-         partitioner, geom_type, comm) {
+  nx_(x.size()-1), ny_(-3), nz_(-3),
+  coordinates_(x),
+  nodes_per_face_(1), faces_per_cell_(2), nodes_per_cell_(2),
+  faces_per_node_aug_(2), cells_per_node_aug_(3),
+  Mesh(request_faces, request_edges, request_sides, request_wedges,
+       request_corners, num_tiles_ini, num_ghost_layers_tile,
+       num_ghost_layers_distmesh, boundary_ghosts_requested,
+       partitioner, geom_type, comm) {
   set_space_dimension(1);
   set_cell_dimension(1);
+
+  assert(!boundary_ghosts_requested);  // Cannot yet make boundary ghosts
 
   clear_internals_1d_();
   update_internals_1d_();
@@ -112,10 +126,12 @@ Mesh_simple::Mesh_simple(const std::shared_ptr<Mesh> inmesh,
                          const bool request_faces,
                          const bool request_edges,
                          const bool request_wedges,
+                         const bool request_sides,
                          const bool request_corners,
                          const int num_tiles_ini,
                          const int num_ghost_layers_tile,
                          const int num_ghost_layers_distmesh,
+                         const bool boundary_ghosts_requested,
                          const Partitioner_type partitioner,
                          const JaliGeometry::Geom_type geom_type) {
   Errors::Message mesg("Construction of new mesh from an existing mesh not yet"
@@ -130,11 +146,13 @@ Mesh_simple::Mesh_simple(const Mesh& inmesh,
                          const bool extrude,
                          const bool request_faces,
                          const bool request_edges,
+                         const bool request_sides,
                          const bool request_wedges,
                          const bool request_corners,
                          const int num_tiles_ini,
                          const int num_ghost_layers_tile,
                          const int num_ghost_layers_distmesh,
+                         const bool boundary_ghosts_requested,
                          const Partitioner_type partitioner,
                          const JaliGeometry::Geom_type geom_type) {
   Errors::Message mesg("Construction of new mesh from an existing mesh not yet"
@@ -149,11 +167,13 @@ Mesh_simple::Mesh_simple(const Mesh& inmesh,
                          const bool extrude,
                          const bool request_faces,
                          const bool request_edges,
+                         const bool request_sides,
                          const bool request_wedges,
                          const bool request_corners,
                          const int num_tiles_ini,
                          const int num_ghost_layers_tile,
                          const int num_ghost_layers_distmesh,
+                         const bool boundary_ghosts_requested,
                          const Partitioner_type partitioner,
                          const JaliGeometry::Geom_type geom_type) {
   Errors::Message mesg("Construction of new mesh from an existing mesh not yet"
@@ -265,7 +285,7 @@ void Mesh_simple::update_internals_1d_() {
   Mesh::nodeids_all_ = Mesh::nodeids_owned_;
 
   if (Mesh::edges_requested) {
-    int num_edges = num_cells_;
+    int num_edges = num_cells_+1;  // edges are same as faces and nodes in 1D
     Mesh::edgeids_owned_.resize(num_edges);
     for (int i = 0; i < num_edges; ++i)
       edgeids_owned_[i] = i;
@@ -573,14 +593,6 @@ void Mesh_simple::update_internals_3d_() {
 }
 
 
-Parallel_type Mesh_simple::entity_get_ptype(const Entity_kind kind,
-                                            const Entity_ID entid) const {
-  return Parallel_type::OWNED;  // Its a serial code
-}
-
-
-
-
 // Get cell type
 Jali::Cell_type Mesh_simple::cell_get_type(const Jali::Entity_ID cellid) const {
   return Cell_type::HEX;
@@ -597,7 +609,7 @@ Entity_ID Mesh_simple::GID(const Jali::Entity_ID lid,
 void Mesh_simple::cell_get_faces_and_dirs_internal(const Jali::Entity_ID cellid,
                                                    Jali::Entity_ID_List
                                                    *faceids,
-                                                   std::vector<int> *cfacedirs,
+                                                   std::vector<dir_t> *cfacedirs,
                                                    const bool ordered) const {
   unsigned int offset = (unsigned int) faces_per_cell_*cellid;
 
@@ -648,6 +660,20 @@ void Mesh_simple::node_get_coordinates(const Jali::Entity_ID local_node_id,
   unsigned int offset = (unsigned int) Mesh::space_dimension()*local_node_id;
 
   ncoords->set(Mesh::space_dimension(), &(coordinates_[offset]));
+}
+void Mesh_simple::node_get_coordinates(const Jali::Entity_ID local_node_id,
+                                       std::array<double, 3> *ncoords) const {
+  assert(Mesh::space_dimension() == 3);
+  unsigned int offset = 3*local_node_id;
+  (*ncoords)[0] = coordinates_[offset];
+  (*ncoords)[1] = coordinates_[offset + 1];
+  (*ncoords)[2] = coordinates_[offset + 2];
+}
+void Mesh_simple::node_get_coordinates(const Jali::Entity_ID local_node_id,
+                                       double *ncoords) const {
+  assert(Mesh::space_dimension() == 1);
+  unsigned int offset = 1*local_node_id;
+  *ncoords = coordinates_[offset];
 }
 
 
@@ -717,7 +743,7 @@ void Mesh_simple::node_set_coordinates(const Jali::Entity_ID local_node_id,
 
 
 void Mesh_simple::node_get_cells(const Jali::Entity_ID nodeid,
-                                 const Jali::Parallel_type ptype,
+                                 const Jali::Entity_type ptype,
                                  Jali::Entity_ID_List *cellids) const {
   unsigned int offset = (unsigned int) cells_per_node_aug_*nodeid;
   unsigned int ncells = node_to_cell_[offset];
@@ -731,7 +757,7 @@ void Mesh_simple::node_get_cells(const Jali::Entity_ID nodeid,
 
 // Faces of type 'ptype' connected to a node
 void Mesh_simple::node_get_faces(const Jali::Entity_ID nodeid,
-                                 const Jali::Parallel_type ptype,
+                                 const Jali::Entity_type ptype,
                                  Jali::Entity_ID_List *faceids) const {
   unsigned int offset = (unsigned int) faces_per_node_aug_*nodeid;
   unsigned int nfaces = node_to_face_[offset];
@@ -748,7 +774,7 @@ void Mesh_simple::node_get_faces(const Jali::Entity_ID nodeid,
 
 void Mesh_simple::node_get_cell_faces(const Jali::Entity_ID nodeid,
                                       const Jali::Entity_ID cellid,
-                                      const Jali::Parallel_type ptype,
+                                      const Jali::Entity_type ptype,
                                       Jali::Entity_ID_List *faceids) const {
   unsigned int offset = (unsigned int) faces_per_cell_*cellid;
 
@@ -773,7 +799,7 @@ void Mesh_simple::node_get_cell_faces(const Jali::Entity_ID nodeid,
 
 // Cells connected to a face
 void Mesh_simple::face_get_cells_internal(const Jali::Entity_ID faceid,
-                                          const Jali::Parallel_type ptype,
+                                          const Jali::Entity_type ptype,
                                           Jali::Entity_ID_List *cellids) const {
   unsigned int offset = (unsigned int) 2*faceid;
 
@@ -798,7 +824,7 @@ void Mesh_simple::face_get_cells_internal(const Jali::Entity_ID faceid,
 // faces given by cell_get_faces
 
 void Mesh_simple::cell_get_face_adj_cells(const Jali::Entity_ID cellid,
-                                          const Jali::Parallel_type ptype,
+                                          const Jali::Entity_type ptype,
                                           Jali::Entity_ID_List
                                           *fadj_cellids) const {
   unsigned int offset = (unsigned int) faces_per_cell_*cellid;
@@ -828,7 +854,7 @@ void Mesh_simple::cell_get_face_adj_cells(const Jali::Entity_ID cellid,
 // The cells are returned in no particular order
 
 void Mesh_simple::cell_get_node_adj_cells(const Jali::Entity_ID cellid,
-                                          const Jali::Parallel_type ptype,
+                                          const Jali::Entity_type ptype,
                                           Jali::Entity_ID_List
                                           *nadj_cellids) const {
   unsigned int offset = (unsigned int) nodes_per_cell_*cellid;
@@ -841,7 +867,7 @@ void Mesh_simple::cell_get_node_adj_cells(const Jali::Entity_ID cellid,
     unsigned int offset2 = (unsigned int) cells_per_node_aug_*nodeid;
     unsigned int ncell = node_to_cell_[offset2];
 
-    for (int j = 0; j < nodes_per_cell_; j++) {
+    for (int j = 0; j < ncell; j++) {
       Entity_ID nodecell = node_to_cell_[offset2+j+1];
       if (nodecell == cellid) continue;
 
@@ -860,459 +886,19 @@ void Mesh_simple::cell_get_node_adj_cells(const Jali::Entity_ID cellid,
   }
 }
 
-unsigned int Mesh_simple::get_set_size(const char *setname,
-                                       const Jali::Entity_kind kind,
-                                       const Jali::Parallel_type ptype) const {
-  Entity_ID_List setents;
-  get_set_entities(setname, kind, ptype, &setents);
+void
+Mesh_simple::get_labeled_set_entities(const JaliGeometry::LabeledSetRegionPtr r,
+                                      const Entity_kind kind,
+                                      Entity_ID_List *owned_entities,
+                                      Entity_ID_List *ghost_entities) const {
+  // simple mesh does not read from any mesh file so it cannot have
+  // pre-existing labeled sets
 
-  return setents.size();
+  owned_entities->clear();
+  ghost_entities->clear();
 }
+                              
 
-unsigned int Mesh_simple::get_set_size(const std::string setname,
-                                       const Jali::Entity_kind kind,
-                                       const Jali::Parallel_type ptype) const {
-  Entity_ID_List setents;
-  get_set_entities(setname, kind, ptype, &setents);
-
-  return setents.size();
-}
-
-
-void Mesh_simple::get_set_entities(const char *setname,
-                                   const Jali::Entity_kind kind,
-                                   const Jali::Parallel_type ptype,
-                                   Jali::Entity_ID_List *setents) const {
-  std::string setname1(setname);
-  get_set_entities(setname1, kind, ptype, setents);
-}
-
-void Mesh_simple::get_set_entities(const std::string setname,
-                                   const Jali::Entity_kind kind,
-                                   const Jali::Parallel_type ptype,
-                                   Jali::Entity_ID_List *setents) const {
-  // we ignore ptype since this is a serial implementation
-
-  JaliGeometry::GeometricModelPtr gm = Mesh::geometric_model();
-
-  if (setents == NULL) {
-    Errors::Message mesg("NULL setents list");
-    Exceptions::Jali_throw(mesg);
-  }
-  setents->clear();
-
-  switch (kind) {
-    case Entity_kind::FACE:
-      {
-      Entity_ID_List ss;
-
-      // Does this set exist?
-
-      int nss = side_sets_.size();  // number of side sets
-      bool found = false;
-      for (int i = 0; i < nss; i++) {
-        if ((side_set_regions_[i])->name() == setname) {
-          found = true;
-          ss = side_sets_[i];
-        }
-      }
-
-      if (!found) {   // create the side set from the region definition
-          JaliGeometry::RegionPtr rgn = gm->FindRegion(setname);
-
-          if (rgn == NULL) {
-              std::cerr << "Geometric model has no region named " << setname
-                        << std::endl;
-              std::cerr << "Cannot construct set by this name" << std::endl;
-              throw std::exception();
-            }
-
-          if (rgn->dimension() != Mesh::cell_dimension()-1) {
-              std::cerr << "Geometric model does not have a region named"
-                        << setname << "with the appropriate dimension"
-                        << std::endl;
-              std::cerr << "Cannot construct set by this name" << std::endl;
-              throw std::exception();
-            }
-
-          if (rgn->type() == JaliGeometry::Region_type::BOX ||
-              rgn->type() == JaliGeometry::Region_type::PLANE) {
-              for (int ix = 0; ix < nx_; ++ix)
-                for (int iz = 0; iz < nz_; ++iz) {
-                    int face;
-                    std::vector<JaliGeometry::Point> fxyz;
-                    bool inbox;
-
-                    face = xzface_index_(ix, 0, iz);
-                    face_get_coordinates(face, &fxyz);
-
-                    inbox = true;
-                    if (rgn->type() == JaliGeometry::Region_type::BOX) {
-                        JaliGeometry::Point cenpnt(Mesh::space_dimension());
-                        for (int j = 0; j < nodes_per_face_; j++)
-                          cenpnt += fxyz[j];
-                        cenpnt /= static_cast<double>(nodes_per_face_);
-
-                        if (!rgn->inside(cenpnt)) inbox = false;
-                    } else {
-                      for (int j = 0; j < nodes_per_face_; ++j) {
-                        if (!rgn->inside(fxyz[j])) {
-                          inbox = false;
-                          break;
-                        }
-                      }
-                    }
-
-                    if (inbox)
-                      ss.push_back(face);
-
-                    face = xzface_index_(ix, ny_, iz);
-                    face_get_coordinates(face, &fxyz);
-
-                    inbox = true;
-                    if (rgn->type() == JaliGeometry::Region_type::BOX) {
-                        JaliGeometry::Point cenpnt(Mesh::space_dimension());
-                        for (int j = 0; j < nodes_per_face_; j++)
-                          cenpnt += fxyz[j];
-                        cenpnt /= static_cast<double>(nodes_per_face_);
-
-                        if (!rgn->inside(cenpnt)) inbox = false;
-                    } else {
-                      for (int j = 0; j < nodes_per_face_; j++) {
-                        if (!rgn->inside(fxyz[j])) {
-                          inbox = false;
-                          break;
-                        }
-                      }
-                    }
-
-                    if (inbox)
-                      ss.push_back(face);
-                }
-
-
-              for (int ix = 0; ix < nx_; ++ix)
-                for (int iy = 0; iy < ny_; ++iy) {
-                    int face;
-                    std::vector<JaliGeometry::Point> fxyz;
-                    bool inbox;
-
-                    face = xyface_index_(ix, iy, 0);
-                    face_get_coordinates(face, &fxyz);
-
-                    inbox = true;
-                    if (rgn->type() == JaliGeometry::Region_type::BOX) {
-                        JaliGeometry::Point cenpnt(Mesh::space_dimension());
-                        for (int j = 0; j < nodes_per_face_; j++)
-                          cenpnt += fxyz[j];
-                        cenpnt /= static_cast<double>(nodes_per_face_);
-
-                        if (!rgn->inside(cenpnt)) inbox = false;
-                    } else {
-                      for (int j = 0; j < 4; j++) {
-                        if (!rgn->inside(fxyz[j])) {
-                          inbox = false;
-                          break;
-                        }
-                      }
-                    }
-
-                    if (inbox)
-                      ss.push_back(face);
-
-                    face = xyface_index_(ix, iy, nz_);
-                    face_get_coordinates(face, &fxyz);
-
-                    inbox = true;
-                    if (rgn->type() == JaliGeometry::Region_type::BOX) {
-                        JaliGeometry::Point cenpnt(Mesh::space_dimension());
-                        for (int j = 0; j < nodes_per_face_; j++)
-                          cenpnt += fxyz[j];
-                        cenpnt /= static_cast<double>(nodes_per_face_);
-
-                        if (!rgn->inside(cenpnt)) inbox = false;
-                      } else {
-                        for (int j = 0; j < nodes_per_face_; j++) {
-                            if (!rgn->inside(fxyz[j])) {
-                                inbox = false;
-                                break;
-                              }
-                        }
-                    }
-
-                    if (inbox)
-                      ss.push_back(face);
-                  }
-
-              for (int iy = 0; iy < ny_; ++iy)
-                for (int iz = 0; iz < nz_; ++iz) {
-                    int face;
-                    std::vector<JaliGeometry::Point> fxyz;
-                    bool inbox;
-
-                    face = yzface_index_(0, iy, iz);
-                    face_get_coordinates(face, &fxyz);
-
-                    inbox = true;
-                    if (rgn->type() == JaliGeometry::Region_type::BOX) {
-                        JaliGeometry::Point cenpnt(Mesh::space_dimension());
-                        for (int j = 0; j < nodes_per_face_; j++)
-                          cenpnt += fxyz[j];
-                        cenpnt /= static_cast<double>(nodes_per_face_);
-
-                        if (!rgn->inside(cenpnt)) inbox = false;
-                      } else {
-                        for (int j = 0; j < nodes_per_face_; j++) {
-                            if (!rgn->inside(fxyz[j])) {
-                                inbox = false;
-                                break;
-                            }
-                        }
-                    }
-
-                    if (inbox)
-                      ss.push_back(face);
-
-                    face = yzface_index_(nx_, iy, iz);
-                    face_get_coordinates(face, &fxyz);
-
-                    inbox = true;
-                    if (rgn->type() == JaliGeometry::Region_type::BOX) {
-                        JaliGeometry::Point cenpnt(Mesh::space_dimension());
-                        for (int j = 0; j < nodes_per_face_; j++)
-                          cenpnt += fxyz[j];
-                        cenpnt /= static_cast<double>(nodes_per_face_);
-
-                        if (!rgn->inside(cenpnt)) inbox = false;
-                      }
-                    else
-                      {
-                        for (int j = 0; j < nodes_per_face_; j++)
-                          {
-                            if (!rgn->inside(fxyz[j]))
-                              {
-                                inbox = false;
-                                break;
-                              }
-                          }
-                      }
-
-                    if (inbox)
-                      ss.push_back(face);
-                  }
-
-              if (Mesh::space_dimension() == 1) {
-                  int face;
-                  std::vector<JaliGeometry::Point> fx;
-                  bool inbox;
-
-                  face = yzface_index_(0);
-                  face_get_coordinates(face, &fx);
-
-                  inbox = true;
-                  if (rgn->type() == JaliGeometry::Region_type::BOX) {
-                    JaliGeometry::Point cenpnt(Mesh::space_dimension());
-                    for (int j = 0; j < nodes_per_face_; j++)
-                      cenpnt += fx[j];
-                    cenpnt /= static_cast<double>(nodes_per_face_);
-
-                    if (!rgn->inside(cenpnt)) inbox = false;
-                  } else {
-                    for (int j = 0; j < nodes_per_face_; j++) {
-                      if (!rgn->inside(fx[j])) {
-                        inbox = false;
-                        break;
-                      }
-                    }
-                  }
-
-                  if (inbox)
-                    ss.push_back(face);
-
-                  face = yzface_index_(nx_);
-                  face_get_coordinates(face, &fx);
-
-                  inbox = true;
-                  if (rgn->type() == JaliGeometry::Region_type::BOX) {
-                    JaliGeometry::Point cenpnt(Mesh::space_dimension());
-                    for (int j = 0; j < nodes_per_face_; j++)
-                      cenpnt += fx[j];
-                    cenpnt /= static_cast<double>(nodes_per_face_);
-
-                    if (!rgn->inside(cenpnt)) inbox = false;
-                  } else {
-                    for (int j = 0; j < nodes_per_face_; ++j) {
-                      if (!rgn->inside(fx[j])) {
-                        inbox = false;
-                        break;
-                      }
-                    }
-                  }
-
-                  if (inbox)
-                    ss.push_back(face);
-              }
-
-              side_sets_.push_back(ss);
-              side_set_regions_.push_back(rgn);
-            } else {
-              std::cerr << "Region type not suitable/applicable for sidesets"
-                        << std::endl;
-              throw std::exception();
-            }
-        }
-
-      *setents = ss;
-      break;
-      }
-    case Entity_kind::CELL:
-      {
-      Entity_ID_List cs;  // cell set
-
-      int ncs = element_blocks_.size();
-      bool found = false;
-      for (int i = 0; i < ncs; i++) {
-        if ((element_block_regions_[i])->name() == setname) {
-          found = true;
-          cs = element_blocks_[i];
-        }
-      }
-
-      if (!found) {  // create the cell set from the region definition
-          JaliGeometry::RegionPtr rgn = gm->FindRegion(setname);
-
-          if (rgn == NULL) {
-              std::cerr << "Geometric model has no region named " << setname
-                        << std::endl;
-              std::cerr << "Cannot construct set by this name" << std::endl;
-              throw std::exception();
-            }
-
-          if (rgn->dimension() != Mesh::cell_dimension()) {
-              std::cerr << "Geometric model does not have a region named"
-                        << setname << "with the appropriate dimension"
-                        << std::endl;
-              std::cerr << "Cannot construct set by this name" << std::endl;
-              throw std::exception();
-            }
-
-          if (rgn->type() == JaliGeometry::Region_type::BOX ||
-              rgn->type() == JaliGeometry::Region_type::COLORFUNCTION) {
-              for (int ix = 0; ix < nx_; ++ix)
-                for (int iy = 0; iy < ny_; ++iy)
-                  for (int iz = 0; iz < nz_; ++iz) {
-                      int cell = cell_index_(ix, iy, iz);
-                      std::vector<JaliGeometry::Point> cxyz;
-                      cell_get_coordinates(cell, &cxyz);
-
-                      JaliGeometry::Point cenpnt(Mesh::space_dimension());
-
-                      for (int j = 0; j < nodes_per_cell_; j++)
-                        cenpnt += cxyz[j];
-                      cenpnt /= static_cast<double>(nodes_per_cell_);
-
-                      if (rgn->inside(cenpnt))
-                        cs.push_back(cell);
-                    }
-
-              if (Mesh::space_dimension() == 1) {
-                for (int ix = 0; ix < nx_; ++ix) {
-                  int cell = cell_index_(ix);
-                  std::vector<JaliGeometry::Point> cx;
-                  cell_get_coordinates(cell, &cx);
-
-                  JaliGeometry::Point cenpnt(Mesh::space_dimension());
-
-                  for (int j = 0; j < nodes_per_cell_; j++)
-                    cenpnt += cx[j];
-                  cenpnt /= static_cast<double>(nodes_per_cell_);
-
-                  if (rgn->inside(cenpnt))
-                    cs.push_back(cell);
-                }
-
-              }
-
-              element_blocks_.push_back(cs);
-              element_block_regions_.push_back(rgn);
-            } else {
-              std::cerr << "Region type not suitable/applicable for cellsets"
-                        << std::endl;
-              throw std::exception();
-            }
-        }
-
-      *setents = cs;
-      break;
-      }
-  case Entity_kind::NODE:
-    {
-      Entity_ID_List ns;
-
-      // Does this set exist?
-
-      int nns = node_sets_.size();  // number of node sets
-      bool found = false;
-      for (int i = 0; i < nns; i++) {
-        if ((node_set_regions_[i])->name() == setname) {
-          found = true;
-          ns = node_sets_[i];
-        }
-      }
-
-      if (!found) {  // create the side set from the region definition
-          JaliGeometry::RegionPtr rgn = gm->FindRegion(setname);
-
-          if (rgn == NULL) {
-              std::cerr << "Geometric model has no region named " << setname
-                        << std::endl;
-              std::cerr << "Cannot construct set by this name" << std::endl;
-              throw std::exception();
-            }
-
-          bool done = false;
-          for (int ix = 0; ix < nx_+1 && !done; ++ix)
-            for (int iy = 0; iy < ny_+1 && !done; ++iy)
-              for (int iz = 0; iz < nz_+1 && !done; ++iz) {
-                  int node = node_index_(ix, iy, iz);
-                  JaliGeometry::Point nxyz;
-                  node_get_coordinates(node, &nxyz);
-
-                  if (rgn->inside(nxyz)) {
-                    ns.push_back(node);
-
-                    if (rgn->type() == JaliGeometry::Region_type::POINT)
-                      done = true;
-                  }
-              }
-
-          if (Mesh::space_dimension() == 1) {
-            bool done = false;
-            for (int ix = 0; ix < nx_+1 && !done; ++ix) {
-              int node = node_index_(ix);
-              JaliGeometry::Point nx;
-              node_get_coordinates(node, &nx);
-
-              if (rgn->inside(nx)) {
-                ns.push_back(node);
-
-                if (rgn->type() == JaliGeometry::Region_type::POINT)
-                  done = true;
-              }
-            }
-          }
-          node_sets_.push_back(ns);
-          node_set_regions_.push_back(rgn);
-      }
-
-      *setents = ns;
-      break;
-    }
-  default:
-    // set type not recognized
-    throw std::exception();
-  }
-}
 
 
 

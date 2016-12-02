@@ -4,6 +4,7 @@
 //
 
 #include <iostream>
+#include <cstdint>
 
 #include "mpi.h"
 
@@ -45,8 +46,7 @@ int main(int argc, char *argv[]) {
     // with 3, 3 and 3 elements in the X, Y and Z directions.
     // Request faces, edges, wedges and corners
 
-    mesh_factory.included_entities({Entity_kind::EDGE, Entity_kind::FACE,
-            Entity_kind::WEDGE, Entity_kind::CORNER});
+    mesh_factory.included_entities(Entity_kind::ALL_KIND);
 
     mymesh = mesh_factory(0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 3, 3, 3);
   }
@@ -54,10 +54,10 @@ int main(int argc, char *argv[]) {
 
   // Iterate through the cells of the mesh and get the faces and of the cell
 
-  for (auto c : mymesh->cells<Parallel_type::OWNED>()) {
+  for (auto c : mymesh->cells<Entity_type::PARALLEL_OWNED>()) {
 
     Entity_ID_List cfaces;   // Entity_ID_List is just a std::vector<Entity_ID>
-    std::vector<int> cfdirs;
+    std::vector<dir_t> cfdirs;
 
     mymesh->cell_get_faces_and_dirs(c, &cfaces, &cfdirs);
 

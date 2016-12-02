@@ -13,10 +13,10 @@
 #ifndef _MeshFactory_hh_
 #define _MeshFactory_hh_
 
+#include <mpi.h>
+
 #include <string>
 #include <vector>
-
-#include <mpi.h>
 #include <memory>
 #include <utility>
 
@@ -47,6 +47,7 @@ class MeshFactory {
   bool request_edges_;
   bool request_faces_;
   bool request_cells_;
+  bool request_sides_;
   bool request_wedges_;
   bool request_corners_;
 
@@ -58,6 +59,10 @@ class MeshFactory {
 
   /// Number of ghost/halo layers for mesh partitions across compute nodes
   int num_ghost_layers_distmesh_;
+
+  /// Are ghost/halo layers on external boundaries required - used for
+  /// applying certain types of boundary conditions
+  bool request_boundary_ghosts_;
 
   /// Partitioner type
   Partitioner_type partitioner_;
@@ -89,7 +94,7 @@ class MeshFactory {
                                int nx, int ny);
 
   /// Create a 1d mesh
-  std::shared_ptr<Mesh> create(std::vector<double> x);
+  std::shared_ptr<Mesh> create(const std::vector<double>& x);
 
 
 
@@ -146,6 +151,18 @@ class MeshFactory {
     num_ghost_layers_distmesh_ = num_layers;
   }
 
+  /// Are ghost/virtual elements outside external boundaries of the
+  /// meshes to be created (default false)
+  bool boundary_ghosts_requested(void) const {
+    return request_boundary_ghosts_;
+  }
+
+  /// Set the number of ghost/virtual element layers outside
+  /// external boundarieis in the meshes to be created
+  void boundary_ghosts_requested(bool requested_or_not) {
+    request_boundary_ghosts_ = requested_or_not;
+  }
+
   /// Get the number of tiles to be created (default 0)
   int num_tiles(void) const {return num_tiles_;}
 
@@ -174,6 +191,7 @@ class MeshFactory {
     list.push_back(Entity_kind::NODE);  // always present
     if (request_edges_) list.push_back(Entity_kind::EDGE);
     if (request_faces_) list.push_back(Entity_kind::FACE);
+    if (request_sides_) list.push_back(Entity_kind::SIDE);
     if (request_wedges_) list.push_back(Entity_kind::WEDGE);
     if (request_corners_) list.push_back(Entity_kind::CORNER);
     if (request_cells_) list.push_back(Entity_kind::CELL);
@@ -183,11 +201,26 @@ class MeshFactory {
   /// Set the type of entities that are explicitly INCLUDED/REQUESTED in the
   /// meshes to be created
   void included_entities(std::vector<Entity_kind> const& list) {
-    for (auto const& e : list) {
+    for (auto const& e : list)
+      included_entities(e);
+  }
+
+  /// Set the type of entities that are explicitly INCLUDED/REQUESTED in the
+  /// meshes to be created
+  void included_entities(Entity_kind const e) {
+    if (e == Entity_kind::ALL_KIND) {
+      request_edges_ = true;
+      request_faces_ = true;
+      request_sides_ = true;
+      request_wedges_ = true;
+      request_corners_ = true;
+      request_cells_ = true;
+    } else {
       switch (e) {
         case Entity_kind::NODE: break;  // included by default - nothing to do
         case Entity_kind::EDGE: request_edges_ = true; break;
         case Entity_kind::FACE: request_faces_ = true; break;
+        case Entity_kind::SIDE: request_sides_ = true; break;
         case Entity_kind::WEDGE: request_wedges_ = true; break;
         case Entity_kind::CORNER: request_corners_ = true; break;
         case Entity_kind::CELL: request_cells_ = true; break;
@@ -207,6 +240,7 @@ class MeshFactory {
               "Cannot turn off node creation in meshes\n";
           break;
         case Entity_kind::EDGE: request_edges_ = false; break;
+        case Entity_kind::SIDE: request_sides_ = false; break;
         case Entity_kind::WEDGE: request_wedges_ = false; break;
         case Entity_kind::CORNER: request_corners_ = false; break;
         case Entity_kind::FACE:
@@ -253,7 +287,7 @@ class MeshFactory {
   }
 
   /// Create a 1d mesh -- operator
-  std::shared_ptr<Mesh> operator() (std::vector<double> x) {
+  std::shared_ptr<Mesh> operator() (const std::vector<double>& x) {
     return create(x);
   }
 
@@ -263,7 +297,7 @@ class MeshFactory {
     double myX = x0;
 
     std::vector<double> x(nx);
-    for(auto it = x.begin(); it != x.end(); it++) {
+    for (auto it = x.begin(); it != x.end(); it++) {
       *it = myX;
       myX += dX;
     }
