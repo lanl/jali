@@ -1,17 +1,14 @@
-/* -*-  mode: c++; c-default-style: "google"; indent-tabs-mode: nil -*- */
-// -------------------------------------------------------------
+// Copyright Los Alamos National Security LLC
 /*!
  * @file   MeshFactory.hh
- * @author William A. Perkins, Rao Garimella
- * @date Wed Sep 28 09:10:15 2011
+ * @author Rao Garimella
  *
  * @brief  declaration of the MeshFactory class
  *
- *
  */
 
-#ifndef _MeshFactory_hh_
-#define _MeshFactory_hh_
+#ifndef _MESHFACTORY_HH_
+#define _MESHFACTORY_HH_
 
 #include <mpi.h>
 
@@ -20,119 +17,96 @@
 #include <memory>
 #include <utility>
 
-#include "MeshException.hh"
-#include "MeshFramework.hh"
+#include "MeshDefs.hh"
 #include "Mesh.hh"
-
 #include "GeometricModel.hh"
 #include "Geometry.hh"
+#include "errors.hh"
+#include "exceptions.hh"
 
 namespace Jali {
 
-// -------------------------------------------------------------
-//  class MeshFactory
-// -------------------------------------------------------------
+/// A type to identify available mesh frameworks
+enum MeshFramework_t {
+  Simple = 1,
+  MSTK,
+  MOAB,
+  STKMESH
+};
+
+/// A type to identify mesh file formats
+enum MeshFormat_t {
+  ExodusII = 1,
+  MOABHDF5,
+  FLAGX3D
+};
+
+/// Get a name for a given framework
+std::string framework_name(const MeshFramework_t& f);
+
+/// Check if a framework is available for use
+bool framework_available(const MeshFramework_t& f);
+
+/// Check if a framework can generate a mesh
+bool framework_generates(const MeshFramework_t& f, const bool parallel,
+                         const int dim);
+
+bool framework_reads(const MeshFramework_t& f, const bool parallel,
+                     const MeshFormat_t& format);
+
+bool framework_extracts(const MeshFramework_t& f, const bool parallel,
+                        const int dim);
+
+
+/* @brief Factory class to construct meshes using chosen mesh framework */
+
 class MeshFactory {
-
- protected:
-
-  /// The parallel environment
-  const MPI_Comm my_comm_;
-
-  /// A list of preferred mesh frameworks to consider
-  FrameworkPreference my_preference_;
-
-  /// What type of entities to include/exclude in the meshes to be created
-  /// (nodes must ALWAYS be present)
-  bool request_edges_;
-  bool request_faces_;
-  bool request_cells_;
-  bool request_sides_;
-  bool request_wedges_;
-  bool request_corners_;
-
-  /// Number of on-node mesh tiles
-  int num_tiles_;
-
-  /// Number of ghost/halo layers at the tile level on compute node
-  int num_ghost_layers_tile_;
-
-  /// Number of ghost/halo layers for mesh partitions across compute nodes
-  int num_ghost_layers_distmesh_;
-
-  /// Are ghost/halo layers on external boundaries required - used for
-  /// applying certain types of boundary conditions
-  bool request_boundary_ghosts_;
-
-  /// Partitioner type
-  Partitioner_type partitioner_;
-
-  /// Geometry type
-  JaliGeometry::Geom_type geom_type_;
-
-  /// Geometric model
-  JaliGeometry::GeometricModel *geometric_model_;
-
- private:
-
-  /// private, undefined copy constructor to avoid unwanted copies
-  MeshFactory(MeshFactory& old);
-
-  /// Create a mesh by reading the specified file (or set of files)
-  std::shared_ptr<Mesh> create(const std::string& filename);
-
-  /// Create a hexahedral mesh of the specified dimensions
-  //  No need of geom_type argument as its always CARTESIAN
-
-  std::shared_ptr<Mesh> create(double x0, double y0, double z0,
-                               double x1, double y1, double z1,
-                               int nx, int ny, int nz);
-
-  /// Create a quadrilateral mesh of the specified dimensions
-  std::shared_ptr<Mesh> create(double x0, double y0,
-                               double x1, double y1,
-                               int nx, int ny);
-
-  /// Create a 1d mesh
-  std::shared_ptr<Mesh> create(const std::vector<double>& x);
-
-
-
-  /// Create a mesh by extract subsets of entities from an existing mesh
-  std::shared_ptr<Mesh> create(const std::shared_ptr<Mesh> inmesh,
-                               const std::vector<std::string> setnames,
-                               const Entity_kind setkind,
-                               const bool flatten = false,
-                               const bool extrude = false);
-
  public:
 
   /// Default constructor.
-  explicit MeshFactory(const MPI_Comm& communicator);
+  explicit MeshFactory(const MPI_Comm& communicator) : comm_(communicator) {}
+
+  /// Delete the copy constructor
+  MeshFactory(MeshFactory& factory) = delete;
 
   /// Destructor
-  ~MeshFactory(void);
+  ~MeshFactory(void) {}
 
   /// Reset options to default values;
   void reset_options(void);
 
   // Get/Set methods for mesh initialization parameters
 
-  /// Get the framework preference
-  const FrameworkPreference& preference(void) const
-  { return my_preference_; }
+  /// Get the framework being used
+  const MeshFramework_t framework(void) const {
+    return framework_;
+  }
 
-  /// Set the framework preference
-  void preference(const FrameworkPreference& pref);
+  /// Set the framework to use
+  void framework(const MeshFramework_t& framework) {
+    if (framework_ == Simple || framework_ == MSTK) {
+      framework_ = framework;
+    } else {
+      std::stringstream mesgstrm;
+      mesgstrm << framework_name(framework) << " not available\n";
+      Exceptions::Jali_throw(mesgstrm.str());
+    }
+  }
 
   /// Get the partitioner for meshes to be created (default METIS)
-  Partitioner_type partitioner(void) const {return partitioner_;}
+  Partitioner_type partitioner(void) const {
+    return partitioner_;
+  }
 
   /// Set the partitioner
-  void partitioner(Partitioner_type partitioner) {partitioner_ = partitioner;}
+  void partitioner(Partitioner_type partitioner) {
+    partitioner_ = partitioner;
+  }
 
   /// Get the geometry type for the meshes to be created (default CARTESIAN)
-  JaliGeometry::Geom_type mesh_geometry(void) const {return geom_type_;}
+  JaliGeometry::Geom_type mesh_geometry(void) const {
+    return geom_type_;
+  }
 
   /// Set the geometry type for the meshes to be created
   void mesh_geometry(JaliGeometry::Geom_type geom_type) {
@@ -164,28 +138,39 @@ class MeshFactory {
   }
 
   /// Get the number of tiles to be created (default 0)
-  int num_tiles(void) const {return num_tiles_;}
+
+  int num_tiles(void) const {
+    return num_tiles_;
+  }
 
   /// Set the number of tiles to be created
-  void num_tiles(int n) {num_tiles_ = n;}
+  
+  void num_tiles(int n) {
+    num_tiles_ = n;
+  }
 
   /// Get the number of ghost layers around on-node mesh tiles in the
   /// meshes to be created (default 0)
-  int num_ghost_layers_tile(void) const {return num_ghost_layers_tile_;}
 
-  /// Set the number of ghost layers around distributed mesh
-  /// partitions in the meshes to be created
+  int num_ghost_layers_tile(void) const {
+    return num_ghost_layers_tile_;
+  }
+
+  /// Set the number of ghost layers around on-node mesh tiles in
+  /// the meshes to be created
+  
   void num_ghost_layers_tile(int num_layers) {
     num_ghost_layers_tile_ = num_layers;
   }
 
-  /*! @brief Get explicitly represented entity kinds 
-   
-   Get the types of entities that are explicitly requested in the
-   meshes to be created (Nodes are always included. Cells are usually
-   included unless explicitly excluded for particle meshes - NOT
-   IMPLEMENTED YET)
-  */
+  /// @brief Get explicitly represented entity kinds 
+  ///
+  /// Get the types of entities that are explicitly requested in the
+  /// meshes to be created (Nodes are always included. Cells are usually
+  /// included unless explicitly excluded for particle meshes - NOT
+  /// IMPLEMENTED YET)
+  ///
+  
   std::vector<Entity_kind> included_entities(void) const {
     std::vector<Entity_kind> list;
     list.push_back(Entity_kind::NODE);  // always present
@@ -200,6 +185,7 @@ class MeshFactory {
 
   /// Set the type of entities that are explicitly INCLUDED/REQUESTED in the
   /// meshes to be created
+  
   void included_entities(std::vector<Entity_kind> const& list) {
     for (auto const& e : list)
       included_entities(e);
@@ -276,7 +262,7 @@ class MeshFactory {
   std::shared_ptr<Mesh> operator() (double x0, double y0, double z0,
                                     double x1, double y1, double z1,
                                     int nx, int ny, int nz) {
-      return create(x0, y0, z0, x1, y1, z1, nx, ny, nz);
+    return create(x0, y0, z0, x1, y1, z1, nx, ny, nz);
   }
 
   /// Create a quadrilateral mesh of the specified dimensions -- operator
@@ -314,6 +300,79 @@ class MeshFactory {
     return create(inmesh, setnames, setkind, flatten, extrude);
   }
 
+ private:
+
+  /// Create a mesh by reading the specified file (or set of files)
+  std::shared_ptr<Mesh> create(const std::string& filename);
+
+  /// Create a hexahedral mesh of the specified dimensions
+  //  No need of geom_type argument as its always CARTESIAN
+
+  std::shared_ptr<Mesh> create(double x0, double y0, double z0,
+                               double x1, double y1, double z1,
+                               int nx, int ny, int nz);
+
+  /// Create a quadrilateral mesh of the specified dimensions
+  std::shared_ptr<Mesh> create(double x0, double y0,
+                               double x1, double y1,
+                               int nx, int ny);
+  
+  /// Create a 1d mesh
+  std::shared_ptr<Mesh> create(std::vector<double> x);
+
+
+  /// Create a mesh by extract subsets of entities from an existing mesh
+  std::shared_ptr<Mesh> create(const std::shared_ptr<Mesh> inmesh,
+                               const std::vector<std::string> setnames,
+                               const Entity_kind setkind,
+                               const bool flatten = false,
+                               const bool extrude = false);
+
+
+  /// The parallel environment
+  const MPI_Comm comm_;
+
+  /// The framework to use for creating the mesh
+  MeshFramework_t const default_framework_ = MSTK;
+  MeshFramework_t framework_ = default_framework_;
+
+  /// What type of entities to include/exclude in the meshes to be created
+  /// (nodes must ALWAYS be present)
+  bool const request_edges_default_ = false;
+  bool request_edges_ = request_edges_default_;
+  bool const request_faces_default_ = true;  // cell geometry computation needs faces
+  bool request_faces_ = request_faces_default_;
+  bool const request_cells_default_ = true;
+  bool request_cells_ = request_cells_default_;
+  bool const request_wedges_default_ = false;
+  bool request_wedges_ = request_wedges_default_;
+  bool const request_corners_default_ = false;
+  bool request_corners_ = request_corners_default_;
+
+  /// Number of on-node mesh tiles
+  int const num_tiles_default_ = 0;
+  int num_tiles_ = num_tiles_default_;
+
+  /// Number of ghost/halo layers at the tile level on compute node
+  int const num_ghost_layers_tile_default_ = 0;
+  int num_ghost_layers_tile_ = num_ghost_layers_tile_default_;
+
+  /// Number of ghost/halo layers for mesh partitions across compute nodes
+  int const num_ghost_layers_distmesh_default_ = 1;
+  int num_ghost_layers_distmesh_ = num_ghost_layers_distmesh_;
+
+  /// Partitioner type
+  /// SHOULD CHANGE THIS TO Partitioner_type::BLOCK
+  Partitioner_type const partitioner_default_ = Partitioner_type::INDEX;
+  Partitioner_type partitioner_ = partitioner_default_;
+
+  /// Geometry type
+  JaliGeometry::Geom_type const geom_type_default_ =
+      JaliGeometry::Geom_type::CARTESIAN;
+  JaliGeometry::Geom_type geom_type_ = geom_type_default_;
+
+  /// Geometric model  
+  JaliGeometry::GeometricModel *geometric_model_ = nullptr;
 };
 
 }  // namespace Jali

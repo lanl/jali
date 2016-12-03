@@ -12,9 +12,8 @@ class Mesh_MSTK_Test_Protected : public Mesh_MSTK {
 
   // Simplified constructor from filename
 
-  Mesh_MSTK_Test_Protected(const char *filename, const MPI_Comm& incomm,
-                           int spatial_dimension) :
-      Mesh_MSTK(filename, incomm, spatial_dimension) {
+  Mesh_MSTK_Test_Protected(const std::string filename, const MPI_Comm& incomm) :
+      Mesh_MSTK(filename, incomm) {
   }
 
   // Simplified constructor that generates a 3D mesh
@@ -138,14 +137,14 @@ TEST(MSTK_WRITE_READ_FIELDS) {
   // Now read the same mesh back in
 
   Jali::Mesh_MSTK_Test_Protected *inmesh =
-      new Jali::Mesh_MSTK_Test_Protected(filename.c_str(), MPI_COMM_WORLD, 3);
+      new Jali::Mesh_MSTK_Test_Protected(filename.c_str(), MPI_COMM_WORLD);
   CHECK(inmesh);
 
   int space_dim = inmesh->space_dimension();
-  CHECK_EQUAL(nv, inmesh->num_entities(Jali::Entity_kind::NODE,
-                                      Jali::Entity_type::ALL));
-  CHECK_EQUAL(nc, inmesh->num_entities(Jali::Entity_kind::CELL,
-                                       Jali::Entity_type::ALL));
+  CHECK_EQUAL(nv,inmesh->num_entities(Jali::Entity_kind::NODE,
+                                      Jali::Parallel_type::ALL));
+  CHECK_EQUAL(nc,inmesh->num_entities(Jali::Entity_kind::CELL,
+                                      Jali::Parallel_type::ALL));
 
   // Query the number of mesh fields on each entity type - 2 on cells,
   // 1 on nodes
@@ -167,7 +166,7 @@ TEST(MSTK_WRITE_READ_FIELDS) {
   CHECK_EQUAL(2, nfound);
 
   int nnodefields = 0;
-  std::vector<std::string> nodevarnames, nodevartypes;
+  std::vector<std::string> nodevarnames,nodevartypes;
   inmesh->get_field_info(Jali::Entity_kind::NODE, &nnodefields, &nodevarnames,
                          &nodevartypes);
 

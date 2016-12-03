@@ -11,7 +11,6 @@
 #include "errors.hh"
 #include "Mesh.hh"
 #include "MeshFactory.hh"
-#include "FrameworkTraits.hh"
 
 using namespace Jali;
 
@@ -34,12 +33,12 @@ int main(int argc, char *argv[]) {
   // Specify that MSTK is the preferred mesh framework. Currently Jali is
   // compiled only with MSTK support
 
-  FrameworkPreference pref;
-  pref.push_back(MSTK);
-
   std::shared_ptr<Mesh> mymesh;  // Pointer to a mesh object
-  if (framework_available(MSTK)) {  // check if framework is available
-    mesh_factory.preference(pref);
+  bool parallel_mesh = false;
+  if (framework_available(MSTK) &&
+      framework_reads(MSTK, parallel_mesh, ExodusII)) {
+
+    mesh_factory.framework(MSTK);
   
     // Read in an exodus file.
     // request faces, edges, wedges and corners

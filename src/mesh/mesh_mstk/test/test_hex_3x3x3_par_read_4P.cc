@@ -32,7 +32,7 @@ TEST(MSTK_HEX_3x3x3_PAR_READ_4P) {
   // Load a single hex from the hex1.exo file
 
   Jali::Mesh *mesh(new Jali::Mesh_MSTK("test/hex_3x3x3_split.par",
-                                       MPI_COMM_WORLD, 3));
+                                       MPI_COMM_WORLD));
 
 }
 

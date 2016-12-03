@@ -23,7 +23,6 @@
 #include "Mesh.hh"
 #include "MeshTile.hh"
 #include "MeshFactory.hh"
-#include "FrameworkTraits.hh"
 #include "Point.hh"
 #include "BoxRegion.hh"
 #include "PlaneRegion.hh"
@@ -35,10 +34,10 @@ TEST(MESH_TILES_MPI) {
   MPI_Comm_size(MPI_COMM_WORLD, &nproc);
   MPI_Comm_rank(MPI_COMM_WORLD, &me);
 
-  const Jali::Framework frameworks[] = {Jali::MSTK, Jali::Simple};
+  const Jali::MeshFramework_t frameworks[] = {Jali::MSTK, Jali::Simple};
   const char *framework_names[] = {"MSTK", "Simple"};
-  const int numframeworks = sizeof(frameworks)/sizeof(Jali::Framework);
-  Jali::Framework the_framework;
+  const int numframeworks = sizeof(frameworks)/sizeof(Jali::MeshFramework_t);
+  Jali::MeshFramework_t the_framework;
   for (int i = 0; i < numframeworks; i++) {
     // Set the framework
     the_framework = frameworks[i];
@@ -66,10 +65,7 @@ TEST(MESH_TILES_MPI) {
     int aerr = 0;
     int num_tiles_requested = 7;  // number of tiles in mesh on each processor
     try {
-      Jali::FrameworkPreference prefs(factory.preference());
-      prefs.clear();
-      prefs.push_back(the_framework);
-      factory.preference(prefs);
+      factory.framework(the_framework);
 
       std::vector<Jali::Entity_kind> entitylist;
       entitylist.push_back(Jali::Entity_kind::FACE);
@@ -86,7 +82,7 @@ TEST(MESH_TILES_MPI) {
 
       mesh = factory(-1.0, -1.0, -1.0, 1.0, 1.0, 1.0, 4, 4, 4);
 
-    } catch (const Jali::Message& e) {
+    } catch (const Errors::Message& e) {
       std::cerr << ": mesh error: " << e.what() << std::endl;
       ierr++;
     } catch (const std::exception& e) {

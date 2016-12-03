@@ -11,7 +11,6 @@
 #include "errors.hh"
 #include "Mesh.hh"
 #include "MeshFactory.hh"
-#include "FrameworkTraits.hh"
 
 using namespace Jali;
 
@@ -39,13 +38,14 @@ int main(int argc, char *argv[]) {
   // Specify that MSTK is the preferred mesh framework. Currently Jali is
   // compiled only with MSTK and SimpleMesh support
 
-  FrameworkPreference pref;
-  pref.push_back(MSTK);
-
   std::shared_ptr<Mesh> mymesh;  // Pointer to a mesh object
-  if (framework_available(MSTK)) {  // check if framework is available
-    mesh_factory.preference(pref);
-  
+  bool parallel_mesh = false;
+  int mesh_dimension = 3;
+  if (framework_available(MSTK) &&
+      framework_generates(MSTK, parallel_mesh, mesh_dimension)) {
+
+    mesh_factory.framework(MSTK);
+    
     // Create a 3D mesh from (0.0, 0.0, 0.0) to (1.0, 1.0, 1.0)
     // with 3, 3 and 3 elements in the X, Y and Z directions.
     // request faces, edges, wedges and corners and tiles

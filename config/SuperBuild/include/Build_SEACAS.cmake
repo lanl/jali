@@ -61,6 +61,7 @@ set(SEACAS_CMAKE_CACHE_ARGS
                     -DTPL_ENABLE_Matio:BOOL=OFF
                     -DTPL_Netcdf_LIBRARIES:STRING=${seacas_netcdf_libraries}
                     -DNetcdf_INCLUDE_DIRS:STRING=${TPL_INSTALL_PREFIX}/include
+                    -DTPL_ENABLE_X11:BOOL=FALSE
                     )
 
 # --- Add external project build and tie to the SEACAS build target
