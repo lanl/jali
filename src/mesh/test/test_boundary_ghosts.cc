@@ -21,7 +21,6 @@
 
 #include "Mesh.hh"
 #include "MeshFactory.hh"
-#include "FrameworkTraits.hh"
 #include "Geometry.hh"
 
 TEST(MESH_BOUNDARY_GHOSTS_2D) {
@@ -30,12 +29,12 @@ TEST(MESH_BOUNDARY_GHOSTS_2D) {
   MPI_Comm_size(MPI_COMM_WORLD, &nproc);
   MPI_Comm_rank(MPI_COMM_WORLD, &me);
 
-  const Jali::Framework frameworks[] = {Jali::MSTK};
+  const Jali::MeshFramework_t frameworks[] = {Jali::MSTK};
   const char *framework_names[] = {"MSTK"};
-  const int numframeworks = sizeof(frameworks)/sizeof(Jali::Framework);
+  const int numframeworks = sizeof(frameworks)/sizeof(Jali::MeshFramework_t);
   for (int fr = 0; fr < numframeworks; fr++) {
 
-    Jali::Framework the_framework = frameworks[fr];
+    Jali::MeshFramework_t the_framework = frameworks[fr];
     if (!Jali::framework_available(the_framework)) continue;
 
     std::cerr << "Testing for boundary ghosts with " << framework_names[fr] <<
@@ -49,10 +48,7 @@ TEST(MESH_BOUNDARY_GHOSTS_2D) {
     int ierr = 0;
     int aerr = 0;
     try {
-      Jali::FrameworkPreference prefs(factory.preference());
-      prefs.clear();
-      prefs.push_back(the_framework);
-      factory.preference(prefs);
+      factory.framework(the_framework);
 
       std::vector<Jali::Entity_kind> entitylist = {Jali::Entity_kind::EDGE,
                                                    Jali::Entity_kind::FACE,
@@ -63,7 +59,7 @@ TEST(MESH_BOUNDARY_GHOSTS_2D) {
 
       mesh = factory(0.0, 0.0, 1.0, 1.0, 4, 4);
 
-    } catch (const Jali::Message& e) {
+    } catch (const Errors::Message& e) {
       std::cerr << ": mesh error: " << e.what() << std::endl;
       ierr++;
     } catch (const std::exception& e) {
@@ -181,12 +177,12 @@ TEST(MESH_BOUNDARY_GHOSTS_3D) {
   MPI_Comm_size(MPI_COMM_WORLD, &nproc);
   MPI_Comm_rank(MPI_COMM_WORLD, &me);
 
-  const Jali::Framework frameworks[] = {Jali::MSTK};
+  const Jali::MeshFramework_t frameworks[] = {Jali::MSTK};
   const char *framework_names[] = {"MSTK"};
-  const int numframeworks = sizeof(frameworks)/sizeof(Jali::Framework);
+  const int numframeworks = sizeof(frameworks)/sizeof(Jali::MeshFramework_t);
   for (int fr = 0; fr < numframeworks; fr++) {
 
-    Jali::Framework the_framework = frameworks[fr];
+    Jali::MeshFramework_t the_framework = frameworks[fr];
     if (!Jali::framework_available(the_framework)) continue;
 
     std::cerr << "Testing for boundary ghosts with " << framework_names[fr] <<
@@ -200,10 +196,7 @@ TEST(MESH_BOUNDARY_GHOSTS_3D) {
     int ierr = 0;
     int aerr = 0;
     try {
-      Jali::FrameworkPreference prefs(factory.preference());
-      prefs.clear();
-      prefs.push_back(the_framework);
-      factory.preference(prefs);
+      factory.framework(the_framework);
 
       std::vector<Jali::Entity_kind> entitylist = {Jali::Entity_kind::EDGE,
                                                    Jali::Entity_kind::FACE,
@@ -214,7 +207,7 @@ TEST(MESH_BOUNDARY_GHOSTS_3D) {
 
       mesh = factory(0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 4, 4, 4);
 
-    } catch (const Jali::Message& e) {
+    } catch (const Errors::Message& e) {
       std::cerr << ": mesh error: " << e.what() << std::endl;
       ierr++;
     } catch (const std::exception& e) {
