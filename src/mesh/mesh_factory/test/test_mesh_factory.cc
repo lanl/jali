@@ -179,7 +179,7 @@ SUITE (MeshFramework)
     std::shared_ptr<Jali::Mesh> mesh;
     Jali::MeshFactory mesh_factory(MPI_COMM_WORLD);
 
-    if (Jali::framework_available(Jali::MSTK)) {
+    if (Jali::framework_available(Jali::MSTK) && parallel) {
       mesh_factory.framework(Jali::MSTK);
       CHECK(mesh = mesh_factory(NEMESIS_TEST_FILE));
     }
@@ -264,22 +264,39 @@ SUITE (MeshFramework)
 
     // Generate 1D meshes with CARTESIAN and record the volume of the
     // cell farthest away from the origin (since it is a 5 cell mesh,
-    // this would be cell 4)
-    std::vector<double> x = {0.0, 0.2, 0.4, 0.6, 0.8, 1.0};
-    mesh = mesh_factory(x);
-    CHECK(mesh);
+    // this would be cell 4) - ONLY IN Simple FRAMEWORK
+
     int c = 4;
-    double cart_vol = mesh->cell_volume(c);
-    mesh.reset();
+    double cart_vol = 0.0, sph_vol = 0.0;
+    std::vector<double> x = {0.0, 0.2, 0.4, 0.6, 0.8, 1.0};
+    mesh_factory.framework(Jali::Simple);
+    
+    if (parallel)
+      CHECK_THROW(mesh_factory(x), Errors::Message);
+    else {
+      mesh = mesh_factory(x);
+      CHECK(mesh);
+      cart_vol = mesh->cell_volume(c);      
+      mesh.reset();
+    }
     mesh_factory.reset_options();
 
     mesh_factory.mesh_geometry(JaliGeometry::Geom_type::SPHERICAL);
-    mesh = mesh_factory(x);
-    CHECK(mesh);
-    double sph_vol = mesh->cell_volume(c);
+    mesh_factory.framework(Jali::Simple);
+    if (parallel)
+      CHECK_THROW(mesh_factory(x), Errors::Message);
+    else {
+      mesh = mesh_factory(x);
+      CHECK(mesh);
+      sph_vol = mesh->cell_volume(c);
+      mesh.reset();
+    }
+    mesh_factory.reset_options();
 
-    CHECK(sph_vol != cart_vol);
+    if (!parallel)
+      CHECK(sph_vol != cart_vol);
 
+      
     if (parallel) {
       if (Jali::framework_available(Jali::MSTK) ||
           Jali::framework_available(Jali::STKMESH)) {
@@ -320,7 +337,7 @@ SUITE (MeshFramework)
         // Make sure any horizontal face that has only one cell
         // connected to it is only on the top or bottom boundary of
         // the domain. If not, it would indicate that the partitioning
-        // took pace along the Z-direction
+        // took place along the Z-direction
 
         for (auto const& f : mesh->faces()) {
           JaliGeometry::Point fnormal = mesh->face_normal(f);
