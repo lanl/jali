@@ -373,7 +373,7 @@ class MeshFactory {
 
   /// Number of ghost/halo layers for mesh partitions across compute nodes
   int const num_ghost_layers_distmesh_default_ = 1;
-  int num_ghost_layers_distmesh_ = num_ghost_layers_distmesh_;
+  int num_ghost_layers_distmesh_ = num_ghost_layers_distmesh_default_;
 
   /// Partitioner type
   /// SHOULD CHANGE THIS TO Partitioner_type::BLOCK
