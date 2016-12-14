@@ -24,7 +24,7 @@
 namespace Jali {
 
 /// Get a name for a given framework
-std::string framework_name(const MeshFramework_t& f) {
+std::string framework_name(MeshFramework_t const& f) {
   switch (f) {
     case (Simple):
       return "Simple";
@@ -45,7 +45,7 @@ std::string framework_name(const MeshFramework_t& f) {
 }
 
 /// Check if a framework is available for use
-bool framework_available(const MeshFramework_t& f) {
+bool framework_available(MeshFramework_t const& f) {
   if (f == Simple || f == MSTK)
     return true;
   else
@@ -53,8 +53,8 @@ bool framework_available(const MeshFramework_t& f) {
 }
 
 /// Check if a framework can generate a mesh
-bool framework_generates(const MeshFramework_t& f, const bool parallel,
-                         const int dim) {
+bool framework_generates(MeshFramework_t const& f, bool const parallel,
+                         int const dim) {
   switch (f) {
     case Jali::Simple:
       return (!parallel && (dim == 1 || dim == 3));
@@ -67,8 +67,8 @@ bool framework_generates(const MeshFramework_t& f, const bool parallel,
   }
 }
 
-bool framework_reads(const MeshFramework_t& f, const bool parallel,
-                     const MeshFormat_t& format) {
+bool framework_reads(MeshFramework_t const& f, bool const parallel,
+                     MeshFormat_t const& format) {
   switch (f) {
     case Jali::MSTK:
       return (format == Jali::ExodusII);
@@ -81,8 +81,8 @@ bool framework_reads(const MeshFramework_t& f, const bool parallel,
   }
 }
 
-bool framework_extracts(const MeshFramework_t& f, const bool parallel,
-                        const int dim) {
+bool framework_extracts(MeshFramework_t const& f, bool const parallel,
+                        int const dim) {
   switch (f) {
     case Jali::MSTK:
       return (dim == 2 || dim == 3);
@@ -140,7 +140,7 @@ void MeshFactory::reset_options(void) {
  */
 
 std::shared_ptr<Mesh>
-MeshFactory::create(const std::string& filename) {
+MeshFactory::create(std::string const& filename) {
   Errors::Message errmsg("MeshFactory:: unable to create mesh");
   int ierr = 0, aerr = 0;
 
@@ -151,9 +151,11 @@ MeshFactory::create(const std::string& filename) {
         result =
             std::make_shared<Mesh_MSTK>(filename, comm_, geometric_model_,
                                         request_faces_, request_edges_,
-                                        request_wedges_, request_corners_,
+                                        request_sides_, request_wedges_,
+                                        request_corners_,
                                         num_tiles_, num_ghost_layers_tile_,
                                         num_ghost_layers_distmesh_,
+                                        request_boundary_ghosts_,
                                         partitioner_, geom_type_);
         if (geometric_model_ &&
             (geometric_model_->dimension() != result->space_dimension())) {
@@ -196,9 +198,9 @@ MeshFactory::create(const std::string& filename) {
  * @return mesh instance
  */
 std::shared_ptr<Mesh>
-MeshFactory::create(double x0, double y0, double z0,
-                    double x1, double y1, double z1,
-                    int nx, int ny, int nz) {
+MeshFactory::create(double const x0, double const y0, double const z0,
+                    double const x1, double const y1, double const z1,
+                    int const nx, int const ny, int const nz) {
   std::stringstream mesgstr;
   std::shared_ptr<Mesh> result;
   Errors::Message errmsg("MeshFactory::create - Unable to create 3D mesh");
@@ -242,9 +244,11 @@ MeshFactory::create(double x0, double y0, double z0,
                                             nx, ny, nz,
                                             comm_, geometric_model_,
                                             request_faces_, request_edges_,
-                                            request_wedges_, request_corners_,
+                                            request_sides_, request_wedges_,
+                                            request_corners_,
                                             num_tiles_, num_ghost_layers_tile_,
                                             num_ghost_layers_distmesh_,
+                                            request_boundary_ghosts_,
                                             partitioner_);
           return result;
         }
@@ -259,9 +263,11 @@ MeshFactory::create(double x0, double y0, double z0,
             std::make_shared<Mesh_MSTK>(x0, y0, z0, x1, y1, z1, nx, ny, nz,
                                         comm_, geometric_model_,
                                         request_faces_, request_edges_,
-                                        request_wedges_, request_corners_,
+                                        request_sides_, request_wedges_,
+                                        request_corners_,
                                         num_tiles_, num_ghost_layers_tile_,
                                         num_ghost_layers_distmesh_,
+                                        request_boundary_ghosts_,
                                         partitioner_);
         return result;
       }
@@ -296,8 +302,9 @@ MeshFactory::create(double x0, double y0, double z0,
  */
 
 std::shared_ptr<Mesh>
-MeshFactory::create(double x0, double y0, double x1, double y1,
-                    int nx, int ny) {
+MeshFactory::create(double const x0, double const y0,
+                    double const x1, double const y1,
+                    int const nx, int const ny) {
   std::shared_ptr<Mesh> result;
   Errors::Message errmsg("MeshFactory::create: error: ");
   int ierr = 0, aerr = 0;
@@ -341,9 +348,11 @@ MeshFactory::create(double x0, double y0, double x1, double y1,
               std::make_shared<Mesh_simple>(x0, y0, x1, y1, nx, ny,
                                             comm_, geometric_model_,
                                             request_faces_, request_edges_,
-                                            request_wedges_, request_corners_,
+                                            request_sides_, request_wedges_,
+                                            request_corners_,
                                             num_tiles_, num_ghost_layers_tile_,
                                             num_ghost_layers_distmesh_,
+                                            request_boundary_ghosts_,
                                             partitioner_, geom_type_);
           return result;
         } else {
@@ -357,9 +366,11 @@ MeshFactory::create(double x0, double y0, double x1, double y1,
             std::make_shared<Mesh_MSTK>(x0, y0, x1, y1, nx, ny,
                                         comm_, geometric_model_,
                                         request_faces_, request_edges_,
-                                        request_wedges_, request_corners_,
+                                        request_sides_, request_wedges_,
+                                        request_corners_,
                                         num_tiles_, num_ghost_layers_tile_,
                                         num_ghost_layers_distmesh_,
+                                        request_boundary_ghosts_,
                                         partitioner_, geom_type_);
         return result;
       }
@@ -431,9 +442,11 @@ MeshFactory::create(std::vector<double> const& x) {
           result =
               std::make_shared<Mesh_simple>(x, comm_, geometric_model_,
                                             request_faces_, request_edges_,
-                                            request_wedges_, request_corners_,
+                                            request_sides_, request_wedges_,
+                                            request_corners_,
                                             num_tiles_, num_ghost_layers_tile_,
                                             num_ghost_layers_distmesh_,
+                                            request_boundary_ghosts_,
                                             partitioner_, geom_type_);
           return result;
         } else {
@@ -474,10 +487,10 @@ MeshFactory::create(std::vector<double> const& x) {
  * @return
  */
 std::shared_ptr<Mesh>
-MeshFactory::create(const std::shared_ptr<Mesh> inmesh,
-                    const std::vector<std::string> setnames,
-                    const Entity_kind setkind,
-                    const bool flatten, const bool extrude) {
+MeshFactory::create(std::shared_ptr<Mesh> const inmesh,
+                    std::vector<std::string> const& setnames,
+                    Entity_kind const setkind,
+                    bool const flatten, bool const extrude) {
   std::shared_ptr<Mesh> result;
   Errors::Message errmsg("MeshFactory::create: error: ");
   int ierr = 0, aerr = 0;
@@ -494,9 +507,11 @@ MeshFactory::create(const std::shared_ptr<Mesh> inmesh,
                                         setnames, setkind,
                                         flatten, extrude,
                                         request_faces_, request_edges_,
-                                        request_wedges_, request_corners_,
+                                        request_sides_, request_wedges_,
+                                        request_corners_,
                                         num_tiles_, num_ghost_layers_tile_,
                                         num_ghost_layers_distmesh_,
+                                        request_boundary_ghosts_,
                                         partitioner_, geom_type_);
         return result;
       }
