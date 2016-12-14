@@ -3057,8 +3057,7 @@ void Mesh::get_partitioning_by_index_space(int const num_parts,
       "subdividing cell index space into equal parts\n";
 
   int ncells = num_cells<Entity_type::PARALLEL_OWNED>();
-  int maxcells_per_tile =
-      static_cast<int> (static_cast<double>(ncells)/num_parts + 0.5);
+  int maxcells_per_tile = ceil(static_cast<double>(ncells)/num_parts + 0.5);
   int index = 0;
 
   int *ncells_per_tile = new int[num_parts];
@@ -3343,8 +3342,6 @@ int Mesh::block_partition_regular_mesh(int const dim,
   // Create local block arrays that are larger than the requested number of
   // blocks. The extra storage is for temporary blocks while we are subdividing
 
-  std::vector<std::array<double, 6>> blimits(2*num_blocks_requested);
-  std::vector<std::array<int, 3>> bnumcells(2*num_blocks_requested);
   int nblocks = 1;
   int nblocks_in_dir[3] = {1, 1, 1};
   int nblockcells_in_dir[3] = {0, 0, 0};
@@ -3358,36 +3355,42 @@ int Mesh::block_partition_regular_mesh(int const dim,
     while (!done) {
       bool bisected = false;
       if (nblockcells_in_dir[0]%2 == 0) {  // even number of cells in x
-        nblockcells_in_dir[0] /= 2;
-        nblocks *= 2;
-        nblocks_in_dir[0] *= 2;
-        bisected = true;
-        
-        if (nblocks == num_blocks_requested) {
-          done = 1;
-          continue;
+        if (2*nblocks <= num_blocks_requested) {
+          nblockcells_in_dir[0] /= 2;
+          nblocks *= 2;
+          nblocks_in_dir[0] *= 2;
+          bisected = true;
+          
+          if (nblocks == num_blocks_requested) {
+            done = 1;
+            continue;
+          }
         }
       }
       if (dim > 1 && nblockcells_in_dir[1]%2 == 0) {  // even num of cells in y
-        nblockcells_in_dir[1] /= 2;
-        nblocks *= 2;
-        nblocks_in_dir[1] *= 2;
-        
-        bisected = true;
-        if (nblocks == num_blocks_requested) {
-          done = 1;
-          continue;
+        if (2*nblocks <= num_blocks_requested) { 
+          nblockcells_in_dir[1] /= 2;
+          nblocks *= 2;
+          nblocks_in_dir[1] *= 2;
+          
+          bisected = true;
+          if (nblocks == num_blocks_requested) {
+            done = 1;
+            continue;
+          }
         }
       }
       if (dim > 2 && nblockcells_in_dir[2]%2 == 0) {  // even num of cells in z
-        nblockcells_in_dir[2] /= 2;
-        nblocks *= 2;
-        nblocks_in_dir[2] *= 2;
-        bisected = true;
-        
-        if (nblocks == num_blocks_requested) {
-          done = 1;
-          continue;
+        if (2*nblocks <= num_blocks_requested) {
+          nblockcells_in_dir[2] /= 2;
+          nblocks *= 2;
+          nblocks_in_dir[2] *= 2;
+          bisected = true;
+          
+          if (nblocks == num_blocks_requested) {
+            done = 1;
+            continue;
+          }
         }
       }
       if (!bisected) {
@@ -3397,6 +3400,13 @@ int Mesh::block_partition_regular_mesh(int const dim,
       }
     }
   }
+
+  std::vector<std::array<double, 6>>
+      blimits(8*nblocks_in_dir[0]*nblocks_in_dir[1]*nblocks_in_dir[2],
+              {0.0, 0.0, 0.0, 0.0, 0.0, 0.0});
+  std::vector<std::array<int, 3>>
+      bnumcells(8*nblocks_in_dir[0]*nblocks_in_dir[1]*nblocks_in_dir[2],
+                {0, 0, 0});
 
   // Populate the block details
 
@@ -3427,7 +3437,7 @@ int Mesh::block_partition_regular_mesh(int const dim,
     }
   }
 
-  if (nblocks != num_blocks_requested) {
+  if (nblocks != num_blocks_requested) {  // assuming that nblocks <= num_blocks_requested
 
     // Start dividing the blocks as unevenly to get the number of
     // partitions we need
@@ -3447,6 +3457,14 @@ int Mesh::block_partition_regular_mesh(int const dim,
           if (ncells1 == 0 || ncells2 == 0) continue;
           
           // Make two new partitions at the end of the list
+          // But first make sure there is enough room to hold them
+
+          int nalloc = bnumcells.size();
+          if (nalloc < nblocks + nnewblocks + 2) {
+            nalloc *= 2;
+            bnumcells.resize(nalloc, {0, 0, 0});
+            blimits.resize(nalloc, {0.0, 0.0, 0.0, 0.0, 0.0, 0.0});
+          }
           
           // Copy the original block details over
           int ib1 = nblocks + nnewblocks;
