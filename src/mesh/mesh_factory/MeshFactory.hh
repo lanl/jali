@@ -42,20 +42,20 @@ enum MeshFormat_t {
 };
 
 /// Get a name for a given framework
-std::string framework_name(const MeshFramework_t& f);
+std::string framework_name(MeshFramework_t const & f);
 
 /// Check if a framework is available for use
-bool framework_available(const MeshFramework_t& f);
+bool framework_available(MeshFramework_t const & f);
 
 /// Check if a framework can generate a mesh
-bool framework_generates(const MeshFramework_t& f, const bool parallel,
-                         const int dim);
+bool framework_generates(MeshFramework_t const & f, bool const parallel,
+                         int const dim);
 
-bool framework_reads(const MeshFramework_t& f, const bool parallel,
-                     const MeshFormat_t& format);
+bool framework_reads(MeshFramework_t const& f, bool const parallel,
+                     MeshFormat_t const& format);
 
-bool framework_extracts(const MeshFramework_t& f, const bool parallel,
-                        const int dim);
+bool framework_extracts(MeshFramework_t const& f, bool const parallel,
+                        int const dim);
 
 
 /* @brief Factory class to construct meshes using chosen mesh framework */
@@ -64,7 +64,7 @@ class MeshFactory {
  public:
 
   /// Default constructor.
-  explicit MeshFactory(const MPI_Comm& communicator) : comm_(communicator) {}
+  explicit MeshFactory(MPI_Comm const& communicator) : comm_(communicator) {}
 
   /// Delete the copy constructor
   MeshFactory(MeshFactory& factory) = delete;
@@ -83,13 +83,14 @@ class MeshFactory {
   }
 
   /// Set the framework to use
-  void framework(const MeshFramework_t& framework) {
-    if (framework_ == Simple || framework_ == MSTK) {
+  void framework(MeshFramework_t const& framework) {
+    if (framework == Simple || framework == MSTK) {
       framework_ = framework;
     } else {
       std::stringstream mesgstrm;
       mesgstrm << framework_name(framework) << " not available\n";
-      Exceptions::Jali_throw(mesgstrm.str());
+      Errors::Message errmsg(mesgstrm.str());
+      Exceptions::Jali_throw(errmsg);
     }
   }
 
@@ -254,31 +255,34 @@ class MeshFactory {
   }
 
   /// Create a mesh by reading the specified file (or set of files) -- operator
-  std::shared_ptr<Mesh> operator() (const std::string& filename) {
+  std::shared_ptr<Mesh> operator() (std::string const& filename) {
     return create(filename);
   }
 
   /// Create a hexahedral mesh of the specified dimensions -- operator
-  std::shared_ptr<Mesh> operator() (double x0, double y0, double z0,
-                                    double x1, double y1, double z1,
-                                    int nx, int ny, int nz) {
+  std::shared_ptr<Mesh> operator() (double const x0, double const y0,
+                                    double const z0,
+                                    double const x1, double const y1,
+                                    double const z1,
+                                    int const nx, int const ny, int const nz) {
     return create(x0, y0, z0, x1, y1, z1, nx, ny, nz);
   }
 
   /// Create a quadrilateral mesh of the specified dimensions -- operator
-  std::shared_ptr<Mesh> operator() (double x0, double y0,
-                                    double x1, double y1,
-                                    int nx, int ny) {
+  std::shared_ptr<Mesh> operator() (double const x0, double const y0,
+                                    double const x1, double const y1,
+                                    int const nx, int const ny) {
     return create(x0, y0, x1, y1, nx, ny);
   }
 
   /// Create a 1d mesh -- operator
-  std::shared_ptr<Mesh> operator() (const std::vector<double>& x) {
+  std::shared_ptr<Mesh> operator() (std::vector<double> const& x) {
     return create(x);
   }
 
   /// Create a 1d mesh -- operator
-  std::shared_ptr<Mesh> operator() (double x0, double x1, int nx) {
+  std::shared_ptr<Mesh> operator() (double const x0, double const x1,
+                                    int const nx) {
     double dX = (x1-x0)/((double)nx);
     double myX = x0;
 
@@ -292,45 +296,47 @@ class MeshFactory {
   }
 
   /// Create a mesh by extract subsets of entities from an existing mesh
-  std::shared_ptr<Mesh> operator() (const std::shared_ptr<Mesh> inmesh,
-                                    const std::vector<std::string> setnames,
-                                    const Entity_kind setkind,
-                                    const bool flatten = false,
-                                    const bool extrude = false) {
+  std::shared_ptr<Mesh> operator() (std::shared_ptr<Mesh> const inmesh,
+                                    std::vector<std::string> const& setnames,
+                                    Entity_kind const setkind,
+                                    bool const flatten = false,
+                                    bool const extrude = false) {
     return create(inmesh, setnames, setkind, flatten, extrude);
   }
 
  private:
 
   /// Create a mesh by reading the specified file (or set of files)
-  std::shared_ptr<Mesh> create(const std::string& filename);
+  std::shared_ptr<Mesh> create(std::string const& filename);
 
   /// Create a hexahedral mesh of the specified dimensions
   //  No need of geom_type argument as its always CARTESIAN
 
-  std::shared_ptr<Mesh> create(double x0, double y0, double z0,
-                               double x1, double y1, double z1,
-                               int nx, int ny, int nz);
+  std::shared_ptr<Mesh> create(double const x0, double const y0,
+                               double const z0,
+                               double const x1, double const y1,
+                               double const z1,
+                               int const nx, int const ny, int const nz);
 
   /// Create a quadrilateral mesh of the specified dimensions
-  std::shared_ptr<Mesh> create(double x0, double y0,
-                               double x1, double y1,
-                               int nx, int ny);
+  std::shared_ptr<Mesh> create(double const x0, double const y0,
+                               double const x1, double const y1,
+                               int const nx, int const ny);
   
   /// Create a 1d mesh
-  std::shared_ptr<Mesh> create(std::vector<double> x);
+  std::shared_ptr<Mesh> create(std::vector<double> const& x);
 
 
   /// Create a mesh by extract subsets of entities from an existing mesh
-  std::shared_ptr<Mesh> create(const std::shared_ptr<Mesh> inmesh,
-                               const std::vector<std::string> setnames,
-                               const Entity_kind setkind,
-                               const bool flatten = false,
-                               const bool extrude = false);
+  std::shared_ptr<Mesh> create(std::shared_ptr<Mesh> const inmesh,
+                               std::vector<std::string> const& setnames,
+                               Entity_kind const setkind,
+                               bool const flatten = false,
+                               bool const extrude = false);
 
 
   /// The parallel environment
-  const MPI_Comm comm_;
+  MPI_Comm const comm_;
 
   /// The framework to use for creating the mesh
   MeshFramework_t const default_framework_ = MSTK;
@@ -344,11 +350,19 @@ class MeshFactory {
   bool request_faces_ = request_faces_default_;
   bool const request_cells_default_ = true;
   bool request_cells_ = request_cells_default_;
+  bool const request_sides_default_ = false;
+  bool request_sides_ = request_sides_default_;
   bool const request_wedges_default_ = false;
   bool request_wedges_ = request_wedges_default_;
   bool const request_corners_default_ = false;
   bool request_corners_ = request_corners_default_;
 
+  /// Whether the mesh should contain boundary ghosts (dummy cells
+  /// outside a boundary to ease some numerical computations
+
+  bool request_boundary_ghosts_default_ = false;
+  bool request_boundary_ghosts_ = request_boundary_ghosts_default_;
+  
   /// Number of on-node mesh tiles
   int const num_tiles_default_ = 0;
   int num_tiles_ = num_tiles_default_;
