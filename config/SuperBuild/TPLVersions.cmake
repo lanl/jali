@@ -37,6 +37,8 @@
 #   1.0.5       - MSTK updated to 2.26rc1 and Jali-tpl-config.cmake includes variables indicating if METIS and/or ZOLTAN are enabled
 #   1.0.6       - MSTK updated to 2.26rc2
 #   1.0.7       - MSTK updated to 2.27rc2
+#   1.0.8       - MSTK updated to 2.27rc3
+#   1.0.9       - MSTK updated to 2.27 and UnitTest++ updated to 1.6.0
 
 include(CMakeParseArguments)
 
@@ -149,11 +151,12 @@ set(METIS_MD5_SUM        5465e67079419a69e0116de24fce58fe)
 # TPL: UnitTest
 #
 set(UnitTest_VERSION_MAJOR 1)
-set(UnitTest_VERSION_MINOR 4)
-set(UnitTest_VERSION ${UnitTest_VERSION_MAJOR}.${UnitTest_VERSION_MINOR})
+set(UnitTest_VERSION_MINOR 6)
+set(UnitTest_VERSION_PATCH 0)
+set(UnitTest_VERSION ${UnitTest_VERSION_MAJOR}.${UnitTest_VERSION_MINOR}.${UnitTest_VERSION_PATCH})
 set(UnitTest_URL_STRING     "http://software.lanl.gov/ascem/tpls")
 set(UnitTest_ARCHIVE_FILE   unittest-cpp-${UnitTest_VERSION}.zip)
-set(UnitTest_MD5_SUM       bd373a53403ed51ea1bbb60b1952d7e3) 
+set(UnitTest_MD5_SUM       bca285acea948ab3cd76e8cb17f65d24) 
 
 #
 # TPL: Boost
@@ -225,11 +228,15 @@ set(ExodusII_MD5_SUM       cfd240dbc1251b08fb1d0ee2de40a44c)
 #
 set(MSTK_VERSION_MAJOR 2)
 set(MSTK_VERSION_MINOR 27)
-set(MSTK_VERSION_PATCH rc2)
-set(MSTK_VERSION ${MSTK_VERSION_MAJOR}_${MSTK_VERSION_MINOR}_${MSTK_VERSION_PATCH})
+set(MSTK_VERSION_PATCH )
+if (MSTK_VERSION_PATCH)
+  set(MSTK_VERSION ${MSTK_VERSION_MAJOR}_${MSTK_VERSION_MINOR}_${MSTK_VERSION_PATCH})
+else (MSTK_VERSION_PATCH)
+  set(MSTK_VERSION ${MSTK_VERSION_MAJOR}_${MSTK_VERSION_MINOR})
+endif (MSTK_VERSION_PATCH)
 set(MSTK_URL_STRING     "https://github.com/MeshToolkit/MSTK/archive")
 set(MSTK_ARCHIVE_FILE   MSTK-${MSTK_VERSION}.tar.gz)
-set(MSTK_MD5_SUM       100fe5b67f8bcf7647f974d9bb28e06b)
+set(MSTK_MD5_SUM       d14a28ff45d4c13790ea066524c7fafa)
 
 #
 # TPL: MOAB
