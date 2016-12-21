@@ -78,7 +78,7 @@ class MeshFactory {
   // Get/Set methods for mesh initialization parameters
 
   /// Get the framework being used
-  const MeshFramework_t framework(void) const {
+  MeshFramework_t framework(void) const {
     return framework_;
   }
 
