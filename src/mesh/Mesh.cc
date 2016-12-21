@@ -3401,12 +3401,14 @@ int Mesh::block_partition_regular_mesh(int const dim,
     }
   }
 
+  std::array<double, 6> darray0 = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
   std::vector<std::array<double, 6>>
       blimits(8*nblocks_in_dir[0]*nblocks_in_dir[1]*nblocks_in_dir[2],
-              {0.0, 0.0, 0.0, 0.0, 0.0, 0.0});
+              darray0);
+  std::array<int, 3> iarray0 = {0.0, 0.0, 0.0};
   std::vector<std::array<int, 3>>
       bnumcells(8*nblocks_in_dir[0]*nblocks_in_dir[1]*nblocks_in_dir[2],
-                {0, 0, 0});
+                iarray0);
 
   // Populate the block details
 
@@ -3462,8 +3464,8 @@ int Mesh::block_partition_regular_mesh(int const dim,
           int nalloc = bnumcells.size();
           if (nalloc < nblocks + nnewblocks + 2) {
             nalloc *= 2;
-            bnumcells.resize(nalloc, {0, 0, 0});
-            blimits.resize(nalloc, {0.0, 0.0, 0.0, 0.0, 0.0, 0.0});
+            bnumcells.resize(nalloc, iarray0);
+            blimits.resize(nalloc, darray0);
           }
           
           // Copy the original block details over
