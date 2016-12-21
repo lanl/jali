@@ -28,6 +28,6 @@ cp libUnitTest++.a ${unittest_lib_dir}
 
 # Copy the include files
 echo "Copying include files to ${unittest_include_dir}"
-cp src/*.h ${unittest_include_dir}
+cp UnitTest++/*.h ${unittest_include_dir}
 echo "Copying include files to ${unittest_include_dir}/Posix"
-cp src/Posix/*.h ${unittest_include_dir}/Posix
+cp UnitTest++/Posix/*.h ${unittest_include_dir}/Posix
