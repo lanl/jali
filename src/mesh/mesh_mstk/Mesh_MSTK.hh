@@ -45,7 +45,7 @@ class Mesh_MSTK : public Mesh {
   // blocking the implicit conversion.
 
 
-  Mesh_MSTK(const char *filename, const MPI_Comm& incomm,
+  Mesh_MSTK(const std::string filename, const MPI_Comm& incomm,
             const JaliGeometry::GeometricModelPtr& gm =
             (JaliGeometry::GeometricModelPtr) NULL,
             const bool request_faces = true,
@@ -61,23 +61,6 @@ class Mesh_MSTK : public Mesh {
             const JaliGeometry::Geom_type geom_type =
             JaliGeometry::Geom_type::CARTESIAN);
   
-  Mesh_MSTK(const char *filename, const MPI_Comm& incomm,
-            int space_dimension,
-            const JaliGeometry::GeometricModelPtr& gm =
-            (JaliGeometry::GeometricModelPtr) NULL,
-            const bool request_faces = true,
-            const bool request_edges = false,
-            const bool request_sides = false,
-            const bool request_wedges = false,
-            const bool request_corners = false,
-            const int num_tiles = 0,
-            const int num_ghost_layers_tile = 0,
-            const int num_ghost_layers_distmesh = 1,
-            const bool request_boundary_ghosts = false,
-            const Partitioner_type partitioner = Partitioner_type::METIS,
-            const JaliGeometry::Geom_type geom_type =
-            JaliGeometry::Geom_type::CARTESIAN);
-
   // Constructors that generate a mesh internally (regular hexahedral mesh only)
 
   // 3D

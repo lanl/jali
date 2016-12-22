@@ -26,7 +26,6 @@
 
 #include "Mesh.hh"
 #include "MeshFactory.hh"
-#include "FrameworkTraits.hh"
 #include "Point.hh"
 #include "BoxRegion.hh"
 #include "PlaneRegion.hh"
@@ -108,10 +107,10 @@ TEST(MESH_SETS_3D) {
   JaliGeometry::GeometricModel gm(dim, gregions);
     
 
-  const Jali::Framework frameworks[] = {Jali::MSTK, Jali::Simple};
+  const Jali::MeshFramework_t frameworks[] = {Jali::MSTK, Jali::Simple};
   const char *framework_names[] = {"MSTK", "Simple"};
-  const int numframeworks = sizeof(frameworks)/sizeof(Jali::Framework);
-  Jali::Framework the_framework;
+  const int numframeworks = sizeof(frameworks)/sizeof(Jali::MeshFramework_t);
+  Jali::MeshFramework_t the_framework;
   for (int i = 0; i < numframeworks; i++) {
     // Set the framework
     the_framework = frameworks[i];
@@ -137,10 +136,7 @@ TEST(MESH_SETS_3D) {
     int ierr = 0;
     int aerr = 0;
     try {
-      Jali::FrameworkPreference prefs(factory.preference());
-      prefs.clear();
-      prefs.push_back(the_framework);
-      factory.preference(prefs);
+      factory.framework(the_framework);
 
       std::vector<Jali::Entity_kind> entitylist;
       entitylist.push_back(Jali::Entity_kind::FACE);
@@ -158,7 +154,7 @@ TEST(MESH_SETS_3D) {
       
       mesh = factory(-1.0, -1.0, -1.0, 1.0, 1.0, 1.0, 8, 8, 8);
       
-    } catch (const Jali::Message& e) {
+    } catch (const Errors::Message& e) {
       std::cerr << ": mesh error: " << e.what() << std::endl;
       ierr++;
     } catch (const std::exception& e) {
@@ -477,10 +473,10 @@ TEST(MESH_SETS_LABELED_3D) {
   JaliGeometry::GeometricModel gm(dim, gregions);
     
 
-  const Jali::Framework frameworks[] = {Jali::MSTK};
+  const Jali::MeshFramework_t frameworks[] = {Jali::MSTK};
   const char *framework_names[] = {"MSTK"};
-  const int numframeworks = sizeof(frameworks)/sizeof(Jali::Framework);
-  Jali::Framework the_framework;
+  const int numframeworks = sizeof(frameworks)/sizeof(Jali::MeshFramework_t);
+  Jali::MeshFramework_t the_framework;
   for (int i = 0; i < numframeworks; i++) {
     // Set the framework
     the_framework = frameworks[i];
@@ -504,10 +500,7 @@ TEST(MESH_SETS_LABELED_3D) {
     int ierr = 0;
     int aerr = 0;
     try {
-      Jali::FrameworkPreference prefs(factory.preference());
-      prefs.clear();
-      prefs.push_back(the_framework);
-      factory.preference(prefs);
+      factory.framework(the_framework);
 
       std::vector<Jali::Entity_kind> entitylist;
       entitylist.push_back(Jali::Entity_kind::FACE);
@@ -525,7 +518,7 @@ TEST(MESH_SETS_LABELED_3D) {
     
       mesh = factory(filename);
 
-    } catch (const Jali::Message& e) {
+    } catch (const Errors::Message& e) {
       std::cerr << ": mesh error: " << e.what() << std::endl;
       ierr++;
     } catch (const std::exception& e) {

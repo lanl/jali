@@ -23,7 +23,6 @@
 #include "Mesh.hh"
 #include "MeshTile.hh"
 #include "MeshFactory.hh"
-#include "FrameworkTraits.hh"
 #include "Point.hh"
 
 TEST(ONE_MESH_TILE) {
@@ -32,10 +31,10 @@ TEST(ONE_MESH_TILE) {
   MPI_Comm_size(MPI_COMM_WORLD, &nproc);
   MPI_Comm_rank(MPI_COMM_WORLD, &me);
 
-  const Jali::Framework frameworks[] = {Jali::MSTK, Jali::Simple};
+  const Jali::MeshFramework_t frameworks[] = {Jali::MSTK, Jali::Simple};
   const char *framework_names[] = {"MSTK", "Simple"};
-  const int numframeworks = sizeof(frameworks)/sizeof(Jali::Framework);
-  Jali::Framework the_framework;
+  const int numframeworks = sizeof(frameworks)/sizeof(Jali::MeshFramework_t);
+  Jali::MeshFramework_t the_framework;
   for (int i = 0; i < numframeworks; i++) {
     // Set the framework
     the_framework = frameworks[i];
@@ -61,10 +60,7 @@ TEST(ONE_MESH_TILE) {
       int ierr = 0;
       int aerr = 0;
       try {
-        Jali::FrameworkPreference prefs(factory.preference());
-        prefs.clear();
-        prefs.push_back(the_framework);
-        factory.preference(prefs);
+        factory.framework(the_framework);
 
         std::vector<Jali::Entity_kind> entitylist;
         entitylist.push_back(Jali::Entity_kind::FACE);
@@ -77,7 +73,7 @@ TEST(ONE_MESH_TILE) {
         // Create a mesh WITHOUT tiles (factory default is 0)
         mesh = factory(0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 10, 10, 10);
 
-      } catch (const Jali::Message& e) {
+      } catch (const Errors::Message& e) {
         std::cerr << ": mesh error: " << e.what() << std::endl;
         ierr++;
       } catch (const std::exception& e) {

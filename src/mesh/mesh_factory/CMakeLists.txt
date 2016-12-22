@@ -38,8 +38,7 @@ include_directories(${GEOMETRY_SOURCE_DIR})
 # Library: mesh_factory
 #
 set(mesh_factory_files 
-    MeshFileType.cc MeshFramework.cc 
-    MeshFactory.cc FrameworkTraits.cc) 
+    MeshFactory.cc)
 file(GLOB mesh_factory_inc_files "*.hh")
 
 list(APPEND mesh_factory_frameworks simple_mesh)
@@ -74,10 +73,6 @@ if (BUILD_TESTS)
     set(test_file_flags "${test_file_flags} -DMOAB_TEST_FILE=\"\\\"./test/hex_3x3x3_ss_4P.h5m\\\"\" ")
     set(test_file_flags "${test_file_flags} -DEXODUS_TEST_FILE=\"\\\"./test/hex_5x5x5.exo\\\"\" ")
     set(test_file_flags "${test_file_flags} -DNEMESIS_TEST_FILE=\"\\\"./test/hex_5x5x5.par\\\"\" ")
-    set(test_file_flags "${test_file_flags} -DBOGUS_TEST_FILE=\"\\\"./test/bogus_framework.file\\\"\" ")
-
-    set_source_files_properties(test/test_mesh_file.cc PROPERTIES 
-                                COMPILE_FLAGS ${test_file_flags})
 
     set_source_files_properties(test/test_mesh_factory.cc PROPERTIES 
                                 COMPILE_FLAGS ${test_file_flags})
@@ -96,8 +91,6 @@ if (BUILD_TESTS)
                    KIND unit
 		   SOURCE
                          test/Main.cc
-                         test/test_mesh_file.cc 
-                         test/test_mesh_framework.cc
                          test/test_mesh_factory.cc
                    LINK_LIBS
 		         mesh_factory

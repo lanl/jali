@@ -23,7 +23,6 @@
 #include "Mesh.hh"
 #include "MeshTile.hh"
 #include "MeshFactory.hh"
-#include "FrameworkTraits.hh"
 #include "Point.hh"
 #include "BoxRegion.hh"
 #include "PlaneRegion.hh"
@@ -35,10 +34,10 @@ TEST(MESH_TILES_MPI) {
   MPI_Comm_size(MPI_COMM_WORLD, &nproc);
   MPI_Comm_rank(MPI_COMM_WORLD, &me);
 
-  const Jali::Framework frameworks[] = {Jali::MSTK, Jali::Simple};
+  const Jali::MeshFramework_t frameworks[] = {Jali::MSTK, Jali::Simple};
   const char *framework_names[] = {"MSTK", "Simple"};
-  const int numframeworks = sizeof(frameworks)/sizeof(Jali::Framework);
-  Jali::Framework the_framework;
+  const int numframeworks = sizeof(frameworks)/sizeof(Jali::MeshFramework_t);
+  Jali::MeshFramework_t the_framework;
   for (int i = 0; i < numframeworks; i++) {
     // Set the framework
     the_framework = frameworks[i];
@@ -66,10 +65,8 @@ TEST(MESH_TILES_MPI) {
     int aerr = 0;
     int num_tiles_requested = 7;  // number of tiles in mesh on each processor
     try {
-      Jali::FrameworkPreference prefs(factory.preference());
-      prefs.clear();
-      prefs.push_back(the_framework);
-      factory.preference(prefs);
+      factory.framework(the_framework);
+      factory.partitioner(Jali::Partitioner_type::BLOCK);
 
       std::vector<Jali::Entity_kind> entitylist;
       entitylist.push_back(Jali::Entity_kind::FACE);
@@ -86,7 +83,7 @@ TEST(MESH_TILES_MPI) {
 
       mesh = factory(-1.0, -1.0, -1.0, 1.0, 1.0, 1.0, 4, 4, 4);
 
-    } catch (const Jali::Message& e) {
+    } catch (const Errors::Message& e) {
       std::cerr << ": mesh error: " << e.what() << std::endl;
       ierr++;
     } catch (const std::exception& e) {
@@ -157,7 +154,10 @@ TEST(MESH_TILES_MPI) {
     // the mesh is distributed or not)
 
     for (auto const& t : meshtiles) {
-      CHECK(t->num_nodes<Jali::Entity_type::PARALLEL_OWNED>() > 0);
+      // a tile with no interior nodes that is surrounded by other
+      // tiles processed before can have no owned nodes
+      CHECK(t->num_nodes<Jali::Entity_type::PARALLEL_OWNED>() >= 0);
+
       CHECK(t->num_nodes<Jali::Entity_type::PARALLEL_GHOST>() > 0);
       CHECK_EQUAL(t->num_nodes<Jali::Entity_type::PARALLEL_OWNED>() +
                   t->num_nodes<Jali::Entity_type::PARALLEL_GHOST>(),
@@ -203,7 +203,12 @@ TEST(MESH_TILES_MPI) {
     // the mesh is distributed or not)
 
     for (auto const& t : meshtiles) {
-      CHECK(t->num_faces<Jali::Entity_type::PARALLEL_OWNED>() > 0);
+      // a tile with no interior faces that is surrounded by other
+      // tiles processed before can have no owned faces (only possible
+      // if the tile has only one cell
+      CHECK((t->num_faces<Jali::Entity_type::PARALLEL_OWNED>() > 0) ||
+            (t->num_faces<Jali::Entity_type::PARALLEL_OWNED>() &&
+             t->num_cells<Jali::Entity_type::PARALLEL_OWNED>() == 1));
       CHECK(t->num_faces<Jali::Entity_type::PARALLEL_GHOST>() > 0);
       CHECK_EQUAL(t->num_faces<Jali::Entity_type::PARALLEL_OWNED>() + 
                   t->num_faces<Jali::Entity_type::PARALLEL_GHOST>(),
@@ -253,7 +258,10 @@ TEST(MESH_TILES_MPI) {
       // the mesh is distributed or not)
       
       for (auto const& t : meshtiles) {
-        CHECK(t->num_edges<Jali::Entity_type::PARALLEL_OWNED>() > 0);
+        // a tile with no interior nodes that is surrounded by other
+        // tiles processed before can have no owned nodes
+        CHECK(t->num_edges<Jali::Entity_type::PARALLEL_OWNED>() >=0);
+
         CHECK(t->num_edges<Jali::Entity_type::PARALLEL_GHOST>() > 0);
         CHECK_EQUAL(t->num_edges<Jali::Entity_type::PARALLEL_OWNED>() + 
                     t->num_edges<Jali::Entity_type::PARALLEL_GHOST>(),
@@ -460,12 +468,12 @@ TEST(MESH_TILES_SETS) {
   MPI_Comm_size(MPI_COMM_WORLD, &nproc);
   MPI_Comm_rank(MPI_COMM_WORLD, &me);
 
-  const Jali::Framework frameworks[] = {Jali::MSTK, Jali::Simple};
+  const Jali::MeshFramework_t frameworks[] = {Jali::MSTK, Jali::Simple};
   const char *framework_names[] = {"MSTK", "Simple"};
-  const int numframeworks = sizeof(frameworks)/sizeof(Jali::Framework);
+  const int numframeworks = sizeof(frameworks)/sizeof(Jali::MeshFramework_t);
   for (int i = 0; i < numframeworks; i++) {
     // Set the framework
-    Jali::Framework the_framework = frameworks[i];
+    Jali::MeshFramework_t the_framework = frameworks[i];
     if (!Jali::framework_available(the_framework)) continue;
 
     int dim = 2;
@@ -485,10 +493,7 @@ TEST(MESH_TILES_SETS) {
     int ierr = 0;
     int aerr = 0;
 
-    Jali::FrameworkPreference prefs(factory.preference());
-    prefs.clear();
-    prefs.push_back(the_framework);
-    factory.preference(prefs);
+    factory.framework(the_framework);
     
     factory.included_entities({Jali::Entity_kind::FACE});
     

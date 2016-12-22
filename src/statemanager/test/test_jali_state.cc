@@ -431,6 +431,7 @@ TEST(Jali_State_Define_MeshTiles) {
 
   mf.num_tiles(NTILES);
   mf.num_ghost_layers_tile(1);
+  mf.partitioner(Jali::Partitioner_type::BLOCK);
 
   std::shared_ptr<Jali::Mesh> mymesh = mf(0.0, 0.0, 1.0, 1.0, NXY, NXY);
 

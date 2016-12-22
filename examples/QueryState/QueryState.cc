@@ -11,7 +11,6 @@
 #include "errors.hh"
 #include "Mesh.hh"
 #include "MeshFactory.hh"
-#include "FrameworkTraits.hh"
 #include "JaliStateVector.h"
 #include "JaliState.h"
 
@@ -70,12 +69,13 @@ int main(int argc, char *argv[]) {
   // Specify that MSTK is the preferred mesh framework. Currently Jali is
   // compiled only with MSTK support
 
-  FrameworkPreference pref;
-  pref.push_back(MSTK);
-
   std::shared_ptr<Mesh> mymesh;  // Pointer to a mesh object
-  if (framework_available(MSTK)) {  // check if framework is available
-    mesh_factory.preference(pref);
+  bool parallel_mesh = false;
+  int mesh_dimension = 2;
+  if (framework_available(MSTK) &&
+      framework_generates(MSTK, parallel_mesh, mesh_dimension)) {
+
+    mesh_factory.framework(MSTK);
 
     // Create a 2D mesh from (0.0, 0.0) to (1.0, 1.0)
     // with 4 and 4 elements in the X, Y directions. Also,

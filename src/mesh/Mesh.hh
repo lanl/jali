@@ -40,10 +40,8 @@
 //! entities it supports. It can handle distributed meshes scalably
 //! upto thousands of processors. Jali is built upon the open source
 //! unstructured mesh infrastructure library, MSTK, developed at Los
-//! Alamos National Laboratory since 2004. In addition, it is possible
-//! to use Jali with STKmesh from Sandia National Labs and MOAB from
-//! Argonne National Labs although support for these frameworks is
-//! limited.
+//! Alamos National Laboratory since 2004 or the built-in regular mesh
+//! infrastructure class called Simple mesh.
 //!
 //! In addition, to the mesh representation, the Jali library also
 //! includes a rudimentary geometric model representation consisting of
@@ -101,8 +99,8 @@ class Mesh {
   //! \brief constructor
   //!
   //! constructor - cannot call directly. Code must set mesh framework
-  //! preference to one of the available mesh frameworks (MSTK) and
-  //! call the mesh_factory to make a mesh. If it is absolutely
+  //! preference to one of the available mesh frameworks (MSTK or Simple)
+  //! and call the mesh_factory to make a mesh. If it is absolutely
   //! necessary, one can call the constructor of one of the available
   //! mesh frameworks directly
   

@@ -48,7 +48,7 @@ TEST(MSTK_HEX_2x2x1) {
   // Load a simple 4 element hex mesh
 
   Jali::Mesh *mesh(new Jali::Mesh_MSTK("test/hex_2x2x1_ss.exo",
-                                       MPI_COMM_WORLD, 3));
+                                       MPI_COMM_WORLD));
 
 
   nv = mesh->num_entities(Jali::Entity_kind::NODE,

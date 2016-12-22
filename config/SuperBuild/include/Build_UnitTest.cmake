@@ -17,17 +17,18 @@ Jali_tpl_version_write(FILENAME ${TPL_VERSIONS_INCLUDE_FILE}
 # --- Define patch command
 
 # Need Perl to patch
-find_package(Perl)
-if ( NOT PERL_FOUND )
-  message(FATAL_ERROR "Failed to locate perl. "
-                      "Can not patch UnitTest without PERL")
-endif()
+#find_package(Perl)
+#if ( NOT PERL_FOUND )
+#  message(FATAL_ERROR "Failed to locate perl. "
+#                      "Can not patch UnitTest without PERL")
+#endif()
 
 # Build the patch script
-set(UnitTest_sh_patch ${UnitTest_prefix_dir}/unittest-patch-step.sh)
-configure_file(${SuperBuild_TEMPLATE_FILES_DIR}/unittest-patch-step.sh.in
-               ${UnitTest_sh_patch}
-               @ONLY)
+#set(UnitTest_sh_patch ${UnitTest_prefix_dir}/unittest-patch-step.sh)
+#configure_file(${SuperBuild_TEMPLATE_FILES_DIR}/unittest-patch-step.sh.in
+#               ${UnitTest_sh_patch}
+#               @ONLY)
+
 
 # --- Define the install command
 
@@ -37,7 +38,26 @@ configure_file(${SuperBuild_TEMPLATE_FILES_DIR}/unittest-install-step.sh.in
                ${UnitTest_sh_install}
                @ONLY)
 
-	     
+
+# --- Define the configure parameters
+
+# Compile flags
+set(unittest_cflags_list -I${TPL_INSTALL_PREFIX}/include ${Jali_COMMON_CFLAGS})
+build_whitespace_string(unittest_cflags ${unittest_cflags_list})
+
+set(unittest_ldflags_list -L${TPL_INSTALL_PREFIX}/lib ${MPI_C_LIBRARIES})
+build_whitespace_string(unittest_ldflags ${unittest_ldflags_list})
+
+# The CMake cache args
+set(UnitTest_CMAKE_CACHE_ARGS
+                    ${Jali_CMAKE_C_COMPILER_ARGS}
+		    -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
+                    -DCMAKE_C_COMPILER:FILEPATH=${CMAKE_C_COMPILER_USE}
+                    -DCMAKE_C_FLAGS:STRING=${unittest_cflags}
+                    -DCMAKE_EXE_LINKER_FLAGS:STRING=${unittest_ldflags}
+		    -DPREFER_STATIC_LIBRARIES:BOOL=${PREFER_STATIC_LIBRARIES})
+
+
 # --- Add external project build and tie to the ZLIB build target
 ExternalProject_add(${UnitTest_BUILD_TARGET}
                     DEPENDS   ${UnitTest_PACKAGE_DEPENDS}             # Package dependency target
@@ -48,16 +68,17 @@ ExternalProject_add(${UnitTest_BUILD_TARGET}
                     URL          ${UnitTest_URL}                      # URL may be a web site OR a local file
                     URL_MD5      ${UnitTest_MD5_SUM}                  # md5sum of the archive file
                     # -- Patch
-		    PATCH_COMMAND sh ${UnitTest_sh_patch}             # Run the patch script
+#		    PATCH_COMMAND sh ${UnitTest_sh_patch}             # Run the patch script
 		    # -- Configure
-		    CONFIGURE_COMMAND   ""                            # No configure step
 		    SOURCE_DIR          ${UnitTest_source_dir}        # Defining forces CMake to mkdir SOURCE_DIR
+                    CMAKE_CACHE_ARGS    ${UnitTest++_CMAKE_CACHE_ARGS}
+
 		    # -- Build
 		    BUILD_COMMAND       $(MAKE)                       # Run make in build directory $(MAKE) enables parallel build
 		    BINARY_DIR          ${UnitTest_build_dir}         # Define the build directory
 		    BUILD_IN_SOURCE     ${UnitTest_BUILD_IN_SOURCE}   # Flag in/out source build
                     # -- Install
                     INSTALL_DIR         ${TPL_INSTALL_PREFIX}        # Install directory
-		    INSTALL_COMMAND     sh ${UnitTest_sh_install}    # Run the install script
+		    INSTALL_COMMAND     sh ${UnitTest_sh_install}     # Run the install script
                     # -- Output control
                     ${UnitTest_logging_args})

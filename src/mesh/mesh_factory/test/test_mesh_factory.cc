@@ -1,83 +1,16 @@
-// -------------------------------------------------------------
-// file: test_mesh_factory.cc
-// -------------------------------------------------------------
-// -------------------------------------------------------------
-// Battelle Memorial Institute
-// Pacific Northwest Laboratory
-// -------------------------------------------------------------
-// -------------------------------------------------------------
-// Created March 18, 2011 by William A. Perkins
-// Last Change: Tue Aug  2 10:58:57 2011 by William A. Perkins <d3g096@PE10900.pnl.gov>
-// -------------------------------------------------------------
-
-
-static const char* SCCS_ID = "$Id$ Battelle PNL";
+// Copyright Los Alamos National Security, LLC 2016-
 
 #include <iostream>
 #include <UnitTest++.h>
 
 #include "dbc.hh"
 #include "../MeshFactory.hh"
-#include "../FrameworkTraits.hh"
 
 // Check to see if we have some files to read
 
-#ifndef BOGUS_TEST_FILE
-#define BOGUS_TEST_FILE "bogus.file"
-#endif
-
-#ifndef EXODUS_TEST_FILE
-#error EXODUS_TEST_FILE must be defined
-#endif
-
-#ifndef NEMESIS_TEST_FILE
-#error EXODUS_TEST_FILE must be defined
-#endif
-
-#ifndef MOAB_TEST_FILE
-#error EXODUS_TEST_FILE must be defined
-#endif
-
-// -------------------------------------------------------------
-// check_preference
-// -------------------------------------------------------------
-
-static void
-check_preference(Jali::MeshFactory& mesh_factory,
-                 const Jali::Framework& f)
-{
-  Jali::FrameworkPreference pref;
-  pref.push_back(f);
-  if (Jali::framework_available(f)) {
-    mesh_factory.preference(pref);
-    CHECK(mesh_factory.preference().front() == f);
-  } else {
-    CHECK_THROW(mesh_factory.preference(pref), Jali::Message);
-  }
-}
-
-
 SUITE (MeshFramework)
 {
-
-  // This tests setting the Mesh Factory framework preferences.  If
-  // only one framework is preferred, and it is not available, an
-  // exception should be thrown, while setting preferences
-  TEST (PreferenceThrow)
-  {
-    int nproc;
-    MPI_Comm_size(MPI_COMM_WORLD, &nproc);
-    bool parallel(nproc > 1);
-
-    Jali::MeshFactory mesh_factory(MPI_COMM_WORLD);
-    Jali::FrameworkPreference pref(mesh_factory.preference());
-
-    // The Simple framework should always be there
-    check_preference(mesh_factory, Jali::Simple);
-    check_preference(mesh_factory, Jali::MOAB);
-    check_preference(mesh_factory, Jali::STKMESH);
-    check_preference(mesh_factory, Jali::MSTK);
-  }
+  
 
   TEST (Generate)
   {
@@ -85,7 +18,6 @@ SUITE (MeshFramework)
     MPI_Comm_size(MPI_COMM_WORLD, &nproc);
     bool parallel(nproc > 1);
 
-    Jali::FrameworkPreference pref;
     std::shared_ptr<Jali::Mesh> mesh;
     Jali::MeshFactory mesh_factory(MPI_COMM_WORLD);
 
@@ -96,59 +28,44 @@ SUITE (MeshFramework)
     // The Simple framework is always available, but will only
     // generate in serial
 
-    pref.clear(); pref.push_back(Jali::Simple);
-    mesh_factory.preference(pref);
+    mesh_factory.framework(Jali::Simple);
 
     if (parallel) {
-      CHECK_THROW(mesh = mesh_factory(x0, y0, z0,
-                                      x1, y1, z1,
-                                      nx, ny, nz),
-                  Jali::Message);
+      CHECK_THROW(mesh = mesh_factory(x0, y0, z0, x1, y1, z1, nx, ny, nz),
+                  Errors::Message);
       mesh.reset();
     } else {
-      mesh = mesh_factory(x0, y0, z0,
-                          x1, y1, z1,
-                          nx, ny, nz);
+      mesh = mesh_factory(x0, y0, z0, x1, y1, z1, nx, ny, nz);
       CHECK(mesh);
       mesh.reset();
     }
 
-    // The STK, if available, framework will always generate
+    // The MSTK framework will always generate
 
-    if (framework_available(Jali::STKMESH)) {
-      pref.clear(); pref.push_back(Jali::STKMESH);
-      mesh_factory.preference(pref);
-      mesh = mesh_factory(x0, y0, z0,
-                          x1, y1, z1,
-                          nx, ny, nz);
-      CHECK(mesh);
-      mesh.reset();
-    }
+    mesh_factory.framework(Jali::MSTK);
+    mesh = mesh_factory(x0, y0, z0, x1, y1, z1, nx, ny, nz);
+    CHECK(mesh);
+    mesh.reset();
 
-    // The MSTK framework, if available, will always generate
+    // STKmesh can generate in serial and parallel (but its not available)
 
-    if (framework_available(Jali::MSTK)) {
-      pref.clear(); pref.push_back(Jali::MSTK);
-      mesh_factory.preference(pref);
-      mesh = mesh_factory(x0, y0, z0,
-                          x1, y1, z1,
-                          nx, ny, nz);
-      CHECK(mesh);
-      mesh.reset();
-    }
+    CHECK_THROW(mesh_factory.framework(Jali::STKMESH), Errors::Message);
+    mesh.reset();
+    
+    //      mesh = mesh_factory(x0, y0, z0, x1, y1, z1, nx, ny, nz);
+    //      CHECK(mesh);
+    //      mesh.reset();
+    //    }
 
-    // The MOAB framework cannot generate
+    // The MOAB framework is not available 
 
 
-    if (framework_available(Jali::MOAB)) {
-      pref.clear(); pref.push_back(Jali::MOAB);
-      mesh_factory.preference(pref);
-      CHECK_THROW(mesh = mesh_factory(x0, y0, z0,
-                                      x1, y1, z1,
-                                      nx, ny, nz),
-                  Jali::Message);
-      mesh.reset();
-    }
+    CHECK_THROW(mesh_factory.framework(Jali::MOAB), Errors::Message);
+    mesh.reset();
+    
+    //      CHECK_THROW(mesh = mesh_factory(x0, y0, z0, x1, y1, z1, nx, ny, nz),
+    //                  Errors::Message);
+    //      mesh.reset();
   }
 
   TEST (Generate2D)
@@ -157,7 +74,6 @@ SUITE (MeshFramework)
     MPI_Comm_size(MPI_COMM_WORLD, &nproc);
     bool parallel(nproc > 1);
 
-    Jali::FrameworkPreference pref;
     std::shared_ptr<Jali::Mesh> mesh;
     Jali::MeshFactory mesh_factory(MPI_COMM_WORLD);
 
@@ -167,52 +83,35 @@ SUITE (MeshFramework)
 
     // The MSTK framework, if available, will always generate
 
-    if (framework_available(Jali::MSTK)) {
-      pref.clear(); pref.push_back(Jali::MSTK);
-      mesh_factory.preference(pref);
-      mesh = mesh_factory(x0, y0,
-                          x1, y1,
-                          nx, ny);
+    if (Jali::framework_available(Jali::MSTK)) {
+      mesh_factory.framework(Jali::MSTK);
+      mesh = mesh_factory(x0, y0, x1, y1, nx, ny);
       CHECK(mesh);
       mesh.reset();
     }
 
-    // The Simple framework is always available, but
-    // cannot generate 2D meshes
+    // The Simple framework is always available, but cannot generate
+    // 2D meshes
 
-    pref.clear(); pref.push_back(Jali::Simple);
-    mesh_factory.preference(pref);
+    mesh_factory.framework(Jali::Simple);
 
-    CHECK_THROW(mesh = mesh_factory(x0, y0,
-                                    x1, y1,
-                                    nx, ny),
-                Jali::Message);
+    CHECK_THROW(mesh = mesh_factory(x0, y0, x1, y1, nx, ny), Errors::Message);
     mesh.reset();
 
-    // The STK, even if available cannot generate 2D meshes
+    // The STKmesh is not available
 
-    if (framework_available(Jali::STKMESH)) {
-      pref.clear(); pref.push_back(Jali::STKMESH);
-      mesh_factory.preference(pref);
-      CHECK_THROW(mesh = mesh_factory(x0, y0,
-                                      x1, y1,
-                                      nx, ny),
-                  Jali::Message);
-      mesh.reset();
-    }
+    CHECK(!Jali::framework_available(Jali::STKMESH));
+    CHECK_THROW(mesh_factory.framework(Jali::STKMESH), Errors::Message);
+    //  CHECK_THROW(mesh = mesh_factory(x0, y0, x1, y1, nx, ny), Errors::Message);
+    //  mesh.reset();
 
-    // The MOAB framework cannot generate
+    // The MOAB framework is not available
+    
+    CHECK(!Jali::framework_available(Jali::MOAB));
+    CHECK_THROW(mesh_factory.framework(Jali::MOAB), Errors::Message);
+    //  CHECK_THROW(mesh = mesh_factory(x0, y0, x1, y1, nx, ny), Errors::Message);
+    //  mesh.reset();
 
-
-    if (framework_available(Jali::MOAB)) {
-      pref.clear(); pref.push_back(Jali::MOAB);
-      mesh_factory.preference(pref);
-      CHECK_THROW(mesh = mesh_factory(x0, y0,
-                                      x1, y1,
-                                      nx, ny),
-                  Jali::Message);
-      mesh.reset();
-    }
   }
 
 
@@ -222,26 +121,21 @@ SUITE (MeshFramework)
     MPI_Comm_size(MPI_COMM_WORLD, &nproc);
     bool parallel(nproc > 1);
 
-    Jali::FrameworkPreference pref;
     std::shared_ptr<Jali::Mesh> mesh;
     Jali::MeshFactory mesh_factory(MPI_COMM_WORLD);
 
-    pref.clear(); pref.push_back(Jali::Simple);
-    mesh_factory.preference(pref);
-    CHECK_THROW(mesh = mesh_factory(BOGUS_TEST_FILE),
-                Jali::Message);
+    mesh_factory.framework(Jali::Simple);
     CHECK_THROW(mesh = mesh_factory(MOAB_TEST_FILE),
-                Jali::Message);
+                Errors::Message);
     CHECK_THROW(mesh = mesh_factory(EXODUS_TEST_FILE),
-                Jali::Message);
+                Errors::Message);
     CHECK_THROW(mesh = mesh_factory(NEMESIS_TEST_FILE),
-                Jali::Message);
+                Errors::Message);
   }
 
   // Try to read a MOAB HDF5 file, which can only be read by the MOAB
-  // framework
-  TEST (ReadMOABHDF5)
-  {
+  // framework - but the MOAB framework is not available in Jali
+  TEST (ReadMOABHDF5) {
     int nproc;
     MPI_Comm_size(MPI_COMM_WORLD, &nproc);
     bool parallel(nproc > 1);
@@ -250,27 +144,16 @@ SUITE (MeshFramework)
     Jali::MeshFactory mesh_factory(MPI_COMM_WORLD);
 
     if (Jali::framework_available(Jali::MOAB)) {
+      mesh_factory.framework(Jali::MOAB);
       mesh = mesh_factory(MOAB_TEST_FILE);
       CHECK(mesh);
       mesh.reset();
     } else {
-      CHECK_THROW(mesh = mesh_factory(MOAB_TEST_FILE),
-                  Jali::Message);
-    }
-
-    // Try it with another framework just for grins
-
-    if (Jali::framework_available(Jali::STKMESH)) {
-      Jali::FrameworkPreference pref;
-      pref.push_back(Jali::STKMESH);
-      mesh_factory.preference(pref);
-      CHECK_THROW(mesh = mesh_factory(MOAB_TEST_FILE),
-                  Jali::Message);
+      CHECK_THROW(mesh_factory.framework(Jali::MOAB), Errors::Message);
     }
   }
 
-  TEST (ReadExodus)
-  {
+  TEST (ReadExodus) {
     int nproc;
     MPI_Comm_size(MPI_COMM_WORLD, &nproc);
     bool parallel(nproc > 1);
@@ -278,35 +161,27 @@ SUITE (MeshFramework)
     std::shared_ptr<Jali::Mesh> mesh;
     Jali::MeshFactory mesh_factory(MPI_COMM_WORLD);
 
-    bool available =
-        (Jali::framework_available(Jali::STKMESH) && !parallel) ||
-        Jali::framework_available(Jali::MSTK);
-
-    if (available) {
-      mesh = mesh_factory(EXODUS_TEST_FILE);
-      CHECK(mesh);
-    } else {
-      CHECK_THROW(mesh = mesh_factory(EXODUS_TEST_FILE),
-                  Jali::Message);
+    if (Jali::framework_available(Jali::MSTK)) {
+      mesh_factory.framework(Jali::MSTK);
+      CHECK(mesh = mesh_factory(EXODUS_TEST_FILE));
+    } else if (Jali::framework_available(Jali::MSTK)) {
+      mesh_factory.framework(Jali::STKMESH);
+      CHECK(mesh = mesh_factory(EXODUS_TEST_FILE));
     }
   }
 
-  TEST (ReadNemesis)
-  {
+  // Only MSTK can read parallel Exodus II (Nemesis I) files as implemented
+  TEST (ReadNemesis) {
     int nproc;
     MPI_Comm_size(MPI_COMM_WORLD, &nproc);
     bool parallel(nproc > 1);
 
     std::shared_ptr<Jali::Mesh> mesh;
     Jali::MeshFactory mesh_factory(MPI_COMM_WORLD);
-    if ((Jali::framework_available(Jali::STKMESH) ||
-         Jali::framework_available(Jali::MSTK)) &&
-        parallel) {
-      mesh = mesh_factory(NEMESIS_TEST_FILE);
-      CHECK(mesh);
-    } else {
-      CHECK_THROW(mesh = mesh_factory(NEMESIS_TEST_FILE),
-                  Jali::Message);
+
+    if (Jali::framework_available(Jali::MSTK) && parallel) {
+      mesh_factory.framework(Jali::MSTK);
+      CHECK(mesh = mesh_factory(NEMESIS_TEST_FILE));
     }
   }
 
@@ -336,13 +211,14 @@ SUITE (MeshFramework)
     CHECK(std::find(entity_list.begin(), entity_list.end(),
                     Jali::Entity_kind::CELL) != entity_list.end());
 
-    // Turn edges on 
+    // Turn faces, edges on 
     mesh_factory.included_entities({Jali::Entity_kind::EDGE,
             Jali::Entity_kind::FACE, Jali::Entity_kind::CELL});
 
     mesh = mesh_factory(0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 4, 4, 4);
     CHECK(mesh);
     CHECK(mesh->num_edges());
+    CHECK(mesh->num_faces());
     mesh.reset();
     mesh_factory.reset_options();
 
@@ -388,31 +264,47 @@ SUITE (MeshFramework)
 
     // Generate 1D meshes with CARTESIAN and record the volume of the
     // cell farthest away from the origin (since it is a 5 cell mesh,
-    // this would be cell 4)
-    std::vector<double> x = {0.0, 0.2, 0.4, 0.6, 0.8, 1.0};
-    mesh = mesh_factory(x);
-    CHECK(mesh);
+    // this would be cell 4) - ONLY IN Simple FRAMEWORK
+
     int c = 4;
-    double cart_vol = mesh->cell_volume(c);
-    mesh.reset();
+    double cart_vol = 0.0, sph_vol = 0.0;
+    std::vector<double> x = {0.0, 0.2, 0.4, 0.6, 0.8, 1.0};
+    mesh_factory.framework(Jali::Simple);
+    
+    if (parallel)
+      CHECK_THROW(mesh_factory(x), Errors::Message);
+    else {
+      mesh = mesh_factory(x);
+      CHECK(mesh);
+      cart_vol = mesh->cell_volume(c);      
+      mesh.reset();
+    }
     mesh_factory.reset_options();
 
     mesh_factory.mesh_geometry(JaliGeometry::Geom_type::SPHERICAL);
-    mesh = mesh_factory(x);
-    CHECK(mesh);
-    double sph_vol = mesh->cell_volume(c);
+    mesh_factory.framework(Jali::Simple);
+    if (parallel)
+      CHECK_THROW(mesh_factory(x), Errors::Message);
+    else {
+      mesh = mesh_factory(x);
+      CHECK(mesh);
+      sph_vol = mesh->cell_volume(c);
+      mesh.reset();
+    }
+    mesh_factory.reset_options();
 
-    CHECK(sph_vol != cart_vol);
+    if (!parallel)
+      CHECK(sph_vol != cart_vol);
 
+      
     if (parallel) {
-      Jali::FrameworkPreference pref;
       if (Jali::framework_available(Jali::MSTK) ||
           Jali::framework_available(Jali::STKMESH)) {
 
         if (Jali::framework_available(Jali::MSTK))
-          pref.push_back(Jali::MSTK);
+          mesh_factory.framework(Jali::MSTK);
         if (Jali::framework_available(Jali::STKMESH))
-          pref.push_back(Jali::STKMESH);
+          mesh_factory.framework(Jali::STKMESH);
 
         // Make sure we have ghost cells if we asked for them
         mesh_factory.num_ghost_layers_distmesh(1);
@@ -445,7 +337,7 @@ SUITE (MeshFramework)
         // Make sure any horizontal face that has only one cell
         // connected to it is only on the top or bottom boundary of
         // the domain. If not, it would indicate that the partitioning
-        // took pace along the Z-direction
+        // took place along the Z-direction
 
         for (auto const& f : mesh->faces()) {
           JaliGeometry::Point fnormal = mesh->face_normal(f);

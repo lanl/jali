@@ -21,7 +21,7 @@ namespace Jali {
 // Constructor - load up mesh from file
 //--------------------------------------
 
-Mesh_MSTK::Mesh_MSTK(const char *filename, const MPI_Comm& incomm,
+Mesh_MSTK::Mesh_MSTK(const std::string filename, const MPI_Comm& incomm,
                      const JaliGeometry::GeometricModelPtr& gm,
                      const bool request_faces,
                      const bool request_edges,
@@ -65,11 +65,11 @@ Mesh(request_faces, request_edges, request_sides, request_wedges,
 
   mesh = MESH_New(F1);
 
-  int len = strlen(filename);
-  if (len > 4 && strncmp(&(filename[len-4]), ".exo", 4) == 0) {  // Exodus file
+  int len = filename.length();
+  if (len > 4 && filename.substr(len-4,4) == ".exo") {  // Exodus file
 
     if (numprocs == 1) {
-      ok = MESH_ImportFromExodusII(mesh, filename, NULL, mpicomm);
+      ok = MESH_ImportFromExodusII(mesh, filename.c_str(), NULL, mpicomm);
     } else {
       int opts[5] = {0, 0, 0, 0, 0};
 
@@ -82,16 +82,15 @@ Mesh(request_faces, request_edges, request_sides, request_wedges,
       else if (partitioner == Partitioner_type::ZOLTAN_RCB)
         opts[3] = 2;
 
-      ok = MESH_ImportFromExodusII(mesh, filename, opts, mpicomm);
+      ok = MESH_ImportFromExodusII(mesh, filename.c_str(), opts, mpicomm);
     }
-  } else if (len > 4 &&
-             strncmp(&(filename[len-4]), ".par", 4) == 0) {  // Nemesis file
+  } else if (len > 4 && filename.substr(len-4,4) == ".par") { // Nemesis file
     int opts[5] = {0, 0, 0, 0, 0};
 
     opts[0] = 1;     // Parallel weave distributed meshes
     opts[1] = num_ghost_layers_distmesh;     // Number of ghost layers
 
-    ok = MESH_ImportFromNemesisI(mesh, filename, opts, mpicomm);
+    ok = MESH_ImportFromNemesisI(mesh, filename.c_str(), opts, mpicomm);
   } else {
     std::stringstream mesg_stream;
     mesg_stream << "Cannot identify file type from extension of input file " <<
@@ -155,114 +154,6 @@ Mesh(request_faces, request_edges, request_sides, request_wedges,
 
 }
 
-
-//--------------------------------------
-// Constructor - load up mesh from file
-//--------------------------------------
-
-Mesh_MSTK::Mesh_MSTK(const char *filename, const MPI_Comm& incomm,
-                     int space_dimension,
-                     const JaliGeometry::GeometricModelPtr& gm,
-                     const bool request_faces,
-                     const bool request_edges,
-                     const bool request_sides,
-                     const bool request_wedges,
-                     const bool request_corners,
-                     const int num_tiles,
-                     const int num_ghost_layers_tile,
-                     const int num_ghost_layers_distmesh,
-                     const bool boundary_ghosts_requested,
-                     const Partitioner_type partitioner,
-                     const JaliGeometry::Geom_type geom_type) :
-Mesh(request_faces, request_edges, request_sides, request_wedges,
-     request_corners, num_tiles, num_ghost_layers_tile,
-     num_ghost_layers_distmesh, boundary_ghosts_requested,
-     partitioner, geom_type, incomm),
-     mpicomm(incomm), meshxyz(NULL),
-     faces_initialized(false), edges_initialized(false),
-  target_cell_volumes(NULL), min_cell_volumes(NULL) {
-
-  // Assume three dimensional problem if constructor called without
-  // the space_dimension parameter
-
-  int ok;
-
-
-  // Pre-processing (init, MPI queries etc)
-
-  int space_dim = 3;
-  pre_create_steps_(space_dim, incomm, gm);
-
-
-
-  if (myprocid == 0) {
-    int DebugWait = 0;
-    while (DebugWait) {}
-  }
-
-  mesh = MESH_New(F1);
-
-  int len = strlen(filename);
-  if (len > 4 && strncmp(&(filename[len-4]), ".exo", 4) == 0) {  // Exodus file
-
-    if (numprocs == 1) {
-      ok = MESH_ImportFromExodusII(mesh, filename, NULL, mpicomm);
-    } else {
-      int opts[5] = {0, 0, 0, 0, 0};
-
-      opts[0] = 1;   // Partition the input mesh
-      opts[1] = 0;   // Use the default method for distributing the mesh
-      opts[2] = num_ghost_layers_distmesh;   // Number of ghost layers
-      opts[3] = 0;  // default to METIS
-      if (partitioner == Partitioner_type::ZOLTAN_GRAPH)
-        opts[3] = 1;
-      else if (partitioner == Partitioner_type::ZOLTAN_RCB)
-        opts[3] = 2;
-
-      ok = MESH_ImportFromExodusII(mesh, filename, opts, mpicomm);
-    }
-  } else if (len > 4 &&
-           strncmp(&(filename[len-4]), ".par", 4) == 0) {  // Nemesis file
-    int opts[5] = {0, 0, 0, 0, 0};
-
-    opts[0] = 1;     // Parallel weave distributed meshes
-    opts[1] = num_ghost_layers_distmesh;     // Number of ghost layers
-
-    ok = MESH_ImportFromNemesisI(mesh, filename, opts, mpicomm);
-
-  } else {
-    std::stringstream mesg_stream;
-    mesg_stream << "Cannot identify file type from extension of input file " <<
-        filename << " on processor " << myprocid << std::endl;
-    Errors::Message mesg(mesg_stream.str());
-    Exceptions::Jali_throw(mesg);
-  }
-
-  if (!ok) {
-    std::stringstream mesg_stream;
-    mesg_stream << "Failed to load " << filename << " on processor " <<
-        myprocid << std::endl;
-    Errors::Message mesg(mesg_stream.str());
-    Exceptions::Jali_throw(mesg);
-  }
-
-  int cell_dim = MESH_Num_Regions(mesh) ? 3 : 2;
-
-  int max;
-  MPI_Allreduce(&cell_dim, &max, 1, MPI_INT, MPI_MAX, mpicomm);
-  if (max != cell_dim) {
-    std::string mesgstr = std::string("cell dimension on this processor is ") +
-        std::string("different from max cell dimension across all processors");
-    Errors::Message mesg(mesgstr);
-    Exceptions::Jali_throw(mesg);
-  }
-
-  set_cell_dimension(max);
-
-  // Do all the processing required for setting up the mesh for Jali
-
-  post_create_steps_();
-}
 
 
 //--------------------------------------
