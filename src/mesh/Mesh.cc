@@ -3405,7 +3405,7 @@ int Mesh::block_partition_regular_mesh(int const dim,
   std::vector<std::array<double, 6>>
       blimits(8*nblocks_in_dir[0]*nblocks_in_dir[1]*nblocks_in_dir[2],
               darray0);
-  std::array<int, 3> iarray0 = {0.0, 0.0, 0.0};
+  std::array<int, 3> iarray0 = {0, 0, 0};
   std::vector<std::array<int, 3>>
       bnumcells(8*nblocks_in_dir[0]*nblocks_in_dir[1]*nblocks_in_dir[2],
                 iarray0);
