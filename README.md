@@ -1,5 +1,5 @@
 #
-#    Jali VERSION 0.9.9 (Copyright, Los Alamos National Laboratory)
+#    Jali VERSION 0.9.8 (Copyright, Los Alamos National Laboratory)
 #
 
 # Summary
@@ -7,10 +7,27 @@
 Jali is a parallel unstructured mesh infrastructure library designed
 for use by multi-physics simulations. It supports 2D and 3D arbitrary
 polyhedral meshes distributed over hundreds to thousands of
-nodes. Jali can read and write Exodus II meshes along with fields and sets
-on the mesh. Jali is built upon MSTK, an open source general purpose
-unstructured mesh infrastructure library from LANL. Jali is
-copyrighted as open source but is not yet available to the public. 
+nodes. Jali can read and write Exodus II meshes along with fields and
+sets on the mesh and support for other formats is partially
+implemented or is in the plans. Jali is built upon MSTK
+(https://github.com/MeshToolkit/MSTK), an open source general purpose
+unstructured mesh infrastructure library from Los Alamos National
+Laboratory. While it has been made to work with other mesh frameworks
+such as MOAB and STKmesh in the past, support for maintaining the
+interface to these frameworks has been suspended for now. Jali
+supports distributed as well as on-node parallelism. Support of
+on-node parallelism is through direct use of the mesh calls in
+multi-threaded constructs or through use of "tiles" which are
+submeshes or sub-partitions of a partition destined for a compute
+node.
+
+Jali is derived from the mesh infrastructure of the early versions of
+the open source software Amanzi (whose three-part BSD open source
+copyright assertion included Los Alamos National Laboratory, Pacific
+Northwest National Laboratory and Lawrence Berkeley
+Laboratory). Jali's copyright is being asserted solely under Los
+Alamos National Laboratory having been rewritten to include only code
+written by Los Alamos National Laboratory developers.
 
 # Third Party Libraries
 
@@ -19,7 +36,7 @@ import/export, mesh partitioning and MPI communication. To build Jali,
 you must point the build system to a directory containing the TPLs or
 build the third party libraries as described below.
 
-Jali *0.9.9*  uses version *1.0.9* or higher of the TPL set. See
+Jali *0.9.8*  uses version *1.0.9* or higher of the TPL set. See
 $JALI_SOURCE/config/SuperBuild/TPLVersions.cmake for details.
 
 # Installation instructions
@@ -42,9 +59,9 @@ TPLs directory depending on how out-of-sync this file is with whats on
 your system):
 
     /bin/tcsh
-    module load openmpi/1.10.3-intel_16.0.3 cmake
+    module load openmpi/1.10.0-intel_15.0.3 cmake
     setenv SOURCE `pwd`
-    setenv TPL_INSTALL_PREFIX /usr/projects/ngc/private/jali-tpl/1.0.9-intel-16.0.3-openmpi-1.10.3
+    setenv TPL_INSTALL_PREFIX /usr/projects/ngc/private/jali-1.0.4-tpl-intel
     setenv JALI_INSTALL_PREFIX $SOURCE/inst-jali
     mkdir build-jali
     cd build-jali
@@ -68,7 +85,7 @@ If you want to build a custom set of Jali TPLs and build Jali using
 these TPLs, execute the following from the Jali root directory: 
 
     /bin/tcsh
-    module load openmpi/1.10.3-intel_16.0.3 cmake
+    module load openmpi/1.10.0-intel_15.0.3 cmake
     setenv SOURCE `pwd`
     setenv TPL_INSTALL_PREFIX $SOURCE/inst-tpl
     setenv JALI_INSTALL_PREFIX $SOURCE/inst-jali
@@ -111,9 +128,9 @@ TPLs directory depending on how out-of-sync this file is with whats on
 your system):
 
     /bin/tcsh
-    module load intel/16.0.3 openmpi/1.10.3
+    module load intel/15.0.3 openmpi/1.6.5
     setenv SOURCE `pwd`
-    setenv TPL_INSTALL_PREFIX /usr/projects/ngc/private/jali-tpl/1.0.9-intel-16.0.3-openmpi-1.10.3
+    setenv TPL_INSTALL_PREFIX /usr/projects/ngc/private/jali-1.0.4-tpl-intel
     setenv JALI_INSTALL_PREFIX $SOURCE/inst-jali
     mkdir build-jali
     cd build-jali
@@ -137,7 +154,7 @@ If you want to build a custom set of Jali TPLs and build Jali using
 these TPLs, execute the following from the Jali root directory: 
 
     /bin/tcsh
-    module load intel/16.0.3 openmpi/1.10.3
+    module load intel/15.0.3 openmpi/1.6.5
     setenv SOURCE `pwd`
     setenv TPL_INSTALL_PREFIX $SOURCE/inst-tpl
     setenv JALI_INSTALL_PREFIX $SOURCE/inst-jali
@@ -172,7 +189,7 @@ these TPLs, execute the following from the Jali root directory:
     make install
     exit
 
-## XLAN (Varan)
+## XLAN (Varan or Barugon)
 
 If you want to build only Jali, execute the following from the Jali
 root directory (you may have to modify the exact version number of the
@@ -181,9 +198,9 @@ your system):
 
     /bin/tcsh
     /opt/local/packages/Modules/default/init/sh
-    module load intel/16.0.3 openmpi/1.10.3
+    module load intel/15.0.3 openmpi/1.6.5
     setenv SOURCE `pwd`
-    setenv TPL_INSTALL_PREFIX /usr/local/codes/ngc/private/jali-tpl/1.0.9-intel-16.0.3-openmpi-1.10.3
+    setenv TPL_INSTALL_PREFIX /usr/local/codes/ngc/private/jali-1.0.4-tpl-intel
     setenv JALI_INSTALL_PREFIX $SOURCE/inst-jali
     mkdir build-jali
     cd build-jali
@@ -208,7 +225,7 @@ these TPLs, execute the following from the Jali root directory:
 
     /bin/tcsh
     /opt/local/packages/Modules/default/init/sh
-    module load intel/16.0.3 openmpi/1.10.3
+    module load intel/15.0.3 openmpi/1.6.5
     setenv SOURCE `pwd`
     setenv TPL_INSTALL_PREFIX $SOURCE/inst-tpl
     setenv JALI_INSTALL_PREFIX $SOURCE/inst-jali
