@@ -685,17 +685,12 @@ endif()
 #                  ${ExodusII_BUILD_TARGET}
 #		          ${HDF5_BUILD_TARGET}
 #		          ${ASCEMIO_BUILD_TARGET}
-#			  ${XERCES_BUILD_TARGET}
 #		          ${UnitTest_BUILD_TARGET}
 #		          ${Boost_BUILD_TARGET}
 #		          ${MSTK_BUILD_TARGET}
 #		          ${MOAB_BUILD_TARGET}
-#		          ${CCSE_BUILD_TARGET}
 #		          ${Trilinos_BUILD_TARGET})
 #
-#  if ( ENABLE_Structured )
-#    list(APPEND Jali_DEPENDS ${CCSE_BUILD_TARGET})
-#  endif()  
 #  ExternalProject_Add(Jali
 #                      DEPENDS ${Jali_DEPENDS}
 #		      PREFIX ${CMAKE_BINARY_DIR}/Jali
