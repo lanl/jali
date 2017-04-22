@@ -78,6 +78,7 @@
 #   1.0.7       - MSTK updated to 2.27rc2
 #   1.0.8       - MSTK updated to 2.27rc3
 #   1.0.9       - MSTK updated to 2.27 and UnitTest++ updated to 1.6.0
+#   1.1.0       - Remove unnecessary package XERCES
 
 include(CMakeParseArguments)
 
@@ -130,17 +131,6 @@ set (JALI_TPLS_VERSION_MINOR 0)
 set (JALI_TPLS_VERSION_PATCH 2)
 set (JALI_TPLS_VERSION ${JALI_TPLS_VERSION}.${JALI_TPLS_VERSION_MINOR}.${JALI_TPLS_VERSION_PATCH})
 #   Not sure how to create a meaningful hash key for the collection
-
-#
-# TPL: Xerces
-#
-set(XERCES_VERSION_MAJOR 3)
-set(XERCES_VERSION_MINOR 1)
-set(XERCES_VERSION_PATCH 1)
-set(XERCES_VERSION ${XERCES_VERSION_MAJOR}.${XERCES_VERSION_MINOR}.${XERCES_VERSION_PATCH})
-set(XERCES_URL_STRING     "http://software.lanl.gov/ascem/tpls")
-set(XERCES_ARCHIVE_FILE   xerces-c-${XERCES_VERSION}.tar.gz)
-set(XERCES_MD5_SUM        6a8ec45d83c8cfb1584c5a5345cb51ae ) 
 
 #
 # TPL: OpenMPI
