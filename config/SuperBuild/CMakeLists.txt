@@ -533,10 +533,6 @@ include(${SuperBuild_BUILD_FILES_DIR}/Build_HDF5.cmake)
 append_set(Jali_TPL_CMAKE_ARGS
            -DHDF5_ROOT:FILEPATH=${TPL_INSTALL_PREFIX})
 
-# XERCES
-include(${SuperBuild_BUILD_FILES_DIR}/Build_XERCES.cmake) 
-append_set(Jali_TPL_CMAKE_ARGS
-           -DXERCES_DIR:FILEPATH=${TPL_INSTALL_PREFIX})
 
 # NetCDF
 include(${SuperBuild_BUILD_FILES_DIR}/Build_NetCDF.cmake) 
