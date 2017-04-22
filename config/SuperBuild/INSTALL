@@ -1,3 +1,44 @@
+Copyright (c) 2017, Los Alamos National Security, LLC
+All rights reserved.
+
+Copyright 2017. Los Alamos National Security, LLC. This software was
+produced under U.S. Government contract DE-AC52-06NA25396 for Los
+Alamos National Laboratory (LANL), which is operated by Los Alamos
+National Security, LLC for the U.S. Department of Energy. The
+U.S. Government has rights to use, reproduce, and distribute this
+software.  NEITHER THE GOVERNMENT NOR LOS ALAMOS NATIONAL SECURITY,
+LLC MAKES ANY WARRANTY, EXPRESS OR IMPLIED, OR ASSUMES ANY LIABILITY
+FOR THE USE OF THIS SOFTWARE.  If software is modified to produce
+derivative works, such modified software should be clearly marked, so
+as not to confuse it with the version available from LANL.
+ 
+Additionally, redistribution and use in source and binary forms, with
+or without modification, are permitted provided that the following
+conditions are met:
+
+1.  Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+2.  Redistributions in binary form must reproduce the above copyright
+notice, this list of conditions and the following disclaimer in the
+documentation and/or other materials provided with the distribution.
+3.  Neither the name of Los Alamos National Security, LLC, Los Alamos
+National Laboratory, LANL, the U.S. Government, nor the names of its
+contributors may be used to endorse or promote products derived from
+this software without specific prior written permission.
+ 
+THIS SOFTWARE IS PROVIDED BY LOS ALAMOS NATIONAL SECURITY, LLC AND
+CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING,
+BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL LOS
+ALAMOS NATIONAL SECURITY, LLC OR CONTRIBUTORS BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
+IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
 .. _TPLs:
 
 =============================================
@@ -13,7 +54,7 @@ requirements documented here https://software.lanl.gov/ascem/trac/wiki/Jali/Buil
 Users are required to provide the following to build:
 
     * A recent and stable GCC or Intel compiler. We have successfully built with
-      GNU versions 4.7, 4.8, 4.9 and Intel versions 11 through 14. 
+      GNU versions 4.7, 4.8, 4.9, 5.3 and Intel versions 11 through 16. 
     * Mercurial version 1.8 or higher.
     * CMake version 2.8.8 or higher (including CMake 3.0.x).
     * MPI installation with compiler wrappers. (mpicc, mpicxx, etc.)
@@ -28,9 +69,21 @@ Users are required to provide the following to build:
     * The build directory will need approximately 2.1 Gb of space and the 
       install directory tree requires 300 Mb.
 
-On most UNIX-like OS (including Mac OSX) systems, the entire TPL software stack can be built using the ``bootstrap.sh`` shell script found in the config directory. The script searches for CMake and will download and build CMake 2.8.8, if it does not locate the cmake command. The script also searches for a working mpi installation and will download and build OpenMPI 1.4.4 if it does not locate mpi.  At this time, the script does not build compilers, ``LAPACK`` or ``BLAS``. See the compilers_ section on how to obtain a supported compiler and LAPACK_ for ``LAPACK`` and ``BLAS`` suggestions. See the MPI_ section on how to obtain and install other mpi implementations.
+On most UNIX-like OS (including Mac OSX) systems, the entire TPL
+software stack can be built using the ``bootstrap.sh`` shell script
+found in the config directory. The script searches for CMake and will
+download and build CMake 2.8.8, if it does not locate the cmake
+command. The script also searches for a working mpi installation and
+will download and build OpenMPI 1.4.4 if it does not locate mpi.  At
+this time, the script does not build compilers, ``LAPACK`` or
+``BLAS``. See the compilers_ section on how to obtain a supported
+compiler and LAPACK_ for ``LAPACK`` and ``BLAS`` suggestions. See the
+MPI_ section on how to obtain and install other mpi implementations.
 
-The ``bootstrap.sh`` script will create two build directories, one for the TPLs, TPL_BUILD, and one for Jali, Jali-build, in the directory the script is called from. Users can control the install location of the TPLs and Jali through command line arguments.  The command ::
+The ``bootstrap.sh`` script will create two build directories, one for
+the TPLs, TPL_BUILD, and one for Jali, Jali-build, in the directory
+the script is called from. Users can control the install location of
+the TPLs and Jali through command line arguments.  The command ::
 
   <Jali source root>/config/bootstrap.sh --help
 
@@ -41,30 +94,33 @@ stored under a directory labeled::
   
   <TPL name lowercase>/<TPL name lowercase>-timestamps.
 
-Each step step is recorded with ``STDOUT`` and ``STDERR`` outputs stored
-in separate files. Any bug report related to the TPLs should include these log files. 
+Each step step is recorded with ``STDOUT`` and ``STDERR`` outputs
+stored in separate files. Any bug report related to the TPLs should
+include these log files.
 
 .. _compilers:
 
 Obtaining A Supported Compiler
 ++++++++++++++++++++++++++++++
 
-At this time, Jali can be built with recent versions of GCC, 4.4 through 4.6, and
-Intel versions 11.* and 12.*. Since GCC is widely used by the development team
-and it is free, we recommend using one of the supported GCC compilers. 
+At this time, Jali can be built with recent versions of GCC, 4.4
+through 5.3, and Intel versions 11.* through 16.*. Since GCC is widely
+used by the development team and it is free, we recommend using one of
+the supported GCC compilers.
 
 GCC On Mac OSX
 **************
 
-The default GCC install on Mac OSX does not include a Fortran compiler. Mac users
-should use the MacPorts software http://www.macports.org/ to install GCC. Once 
-MacPorts is installed, ::
+The default GCC install on Mac OSX does not include a Fortran
+compiler. Mac users should use the MacPorts software
+http://www.macports.org/ to install GCC. Once MacPorts is installed,
+::
 
   port install gcc4x
 
-will install GCC 4.x in the /opt/local directory. Be aware that Apple requires these
-compiler names to be gcc-mp-4.x, g++-mp-4.x and gfortran-mp-4.x, not the standard names
-gcc, g++ and gfortran.
+will install GCC 4.x in the /opt/local directory. Be aware that Apple
+requires these compiler names to be gcc-mp-4.x, g++-mp-4.x and
+gfortran-mp-4.x, not the standard names gcc, g++ and gfortran.
 
 GCC On Ubuntu
 *************
@@ -76,38 +132,44 @@ Use the apt-get utility, ::
 Building GCC From Source
 ************************
 
-Please contact your local IT support before attempting to build GCC from source. The binaries may be
-available in a non-standard location. 
+Please contact your local IT support before attempting to build GCC
+from source. The binaries may be available in a non-standard location.
 
-Building GCC requires several precision libraries that must be installed before building GCC.
-See http://gcc.gnu.org/install/prerequisites.html for more information. Once these
-packages are installed, GCC must be configured with C, C++ and Fortran enabled. Documentation
-of the available configure options is here http://gcc.gnu.org/install/configure.html. 
-The quickest way to determine the best configure options is to find a similar 
-machine with a matching OS that has the target GCC already installed, and look at
-the verbose version output. The command ::
+Building GCC requires several precision libraries that must be
+installed before building GCC.  See
+http://gcc.gnu.org/install/prerequisites.html for more
+information. Once these packages are installed, GCC must be configured
+with C, C++ and Fortran enabled. Documentation of the available
+configure options is here http://gcc.gnu.org/install/configure.html.
+The quickest way to determine the best configure options is to find a
+similar machine with a matching OS that has the target GCC already
+installed, and look at the verbose version output. The command ::
 
   gcc -v
 
-will print out the configure options used to build that GCC compiler. One important note to 
-remember: DO NOT BUILD GCC IN THE SOURCE DIRECTORY. Create a separate build directory.
-The GCC build time is long. On most systems it will need more than 2 hours to complete.
+will print out the configure options used to build that GCC
+compiler. One important note to remember: DO NOT BUILD GCC IN THE
+SOURCE DIRECTORY. Create a separate build directory.  The GCC build
+time is long. On most systems it will need more than 2 hours to
+complete.
 
 .. _MPI:
 
 Obtaining MPI
 +++++++++++++
 
-Jali has been built against both MPICH2 and OpenMPI. Both are easy to build and install,
-but on clusters, users should contact their local support before building either one. Many
-vendors provide tuned and optimized MPI libraries that should be used to maximize performance.
+Jali has been built against both MPICH2 and OpenMPI. Both are easy to
+build and install, but on clusters, users should contact their local
+support before building either one. Many vendors provide tuned and
+optimized MPI libraries that should be used to maximize performance.
 Otherwise, install either MPICH2 or OpenMPI.
 
 MPICH2
 ******
 
-We recommend that users install a stable version of MPICH2. MPICH even minor versions 
-(Ex: 1.4.1 minor version is 4) are stable. Odd minor versions are beta releases.
+We recommend that users install a stable version of MPICH2. MPICH even
+minor versions (Ex: 1.4.1 minor version is 4) are stable. Odd minor
+versions are beta releases.
 
 Steps to build and install MPICH2 are
 
@@ -216,33 +278,46 @@ Steps to build and install OpenMPI are
 Obtaining LAPACK/BLAS
 +++++++++++++++++++++
 
-Most systems have ``LAPACK`` and ``BLAS`` installed in system directories.
-Building these libraries from source and optimizing for the target machine is difficult. 
-We recommend that users attempt to build Jali before building ``LAPACK`` and ``BLAS`` from
-source. Trilnos, the package that requires both, detects the libraries in their build system 
-and in many cases finds them automatically. If the Trilinos build system fails to find the
-libraries or if the user wants to build against non-standard ``LAPACK``/``BLAS`` distributions,
+Most systems have ``LAPACK`` and ``BLAS`` installed in system
+directories.  Building these libraries from source and optimizing for
+the target machine is difficult.  We recommend that users attempt to
+build Jali before building ``LAPACK`` and ``BLAS`` from
+source. Trilnos, the package that requires both, detects the libraries
+in their build system and in many cases finds them automatically. If
+the Trilinos build system fails to find the libraries or if the user
+wants to build against non-standard ``LAPACK``/``BLAS`` distributions,
 please read the Trilinos_ configuration section.
 
-If the user must build ``LAPACK`` and ``BLAS`` from source, we recommend ``ATLAS``, a sofware package
-that automatically builds tuned ``BLAS`` libraries and a small subset of ``LAPACK``. By default
-``ATLAS`` does not build a full ``LAPACK`` distribution, but Jali requires a full ``LAPACK`` library.
-Read the ``ATLAS`` documentation on how to build ``ATLAS`` with a full ``LAPACK`` installation.
-``ATLAS`` downloads are available at http://math-atlas.sourceforge.net.
+If the user must build ``LAPACK`` and ``BLAS`` from source, we
+recommend ``ATLAS``, a sofware package that automatically builds tuned
+``BLAS`` libraries and a small subset of ``LAPACK``. By default
+``ATLAS`` does not build a full ``LAPACK`` distribution, but Jali
+requires a full ``LAPACK`` library.  Read the ``ATLAS`` documentation
+on how to build ``ATLAS`` with a full ``LAPACK`` installation.
+``ATLAS`` downloads are available at
+http://math-atlas.sourceforge.net.
 
 
 Building TPLs and Jali Using ``Boostrap.sh``
 ----------------------------------------------
 
-The script ``bootstrap.sh`` is located in the ``config`` directory.  See ``bootstrap.sh --help`` for a full list of options and default settings.  The script will create two subdirectories in the currect directory.  The first is TPL_BUILD used for downloading and builing the TPLs.  The second is Jali-build used for building Jali.  The TPLs and Jali will be installed in the directory specified by the option ``--prefix``.
+The script ``bootstrap.sh`` is located in the ``config`` directory.
+See ``bootstrap.sh --help`` for a full list of options and default
+settings.  The script will create two subdirectories in the currect
+directory.  The first is TPL_BUILD used for downloading and builing
+the TPLs.  The second is Jali-build used for building Jali.  The TPLs
+and Jali will be installed in the directory specified by the option
+``--prefix``.
 
-See the :ref:`bootstrap` section for instructions building using ``Bootstrap.sh``.
+See the :ref:`bootstrap` section for instructions building using
+``Bootstrap.sh``.
 
 Building TPLs From The Command Line using CMake
 -----------------------------------------------
 
-We recommend that users run the provided ``bootstrap.sh`` script in the ``config`` directory, to build
-the TPLs. The instructions in this section are for advanced users and developers.
+We recommend that users run the provided ``bootstrap.sh`` script in
+the ``config`` directory, to build the TPLs. The instructions in this
+section are for advanced users and developers.
 
 The steps to build entire suite of TPL software from the command line are
 
@@ -265,10 +340,11 @@ The steps to build entire suite of TPL software from the command line are
 
         make install
 
-The final step, make install, copies a CMake configuration file,Jali-tpl-config.cmake,
-to the install location under share/cmake that is useful when building Jali. 
-Passing this configuration to cmake using the -C option defines all the TPL locations
-needed to build Jali.
+The final step, make install, copies a CMake configuration
+file,Jali-tpl-config.cmake, to the install location under share/cmake
+that is useful when building Jali.  Passing this configuration to
+cmake using the -C option defines all the TPL locations needed to
+build Jali.
 
 For example ::
 
