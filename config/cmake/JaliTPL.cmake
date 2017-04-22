@@ -240,13 +240,6 @@ set_feature_info(ExodusII
                  "Required by all the mesh frameworks to read mesh files")
 
 
-##############################################################################
-# XERCES-C - http://http://xerces.apache.org/xerces-c/
-##############################################################################
-#find_package(XERCES REQUIRED)
-#set_feature_info(XERCES
-#	         "Validating XML parser")
-
 
 ##############################################################################
 ############################ Option Processing ###############################
