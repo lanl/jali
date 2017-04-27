@@ -67,8 +67,8 @@
 #                   NetCDF fortran  4.2
 #                   Exodus II       6.06
 #                   MSTK            2.25
-#                   Trilinos        12.2.2
-#                   Seacas          12.2.2
+#                   Trilinos        12.6.1
+#                   Seacas          12.6.1
 #   1.0.1       - Boost updated to 1.58
 #   1.0.2       - MSTK updated to 2.25rc1
 #   1.0.3       - Trilinos updated to 12.2.2
@@ -78,7 +78,7 @@
 #   1.0.7       - MSTK updated to 2.27rc2
 #   1.0.8       - MSTK updated to 2.27rc3
 #   1.0.9       - MSTK updated to 2.27 and UnitTest++ updated to 1.6.0
-#   1.1.0       - Remove unnecessary package XERCES
+#   1.1.0       - Upgrade Trilinos to 12.6.1; Remove unnecessary package XERCES
 
 include(CMakeParseArguments)
 
@@ -281,21 +281,21 @@ set(MOAB_MD5_SUM        49da04e8905f6d730d92521e7ca7400e)
 # TPL: Trilinos
 #
 set(Trilinos_VERSION_MAJOR 12)
-set(Trilinos_VERSION_MINOR 2)
-set(Trilinos_VERSION_PATCH 2)
+set(Trilinos_VERSION_MINOR 6)
+set(Trilinos_VERSION_PATCH 1)
 set(Trilinos_VERSION ${Trilinos_VERSION_MAJOR}.${Trilinos_VERSION_MINOR}.${Trilinos_VERSION_PATCH})
 set(Trilinos_URL_STRING     "http://software.lanl.gov/ascem/tpls")
-set(Trilinos_ARCHIVE_FILE   trilinos-${Trilinos_VERSION}-Source.tar.bz2)
-set(Trilinos_MD5_SUM        90bbb175505b55878401a51a1d17463c)
+set(Trilinos_ARCHIVE_FILE   trilinos-${Trilinos_VERSION}-Source.zip)
+set(Trilinos_MD5_SUM        6d0f9e140e4dd4dd4f132c8ce0d1b0ee)
 
 #
 # TPL: SEACAS
 #  SEACAS is available in Trilinos 10.8 and above
 set(SEACAS_VERSION_MAJOR 12)
-set(SEACAS_VERSION_MINOR 2)
-set(SEACAS_VERSION_PATCH 2)
+set(SEACAS_VERSION_MINOR 6)
+set(SEACAS_VERSION_PATCH 1)
 set(SEACAS_VERSION ${SEACAS_VERSION_MAJOR}.${SEACAS_VERSION_MINOR}.${SEACAS_VERSION_PATCH})
 set(SEACAS_URL_STRING     "http://software.lanl.gov/ascem/tpls")
-set(SEACAS_ARCHIVE_FILE   trilinos-${SEACAS_VERSION}-Source.tar.bz2)
-set(SEACAS_MD5_SUM        90bbb175505b55878401a51a1d17463c)
+set(SEACAS_ARCHIVE_FILE   trilinos-${SEACAS_VERSION}-Source.zip)
+set(SEACAS_MD5_SUM        6d0f9e140e4dd4dd4f132c8ce0d1b0ee)
 
