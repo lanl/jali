@@ -71,7 +71,7 @@ Jali_tpl_version_write(FILENAME ${TPL_VERSIONS_INCLUDE_FILE}
 #endif()
 
 # List of packages enabled in the Trilinos build
-set(Trilinos_PACKAGE_LIST Epetra NOX AztecOO)
+set(Trilinos_PACKAGE_LIST Epetra)
 #if ( ENABLE_STK_Mesh )
 #  list(APPEND Trilinos_PACKAGE_LIST STK)
 #endif()
@@ -212,7 +212,7 @@ set(Trilinos_CMAKE_LANG_ARGS
 # Trilinos patches
 set(ENABLE_Trilinos_Patch ON)
 if (ENABLE_Trilinos_Patch)
-  set(Trilinos_patch_file trilinos-ifpack-hypre.patch trilinos-duplicate-parameters.patch)
+  set(Trilinos_patch_file trilinos-finite-value.patch)
   configure_file(${SuperBuild_TEMPLATE_FILES_DIR}/trilinos-patch-step.sh.in
                  ${Trilinos_prefix_dir}/trilinos-patch-step.sh
                  @ONLY)
