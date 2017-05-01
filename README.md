@@ -66,6 +66,10 @@ Laboratory). Jali's copyright is being asserted solely under Los
 Alamos National Laboratory having been rewritten to include only code
 written by Los Alamos National Laboratory developers.
 
+# Authors
+
+Jali is derived from the unstructured mesh infrastructure in Amanzi (https://github.com/amanzi/amanzi) with non-LANL contributions stripped out. While much of the unstructured mesh infrastructure in  Amanzi (and subsequently Jali) was developed by Rao Garimella, its design was influenced by the entire Amanzi team. Additionally, contributions to the Amanzi or Jali code base have been made by Markus Berndt, Konstantin Lipnikov, Ethan Coon, Daniil Svyatsky, Chris Malone, Chris Sewell, Charles Ferenbaugh and Ondrej Certik. In addition, most of the build system in Jali was taken as-is from Amanzi. This build system was largely developed by Lori Pritchett-Sheats.
+
 # Third Party Libraries
 
 Jali uses a number of third party libraries (TPLs) primarily for mesh
