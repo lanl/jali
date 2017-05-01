@@ -1,0 +1,110 @@
+#!/bin/bash
+
+# Copyright (c) 2017, Los Alamos National Security, LLC
+# All rights reserved.
+
+# Copyright 2017. Los Alamos National Security, LLC. This software was
+# produced under U.S. Government contract DE-AC52-06NA25396 for Los
+# Alamos National Laboratory (LANL), which is operated by Los Alamos
+# National Security, LLC for the U.S. Department of Energy. The
+# U.S. Government has rights to use, reproduce, and distribute this
+# software.  NEITHER THE GOVERNMENT NOR LOS ALAMOS NATIONAL SECURITY,
+# LLC MAKES ANY WARRANTY, EXPRESS OR IMPLIED, OR ASSUMES ANY LIABILITY
+# FOR THE USE OF THIS SOFTWARE.  If software is modified to produce
+# derivative works, such modified software should be clearly marked, so
+# as not to confuse it with the version available from LANL.
+ 
+# Additionally, redistribution and use in source and binary forms, with
+# or without modification, are permitted provided that the following
+# conditions are met:
+
+# 1.  Redistributions of source code must retain the above copyright
+# notice, this list of conditions and the following disclaimer.
+# 2.  Redistributions in binary form must reproduce the above copyright
+# notice, this list of conditions and the following disclaimer in the
+# documentation and/or other materials provided with the distribution.
+# 3.  Neither the name of Los Alamos National Security, LLC, Los Alamos
+# National Laboratory, LANL, the U.S. Government, nor the names of its
+# contributors may be used to endorse or promote products derived from
+# this software without specific prior written permission.
+ 
+# THIS SOFTWARE IS PROVIDED BY LOS ALAMOS NATIONAL SECURITY, LLC AND
+# CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING,
+# BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+# FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL LOS
+# ALAMOS NATIONAL SECURITY, LLC OR CONTRIBUTORS BE LIABLE FOR ANY
+# DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+# GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
+# IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+# OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+# ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+# CMake generates this file 
+# Replaces each @VAR@ with value of ${VAR}
+
+
+nemesis_src_dir=@ExodusII_source_dir@/nemesis
+nemesis_build_dir=@ExodusII_prefix_dir@/nemesis-build
+
+# NETCDF
+export NETCDF_DIR=@TPL_INSTALL_PREFIX@
+netcdf_library=@CMAKE_STATIC_LIBRARY_PREFIX@netcdf@CMAKE_STATIC_LIBRARY_SUFFIX@
+netcdf_ncdump=@TPL_INSTALL_PREFIX@/bin/ncdump
+
+# HDF5
+hdf5_library=@TPL_INSTALL_PREFIX@/lib/@CMAKE_STATIC_LIBRARY_PREFIX@hdf5@CMAKE_STATIC_LIBRARY_SUFFIX@
+hdf5hl_library=@TPL_INSTALL_PREFIX@/lib/@CMAKE_STATIC_LIBRARY_PREFIX@hdf5_hl@CMAKE_STATIC_LIBRARY_SUFFIX@
+
+# ZLIB
+z_library=@TPL_INSTALL_PREFIX@/lib/@CMAKE_STATIC_LIBRARY_PREFIX@z@CMAKE_STATIC_LIBRARY_SUFFIX@
+
+# ExodusII
+exodusii_library=@TPL_INSTALL_PREFIX@/lib/@CMAKE_STATIC_LIBRARY_PREFIX@exoIIv2c@CMAKE_STATIC_LIBRARY_SUFFIX@
+
+if [[ ! -e ${nemesis_build_dir} ]]; then
+  mkdir -p ${nemesis_build_dir}
+fi
+
+cd ${nemesis_build_dir}
+
+@CMAKE_COMMAND@  \
+                -D CMAKE_INSTALL_PREFIX=@TPL_INSTALL_PREFIX@ \
+                -D CMAKE_C_COMPILER=@CMAKE_C_COMPILER_USE@ \
+                -D CMAKE_CXX_COMPILER=@CMAKE_CXX_COMPILER_USE@ \
+                -D CMAKE_BUILD_TYPE=@CMAKE_BUILD_TYPE@ \
+                -D CMAKE_C_FLAGS='@Jali_COMMON_CFLAGS@' \
+                -D CMAKE_CXX_FLAGS='@Jali_COMMON_CXXFLAGS@' \
+                -D NETCDF_INCLUDE_DIR=@TPL_INSTALL_PREFIX@/include \
+                -D NETCDF_LIBRARY=@TPL_INSTALL_PREFIX@/lib/${netcdf_library} \
+                -D NETCDF_NCDUMP=${netcdf_ncdump} \
+                -D HDF5_LIBRARY=${hdf5_library} \
+                -D HDF5HL_LIBRARY=${hdf5hl_library} \
+                -D Z_LIBRARY=${z_library} \
+                -D EXODUS_LIBRARY=${exodusii_library} \
+                ${nemesis_src_dir}
+
+if [ $? -ne 0 ]; then
+  echo "Failed to configure nemesis"
+  exit $?
+fi
+
+make
+
+if [ $? -ne 0 ]; then
+  echo "Failed to build nemesis"
+  exit $?
+fi
+
+make install
+
+if [ $? -ne 0 ]; then
+  echo "Failed to install nemesis"
+  exit
+fi
+
+
+
+exit $?

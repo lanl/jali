@@ -1,0 +1,112 @@
+# Copyright (c) 2017, Los Alamos National Security, LLC
+# All rights reserved.
+
+# Copyright 2017. Los Alamos National Security, LLC. This software was
+# produced under U.S. Government contract DE-AC52-06NA25396 for Los
+# Alamos National Laboratory (LANL), which is operated by Los Alamos
+# National Security, LLC for the U.S. Department of Energy. The
+# U.S. Government has rights to use, reproduce, and distribute this
+# software.  NEITHER THE GOVERNMENT NOR LOS ALAMOS NATIONAL SECURITY,
+# LLC MAKES ANY WARRANTY, EXPRESS OR IMPLIED, OR ASSUMES ANY LIABILITY
+# FOR THE USE OF THIS SOFTWARE.  If software is modified to produce
+# derivative works, such modified software should be clearly marked, so
+# as not to confuse it with the version available from LANL.
+ 
+# Additionally, redistribution and use in source and binary forms, with
+# or without modification, are permitted provided that the following
+# conditions are met:
+
+# 1.  Redistributions of source code must retain the above copyright
+# notice, this list of conditions and the following disclaimer.
+# 2.  Redistributions in binary form must reproduce the above copyright
+# notice, this list of conditions and the following disclaimer in the
+# documentation and/or other materials provided with the distribution.
+# 3.  Neither the name of Los Alamos National Security, LLC, Los Alamos
+# National Laboratory, LANL, the U.S. Government, nor the names of its
+# contributors may be used to endorse or promote products derived from
+# this software without specific prior written permission.
+ 
+# THIS SOFTWARE IS PROVIDED BY LOS ALAMOS NATIONAL SECURITY, LLC AND
+# CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING,
+# BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+# FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL LOS
+# ALAMOS NATIONAL SECURITY, LLC OR CONTRIBUTORS BE LIABLE FOR ANY
+# DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+# GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
+# IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+# OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+# ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+# ############################################################################ #
+#
+#  Jali Configuration File 
+#  To import into other CMake projects
+#
+# ############################################################################ #
+
+#
+# Directories
+#
+set(Jali_BUILD_DIR  @Jali_BINARY_DIR@)
+set(Jali_SOURCE_DIR @Jali_SOURCE_DIR@)
+
+set(Jali_INSTALL_PREFIX @CMAKE_INSTALL_PREFIX@)
+set(Jali_INCLUDE_DIR    @CMAKE_INSTALL_PREFIX@/include)
+set(Jali_LIBRARY_DIR    @CMAKE_INSTALL_PREFIX@/lib)
+set(Jali_BINARY_DIR     @CMAKE_INSTALL_PREFIX@/bin)
+
+set(Jali_INCLUDE_DIRS   @Jali_INCLUDE_DIRS@)
+set(Jali_LIBRARY_DIRS   @Jali_LIBRARY_DIRS@)
+set(Jali_LIBRARIES      @Jali_LIBRARIES@)
+
+#
+# Version
+#
+set(Jali_VERSION          @Jali_VERSION@)
+
+#
+# Compilation 
+#
+set(Jali_BUILD_TYPE        @CMAKE_BUILD_TYPE@)
+
+set(Jali_BUILD_SHARED_LIBS @BUILD_SHARED_LIBS@)
+
+set(Jali_C_COMPILER        @CMAKE_C_COMPILER@)
+set(Jali_CXX_COMPILER      @CMAKE_CXX_COMPILER@)
+set(Jali_Fortran_COMPILER  @CMAKE_Fortran_COMPILER@)
+
+set(Jali_C_COMPILER_FLAGS  "@CMAKE_C_FLAGS@ ${CMAKE_C_FLAGS_${CMAKE_BUILD_TYPE}}")
+set(Jali_CXX_COMPILER_FLAGS  "@CMAKE_CXX_FLAGS@ ${CMAKE_CXX_FLAGS_${CMAKE_BUILD_TYPE}}")
+set(Jali_Fortran_COMPILER_FLAGS  "@CMAKE_Fortran_FLAGS@ ${CMAKE_Fortran_FLAGS_${CMAKE_BUILD_TYPE}}")
+
+# 
+# Code configuration options
+#
+
+# Grid support
+set(Jali_ENABLE_STRUCTURED      @ENABLE_Structured@)
+set(Jali_ENABLE_UNSTRUCTURED    @ENABLE_Unstructured@)
+
+# Mesh frameworks
+set(Jali_ENABLE_STK_Mesh        @ENABLE_STK_Mesh@)
+set(Jali_ENABLE_MOAB_Mesh       @ENABLE_MOAB_Mesh@)
+set(Jali_ENABLE_MSTK_Mesh       @ENABLE_MSTK_Mesh@)
+
+# CCSE Options
+set(Jali_CCSE_ENABLE_MPI        @ENABLE_MPI@)
+set(Jali_CCSE_ENABLE_OpenMP     @ENABLE_OpenMP@)
+set(Jali_CCSE_SPACEDIM          @Jali_SPACEDIM@)
+set(Jali_CCSE_PRECISION         @Jali_PRECISION@)
+set(Jali_CCSE_DEFINES           @BL_DEFINES@)
+
+# External Packages
+# Configuration file that defines the TPL include paths
+set(Jali_ENABLED_TPLS           @Jali_ENABLED_TPLS@)
+include("@CMAKE_INSTALL_PREFIX@/lib/JaliConfigTPL.cmake")
+
+# 
+# Exported Targets
+# File that defines the Jali exported targets
+include("@CMAKE_INSTALL_PREFIX@/lib/JaliTargets.cmake")

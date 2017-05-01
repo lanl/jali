@@ -1,0 +1,20 @@
+--- trilinos-12.6.1-source/cmake/tribits/core/config_tests/FiniteValue.cmake	2016-02-09 15:26:22.000000000 -0700
++++ trilinos-12.6.1-source/cmake/tribits/core/config_tests/FiniteValue.cmake.new	2017-04-26 22:04:26.748474182 -0600
+@@ -58,7 +58,7 @@ INCLUDE(CheckCXXSourceCompiles)
+ 
+ SET(SOURCE_GLOBAL_ISNAN
+   "
+-#include <cmath>
++#include <math.h>
+ int main()
+ {
+   double x = 1.0;
+@@ -105,7 +105,7 @@ ENDIF()
+ 
+ SET(SOURCE_GLOBAL_ISINF
+   "
+-#include <cmath>
++#include <math.h>
+ int main()
+ {
+   double x = 1.0;
