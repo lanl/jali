@@ -136,8 +136,24 @@ class BaseStateVector {
   some additional meta-data like the mesh associated with this data.
   @tparam DomainType  Mesh, Mesh Tile or Mesh Subset (coming soon)
 */
-
+  
 template <class T, class DomainType = Mesh>
+class StateVector;
+//! Send StateVector to output stream
+template <class T, class DomainType>
+std::ostream & operator<<(std::ostream & os,
+                          StateVector<T, DomainType> const & sv) {
+  return sv.print(os);
+}
+
+//! Send a std::array to output stream
+template <class T, std::size_t N>
+std::ostream & operator<<(std::ostream & os, const std::array<T, N>& arr) {
+  std::copy(arr.cbegin(), arr.cend(), std::ostream_iterator<T>(os, " "));
+  return os;
+}
+
+template <class T, class DomainType>
 class StateVector : public BaseStateVector {
  public:
 
@@ -324,32 +340,13 @@ class StateVector : public BaseStateVector {
   std::shared_ptr<std::vector<T>> mydata_;
 
  private:
-  Mesh & get_mesh_of_domain(std::shared_ptr<MeshTile> meshtile) const {
+  const Mesh & get_mesh_of_domain(std::shared_ptr<MeshTile> meshtile) const {
      return meshtile->mesh();
   }
   Mesh & get_mesh_of_domain(std::shared_ptr<Mesh> mesh) const {
     return *mesh;
   }
 };
-
-
-//! Send StateVector to output stream
-
-template <class T, class DomainType>
-std::ostream & operator<<(std::ostream & os,
-                          StateVector<T, DomainType> const & sv) {
-  return sv.print(os);
-}
-
-
-//! Send a std::array to output stream
-
-template <class T, std::size_t N>
-std::ostream & operator<<(std::ostream & os, const std::array<T, N>& arr) {
-  std::copy(arr.cbegin(), arr.cend(), std::ostream_iterator<T>(os, " "));
-  return os;
-}
-
 
 }  // namespace Jali
 

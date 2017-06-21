@@ -87,6 +87,21 @@ namespace Jali {
 // forward declaration of the mesh class
 
 class Mesh;
+  
+class MeshSet;
+std::shared_ptr<MeshSet>
+merge(std::vector<std::shared_ptr<MeshSet>> const& inpsets,
+      bool temporary = false);
+std::shared_ptr<MeshSet>
+subtract(std::shared_ptr<MeshSet> const& set1,
+         std::vector<std::shared_ptr<MeshSet>> const& subtractsets,
+         bool temporary = false);
+std::shared_ptr<MeshSet>
+intersect(std::vector<std::shared_ptr<MeshSet>> const& inpsets,
+          bool temporary = false);
+std::shared_ptr<MeshSet>
+complement(std::vector<std::shared_ptr<MeshSet>> inpsets,
+           bool temporary = false);
 
 class MeshSet {
 
@@ -215,7 +230,7 @@ class MeshSet {
   friend
   std::shared_ptr<MeshSet>
   merge(std::vector<std::shared_ptr<MeshSet>> const& inpsets,
-        bool temporary = false);
+        bool temporary);
 
   /// @brief Subtraction of arbitrary number mesh sets from a first mesh set
   ///
@@ -228,7 +243,7 @@ class MeshSet {
   std::shared_ptr<MeshSet>
   subtract(std::shared_ptr<MeshSet> const& set1,
            std::vector<std::shared_ptr<MeshSet>> const& subtractsets,
-           bool temporary = false);
+           bool temporary);
 
   /// @brief intersection of arbitrary number of mesh sets
   ///
@@ -239,7 +254,7 @@ class MeshSet {
   friend
   std::shared_ptr<MeshSet>
   intersect(std::vector<std::shared_ptr<MeshSet>> const& inpsets,
-            bool temporary = false);
+            bool temporary);
 
   /// @brief complement of sets (all mesh entities not in union of sets)
   ///
@@ -250,7 +265,7 @@ class MeshSet {
   friend
   std::shared_ptr<MeshSet>
   complement(std::vector<std::shared_ptr<MeshSet>> inpsets,
-             bool temporary = false);
+             bool temporary);
  private:
 
   // Data

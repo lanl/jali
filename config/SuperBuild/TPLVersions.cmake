@@ -79,6 +79,7 @@
 #   1.0.8       - MSTK updated to 2.27rc3
 #   1.0.9       - MSTK updated to 2.27 and UnitTest++ updated to 1.6.0
 #   1.1.0       - Upgrade Trilinos to 12.6.1; Remove unnecessary package XERCES
+#   1.1.1       - Upgrade Trilinos and Seacas to 12.10.1, update MSTK to 2.28rc1
 
 include(CMakeParseArguments)
 
@@ -139,7 +140,7 @@ set(OpenMPI_VERSION_MAJOR 1)
 set(OpenMPI_VERSION_MINOR 4)
 set(OpenMPI_VERSION_PATCH 4)
 set(OpenMPI_VERSION ${OpenMPI_VERSION_MAJOR}.${OpenMPI_VERSION_MINOR}.${OpenMPI_VERSION_PATCH})
-set(OpenMPI_URL_STRING     "http://software.lanl.gov/ascem/tpls")
+set(OpenMPI_URL_STRING     "https://raw.githubusercontent.com/amanzi/amanzi-tpls/master/src")
 set(OpenMPI_ARCHIVE_FILE   openmpi-${OpenMPI_VERSION}.tar.bz2)
 set(OpenMPI_MD5_SUM        e58a1ea7b8af62453aaa0ddaee5f26a0) 
 
@@ -150,7 +151,7 @@ set(CURL_VERSION_MAJOR 7)
 set(CURL_VERSION_MINOR 37)
 set(CURL_VERSION_PATCH 0)
 set(CURL_VERSION ${CURL_VERSION_MAJOR}.${CURL_VERSION_MINOR}.${CURL_VERSION_PATCH})
-set(CURL_URL_STRING     "http://software.lanl.gov/ascem/tpls")
+set(CURL_URL_STRING     "https://raw.githubusercontent.com/amanzi/amanzi-tpls/master/src")
 set(CURL_ARCHIVE_FILE   curl-${CURL_VERSION}.tar.bz2)
 set(CURL_MD5_SUM        7dda0cc2e4136f78d5801ac347be696b)
 
@@ -161,7 +162,7 @@ set(ZLIB_VERSION_MAJOR 1)
 set(ZLIB_VERSION_MINOR 2)
 set(ZLIB_VERSION_PATCH 6)
 set(ZLIB_VERSION ${ZLIB_VERSION_MAJOR}.${ZLIB_VERSION_MINOR}.${ZLIB_VERSION_PATCH})
-set(ZLIB_URL_STRING     "http://software.lanl.gov/ascem/tpls")
+set(ZLIB_URL_STRING     "https://raw.githubusercontent.com/amanzi/amanzi-tpls/master/src")
 set(ZLIB_ARCHIVE_FILE   zlib-${ZLIB_VERSION}.tar.gz)
 set(ZLIB_MD5_SUM        618e944d7c7cd6521551e30b32322f4a) 
 
@@ -172,7 +173,7 @@ set(METIS_VERSION_MAJOR 5)
 set(METIS_VERSION_MINOR 1)
 set(METIS_VERSION_PATCH 0)
 set(METIS_VERSION ${METIS_VERSION_MAJOR}.${METIS_VERSION_MINOR}.${METIS_VERSION_PATCH})
-set(METIS_URL_STRING     "http://software.lanl.gov/ascem/tpls")
+set(METIS_URL_STRING     "https://raw.githubusercontent.com/amanzi/amanzi-tpls/master/src")
 set(METIS_ARCHIVE_FILE   metis-${METIS_VERSION}.tar.gz)
 set(METIS_MD5_SUM        5465e67079419a69e0116de24fce58fe)
 
@@ -180,12 +181,11 @@ set(METIS_MD5_SUM        5465e67079419a69e0116de24fce58fe)
 # TPL: UnitTest
 #
 set(UnitTest_VERSION_MAJOR 1)
-set(UnitTest_VERSION_MINOR 6)
-set(UnitTest_VERSION_PATCH 0)
-set(UnitTest_VERSION ${UnitTest_VERSION_MAJOR}.${UnitTest_VERSION_MINOR}.${UnitTest_VERSION_PATCH})
-set(UnitTest_URL_STRING     "http://software.lanl.gov/ascem/tpls")
+set(UnitTest_VERSION_MINOR 5)
+set(UnitTest_VERSION ${UnitTest_VERSION_MAJOR}.${UnitTest_VERSION_MINOR})
+set(UnitTest_URL_STRING     https://raw.githubusercontent.com/amanzi/amanzi-tpls/master/src)
 set(UnitTest_ARCHIVE_FILE   unittest-cpp-${UnitTest_VERSION}.zip)
-set(UnitTest_MD5_SUM       bca285acea948ab3cd76e8cb17f65d24) 
+set(UnitTest_MD5_SUM        6f6e05fa07eeb2d44e5b11bd1f38865d)
 
 #
 # TPL: Boost
@@ -195,7 +195,7 @@ set(Boost_VERSION_MINOR 58)
 set(Boost_VERSION_PATCH 0)
 set(Boost_VERSION        ${Boost_VERSION_MAJOR}.${Boost_VERSION_MINOR}.${Boost_VERSION_PATCH})
 set(Boost_VERSION_STRING ${Boost_VERSION_MAJOR}_${Boost_VERSION_MINOR}_${Boost_VERSION_PATCH})
-set(Boost_URL_STRING     "http://software.lanl.gov/ascem/tpls")
+set(Boost_URL_STRING     "https://raw.githubusercontent.com/amanzi/amanzi-tpls/master/src")
 set(Boost_ARCHIVE_FILE   boost_${Boost_VERSION_STRING}.tar.bz2)
 set(Boost_MD5_SUM        b8839650e61e9c1c0a89f371dd475546)
 
@@ -206,7 +206,7 @@ set(BoostCmake_VERSION_MAJOR 1)
 set(BoostCmake_VERSION_MINOR 46)
 set(BoostCmake_VERSION_PATCH 1)
 set(BoostCmake_VERSION        ${BoostCmake_VERSION_MAJOR}.${BoostCmake_VERSION_MINOR}.${BoostCmake_VERSION_PATCH})
-set(BoostCmake_URL_STRING     "http://software.lanl.gov/ascem/tpls")
+set(BoostCmake_URL_STRING     "https://raw.githubusercontent.com/amanzi/amanzi-tpls/master/src")
 set(BoostCmake_ARCHIVE_FILE   boost-cmake-cmake-${BoostCmake_VERSION}.tar.gz)
 set(BoostCmake_MD5_SUM        ) 
 
@@ -217,7 +217,7 @@ set(HDF5_VERSION_MAJOR 1)
 set(HDF5_VERSION_MINOR 8)
 set(HDF5_VERSION_PATCH 8)
 set(HDF5_VERSION ${HDF5_VERSION_MAJOR}.${HDF5_VERSION_MINOR}.${HDF5_VERSION_PATCH})
-set(HDF5_URL_STRING    "http://software.lanl.gov/ascem/tpls")
+set(HDF5_URL_STRING    "https://raw.githubusercontent.com/amanzi/amanzi-tpls/master/src")
 set(HDF5_ARCHIVE_FILE   hdf5-${HDF5_VERSION}.tar.gz)
 set(HDF5_MD5_SUM        1196e668f5592bfb50d1de162eb16cff)      
 
@@ -228,7 +228,7 @@ set(NetCDF_VERSION_MAJOR 4)
 set(NetCDF_VERSION_MINOR 3)
 set(NetCDF_VERSION_PATCH 2)
 set(NetCDF_VERSION ${NetCDF_VERSION_MAJOR}.${NetCDF_VERSION_MINOR}.${NetCDF_VERSION_PATCH})
-set(NetCDF_URL_STRING     "http://software.lanl.gov/ascem/tpls")
+set(NetCDF_URL_STRING     "https://raw.githubusercontent.com/amanzi/amanzi-tpls/master/src")
 set(NetCDF_ARCHIVE_FILE   netcdf-${NetCDF_VERSION}.tar.gz)
 set(NetCDF_MD5_SUM        2fd2365e1fe9685368cd6ab0ada532a0)
 
@@ -238,7 +238,7 @@ set(NetCDF_MD5_SUM        2fd2365e1fe9685368cd6ab0ada532a0)
 set(NetCDF_Fortran_VERSION_MAJOR 4)
 set(NetCDF_Fortran_VERSION_MINOR 2)
 set(NetCDF_Fortran_VERSION ${NetCDF_Fortran_VERSION_MAJOR}.${NetCDF_Fortran_VERSION_MINOR})
-set(NetCDF_Fortran_URL_STRING     "http://software.lanl.gov/ascem/tpls")
+set(NetCDF_Fortran_URL_STRING     "https://raw.githubusercontent.com/amanzi/amanzi-tpls/master/src")
 set(NetCDF_Fortran_ARCHIVE_FILE   netcdf-fortran-${NetCDF_Fortran_VERSION}.tar.gz)
 set(NetCDF_Fortran_MD5_SUM        cc3bf530223e8f4aff93793b9f197bf3) 
 
@@ -248,7 +248,7 @@ set(NetCDF_Fortran_MD5_SUM        cc3bf530223e8f4aff93793b9f197bf3)
 set(ExodusII_VERSION_MAJOR 6)
 set(ExodusII_VERSION_MINOR 06)
 set(ExodusII_VERSION ${ExodusII_VERSION_MAJOR}.${ExodusII_VERSION_MINOR})
-set(ExodusII_URL_STRING    "http://software.lanl.gov/ascem/tpls")
+set(ExodusII_URL_STRING    "https://raw.githubusercontent.com/amanzi/amanzi-tpls/master/src")
 set(ExodusII_ARCHIVE_FILE  exodus-${ExodusII_VERSION}.tar.gz)
 set(ExodusII_MD5_SUM       cfd240dbc1251b08fb1d0ee2de40a44c)
 
@@ -256,16 +256,12 @@ set(ExodusII_MD5_SUM       cfd240dbc1251b08fb1d0ee2de40a44c)
 # TPL: MSTK
 #
 set(MSTK_VERSION_MAJOR 2)
-set(MSTK_VERSION_MINOR 27)
-set(MSTK_VERSION_PATCH )
-if (MSTK_VERSION_PATCH)
-  set(MSTK_VERSION ${MSTK_VERSION_MAJOR}_${MSTK_VERSION_MINOR}_${MSTK_VERSION_PATCH})
-else (MSTK_VERSION_PATCH)
-  set(MSTK_VERSION ${MSTK_VERSION_MAJOR}_${MSTK_VERSION_MINOR})
-endif (MSTK_VERSION_PATCH)
-set(MSTK_URL_STRING     "https://github.com/MeshToolkit/MSTK/archive")
-set(MSTK_ARCHIVE_FILE   MSTK-${MSTK_VERSION}.tar.gz)
-set(MSTK_MD5_SUM       d14a28ff45d4c13790ea066524c7fafa)
+set(MSTK_VERSION_MINOR 28)
+set(MSTK_VERSION_PATCH rc1)
+set(MSTK_VERSION ${MSTK_VERSION_MAJOR}.${MSTK_VERSION_MINOR}${MSTK_VERSION_PATCH})
+set(MSTK_URL_STRING     "https://raw.githubusercontent.com/amanzi/amanzi-tpls/master/src")
+set(MSTK_ARCHIVE_FILE   mstk-${MSTK_VERSION}.tar.gz)
+set(MSTK_MD5_SUM        b1c8ca7d084ee8b613092db9ea026da4)
 
 #
 # TPL: MOAB
@@ -273,7 +269,7 @@ set(MSTK_MD5_SUM       d14a28ff45d4c13790ea066524c7fafa)
 set(MOAB_VERSION_MAJOR  r4276)
 set(MOAB_VERSION_MINOR  )
 set(MOAB_VERSION_PATCH  )
-set(MOAB_URL_STRING     "http://software.lanl.gov/ascem/tpls")
+set(MOAB_URL_STRING     "https://raw.githubusercontent.com/amanzi/amanzi-tpls/master/src")
 set(MOAB_ARCHIVE_FILE   MOAB-${MOAB_VERSION}.tar.gz)
 set(MOAB_MD5_SUM        49da04e8905f6d730d92521e7ca7400e) 
 
@@ -281,21 +277,20 @@ set(MOAB_MD5_SUM        49da04e8905f6d730d92521e7ca7400e)
 # TPL: Trilinos
 #
 set(Trilinos_VERSION_MAJOR 12)
-set(Trilinos_VERSION_MINOR 6)
+set(Trilinos_VERSION_MINOR 10)
 set(Trilinos_VERSION_PATCH 1)
-set(Trilinos_VERSION ${Trilinos_VERSION_MAJOR}.${Trilinos_VERSION_MINOR}.${Trilinos_VERSION_PATCH})
-set(Trilinos_URL_STRING     "http://software.lanl.gov/ascem/tpls")
-set(Trilinos_ARCHIVE_FILE   trilinos-${Trilinos_VERSION}-Source.zip)
-set(Trilinos_MD5_SUM        6d0f9e140e4dd4dd4f132c8ce0d1b0ee)
+set(Trilinos_VERSION ${Trilinos_VERSION_MAJOR}-${Trilinos_VERSION_MINOR}-${Trilinos_VERSION_PATCH})
+set(Trilinos_URL_STRING     "https://github.com/trilinos/Trilinos/archive")
+set(Trilinos_ARCHIVE_FILE   trilinos-release-${Trilinos_VERSION}.tar.gz)
+set(Trilinos_MD5_SUM        40f28628b63310f9bd17c26d9ebe32b1)
 
 #
 # TPL: SEACAS
 #  SEACAS is available in Trilinos 10.8 and above
 set(SEACAS_VERSION_MAJOR 12)
-set(SEACAS_VERSION_MINOR 6)
+set(SEACAS_VERSION_MINOR 10)
 set(SEACAS_VERSION_PATCH 1)
-set(SEACAS_VERSION ${SEACAS_VERSION_MAJOR}.${SEACAS_VERSION_MINOR}.${SEACAS_VERSION_PATCH})
-set(SEACAS_URL_STRING     "http://software.lanl.gov/ascem/tpls")
-set(SEACAS_ARCHIVE_FILE   trilinos-${SEACAS_VERSION}-Source.zip)
-set(SEACAS_MD5_SUM        6d0f9e140e4dd4dd4f132c8ce0d1b0ee)
-
+set(SEACAS_VERSION ${SEACAS_VERSION_MAJOR}-${SEACAS_VERSION_MINOR}-${SEACAS_VERSION_PATCH})
+set(SEACAS_URL_STRING     "https://github.com/trilinos/Trilinos/archive/")
+set(SEACAS_ARCHIVE_FILE   trilinos-release-${SEACAS_VERSION}.tar.gz)
+set(SEACAS_MD5_SUM        40f28628b63310f9bd17c26d9ebe32b1)
