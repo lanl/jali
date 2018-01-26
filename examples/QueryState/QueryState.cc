@@ -103,9 +103,10 @@ int main(int argc, char *argv[]) {
     mymesh->num_nodes<Entity_type::ALL>() << std::endl;
 
 
-  // Create a Jali State Manager
+  // Create a Jali State Manager (for design reasons, this has to be
+  // on the heap, not the stack)
 
-  Jali::State mystate(mymesh);
+  std::shared_ptr<Jali::State> mystate = Jali::State::create(mymesh);
 
 
   // Create some CELL-based data
@@ -126,16 +127,16 @@ int main(int argc, char *argv[]) {
   // NOTE that there is an implicit second template parameter "Mesh" here
   // that is figured out from the arguments to the add function. 
 
-  StateVector<double> & myvec = mystate.add("myzonevar", mymesh,
+  StateVector<double> & myvec = mystate->add("myzonevar", mymesh,
                                              Entity_kind::CELL,
                                              Entity_type::ALL, data);
-
+  
 
   // Try to retrieve it through a get function
 
   StateVector<double, Jali::Mesh> myvec_copy1;
-  bool found = mystate.get("myzonevar", mymesh, Entity_kind::CELL,
-                           Entity_type::ALL, &myvec_copy1);
+  bool found = mystate->get("myzonevar", mymesh, Entity_kind::CELL,
+                            Entity_type::ALL, &myvec_copy1);
 
   int ndata = myvec_copy1.size();
   if (myvec.size() != myvec_copy1.size()) {
@@ -188,9 +189,11 @@ int main(int argc, char *argv[]) {
   // explicitly tell the state manager the data type (double) since
   // there is no input data for it to infer it from
 
-  StateVector<double>& newvec = mystate.add<double>("vector2", mymesh, 
-                                                   Entity_kind::CELL,
-                                                   Entity_type::ALL);
+  StateVector<double>& newvec =
+      mystate->add<double, Jali::Mesh, Jali::StateVector>("vector2",
+                                                          mymesh, 
+                                                          Entity_kind::CELL,
+                                                          Entity_type::ALL);
 
   // Modify newvec 
 
@@ -202,9 +205,9 @@ int main(int argc, char *argv[]) {
   // that the changes in newvec were reflected in the state manager
 
   StateVector<double, Mesh> newvec_copy;
-  found = mystate.get("vector2", mymesh, Entity_kind::CELL,
-                      Entity_type::ALL, &newvec_copy);
-
+  found = mystate->get("vector2", mymesh, Entity_kind::CELL,
+                       Entity_type::ALL, &newvec_copy);
+  
 
   ndata = newvec.size();
   for (int i = 0; i < ndata; ++i) {
@@ -242,7 +245,8 @@ int main(int argc, char *argv[]) {
                                        {21.5, -2.4, -1}};
 
 
-  StateVector<std::array<double, 3>> vec2d("vec3", mymesh, Entity_kind::NODE,
+  StateVector<std::array<double, 3>> vec2d("vec3", mymesh, nullptr,
+                                           Entity_kind::NODE,
                                            Entity_type::PARALLEL_OWNED,
                                            &(arrdata[0]));
 
@@ -254,13 +258,15 @@ int main(int argc, char *argv[]) {
 
   int i = 0;
   for (auto const& meshtile : mymesh->tiles()) {
-    auto tilevec_put = mystate.add("vector_on_tile", meshtile,
-                                   Entity_kind::CELL, Entity_type::PARALLEL_OWNED,
-                                   &(data[4*i]));
+    auto tilevec_put = mystate->add("vector_on_tile", meshtile,
+                                    Entity_kind::CELL,
+                                    Entity_type::PARALLEL_OWNED,
+                                    &(data[4*i]));
     
-    auto tilevec2d_put = mystate.add("2Darray_on_tile", meshtile,
-                                     Entity_kind::CORNER, Entity_type::PARALLEL_OWNED,
-                                     &(arrdata[0]));
+    auto tilevec2d_put = mystate->add("2Darray_on_tile", meshtile,
+                                      Entity_kind::CORNER,
+                                      Entity_type::PARALLEL_OWNED,
+                                      &(arrdata[0]));
     i++;
   }
 
@@ -270,16 +276,16 @@ int main(int argc, char *argv[]) {
   i = 0;
   for (auto const& meshtile : mymesh->tiles()) {
     StateVector<double, MeshTile> tilevec_get;
-    found = mystate.get("vector_on_tile", meshtile, Entity_kind::CELL,
-                        Entity_type::PARALLEL_OWNED, &tilevec_get);
+    found = mystate->get("vector_on_tile", meshtile, Entity_kind::CELL,
+                         Entity_type::PARALLEL_OWNED, &tilevec_get);
 
     std::cerr << "1D vector on tile cells: " << std::endl;
     std::cerr << tilevec_get << std::endl;
     std::cerr << std::endl;
 
     StateVector<std::array<double, 3>, MeshTile> tilevec2d_get;
-    found = mystate.get("2Darray_on_tile", meshtile, Entity_kind::CORNER,
-                        Entity_type::PARALLEL_OWNED, &tilevec2d_get);
+    found = mystate->get("2Darray_on_tile", meshtile, Entity_kind::CORNER,
+                         Entity_type::PARALLEL_OWNED, &tilevec2d_get);
 
 
     std::cerr << "2D vector on tile cells: " << std::endl;
