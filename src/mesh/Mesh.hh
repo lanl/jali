@@ -991,20 +991,28 @@ class Mesh {
 
   std::vector<std::shared_ptr<MeshSet>> sets(const Entity_kind kind) const;
 
-  //! Is this is a valid name of a set containing entities of 'kind'
+  //! Is this is a valid name of a geometric region defined on for
+  //! containing entities of 'kind'
 
-  bool valid_set_name(const std::string setname,
+  bool valid_region_name(const std::string setname,
                       const Entity_kind kind) const;
 
-  //! Find a meshset with 'setname' containing entities of 'kind'
-  //! (non-const variant - create the set if it is missing and it
-  //! corresponds to a valid region).
+  // Find a meshset containing entities of 'kind' defined on a
+  // geometric region 'regname' (non-const version - create the set if
+  // it is missing, it is requested through the create_if_missing flag
+  // and it corresponds to a valid region).
 
-  std::shared_ptr<MeshSet> find_meshset(const std::string setname,
-                                        const Entity_kind kind);
+  std::shared_ptr<MeshSet>
+  find_meshset_from_region(std::string regname, Entity_kind kind,
+                           bool create_if_missing);
+
+  // Find a meshset containing entities of 'kind' defined on a geometric
+  // region 'regname' (const version - do nothing if it is missing).
+
+  std::shared_ptr<MeshSet>
+  find_meshset_from_region(std::string setname, Entity_kind kind) const;
 
   //! Find a meshset with 'setname' containing entities of 'kind'
-  //! (const version - do nothing if the set does not exist)
 
   std::shared_ptr<MeshSet> find_meshset(const std::string setname,
                                         const Entity_kind kind) const;
@@ -1132,9 +1140,9 @@ class Mesh {
 
   //! build a mesh set
 
-  std::shared_ptr<MeshSet> build_set(const std::string setname,
-                                     const Entity_kind kind,
-                                     const bool build_reverse_map = true);
+  std::shared_ptr<MeshSet> build_set_from_region(const std::string setname,
+                                                 const Entity_kind kind,
+                                                 const bool build_reverse_map = true);
 
   //! get labeled set entities
   //
