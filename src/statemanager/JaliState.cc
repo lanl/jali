@@ -24,7 +24,7 @@ void State::add_material(std::string const& matname,
       mymesh_->find_meshset(matname, Entity_kind::CELL);
   if (!matset) {
     Entity_ID_List owned_entities, ghost_entities;
-    bool with_reverse_map = true
+    bool with_reverse_map = true;
     matset = make_meshset(matname, *mymesh_, Jali::Entity_kind::CELL,
                           owned_entities, ghost_entities, with_reverse_map);
   }
