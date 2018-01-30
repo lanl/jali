@@ -72,10 +72,11 @@ class MeshSet {
       entityids_owned_(meshset_in.entityids_owned_),
       entityids_ghost_(meshset_in.entityids_ghost_),
       entityids_all_(meshset_in.entityids_all_),
+      have_reverse_map_(meshset_in.have_reverse_map_),
       mesh2subset_(meshset_in.mesh2subset_) {}
 
-  /// @brief Assignment operator - deleted because we cannot reassign the 
-  /// reference to the Mesh
+  /// @brief Assignment operator - deleted because we cannot reassign
+  /// the reference to the Mesh
 
   MeshSet & operator=(MeshSet const &meshset_in) = delete;
 
@@ -134,7 +135,7 @@ class MeshSet {
     PARALLEL_GHOST, ALL)
 
     Number of entities of a particular kind and type - this form is
-    needed for defining statevectors on meshes - non-zero only if
+    needed for defining statevectors on meshesets - non-zero only if
     asking about kind of entities set is templated on.
   */
 
@@ -167,6 +168,31 @@ class MeshSet {
     return (mesh2subset_.size() ? mesh2subset_[mesh_entity] : -1);
   }
   
+  /// @brief add entity to meshset (no check for duplicates)
+
+  void add_entity(Entity_ID const& mesh_entity);
+
+  /// @brief rem entity from meshset (PREFERABLY USE rem_entities)
+
+  void rem_entity(Entity_ID const& mesh_entity);
+
+  /// @brief add a group of entities to meshset (no check for duplicates)
+
+  void add_entities(std::vector<Entity_ID> const& entities);
+
+  /// @brief remove a group of entities from a subset
+
+  void rem_entities(std::vector<Entity_ID> const& entities);
+
+  void clear() {
+    entityids_owned_.clear();
+    entityids_ghost_.clear();
+    entityids_all_.clear();
+    mesh2subset_.clear();
+    name_ = "";
+    kind_ = Entity_kind::UNKNOWN_KIND;
+  }
+
   /// @brief Union of arbitrary number of mesh sets
   ///
   /// @param inpsets     Sets to be unioned
@@ -223,13 +249,13 @@ class MeshSet {
   Entity_ID_List entityids_owned_, entityids_ghost_, entityids_all_;
   Entity_ID_List dummylist_;
 
+  bool have_reverse_map_;
   Entity_ID_List mesh2subset_;
 
   // Make the State class a friend so that it can access protected
   // methods for retrieving and storing mesh fields
 
   friend class State;
-
 
 };  // End class MeshSet
 

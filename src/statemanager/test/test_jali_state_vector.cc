@@ -10,6 +10,7 @@
 #include "JaliStateVector.h"
 #include "Mesh.hh"
 #include "MeshFactory.hh"
+#include "JaliState.h"
 
 #include "UnitTest++.h"
 
@@ -23,7 +24,8 @@ TEST(JaliStateVector_Cells_Mesh) {
   // Check array initialization
 
   std::vector<double> data1 = {1.0, 3.0, 2.5, 4.5};
-  Jali::StateVector<double> myvec1("var1", mesh, Jali::Entity_kind::CELL,
+  Jali::StateVector<double> myvec1("var1", mesh, nullptr,
+                                   Jali::Entity_kind::CELL,
                                    Jali::Entity_type::ALL, &(data1[0]));
 
   int ncells = mesh->num_entities(Jali::Entity_kind::CELL,
@@ -39,7 +41,8 @@ TEST(JaliStateVector_Cells_Mesh) {
   // Check constant initialization
 
   double data2 = -1.33;
-  Jali::StateVector<double> myvec2("var2", mesh, Jali::Entity_kind::CELL,
+  Jali::StateVector<double> myvec2("var2", mesh, nullptr,
+                                   Jali::Entity_kind::CELL,
                                    Jali::Entity_type::ALL, data2);
 
   CHECK_EQUAL(ncells, myvec2.size());
@@ -50,9 +53,10 @@ TEST(JaliStateVector_Cells_Mesh) {
 
   // Check no initialization
 
-  Jali::StateVector<double> myvec3("var3", mesh,
+  Jali::StateVector<double> myvec3("var3", mesh, nullptr,
                                    Jali::Entity_kind::CELL,
-                                   Jali::Entity_type::ALL);                                               
+                                   Jali::Entity_type::ALL);
+
   CHECK_EQUAL(ncells, myvec3.size());
 }
  
@@ -65,7 +69,8 @@ TEST(JaliStateVectorNodes) {
   CHECK(mesh);
 
   std::vector<double> data1 = {1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0};
-  Jali::StateVector<double> myvec1("var1", mesh, Jali::Entity_kind::NODE,
+  Jali::StateVector<double> myvec1("var1", mesh, nullptr,
+                                   Jali::Entity_kind::NODE,
                                    Jali::Entity_type::PARALLEL_OWNED,
                                    &(data1[0]));
 
@@ -85,7 +90,8 @@ TEST(JaliStateVectorAssignCopy) {
   CHECK(mesh);
 
   std::vector<double> data1 = {1.0, 3.0, 2.5, 4.5};
-  Jali::StateVector<double> myvec1("var1", mesh, Jali::Entity_kind::CELL,
+  Jali::StateVector<double> myvec1("var1", mesh, nullptr,
+                                   Jali::Entity_kind::CELL,
                                    Jali::Entity_type::ALL,
                                    &(data1[0]));
 
@@ -152,7 +158,7 @@ TEST(JaliStateVectorArray) {
   data1[2][0] = 3.0; data1[2][1] = -3.0;
   data1[3][0] = 4.0; data1[3][1] = -4.0;
 
-  Jali::StateVector<std::array<double, 2>> myvec1("var1", mesh,
+  Jali::StateVector<std::array<double, 2>> myvec1("var1", mesh, nullptr,
                                                   Jali::Entity_kind::CELL,
                                                   Jali::Entity_type::ALL,
                                                   &(data1[0]));
@@ -168,3 +174,193 @@ TEST(JaliStateVectorArray) {
 
   std::cout << myvec1 << std::endl;
 }
+
+
+TEST(Jali_MMStateVector_Cells_Mesh) {
+
+  Jali::MeshFactory mf(MPI_COMM_WORLD);
+  std::shared_ptr<Jali::Mesh> mesh = mf(0.0, 0.0, 3.0, 3.0, 3, 3);
+
+  CHECK(mesh);
+
+  // MMState vectors need Jali State
+
+  std::shared_ptr<Jali::State> state = Jali::State::create(mesh);
+
+  // Create 3 material sets in the state corresponding to a T-junction
+  // configuration
+  //
+  //     *--------*----:---*--------*
+  //     |        |    :   |        |
+  //     |    0   | 0  : 2 |    2   |
+  //     |        |    :   |        |
+  //     *--------*----:---*--------*
+  //     |        |    : 2 |    2   |
+  //     |        |    +............|
+  //     |    0   |  0 : 1 |    1   |
+  //     *--------*----:---*--------*
+  //     |        |    :   |        |
+  //     |    0   |  0 : 1 |    1   |
+  //     |        |    :   |        |
+  //     *--------*----:---*--------*
+
+  std::vector<std::vector<int>> matcells = {{0, 1, 3, 4, 6, 7},
+                                            {1, 2, 4, 5},
+                                            {4, 5, 7, 8}};
+  std::vector<std::vector<int>> cell_matindex = {{0, 1, -1, 2, 3, -1, 4, 5, -1},
+                                                 {-1, 0, 1, -1, 2, 3, -1, -1, -1},
+                                                 {-1, -1, -1, -1, 0, 1, -1, 2, 3}};
+
+  state->add_material("steel", matcells[0]);
+  state->add_material("aluminum", matcells[1]);
+  state->add_material("air", matcells[2]);
+
+  // Create a multi-material state vector corresponding to volume
+  // fractions of materials as shown in fig above. 'vfm' is laid out in
+  // a material centric manner
+
+  double **vfm = new double*[3];
+  for (int i = 0; i < 3; i++)
+    vfm[i] = new double[9];
+
+  double vfarr[3][9] = {{1.0, 0.5, 0.0, 1.0, 0.5, 0.0, 1.0, 0.5, 0.0},
+                        {0.0, 0.5, 1.0, 0.0, 0.25, 0.5, 0.0, 0.0, 0.0},
+                        {0.0, 0.0, 0.0, 0.0, 0.25, 0.5, 0.0, 0.5, 1.0}};
+  for (int m = 0; m < 3; m++)
+    for (int c = 0; c < 9; c++)
+      vfm[m][c] = vfarr[m][c];
+
+  Jali::MMStateVector<double> myvec1("volfrac1", mesh, state,
+                                     Jali::Entity_kind::CELL,
+                                     Jali::Entity_type::ALL,
+                                     Jali::Data_layout::MATERIAL_CENTRIC,
+                                     (double const **) vfm);
+  
+  CHECK(Jali::StateVector_type::MULTIVAL == myvec1.get_type());
+  
+  // Check the operator() for MMStateVector
+  
+  for (int m = 0; m < 3; m++)
+    for (int c = 0; c < 9; c++)
+      if (vfarr[m][c] > 0.0)
+        CHECK_EQUAL(vfm[m][c], myvec1(m, c));
+
+  for (int i = 0; i < 3; i++)
+    delete [] vfm[i];
+  delete [] vfm;
+
+  // Create a multi-material state vector corresponding to volume
+  // fractions of materials as shown in fig above. 'vfc' is laid out in
+  // a material centric manner
+
+  double **vfc = new double*[9];
+  for (int i = 0; i < 9; i++)
+    vfc[i] = new double[3];
+
+  for (int m = 0; m < 3; m++)
+    for (int c = 0; c < 9; c++)
+      vfc[c][m] = vfarr[m][c];
+
+  Jali::MMStateVector<double> myvec2("volfrac2", mesh, state,
+                                     Jali::Entity_kind::CELL,
+                                     Jali::Entity_type::ALL,
+                                     Jali::Data_layout::CELL_CENTRIC,
+                                     (double const **) vfc);
+  
+  CHECK(Jali::StateVector_type::MULTIVAL == myvec2.get_type());
+  
+  // Check the operator() for MMStateVector - Note that the indices used
+  // are switched for the call to operator() for myvec2 and so we have to
+  // tell the code we are requesting the data in a non-default manner
+  
+  for (int m = 0; m < 3; m++)
+    for (int c = 0; c < 9; c++)
+      if (vfarr[m][c] > 0.0)
+        CHECK_EQUAL(vfc[c][m],
+                    myvec2(c, m, Jali::Data_layout::CELL_CENTRIC));
+
+  for (int i = 0; i < 9; i++)
+    delete [] vfc[i];
+  delete [] vfc;
+
+
+  // Also the two state vectors should be equivalent
+
+  for (int m = 0; m < 3; m++)
+    for (int c = 0; c < 9; c++) 
+      if (vfarr[m][c] > 0.0)
+        CHECK_EQUAL(myvec1(m, c), myvec2(c, m,
+                                         Jali::Data_layout::CELL_CENTRIC));
+
+
+  // Get data for materials one at a time and verify it
+  std::vector<std::vector<double>> matvf = {{1.0, 0.5, 1.0, 0.5, 1.0, 0.5},
+                                            {0.5, 1.0, 0.25, 0.5},
+                                            {0.25, 0.5, 0.5, 1.0}};
+
+  double vol = 0.0;  // sum of material volumes over the mesh
+  for (int m = 0; m < 3; m++) {
+    double matvol = 0.0;  // material volume
+    std::vector<double> & matvec = myvec1.get_matdata(m);
+    for (int c = 0; c < matvec.size(); c++) {
+      CHECK_EQUAL(matvf[m][c], matvec[c]);
+      double cellvol = mesh->cell_volume(matcells[m][c]);
+      matvol += matvec[c]*cellvol;
+    }
+    if (m == 0)
+      CHECK_CLOSE(4.5, matvol, 1.0e-8);
+    else
+      CHECK_CLOSE(2.25, matvol, 1.0e-8);
+    vol += matvol;
+  }
+  CHECK_CLOSE(vol, 9.0, 1.0e-8);
+
+  // Shift the vertical interface left so that material 0 is occupying a 1/3rd
+  // of cells 1, 4 and 7.
+
+  // Modify the local matvf vectors to be what we know they should be
+  // (remember the second index is a local cell index in the material)
+  matvf[0][cell_matindex[0][1]] = 1.0/3.0;
+  matvf[0][cell_matindex[0][4]] = 1.0/3.0;
+  matvf[0][cell_matindex[0][7]] = 1.0/3.0;
+  matvf[1][cell_matindex[1][1]] = 2.0/3.0;
+  matvf[1][cell_matindex[1][4]] = 1.0/3.0;
+  matvf[2][cell_matindex[2][4]] = 1.0/3.0;
+  matvf[2][cell_matindex[2][7]] = 2.0/3.0;
+
+  // Then modify the state vector 'myvec1' in two different ways
+  // If we get the cells of the material we have to use a local
+  // indexing scheme to address the entries
+
+  std::vector<double> & matvec = myvec1.get_matdata(0);
+  int cloc = cell_matindex[0][4];
+  matvec[cell_matindex[0][1]] = 1.0/3.0;
+  matvec[cell_matindex[0][4]] = 1.0/3.0;
+  matvec[cell_matindex[0][7]] = 1.0/3.0;
+
+  // Alternate way of modifying values in myvec1
+  // If we use the operator() then we can use mesh cell indices directly
+  myvec1(1, 1) = 2.0/3.0;
+  myvec1(1, 4) = 1.0/3.0;
+
+  myvec1(2, 4) = 1.0/3.0;
+  myvec1(2, 7) = 2.0/3.0;
+   
+  vol = 0.0;  // sum of material volumes over the mesh
+  for (int m = 0; m < 3; m++) {
+    double matvol = 0.0;  // material volume
+    std::vector<double> & matvec = myvec1.get_matdata(m);
+    for (int c = 0; c < matvec.size(); c++) {
+      CHECK_EQUAL(matvf[m][c], matvec[c]);
+      double cellvol = mesh->cell_volume(matcells[m][c]);
+      matvol += matvec[c]*cellvol;
+    }
+    if (m == 0)
+      CHECK_CLOSE(4.0, matvol, 1.0e-8);
+    else
+      CHECK_CLOSE(2.5, matvol, 1.0e-8);
+    vol += matvol;
+  }
+  CHECK_CLOSE(vol, 9.0, 1.0e-8);
+}
+ 

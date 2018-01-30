@@ -1297,7 +1297,15 @@ int Mesh::compute_face_geometry(const Entity_ID faceid, double *area,
 
         ASSERT(found);
 
-        JaliGeometry::Point cvec = fcoords[0]-cell_centroids[cellids[i]];
+        JaliGeometry::Point cellcen;
+        std::vector<JaliGeometry::Point> ccoords;
+        cell_get_coordinates(cellids[i], &ccoords);
+
+        for (int j = 0; j < ccoords.size(); j++)
+          cellcen += ccoords[j];
+        cellcen /= ccoords.size();
+
+        JaliGeometry::Point cvec = fcoords[0]-cellcen;
         JaliGeometry::Point trinormal = cvec^evec;
 
         JaliGeometry::Point normal = evec^trinormal;
@@ -2353,12 +2361,8 @@ std::vector<std::shared_ptr<MeshSet>> Mesh::sets(const Entity_kind kind) const {
 
 // Is there a set with this name and entity type
 
-bool Mesh::valid_set_name(std::string name, Entity_kind kind) const {
-  if (!geometric_model_) {
-    Errors::Message mesg("Mesh sets not enabled because mesh was created"
-                         " without reference to a geometric model");
-    Exceptions::Jali_throw(mesg);
-  }
+bool Mesh::valid_region_name(std::string name, Entity_kind kind) const {
+  if (!geometric_model_) return false;
 
   unsigned int gdim = geometric_model_->dimension();
 
@@ -2412,47 +2416,49 @@ bool Mesh::valid_set_name(std::string name, Entity_kind kind) const {
   return false;
 }
 
+// Find a meshset containing entities of 'kind' defined on a geometric
+// region 'regname' (non-const version - create the set if it is
+// missing and it corresponds to a valid region).
 
-// Find a meshset with 'setname' containing entities of 'kind'
-// (non-const version - create the set if it is missing and it
-// corresponds to a valid region).
-
-std::shared_ptr<MeshSet> Mesh::find_meshset(const std::string setname,
-                                            const Entity_kind kind) {
-  if (valid_set_name(setname, kind)) {
+std::shared_ptr<MeshSet>
+Mesh::find_meshset_from_region(std::string regname, const Entity_kind kind,
+                               bool create_if_missing = false) {
+  if (valid_region_name(regname, kind)) {
     for (auto const& set : meshsets_) {
-      if (set->name() == setname && set->kind() == kind)
+      if (set->name() == regname && set->kind() == kind)
         return set;
     }
-    return build_set(setname, kind);
-  } else {
-    //    return nullptr; // intel on barugon is barfing on this
-
-    std::shared_ptr<MeshSet> temp_ptr;
-    return temp_ptr;
+    if (create_if_missing)
+      return build_set_from_region(regname, kind);
   }
+  return nullptr;
 }
 
-// Find a meshset with 'setname' containing entities of 'kind' (const
-// version - do nothing if the set does not exist)
+// Find a meshset containing entities of 'kind' defined on a geometric
+// region 'regname' (const version - do nothing if it is missing).
+
+std::shared_ptr<MeshSet>
+Mesh::find_meshset_from_region(std::string regname, const Entity_kind kind)
+    const {
+  if (valid_region_name(regname, kind)) {
+    for (auto const& set : meshsets_) {
+      if (set->name() == regname && set->kind() == kind)
+        return set;
+    }
+  }
+  return nullptr;
+}
+
+
+// Find a meshset with 'setname' containing entities of 'kind'
 
 std::shared_ptr<MeshSet> Mesh::find_meshset(const std::string setname,
                                             const Entity_kind kind) const {
-  if (valid_set_name(setname, kind)) {
-    for (auto const& set : meshsets_) {
-      if (set->name() == setname && set->kind() == kind)
-        return set;
-    }
-    //    return nullptr; // intel on barugon is barfing on this
-
-    std::shared_ptr<MeshSet> temp_ptr;
-    return temp_ptr;
-  } else {
-    //    return nullptr; // intel on barugon is barfing on this
-
-    std::shared_ptr<MeshSet> temp_ptr;
-    return temp_ptr;
+  for (auto const& set : meshsets_) {
+    if (set->name() == setname && set->kind() == kind)
+      return set;
   }
+  return nullptr;
 }
 
 // Get number of entities of 'type' in set (non-const version - create
@@ -2557,9 +2563,9 @@ void Mesh::get_set_entities(const std::string setname, const Entity_kind kind,
 
 }
 
-std::shared_ptr<MeshSet> Mesh::build_set(const std::string setname,
-                                         const Entity_kind kind,
-                                         const bool with_reverse_map) {
+std::shared_ptr<MeshSet> Mesh::build_set_from_region(const std::string setname,
+                                                     const Entity_kind kind,
+                                                     const bool with_reverse_map) {
 
   int celldim = Mesh::cell_dimension();
   int spacedim = Mesh::space_dimension();
@@ -3425,15 +3431,19 @@ int Mesh::block_partition_regular_mesh(int const dim,
             domain[0] + (i+1)*delta[0] : domain[1];
         bnumcells[partnum][0] = nblockcells_in_dir[0];
 
-        blimits[partnum][2] = domain[2] + j*delta[1];
-        blimits[partnum][3] = (j < nblocks_in_dir[1]-1) ?
-            domain[2] + (j+1)*delta[1] : domain[3];
-        bnumcells[partnum][1] = nblockcells_in_dir[1];
+        if (dim > 1) {
+          blimits[partnum][2] = domain[2] + j*delta[1];
+          blimits[partnum][3] = (j < nblocks_in_dir[1]-1) ?
+              domain[2] + (j+1)*delta[1] : domain[3];
+          bnumcells[partnum][1] = nblockcells_in_dir[1];
 
-        blimits[partnum][4] = domain[4] + k*delta[2];
-        blimits[partnum][5] = (k < nblocks_in_dir[2]-1) ?
-            domain[4] + (k+1)*delta[2] : domain[5];
-        bnumcells[partnum][2] = nblockcells_in_dir[2];
+          if (dim > 2) {
+            blimits[partnum][4] = domain[4] + k*delta[2];
+            blimits[partnum][5] = (k < nblocks_in_dir[2]-1) ?
+                domain[4] + (k+1)*delta[2] : domain[5];
+            bnumcells[partnum][2] = nblockcells_in_dir[2];
+          }
+        }
         partnum++;
       }
     }

@@ -34,7 +34,8 @@ std::string velocity_name("nodevel");
 // illustrate definition/initialization of state data in one place and
 // retrieval of the data by name in another
 
-void initialize_data(const std::shared_ptr<Mesh> mesh, State& state);
+void initialize_data(const std::shared_ptr<Mesh> mesh,
+                     std::shared_ptr<State> state);
 
 
 // Start main routine
@@ -93,7 +94,7 @@ int main(int argc, char *argv[]) {
 
   // Create a state manager for handling data associated with mesh entities
 
-  State mystate(mymesh);
+  std::shared_ptr<State> mystate = Jali::State::create(mymesh);
 
 
   // Initialize the state manager with some data - see routine at end
@@ -110,8 +111,8 @@ int main(int argc, char *argv[]) {
   // argument for StateVector (in this case it is "double")
 
   StateVector<double> rhovec;
-  bool found = mystate.get(density_name, mymesh, Entity_kind::CELL,
-                           Entity_type::ALL, &rhovec);
+  bool found = mystate->get(density_name, mymesh, Entity_kind::CELL,
+                            Entity_type::ALL, &rhovec);
   if (!found) {
     std::cerr << "Could not find state vector on cells with name " <<
         density_name << std::endl;
@@ -140,10 +141,10 @@ int main(int argc, char *argv[]) {
 
   // Add the average density data as a new state vector
 
-  StateVector<double>& rhobarvec = mystate.add("rhobar", mymesh,
-                                               Entity_kind::CELL,
-                                               Entity_type::ALL,
-                                               ave_density);
+  StateVector<double>& rhobarvec = mystate->add("rhobar", mymesh,
+                                                Entity_kind::CELL,
+                                                Entity_type::ALL,
+                                                ave_density);
 
   delete [] ave_density;
 
@@ -152,8 +153,8 @@ int main(int argc, char *argv[]) {
   // Retrieve the vector of velocities
 
   StateVector<std::array<double, 3>, Mesh> vels;
-  found = mystate.get(velocity_name, mymesh, Entity_kind::NODE,
-                      Entity_type::ALL, &vels);
+  found = mystate->get(velocity_name, mymesh, Entity_kind::NODE,
+                       Entity_type::ALL, &vels);
   if (!found) {
     std::cerr << "Could not find state vector on nodes with name " <<
         velocity_name << std::endl;
@@ -231,7 +232,8 @@ int main(int argc, char *argv[]) {
 // Routine for initialization of state data
 
 
-void initialize_data(const std::shared_ptr<Mesh> mesh, State& state) {
+void initialize_data(const std::shared_ptr<Mesh> mesh,
+                     std::shared_ptr<State> state) {
 
   // number of cells in the mesh - ALL means OWNED+GHOST
   int nc = mesh->num_cells<Entity_type::ALL>();
@@ -241,7 +243,9 @@ void initialize_data(const std::shared_ptr<Mesh> mesh, State& state) {
   // initialized to 0.0
 
   StateVector<double, Mesh>& density =
-      state.add(density_name, mesh, Entity_kind::CELL, Entity_type::ALL, 0.0);
+      state->add<double, Mesh, StateVector>(density_name, mesh,
+                                            Entity_kind::CELL,
+                                            Entity_type::ALL, 0.0);
 
 
   // Create a density vector that will be used to initialize a state
@@ -253,7 +257,7 @@ void initialize_data(const std::shared_ptr<Mesh> mesh, State& state) {
   }
 
 
-  // Add a state vector for velocities 
+  // Add a state vector for velocities
 
   int dim = mesh->space_dimension();
   int nn = mesh->num_nodes<Entity_type::ALL>();
@@ -264,8 +268,11 @@ void initialize_data(const std::shared_ptr<Mesh> mesh, State& state) {
   // Note that we did not send in the second template parameter Mesh -
   // it is the default
 
-  StateVector<std::array<double, 3>>& velocity = 
-      state.add(velocity_name, mesh, Entity_kind::NODE, Entity_type::ALL,
-                initarray);
+  StateVector<std::array<double, 3>>& velocity =
+      state->add<std::array<double, 3>, Mesh, StateVector>(velocity_name,
+                                                           mesh,
+                                                           Entity_kind::NODE,
+                                                           Entity_type::ALL,
+                                                           initarray);
 }
 
