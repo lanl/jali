@@ -112,7 +112,7 @@ if (DISABLE_EXTERNAL_DOWNLOAD)
                  "for archive files in ${TPL_DOWNLOAD_DIR}")
 else()
   include(CheckDownload)
-  check_download(TEST_FILE MD5SUMS TEST_URL http://software.lanl.gov/ascem/tpls)
+  check_download(TEST_FILE MD5SUMS TEST_URL http://github.com/amanzi/amanzi-tpls/tree/master/src)
 endif()
 
 # TPL install location
