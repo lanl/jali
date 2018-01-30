@@ -432,8 +432,7 @@ class MMStateVector : public BaseStateVector {
                 T const ** const data = nullptr) :
       BaseStateVector(name, state, kind, type), mydomain_(domain) {
     assert(state != nullptr);
-    int nummats = state_get_num_materials(mystate_);
-    mydata_ = std::make_shared<std::vector<std::vector<T>>>(nummats);
+    allocate();
     if (data) assign(layout, data);
   }
 
@@ -462,8 +461,7 @@ class MMStateVector : public BaseStateVector {
                 T const ** const data = nullptr) :
       BaseStateVector(identifier, state, kind, type), mydomain_(domain) {
     assert(state != nullptr);
-    int nummats = state_get_num_materials(state);
-    mydata_ = std::make_shared<std::vector<std::vector<T>>>(nummats);
+    allocate();
     if (data) assign(layout, data);
   }
 
@@ -490,8 +488,7 @@ class MMStateVector : public BaseStateVector {
                 T initval) :
       BaseStateVector(name, state, kind, type), mydomain_(domain) {
     assert(state != nullptr);
-    int nummats = state_get_num_materials(state);
-    mydata_ = std::make_shared<std::vector<std::vector<T>>>(nummats);
+    allocate();
     assign(initval);
   }
   
@@ -512,8 +509,7 @@ class MMStateVector : public BaseStateVector {
                 T initval):
       BaseStateVector(identifier, state, kind, type), mydomain_(domain) {
     assert(state != nullptr);
-    int nummats = state_get_num_materials(state);
-    mydata_ = std::make_shared<std::vector<std::vector<T>>>(nummats);
+    allocate();
     assign(initval);
   }
 
@@ -551,6 +547,23 @@ class MMStateVector : public BaseStateVector {
     mydomain_ = in_vector.mydomain_;
     mydata_ = in_vector.mydata_;  // shared_ptr counter will increment
   }
+
+
+  /*!
+    @brief Allocate space for storing multi-material data in material-centric form
+  */
+
+  void allocate() {
+    int nummats = state_get_num_materials(mystate_);
+    mydata_ = std::make_shared<std::vector<std::vector<T>>>(nummats);
+    for (int m = 0; m < nummats; m++) {
+      // get entities in the material set 'm'
+      std::shared_ptr<MeshSet> mset = state_get_material_set(mystate_, m);
+      int numents = mset->entities().size();
+      (*mydata_)[m].resize(numents);
+    }
+  }
+
 
   /*!
     @brief Assign 2D array data to a multi-material state vector
