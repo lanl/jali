@@ -473,19 +473,21 @@ TEST(Jali_MMState_On_Mesh) {
   CHECK_EQUAL(mystate->material_name(2), "aluminum2");
 
   // Create a multi-material state vector corresponding to volume fractions
-  // of materials as shown in fig above
+  // of materials as shown in fig above. Because we will add another material
+  // later in the test, we will make space for 4 materials
 
-  double **vf_in = new double*[3];
-  for (int i = 0; i < 3; i++)
+  double **vf_in = new double*[4];
+  for (int i = 0; i < 4; i++)
     vf_in[i] = new double[9];
 
-  double vfarr[3][9] = {{1.0, 0.5, 0.0, 1.0, 0.5, 0.0, 1.0, 0.5, 0.0},
+  double vfarr[4][9] = {{1.0, 0.5, 0.0, 1.0, 0.5,  0.0, 1.0, 0.5, 0.0},
                         {0.0, 0.5, 1.0, 0.0, 0.25, 0.5, 0.0, 0.0, 0.0},
                         {0.0, 0.0, 0.0, 0.0, 0.25, 0.5, 0.0, 0.5, 1.0}};
   for (int m = 0; m < 3; m++)
     for (int c = 0; c < 9; c++)
       vf_in[m][c] = vfarr[m][c];
-
+  for (int c = 0; c < 9; c++)
+    vf_in[3][c] = 0.0;
 
   Jali::MMStateVector<double>& vf =
       mystate->add<double, Jali::Mesh>("volfrac", mesh,
@@ -498,7 +500,7 @@ TEST(Jali_MMState_On_Mesh) {
   Jali::MMStateVector<double>& vf_alt =
       mystate->add<double, Jali::Mesh, Jali::MMStateVector>("volfrac", mesh,
                    Jali::Entity_kind::CELL, Jali::Entity_type::ALL);
-  vf_alt.assign(Jali::Data_layout::CELL_CENTRIC, (double const **)vf_in);
+  vf_alt.assign(Jali::Data_layout::MATERIAL_CENTRIC, (double const **)vf_in);
 
   // Check that the multimaterial vectors created differently are equivalent
 
@@ -513,8 +515,9 @@ TEST(Jali_MMState_On_Mesh) {
 
 
   // Create a multi-material state vector corresponding to density of the
-  // materials (rho_0 = 10.0; rho_1 = 2.0; rho_2 = 2.0)
-  double rho_in[3] = {10.0, 2.0, 2.0};
+  // materials (rho_0 = 10.0; rho_1 = 2.0; rho_2 = 2.0). Similar to the 
+  // volume fraction array, we will keep a spot for the fourth material
+  double rho_in[4] = {10.0, 2.0, 2.0, 0.0};
 
   Jali::MMStateVector<double, Jali::Mesh> & rhomat =
       mystate->add<double, Jali::Mesh, Jali::MMStateVector>("mat_density",
@@ -529,10 +532,10 @@ TEST(Jali_MMState_On_Mesh) {
   // Expected cell density calculated as the volume-weighted average
   // of material densities in the cell
 
-  std::vector<int> rhocell_exp(ncells, 0.0);
+  std::vector<double> rhocell_exp(ncells, 0.0);
   for (int c = 0; c < ncells; c++)
     for (int m = 0; m < nmats; m++)
-      rhocell_exp[c] += rho_in[m]*vf_in[c][m];
+      rhocell_exp[c] += rho_in[m]*vf_in[m][c];
 
   // Verify against values from state vectors
 
@@ -540,7 +543,8 @@ TEST(Jali_MMState_On_Mesh) {
 
   for (int m = 0; m < nmats; m++)
     for (int c = 0; c < ncells; c++)
-      rhocell[c] += rhomat(m, c)*vf(m, c);
+      if (vf_in[m][c] != 0.0)
+        rhocell[c] += rhomat(m, c)*vf(m, c);
 
   for (int c = 0; c < ncells; c++)
     CHECK_CLOSE(rhocell_exp[c], rhocell[c], 1.0e-12);
@@ -585,35 +589,47 @@ TEST(Jali_MMState_On_Mesh) {
   mystate->add_material("steel2", matcells3);
   nmats = mystate->num_materials();
 
-  // Set the volume fractions and densities of material 3 in cells
-  vf(3, 3) = vf(3, 4) = 0.5;
-  vf(3, 6) = vf(3, 7) = 1.0;
+  // Set the volume fractions material 3 in cells in the input vectors
+  vf_in[3][3] = 0.5;
+  vf_in[3][4] = 0.25;
+  vf_in[3][6] = 1.0;
+  vf_in[3][7] = 0.5;
+
+  // Set the volume fractions material 3 in cells in the state vectors
+  vf(3, 3) = 0.5;
+  vf(3, 4) = 0.25;
+  vf(3, 6) = 1.0;
+  vf(3, 7) = 0.5;
 
   // Set the density of material 3 to be the same as material 0
-  double rho_in3 = rho_in[0];
+  rho_in[3] = rho_in[0];
 
   std::vector<double>& rhomatvec = rhomat.get_matdata(3);
   for (auto & rho : rhomatvec)
-    rho = rho_in3;
+    rho = rho_in[3];
 
-  // rem_cells_from_material is not implemented so we will just set
-  // the volume fraction of material 0 to be 0.0 in cells 6 and 7
-  vf(0, 6) = 0.0;
-  vf(0, 7) = 0.0;
+  // Adjust the volume fractions of material 0 in the input vector
+  vf_in[0][3] = 0.5;
+  vf_in[0][4] = 0.25;
+  vf_in[0][6] = vf_in[0][7] = 0.0;
 
-  // Also set vf of material 0 in cells 3 and 4
-  vf(0, 3) = vf(0, 4) = 0.5;
-
+  // Adjust the volume fractions of material 0 in the state vector (we
+  // don't have rem_cells_from_material implemented yet)
+  vf(0, 3) = 0.5;
+  vf(0, 4) = 0.25;
+  vf(0, 6) = vf(0, 7) = 0.0;
 
   // Since the new material that displaced the old material has the
-  // same mass, the cell densities should be the same as before.
-  // Verify against values from state vectors
+  // same density, the expected cell densities should be the same as
+  // before. Verify against values from state vectors
 
   // Method 1: Easy to code but maybe poor cache performance
 
+  for (int c = 0; c < ncells; c++) rhocell[c] = 0.0;
   for (int m = 0; m < nmats; m++)
     for (int c = 0; c < ncells; c++)
-      rhocell[c] += rhomat(m, c)*vf(m, c);
+      if (vf_in[m][c] != 0.0)
+        rhocell[c] += rhomat(m, c)*vf(m, c);
 
   for (int c = 0; c < ncells; c++)
     CHECK_CLOSE(rhocell_exp[c], rhocell[c], 1.0e-12);
