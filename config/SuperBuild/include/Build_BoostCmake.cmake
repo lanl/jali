@@ -25,7 +25,7 @@ ExternalProject_Add(${BoostCmake_target}
     ${BoostCmake_url_args}
     LIST_SEPARATOR ,
     CMAKE_ARGS
-        ${Jali_CMAKE_COMPILER_ARGS}
+        ${Amanzi_CMAKE_COMPILER_ARGS}
         -DBUILD_PROJECTS:STRING=system,filesystem,program_options,regex
         -DBUILD_TESTS=OFF
         -DBUILD_TOOLS=OFF

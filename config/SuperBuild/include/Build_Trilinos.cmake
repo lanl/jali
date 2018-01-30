@@ -182,54 +182,6 @@ else()
   message(STATUS "Patch NOT APPLIED for trilinos")
 endif()
 
-# Trilinos needs a patch for GNU versions > 4.6
-#LPRITCHif ( CMAKE_CXX_COMPILER_VERSION )
-#LPRITCH  if ( ${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU" )
-#LPRITCH    if ( ${CMAKE_CXX_COMPILER_VERSION} VERSION_LESS "4.6" )
-#LPRITCH      set(ENABLE_Trilinos_Patch OFF)
-#LPRITCH    else()
-#LPRITCH      message(STATUS "Trilinos requires a patch when using"
-#LPRITCH                     " GNU ${CMAKE_CXX_COMPILER_VERSION}")
-#LPRITCH      set(ENABLE_Trilinos_Patch ON)
-#LPRITCH    endif()
-#LPRITCH  endif()
-#LPRITCHendif()  
-#LPRITCH
-#LPRITCHset(Trilinos_PATCH_COMMAND)
-#LPRITCHif (ENABLE_Trilinos_Patch)
-#LPRITCH    set(Trilinos_patch_file)
-#LPRITCH    # Set the patch file name
-#LPRITCH    if(CMAKE_CXX_COMPILER_VERSION)
-#LPRITCH      if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-#LPRITCH        if ( "${CMAKE_CXX_COMPILER_VERSION}" VERSION_LESS "4.6" )
-#LPRITCH          message(FATAL_ERROR "ENABLE_Trilinos_Patch is ON, however no patch file exists"
-#LPRITCH                              " for version ${CMAKE_CXX_COMPILER_VERSION}.")
-#LPRITCH        elseif( "${CMAKE_CXX_COMPILER_VERSION}" VERSION_LESS "4.7" )
-#LPRITCH          set(Trilinos_patch_file trilinos-${Trilinos_VERSION}-gcc46.patch)
-#LPRITCH        elseif ( "${CMAKE_CXX_COMPILER_VERSION}" VERSION_LESS "4.8" )
-#LPRITCH          set(Trilinos_patch_file trilinos-${Trilinos_VERSION}-gcc47.patch)
-#LPRITCH        else()
-#LPRITCH          message(FATAL_ERROR "ENABLE_Trilinos_Patch is ON, however no patch file exists"
-#LPRITCH                             " for version ${CMAKE_CXX_COMPILER_VERSION}.")
-#LPRITCH        endif()
-#LPRITCH      endif()
-#LPRITCH    endif()
-#LPRITCH
-#LPRITCH    #print_variable(Trilinos_patch_file)
-#LPRITCH    if(Trilinos_patch_file)
-#LPRITCH       configure_file(${SuperBuild_TEMPLATE_FILES_DIR}/trilinos-patch-step.sh.in
-#LPRITCH                      ${Trilinos_prefix_dir}/trilinos-patch-step.sh
-#LPRITCH                      @ONLY)
-#LPRITCH       set(Trilinos_PATCH_COMMAND sh ${Trilinos_prefix_dir}/trilinos-patch-step.sh)
-#LPRITCH    else()
-#LPRITCH       message(WARNING "ENABLE_Trilinos_Patch is ON but no patch file found for "
-#LPRITCH	               "${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION} "
-#LPRITCH		       "Will not patch Trilinos.")
-#LPRITCH    endif()		   
-#LPRITCH   		   
-#LPRITCHendif()  
-#print_variable(Trilinos_PATCH_COMMAND)
-
 # --- Define the Trilinos location
 set(Trilinos_install_dir ${TPL_INSTALL_PREFIX}/${Trilinos_BUILD_TARGET}-${Trilinos_VERSION})
 
