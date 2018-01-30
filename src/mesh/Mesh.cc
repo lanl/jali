@@ -3431,15 +3431,19 @@ int Mesh::block_partition_regular_mesh(int const dim,
             domain[0] + (i+1)*delta[0] : domain[1];
         bnumcells[partnum][0] = nblockcells_in_dir[0];
 
-        blimits[partnum][2] = domain[2] + j*delta[1];
-        blimits[partnum][3] = (j < nblocks_in_dir[1]-1) ?
-            domain[2] + (j+1)*delta[1] : domain[3];
-        bnumcells[partnum][1] = nblockcells_in_dir[1];
+        if (dim > 1) {
+          blimits[partnum][2] = domain[2] + j*delta[1];
+          blimits[partnum][3] = (j < nblocks_in_dir[1]-1) ?
+              domain[2] + (j+1)*delta[1] : domain[3];
+          bnumcells[partnum][1] = nblockcells_in_dir[1];
 
-        blimits[partnum][4] = domain[4] + k*delta[2];
-        blimits[partnum][5] = (k < nblocks_in_dir[2]-1) ?
-            domain[4] + (k+1)*delta[2] : domain[5];
-        bnumcells[partnum][2] = nblockcells_in_dir[2];
+          if (dim > 2) {
+            blimits[partnum][4] = domain[4] + k*delta[2];
+            blimits[partnum][5] = (k < nblocks_in_dir[2]-1) ?
+                domain[4] + (k+1)*delta[2] : domain[5];
+            bnumcells[partnum][2] = nblockcells_in_dir[2];
+          }
+        }
         partnum++;
       }
     }
