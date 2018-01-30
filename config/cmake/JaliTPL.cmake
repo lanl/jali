@@ -44,7 +44,7 @@ set(Boost_ADDITIONAL_VERSIONS
     1.53 1.53.0
     1.54 1.55.0)
 find_package( Boost COMPONENTS system filesystem program_options regex REQUIRED)
-set_feature_info(Boost
+add_feature_info(Boost
                  "C++ Extension library"
                  "http://www.boost.org"
                  "Required by the MPC")
@@ -91,7 +91,7 @@ if ( NOT HDF5_IS_PARALLEL )
                         "HDF5 installation to include MPI I/O symbols"
             )            
 endif(NOT HDF5_IS_PARALLEL)
-set_feature_info(HDF5
+add_feature_info(HDF5
                 "I/O library that creates HDF5 formatted files"
                 "http://www.hdfgroup.org/HDF5"
                 "Required library for several components in Jali"
@@ -183,7 +183,7 @@ endif()
 # NetCDF - http://www.unidata.ucar.edu/software/netcdf/
 ##############################################################################
 find_package(NetCDF REQUIRED)
-set_feature_info(NetCDF
+add_feature_info(NetCDF
                  "Network Common Data Format (NetCDF)"
                  "http://www.unidata.ucar.edu/software/netcdf/"
                  "Required by ExodusII library")
@@ -193,7 +193,7 @@ set_feature_info(NetCDF
 # Exodus II -http://sourceforge.net/projects/exodusii
 ##############################################################################
 find_package(ExodusII REQUIRED)
-set_feature_info(ExodusII
+add_feature_info(ExodusII
                  "File format library. Originated from Sandia."
                  "http://sourceforge.net/projects/exodusii/"
                  "Required by all the mesh frameworks to read mesh files")
@@ -203,7 +203,7 @@ set_feature_info(ExodusII
 # XERCES-C - http://http://xerces.apache.org/xerces-c/
 ##############################################################################
 #find_package(XERCES REQUIRED)
-#set_feature_info(XERCES
+#add_feature_info(XERCES
 #	         "Validating XML parser")
 
 
@@ -228,7 +228,7 @@ set_feature_info(ExodusII
 #    set(ENABLE_MOAB_Mesh ON)
 #    set(ENABLE_MSTK_Mesh ON)
 #endif()    
-#set_feature_info(ALL_Mesh
+#add_feature_info(ALL_Mesh
 #                 ENABLE_ALL_Mesh
 #                 "Build all available mesh frameworks"
 #                  )    
@@ -237,7 +237,7 @@ set_feature_info(ExodusII
 # STK - Sierra Mesh Tool Kit part of Trilinos
 ##############################################################################
 option(ENABLE_STK_Mesh  "Build Jali with the STK mesh framework" OFF)
-set_feature_info(STK_Mesh
+add_feature_info(STK_Mesh
                  ENABLE_STK_Mesh
                  "Sierra Mesh Tool Kit (STK Mesh) a Trilinos package"
                  )
@@ -247,7 +247,7 @@ set_feature_info(STK_Mesh
 # MOAB - svn co https://svn.mcs.anl.gov/repos/ITAPS/MOAB/trunk MOAB
 ##############################################################################
 option(ENABLE_MOAB_Mesh "Build Jali with the MOAB mesh framework" OFF)
-set_feature_info(MOAB_Mesh
+add_feature_info(MOAB_Mesh
                  ENABLE_MOAB_Mesh
                  "A Mesh-Oriented datABase"
                  )
@@ -259,7 +259,7 @@ endif()
 # MSTK - https://software.lanl.gov/MeshTools/trac/raw-attachment/wiki/WikiStart/mstk-1.80.tar.gz
 ##############################################################################
 option(ENABLE_MSTK_Mesh "Build Jali with the MOAB mesh framework" OFF)
-set_feature_info(MSTK_Mesh
+add_feature_info(MSTK_Mesh
                  ENABLE_MSTK_Mesh
                  "A mesh framework"
                  )
@@ -279,7 +279,7 @@ endif()
 # UnitTest++ - http://unittest-cpp.sourceforge.net/
 ##############################################################################
 option(ENABLE_UnitTest "Build Jali unit tests. Requires UnitTest++" ON)
-set_feature_info(UnitTest
+add_feature_info(UnitTest
                  ENABLE_UnitTest
                  "C++ unit test framework"
                  )
@@ -290,11 +290,11 @@ endif()
 ##############################################################################
 # OpenMP - http://openmp.org/
 #
-# comment out set_feature_info per
+# comment out add_feature_info per
 # https://software.lanl.gov/ascem/trac/ticket/413#comment:1
 ##############################################################################
 option(ENABLE_OpenMP "Build Jali executables with OpenMP" OFF)
-#set_feature_info(OpenMP
+#add_feature_info(OpenMP
 #                 ENABLE_OpenMP
 #                 "OpenMP, multi-platform shared-memory parallel programming"
 #                 )

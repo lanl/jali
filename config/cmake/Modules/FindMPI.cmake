@@ -532,10 +532,16 @@ endfunction()
 # End definitions, commence real work here.
 
 # Most mpi distros have some form of mpiexec which gives us something we can reliably look for.
+set(_MPIEXEC_ARGS)
+if (NOT ${MPI_PREFIX} STREQUAL "") 
+  list(APPEND _MPI_PREFIX_PATH "${MPI_PREFIX}")
+  set(_MPIEXEC_ARGS "NO_DEFAULT_PATH")
+endif()
 find_program(MPIEXEC
   NAMES ${_MPI_EXEC_NAMES}
   PATHS ${_MPI_PREFIX_PATH}
   PATH_SUFFIXES bin
+  ${_MPIEXEC_ARGS}
   DOC "Executable for running MPI programs.")
 
 # call get_filename_component twice to remove mpiexec and the directory it exists in (typically bin).
@@ -582,14 +588,14 @@ foreach (lang C CXX Fortran)
   if (CMAKE_${lang}_COMPILER_WORKS)
     # If the user supplies a compiler *name* instead of an absolute path, assume that we need to find THAT compiler.
     if (MPI_${lang}_COMPILER)
-      is_file_executable(MPI_${lang}_COMPILER MPI_COMPILER_IS_EXECUTABLE)
+      is_file_executable(${MPI_${lang}_COMPILER} MPI_COMPILER_IS_EXECUTABLE)
       if (NOT MPI_COMPILER_IS_EXECUTABLE)
         # Get rid of our default list of names and just search for the name the user wants.
         set(_MPI_${lang}_COMPILER_NAMES ${MPI_${lang}_COMPILER})
         set(MPI_${lang}_COMPILER "MPI_${lang}_COMPILER-NOTFOUND" CACHE FILEPATH "Cleared" FORCE)
         # If the user specifies a compiler, we don't want to try to search libraries either.
-        set(try_libs FALSE)
       endif()
+      set(try_libs FALSE)
     else()
       set(try_libs TRUE)
     endif()
