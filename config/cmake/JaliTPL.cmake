@@ -115,7 +115,7 @@ endif()
 set(Trilinos_MINIMUM_VERSION 11.0.3)
 find_package(Trilinos 
              PATHS ${Trilinos_INSTALL_PREFIX}
-             PATH_SUFFIXES include)
+             PATH_SUFFIXES lib/cmake/Trilinos)
             
 if ( Trilinos_FOUND )
 
