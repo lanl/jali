@@ -150,7 +150,7 @@ class State : public std::enable_shared_from_this<State> {
 
   void add_cells_to_material(int m, std::vector<int> const& cells);
   
-  /// Remove cells from a material
+  /// Remove cells from a material (EXPENSIVE - NOT IMPLEMENTED)
   
   void rem_cells_from_material(int m, std::vector<int> const& cells);
 
