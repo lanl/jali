@@ -210,6 +210,7 @@ enum class Partitioner_type : std::uint8_t {
     ZOLTAN_RCB
 };
 constexpr int NUM_PARTITIONER_TYPES = 5;
+constexpr Partitioner_type PARTITIONER_DEFAULT = Partitioner_type::METIS;
 
 // Return an string description for each partitioner type
 inline
@@ -231,10 +232,6 @@ std::ostream& operator<<(std::ostream& os,
   os << " " << Partitioner_type_string(partitioner_type) << " ";
   return os;
 }
-
-// Types of partitioning algorithms - Add as needed in the format METIS_RCB etc.
-
-enum class Partitioning_scheme {DEFAULT};
 
 }  // close namespace Jali
 
