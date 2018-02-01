@@ -495,7 +495,7 @@ MeshFactory::create(std::shared_ptr<Mesh> const inmesh,
   Errors::Message errmsg("MeshFactory::create: error: ");
   int ierr = 0, aerr = 0;
 
-  int dim = inmesh->cell_dimension();
+  int dim = inmesh->manifold_dimension();
   int numprocs;
   MPI_Comm_size(comm_, &numprocs);
 
