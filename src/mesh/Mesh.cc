@@ -141,15 +141,15 @@ void Mesh::cache_cell2edge_info() const {
   int ncells = num_cells<Entity_type::ALL>();
   cell_edge_ids.resize(ncells);
 
-  if (spacedim == 1) {
+  if (space_dim_ == 1) {
     for (auto const& c : cells())
       cell_get_nodes(c, &(cell_edge_ids[c]));   // edges are same as nodes
-  } else if (spacedim == 2) {
+  } else if (space_dim_ == 2) {
     cell_2D_edge_dirs.resize(ncells);
     for (auto const& c : cells())
       cell_2D_get_edges_and_dirs_internal(c, &(cell_edge_ids[c]),
                                           &(cell_2D_edge_dirs[c]));
-  } else if (spacedim == 3) {
+  } else if (space_dim_ == 3) {
     for (auto const& c : cells())
       cell_get_edges_internal(c, &(cell_edge_ids[c]));
   }
@@ -168,7 +168,7 @@ void Mesh::cache_edge2node_info() const {
   int nedges = num_edges<Entity_type::ALL>();
   edge_node_ids.resize(nedges);
 
-  if (spacedim == 1) {
+  if (space_dim_ == 1) {
     // nodes and edges are identical in 1D - no need to go the derived
     // class for info
     for (auto const& e : edges())
@@ -201,7 +201,7 @@ void Mesh::cache_side_info() const {
   int num_sides_ghost = 0;
   int num_sides_bndry_ghost = 0;
 
-  if (celldim == 1) {  // in 1D there are always 2 sides per cell
+  if (manifold_dim_ == 1) {  // in 1D there are always 2 sides per cell
     num_sides_all = 2*ncells;
     num_sides_owned = 2*ncells_owned;
     num_sides_ghost = 2*ncells_ghost;
@@ -248,7 +248,7 @@ void Mesh::cache_side_info() const {
   //  side_node_ids.resize(num_sides_all, {-1, -1});  // intel 15.0.3 does not like this
   side_node_ids.resize(num_sides_all);
 
-  if (celldim == 1) {
+  if (manifold_dim_ == 1) {
     int iall = 0, iown = 0, ighost = 0, ibndry = 0;
     for (auto const& c : cells()) {
       // always 2 sides per cell
@@ -322,7 +322,7 @@ void Mesh::cache_side_info() const {
           Entity_ID enodes[2];
           edge_get_nodes(e, &(enodes[0]), &(enodes[1]));
 
-          if (celldim == 2) {  // 2D
+          if (manifold_dim_ == 2) {  // 2D
             side_node_ids[sideid][0] = (fdir == 1) ? enodes[0] : enodes[1];
             side_node_ids[sideid][1] = (fdir == 1) ? enodes[1] : enodes[0];
             side_edge_use[sideid] = (fdir == 1) ? true : false;
@@ -381,7 +381,7 @@ void Mesh::cache_side_info() const {
         ++itfd;
       }  // while (itf != cfaces.end())
     }  // for (c : cells())
-  }  // if (celldim)
+  }  // if (manifold_dim_)
 
   side_info_cached = true;
 }  // cache_side_info
@@ -985,14 +985,14 @@ int Mesh::compute_cell_geometric_quantities() const {
   cell_volumes.resize(ncells);
   cell_centroids.resize(ncells);
   
-  std::vector<double> zerovec(spacedim, 0.0);
+  std::vector<double> zerovec(space_dim_, 0.0);
   for (int c = 0; c < ncells; c++) {
     if (cell_type[c] == Entity_type::BOUNDARY_GHOST) {
       cell_volumes[c] = 0.0;
-      cell_centroids[c].set(spacedim, &(zerovec[0]));
+      cell_centroids[c].set(space_dim_, &(zerovec[0]));
     } else {
       double volume;
-      JaliGeometry::Point centroid(spacedim);
+      JaliGeometry::Point centroid(space_dim_);
       
       compute_cell_geometry(c, &volume, &centroid);
       
@@ -1017,8 +1017,8 @@ int Mesh::compute_face_geometric_quantities() const {
 
   for (int i = 0; i < nfaces; i++) {
     double area;
-    JaliGeometry::Point centroid(spacedim), normal0(spacedim),
-        normal1(spacedim);
+    JaliGeometry::Point centroid(space_dim_), normal0(space_dim_),
+        normal1(space_dim_);
 
     // normal0 and normal1 are outward normals of the face with
     // respect to the cell0 and cell1 of the face. The natural normal
@@ -1047,7 +1047,7 @@ int Mesh::compute_edge_geometric_quantities() const {
 
   for (int i = 0; i < nedges; i++) {
     double length;
-    JaliGeometry::Point evector(spacedim), ecenter;
+    JaliGeometry::Point evector(space_dim_), ecenter;
 
     compute_edge_geometry(i, &length, &evector, &ecenter);
 
@@ -1075,8 +1075,8 @@ int Mesh::compute_side_geometric_quantities() const {
   side_outward_facet_normal.reserve(num_sides());
   side_mid_facet_normal.reserve(num_sides());
 
-  JaliGeometry::Point outward_facet_normal(spacedim);
-  JaliGeometry::Point mid_facet_normal(spacedim);
+  JaliGeometry::Point outward_facet_normal(space_dim_);
+  JaliGeometry::Point mid_facet_normal(space_dim_);
   for (auto const & s : sides()) {
     if (entity_get_type(Entity_kind::SIDE, s) == Entity_type::BOUNDARY_GHOST) {
       side_volumes[s] = 0.0;
@@ -1108,7 +1108,7 @@ int Mesh::compute_corner_geometric_quantities() const {
 
 int Mesh::compute_cell_geometry(const Entity_ID cellid, double *volume,
                                 JaliGeometry::Point *centroid) const {
-  if (celldim == 3) {
+  if (manifold_dim_ == 3) {
 
     // 3D Elements with possibly curved faces
     // We have to build a description of the element topology
@@ -1149,18 +1149,18 @@ int Mesh::compute_cell_geometry(const Entity_ID cellid, double *volume,
     JaliGeometry::polyhed_get_vol_centroid(ccoords, nf, nfnodes, cfcoords,
                                            volume, centroid);
     return 1;
-  } else if (celldim == 2) {
+  } else if (manifold_dim_ == 2) {
     std::vector<JaliGeometry::Point> ccoords;
 
     cell_get_coordinates(cellid, &ccoords);
 
-    JaliGeometry::Point normal(spacedim);
+    JaliGeometry::Point normal(space_dim_);
 
     JaliGeometry::polygon_get_area_centroid_normal(ccoords, volume, centroid,
                                                    &normal);
 
     return 1;
-  } else if (celldim == 1) {
+  } else if (manifold_dim_ == 1) {
     std::vector<JaliGeometry::Point> ccoords;
 
     cell_get_coordinates(cellid, &ccoords);
@@ -1183,7 +1183,7 @@ int Mesh::compute_face_geometry(const Entity_ID faceid, double *area,
   (*normal0).set(0.0L);
   (*normal1).set(0.0L);
 
-  if (celldim == 3) {
+  if (manifold_dim_ == 3) {
 
     // 3D Elements with possibly curved faces
     // We have to build a description of the element topology
@@ -1224,9 +1224,9 @@ int Mesh::compute_face_geometry(const Entity_ID faceid, double *area,
     }
 
     return 1;
-  } else if (celldim == 2) {
+  } else if (manifold_dim_ == 2) {
 
-    if (spacedim == 2) {   // 2D mesh
+    if (space_dim_ == 2) {   // 2D mesh
 
       face_get_coordinates(faceid, &fcoords);
 
@@ -1323,11 +1323,11 @@ int Mesh::compute_face_geometry(const Entity_ID faceid, double *area,
       return 1;
     }
 
-  } else if (celldim == 1) {
+  } else if (manifold_dim_ == 1) {
     face_get_coordinates(faceid, &fcoords);
 
     JaliGeometry::face1d_get_area(fcoords, geomtype, area);
-    JaliGeometry::Point normal(spacedim);
+    JaliGeometry::Point normal(space_dim_);
     normal.set(*area);
 
     Entity_ID_List cellids;
@@ -1391,7 +1391,7 @@ void Mesh::compute_side_geometry(Entity_ID const sideid,
                                  double *side_volume,
                                  JaliGeometry::Point *outward_facet_normal,
                                  JaliGeometry::Point *mid_facet_normal) const {
-  if (celldim == 3) {
+  if (manifold_dim_ == 3) {
     std::vector<JaliGeometry::Point> scoords;
 
     // Get vertex coordinates of side
@@ -1433,7 +1433,7 @@ void Mesh::compute_side_geometry(Entity_ID const sideid,
 
     *mid_facet_normal = 0.5*(vec3^vec4);
 
-  } else if (celldim == 2) {
+  } else if (manifold_dim_ == 2) {
     std::vector<JaliGeometry::Point> scoords;
     
     // Get vertex coordinates of side
@@ -1463,7 +1463,7 @@ void Mesh::compute_side_geometry(Entity_ID const sideid,
 
     *mid_facet_normal = JaliGeometry::Point(vec1[1], -vec1[0]);
 
-  } else if (celldim == 1) {
+  } else if (manifold_dim_ == 1) {
     std::vector<JaliGeometry::Point> scoords;
 
     // Get vertex coordinates of side
@@ -1526,7 +1526,7 @@ void Mesh::compute_corner_geometry(const Entity_ID cornerid,
 double Mesh::cell_volume(const Entity_ID cellid, const bool recompute) const {
   if (recompute) {
     double volume;
-    JaliGeometry::Point centroid(spacedim);
+    JaliGeometry::Point centroid(space_dim_);
     compute_cell_geometry(cellid, &volume, &centroid);
     return volume;
   } else {
@@ -1542,8 +1542,8 @@ double Mesh::face_area(const Entity_ID faceid, const bool recompute) const {
 
   if (recompute) {
     double area;
-    JaliGeometry::Point centroid(spacedim);
-    JaliGeometry::Point normal0(spacedim), normal1(spacedim);
+    JaliGeometry::Point centroid(space_dim_);
+    JaliGeometry::Point normal0(space_dim_), normal1(space_dim_);
     compute_face_geometry(faceid, &area, &centroid, &normal0, &normal1);
     return area;
   } else {
@@ -1559,7 +1559,7 @@ double Mesh::edge_length(const Entity_ID edgeid, const bool recompute) const {
 
   if (recompute) {
     double length;
-    JaliGeometry::Point vector(spacedim), centroid(spacedim);
+    JaliGeometry::Point vector(space_dim_), centroid(space_dim_);
     compute_edge_geometry(edgeid, &length, &vector, &centroid);
     return length;
   } else {
@@ -1627,7 +1627,7 @@ JaliGeometry::Point Mesh::cell_centroid(const Entity_ID cellid,
 
   if (recompute) {
     double volume;
-    JaliGeometry::Point centroid(spacedim);
+    JaliGeometry::Point centroid(space_dim_);
     compute_cell_geometry(cellid, &volume, &centroid);
     return centroid;
   } else {
@@ -1644,8 +1644,8 @@ JaliGeometry::Point Mesh::face_centroid(const Entity_ID faceid,
 
   if (recompute) {
     double area;
-    JaliGeometry::Point centroid(spacedim);
-    JaliGeometry::Point normal0(spacedim), normal1(spacedim);
+    JaliGeometry::Point centroid(space_dim_);
+    JaliGeometry::Point normal0(space_dim_), normal1(space_dim_);
     compute_face_geometry(faceid, &area, &centroid, &normal0, &normal1);
     return centroid;
   } else {
@@ -1679,12 +1679,12 @@ JaliGeometry::Point Mesh::face_normal(const Entity_ID faceid,
   ASSERT(faces_requested);
   ASSERT(face_geometry_precomputed);
 
-  JaliGeometry::Point normal0(spacedim);
-  JaliGeometry::Point normal1(spacedim);
+  JaliGeometry::Point normal0(space_dim_);
+  JaliGeometry::Point normal1(space_dim_);
 
   if (recompute) {
     double area;
-    JaliGeometry::Point centroid(spacedim);
+    JaliGeometry::Point centroid(space_dim_);
     
     compute_face_geometry(faceid, &area, &centroid, &normal0, &normal1);
   } else {
@@ -1748,7 +1748,7 @@ JaliGeometry::Point Mesh::edge_vector(const Entity_ID edgeid,
   ASSERT(edges_requested);
   ASSERT(edge_geometry_precomputed);
 
-  JaliGeometry::Point evector(spacedim), ecenter(spacedim);
+  JaliGeometry::Point evector(space_dim_), ecenter(space_dim_);
   JaliGeometry::Point& evector_ref = evector;  // to avoid extra copying
 
   if (recompute) {
@@ -1813,7 +1813,7 @@ void Mesh::side_get_coordinates(const Entity_ID sideid,
                                 bool posvol_order) const {
   ASSERT(sides_requested);
 
-  if (celldim == 3) {
+  if (manifold_dim_ == 3) {
     scoords->resize(4);  // sides are tets in 3D cells
     Entity_ID n0 = side_get_node(sideid, 0);
     node_get_coordinates(n0, &((*scoords)[0]));
@@ -1827,7 +1827,7 @@ void Mesh::side_get_coordinates(const Entity_ID sideid,
     Entity_ID c = side_get_cell(sideid);
     (*scoords)[3] = cell_centroid(c);
 
-  } else if (celldim == 2) {
+  } else if (manifold_dim_ == 2) {
 
     scoords->resize(3);  // sides are tris in 2D cells
     Entity_ID n0 = side_get_node(sideid, 0);
@@ -1839,7 +1839,7 @@ void Mesh::side_get_coordinates(const Entity_ID sideid,
     Entity_ID c = side_get_cell(sideid);
     (*scoords)[2] = cell_centroid(c);
 
-  } else if (celldim == 1) {
+  } else if (manifold_dim_ == 1) {
 
     scoords->resize(2);  // sides are segments in 1D cells
     Entity_ID n0 = side_get_node(sideid, 0);
@@ -1853,7 +1853,7 @@ void Mesh::side_get_coordinates(const Entity_ID sideid,
   // give a positive volume (unless the cell is too distorted). In 1D,
   // however, we have to check explicitly
 
-  if (posvol_order && celldim == 1) {
+  if (posvol_order && manifold_dim_ == 1) {
     Entity_ID c = side_get_cell(sideid);
     Entity_ID_List cnodes;
     cell_get_nodes(c, &cnodes);
@@ -1881,20 +1881,20 @@ void Mesh::wedge_get_coordinates(const Entity_ID wedgeid,
                                  bool posvol_order) const {
   ASSERT(wedges_requested);
 
-  int np = celldim + 1;
+  int np = manifold_dim_ + 1;
   wcoords->resize(np);
 
   Entity_ID n = wedge_get_node(wedgeid);
   node_get_coordinates(n, &((*wcoords)[0]));
 
-  if (celldim == 3) {
+  if (manifold_dim_ == 3) {
     Entity_ID e = wedge_get_edge(wedgeid);
     (*wcoords)[1] = edge_centroid(e);
 
     Entity_ID f = wedge_get_face(wedgeid);
     (*wcoords)[2] = face_centroid(f);
   }
-  else if (celldim == 2) {
+  else if (manifold_dim_ == 2) {
     Entity_ID f = wedge_get_face(wedgeid);
     (*wcoords)[1] = face_centroid(f);
   }
@@ -1909,7 +1909,7 @@ void Mesh::wedge_get_coordinates(const Entity_ID wedgeid,
   // wedges.
 
   if (posvol_order && wedgeid%2) {
-    if (celldim == 1)
+    if (manifold_dim_ == 1)
       std::swap((*wcoords)[0], (*wcoords)[1]);
     else
       std::swap((*wcoords)[1], (*wcoords)[2]);
@@ -1928,12 +1928,12 @@ JaliGeometry::Point Mesh::side_facet_normal(const int sideid,
   assert(sides_requested);
   assert(side_geometry_precomputed);
 
-  JaliGeometry::Point normal(spacedim);
+  JaliGeometry::Point normal(space_dim_);
 
   if (recompute) {
     double volume;
-    JaliGeometry::Point outward_facet_normal(spacedim),
-        mid_facet_normal(spacedim);
+    JaliGeometry::Point outward_facet_normal(space_dim_),
+        mid_facet_normal(space_dim_);
     
     compute_side_geometry(sideid, &volume, &outward_facet_normal,
                           &mid_facet_normal);
@@ -1965,9 +1965,9 @@ JaliGeometry::Point Mesh::wedge_facet_normal(const int wedgeid,
 
   if (recompute) {
     double volume;
-    JaliGeometry::Point facet_normal(spacedim);
-    JaliGeometry::Point outward_facet_normal(spacedim),
-        mid_facet_normal(spacedim);
+    JaliGeometry::Point facet_normal(space_dim_);
+    JaliGeometry::Point outward_facet_normal(space_dim_),
+        mid_facet_normal(space_dim_);
         
     compute_side_geometry(sideid, &volume, &outward_facet_normal,
                           &mid_facet_normal);
@@ -1998,14 +1998,14 @@ Mesh::corner_get_facetization(const Entity_ID cornerid,
   Entity_ID_List cwedges;
   corner_get_wedges(cornerid, &cwedges);
 
-  assert(celldim == 3);
+  assert(manifold_dim_ == 3);
   pointcoords->clear();
   pointcoords->reserve(4*(cwedges.size()));  // upper limit
   facetpoints->clear();
   facetpoints->reserve(2*(cwedges.size()));  // 2 facets per wedge will be on
   //                                         // boundary of the corner
 
-  JaliGeometry::Point p(spacedim);
+  JaliGeometry::Point p(space_dim_);
 
   std::vector< std::pair<Entity_ID, Entity_kind> > point_entity_list;
 
@@ -2099,14 +2099,14 @@ Mesh::corner_get_facetization(const Entity_ID cornerid,
   Entity_ID_List cwedges;
   corner_get_wedges(cornerid, &cwedges);
 
-  assert(celldim == 2);
+  assert(manifold_dim_ == 2);
   pointcoords->clear();
   pointcoords->reserve(4);  // upper limit
   facetpoints->clear();
   facetpoints->reserve(8);  // 2 facets per wedge (2 points per facet) will be
   //                        // on boundary of the corner
 
-  JaliGeometry::Point p(spacedim);
+  JaliGeometry::Point p(space_dim_);
 
   int n = corner_get_node(cornerid);
   node_get_coordinates(n, &p);
@@ -2177,7 +2177,7 @@ Mesh::corner_get_coordinates(const Entity_ID cornerid,
 
   pointcoords->clear();
 
-  if (celldim == 1) {
+  if (manifold_dim_ == 1) {
     pointcoords->reserve(2);
 
     // 1D wedge coordinates are - node point and zone center; we always want the
@@ -2185,7 +2185,7 @@ Mesh::corner_get_coordinates(const Entity_ID cornerid,
     // wedges are the same as corners
 
     wedge_get_coordinates(cwedges[0], pointcoords, true);
-  } else if (celldim == 2) {
+  } else if (manifold_dim_ == 2) {
     pointcoords->reserve(4);
 
     // 2D wedge coordinates are - node point, edge center, zone center
@@ -2210,10 +2210,10 @@ Mesh::corner_get_coordinates(const Entity_ID cornerid,
       // reverse the order of the points
       std::swap((*pointcoords)[1], (*pointcoords)[3]);
     }
-  } else if (celldim == 3) {
+  } else if (manifold_dim_ == 3) {
     pointcoords->reserve(4*(cwedges.size()));  // upper limit
 
-    JaliGeometry::Point p(spacedim);
+    JaliGeometry::Point p(space_dim_);
 
     std::vector< std::pair<Entity_ID, Entity_kind> > point_entity_list;
 
@@ -2399,13 +2399,13 @@ bool Mesh::valid_region_name(std::string name, Entity_kind kind) const {
       // of the same topological dimension as the cells or it
       // has to be a point region
 
-      if (kind == Entity_kind::CELL && (rdim >= celldim || rdim == 0))
+      if (kind == Entity_kind::CELL && (rdim >= manifold_dim_ || rdim == 0))
         return true;
 
       // If we are looking for a side set, the region has to be
       // one topological dimension less than the cells
 
-      if (kind == Entity_kind::FACE && rdim >= celldim-1) return true;
+      if (kind == Entity_kind::FACE && rdim >= manifold_dim_-1) return true;
 
       // If we are looking for a node set, the region can be of any
       // dimension upto the spatial dimension of the domain
@@ -2567,7 +2567,7 @@ std::shared_ptr<MeshSet> Mesh::build_set_from_region(const std::string setname,
                                                      const Entity_kind kind,
                                                      const bool with_reverse_map) {
 
-  int celldim = Mesh::cell_dimension();
+  int celldim = Mesh::manifold_dimension();
   int spacedim = Mesh::space_dimension();
 
   // Is there an appropriate region by this name?
@@ -2935,7 +2935,7 @@ bool Mesh::point_in_cell(const JaliGeometry::Point &p,
                          const Entity_ID cellid) const {
   std::vector<JaliGeometry::Point> ccoords;
 
-  if (celldim == 3) {
+  if (manifold_dim_ == 3) {
 
     // 3D Elements with possibly curved faces
     // We have to build a description of the element topology
@@ -2971,12 +2971,12 @@ bool Mesh::point_in_cell(const JaliGeometry::Point &p,
     cell_get_coordinates(cellid, &ccoords);
     return JaliGeometry::point_in_polyhed(p, ccoords, nf, nfnodes, cfcoords);
 
-  } else if (celldim == 2) {
+  } else if (manifold_dim_ == 2) {
 
     cell_get_coordinates(cellid, &ccoords);
     return JaliGeometry::point_in_polygon(p, ccoords);
 
-  } else if (celldim == 1) {
+  } else if (manifold_dim_ == 1) {
     cell_get_coordinates(cellid, &ccoords);
     if (p[0]-ccoords[0][0] >= 0.0 &&
         ccoords[1][0] - p[0] >= 0.0) return true;
@@ -3174,8 +3174,8 @@ void Mesh::get_partitioning_by_blocks(int const num_parts,
                                       std::vector<std::vector<int>> *partitions) {
   // Figure out the domain limits
 
-  std::vector<double> domainlimits(2*spacedim);
-  for (int d = 0; d < spacedim; ++d) {
+  std::vector<double> domainlimits(2*space_dim_);
+  for (int d = 0; d < space_dim_; ++d) {
     domainlimits[2*d] = 1e20;
     domainlimits[2*d+1] = -1e20;
   }
@@ -3184,7 +3184,7 @@ void Mesh::get_partitioning_by_blocks(int const num_parts,
     std::vector<JaliGeometry::Point> cellpnts;
     cell_get_coordinates(c, &cellpnts);
     for (auto const& p : cellpnts) {
-      for (int d = 0; d < spacedim; ++d) {
+      for (int d = 0; d < space_dim_; ++d) {
         if (p[d] < domainlimits[2*d]) domainlimits[2*d] = p[d];
         if (p[d] > domainlimits[2*d+1]) domainlimits[2*d+1] = p[d];
       }
@@ -3194,7 +3194,7 @@ void Mesh::get_partitioning_by_blocks(int const num_parts,
   // Try to figure out if this is a regular grid from which we
   // can decipher how many cells are in each direction
 
-  std::vector<int> num_cells_in_dir(spacedim, 0);
+  std::vector<int> num_cells_in_dir(space_dim_, 0);
 
   // First find the lower left most cell
  
@@ -3205,7 +3205,7 @@ void Mesh::get_partitioning_by_blocks(int const num_parts,
     cell_get_coordinates(c, &cellpnts);
     for (auto const& p : cellpnts) {
       double dist = 0.0;
-      for (int d = 0; d < spacedim; d++)
+      for (int d = 0; d < space_dim_; d++)
         dist += (domainlimits[2*d] - p[d])*(domainlimits[2*d] - p[d]);
       if (dist < 1.0e-20) {
         found = true;
@@ -3224,10 +3224,10 @@ void Mesh::get_partitioning_by_blocks(int const num_parts,
   // Try to walk from cell to cell in each direction to the high
   // boundary in that direction
 
-  for (int d = 0; d < spacedim; d++) {
+  for (int d = 0; d < space_dim_; d++) {
     // direction in which we should be walking
 
-    JaliGeometry::Point refdir(spacedim);
+    JaliGeometry::Point refdir(space_dim_);
     refdir[d] = 1.0;
     
     Entity_ID c = c0;
@@ -3293,7 +3293,7 @@ void Mesh::get_partitioning_by_blocks(int const num_parts,
   std::vector<std::array<double, 6>> blocklimits;
   std::vector<std::array<int, 3>> blocknumcells;
 
-  block_partition_regular_mesh(spacedim, &(domainlimits[0]),
+  block_partition_regular_mesh(space_dim_, &(domainlimits[0]),
                                &(num_cells_in_dir[0]), num_parts,
                                &blocklimits, &blocknumcells);
 
@@ -3301,7 +3301,7 @@ void Mesh::get_partitioning_by_blocks(int const num_parts,
     JaliGeometry::Point ccen = cell_centroid(c);
     for (int i = 0; i < num_parts; i++) {
       bool inside = true;
-      for (int d = 0; d < spacedim; d++) {
+      for (int d = 0; d < space_dim_; d++) {
         inside = (blocklimits[i][2*d] < ccen[d] &&
                   ccen[d] < blocklimits[i][2*d+1]);
         if (!inside) break;
@@ -3318,7 +3318,7 @@ void Mesh::get_partitioning_by_blocks(int const num_parts,
 
   for (int i = 0; i < num_parts; i++) {
     int expected_count = 1;
-    for (int d = 0; d < spacedim; d++)
+    for (int d = 0; d < space_dim_; d++)
       expected_count *= blocknumcells[i][d];
     if (((*partitions)[i]).size() != expected_count)
       std::cerr << "Partition " << i << " has fewer cells than expected\n";
