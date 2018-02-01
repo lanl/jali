@@ -1059,9 +1059,26 @@ TEST(State_Write_Read_With_Mesh) {
   CHECK(status);
 
   CHECK_EQUAL(outvec1.size(), invec1.size());
-  for (int i = 0; i < outvec1.size(); i++)
-    CHECK_EQUAL(outvec1[i], invec1[i]);
 
+  int nc = mesh1->num_entities(Jali::Entity_kind::CELL, Jali::Entity_type::ALL);
+  for (int i = 0; i < nc; i++) {
+    JaliGeometry::Point incen = mesh2->cell_centroid(i);
+
+    // Search for another cell that has the same centroid and compare
+    // the values that were output and the values that were read
+    // in. We cannot rely on the cell numbering being the same
+    bool found = false;
+    for (int j = 0; j < nc; j++) {
+      JaliGeometry::Point outcen = mesh1->cell_centroid(j);
+      JaliGeometry::Point vec = incen - outcen;
+      if (JaliGeometry::norm(vec) < 1.0e-12) {
+        found = true;
+        CHECK_EQUAL(outvec1[j], invec1[i]);
+        break;
+      }
+    }
+    CHECK(found);
+  }
 
   // Retrieve the node field and make sure we got back what we put in
 
@@ -1071,7 +1088,26 @@ TEST(State_Write_Read_With_Mesh) {
   CHECK(status);
 
   CHECK_EQUAL(outvec2.size(), invec2.size());
-  for (int i = 0; i < outvec2.size(); i++)
-    for (int j = 0; j < 2; j++)
-      CHECK_EQUAL(outvec2[i][j], invec2[i][j]);
+
+  int nn = mesh1->num_entities(Jali::Entity_kind::NODE, Jali::Entity_type::ALL);
+  for (int i = 0; i < nn; i++) {
+    JaliGeometry::Point xyz_in;
+    mesh2->node_get_coordinates(i, &xyz_in);
+
+    // Search for another node that has the same coordinates and
+    // compare the values that were output and the values that were
+    // read in. We cannot rely on the node numbering being the same
+    bool found = false;
+    for (int j = 0; j < nn; j++) {
+      JaliGeometry::Point xyz_out;
+      mesh1->node_get_coordinates(j, &xyz_out);
+      JaliGeometry::Point vec = xyz_in - xyz_out;
+      if (JaliGeometry::norm(vec) < 1.0e-12) {
+        found = true;
+        CHECK_ARRAY_EQUAL(outvec2[j], invec2[i], 2);
+        break;
+      }
+    }
+    CHECK(found);
+  }
 }
