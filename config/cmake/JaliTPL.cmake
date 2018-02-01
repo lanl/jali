@@ -6,11 +6,10 @@
 # Standard CMake modules see CMAKE_ROOT/Modules
 include(FeatureSummary)
 
-# Jali CMake modules see <root source>/tools/cmake
+# Amanzi CMake modules see <root source>/tools/cmake
 include(CheckMPISourceCompiles)
 include(TrilinosMacros)
 include(PrintVariable)
-
 
 ##############################################################################
 # ------------------------ Required Libraries -------------------------------#
@@ -51,7 +50,7 @@ add_feature_info(Boost
 
 if ( Boost_VERSION) 
 
-  if ( ${Boost_VERSION} VERSION_LESS 1.46 )
+  if ( ${Boost_VERSION} VERSION_LESS 1.63 )
     message(WARNING "Found Boost version ${Boost_VERSION} which"
                     " is older than the supported (1.46) version.")
   endif()
@@ -68,8 +67,6 @@ if ( Boost_VERSION)
   else()
     set(Boost_FILESYSTEM_DEFINES "BOOST_FILESYSTEM_VERSION=3")
   endif()  
-
-
 endif()
 
 ##############################################################################
@@ -112,12 +109,19 @@ if ( NOT Trilinos_INSTALL_PREFIX )
                   " to define the Trilinos installation location"
 		  "\n-DTrilinos_INSTALL_PREFIX:PATH=<trilnos directory>\n")
 endif()
-set(Trilinos_MINIMUM_VERSION 11.0.3)
-find_package(Trilinos 
+set(Trilinos_MINIMUM_VERSION 12.0.0)
+find_package(Trilinos ${Trilinos_MINIMUM_VERSION} REQUIRED
              PATHS ${Trilinos_INSTALL_PREFIX}
              PATH_SUFFIXES lib/cmake/Trilinos)
             
-if ( Trilinos_FOUND )
+if (Trilinos_FOUND)
+  message(STATUS "Found Trilinos: ${Trilinos_DIR} (${Trilinos_VERSION})")
+  trilinos_package_enabled_tpls(Trilinos)           
+
+  if ("${Trilinos_VERSION}" VERSION_LESS ${Trilinos_MINIMUM_VERSION}) 
+    message(FATAL_ERROR "Trilinos version ${Trilinos_VERSION} is not sufficient."
+                        " Amanzi requires at least version ${Trilinos_MINIMUM_VERSION}")
+  endif()
 
     message(STATUS "Found Trilinos: ${Trilinos_DIR} (${Trilinos_VERSION})")
     trilinos_package_enabled_tpls(Trilinos)           
@@ -171,6 +175,7 @@ if ( Trilinos_FOUND )
     # Now update the Trilinos_LIBRARIES and INCLUDE_DIRS
     foreach( _inc "${Trilinos_TPL_INCLUDE_DIRS}")
       list(APPEND Trilinos_INCLUDE_DIRS "${_inc}")
+      list(REMOVE_DUPLICATES Trilinos_INCLUDE_DIRS)
     endforeach()
 
 else()
@@ -197,22 +202,6 @@ add_feature_info(ExodusII
                  "File format library. Originated from Sandia."
                  "http://sourceforge.net/projects/exodusii/"
                  "Required by all the mesh frameworks to read mesh files")
-
-
-##############################################################################
-# XERCES-C - http://http://xerces.apache.org/xerces-c/
-##############################################################################
-#find_package(XERCES REQUIRED)
-#add_feature_info(XERCES
-#	         "Validating XML parser")
-
-
-##############################################################################
-############################ Option Processing ###############################
-##############################################################################
-
-
-
 
 
 
@@ -256,7 +245,7 @@ if (ENABLE_MOAB_Mesh)
 endif()
 
 ##############################################################################
-# MSTK - https://software.lanl.gov/MeshTools/trac/raw-attachment/wiki/WikiStart/mstk-1.80.tar.gz
+# MSTK - https://github.com/MeshToolkit/mstk
 ##############################################################################
 option(ENABLE_MSTK_Mesh "Build Jali with the MOAB mesh framework" OFF)
 add_feature_info(MSTK_Mesh

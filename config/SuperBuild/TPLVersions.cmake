@@ -39,7 +39,7 @@
 #   1.0.7       - MSTK updated to 2.27rc2
 #   1.0.8       - MSTK updated to 2.27rc3
 #   1.0.9       - MSTK updated to 2.27 and UnitTest++ updated to 1.6.0
-#   1.1.0       - MSTK updated to 3.0.3, UnitTest++ to 2.0.0, Trilinos to 12.10.1, HDF5 1.8.18, Seacas to #173a1e6, Xerces to 3.1.2, zlib to 1.2.11, Boost to 1.63.0, NetCDF to 4.4.1.1, MOAB to 5.0.0, 
+#   1.1.0       - MSTK updated to 3.0.3, UnitTest++ to 2.0.0, Trilinos to 12.10.1, HDF5 1.8.18, Seacas to #173a1e6, zlib to 1.2.11, Boost to 1.63.0, NetCDF to 4.5.0, MOAB to 5.0.0, 
 
 include(CMakeParseArguments)
 
@@ -98,37 +98,27 @@ set (JALI_TPLS_VERSION ${JALI_TPLS_VERSION}.${JALI_TPLS_VERSION_MINOR}.${JALI_TP
 #   Not sure how to create a meaningful hash key for the collection
 
 #
-# TPL: Xerces
-#
-set(XERCES_VERSION_MAJOR 3)
-set(XERCES_VERSION_MINOR 1)
-set(XERCES_VERSION_PATCH 2)
-set(XERCES_VERSION ${XERCES_VERSION_MAJOR}.${XERCES_VERSION_MINOR}.${XERCES_VERSION_PATCH})
-set(XERCES_URL_STRING     ${JALI_TPLS_DOWNLOAD_URL})
-set(XERCES_ARCHIVE_FILE   xerces-c-${XERCES_VERSION}.tar.bz2)
-set(XERCES_MD5_SUM        d987b8bb576aea456e92454781fe3615 ) 
-
-#
 # TPL: OpenMPI
 #
-set(OpenMPI_VERSION_MAJOR 1)
-set(OpenMPI_VERSION_MINOR 4)
-set(OpenMPI_VERSION_PATCH 4)
+set(OpenMPI_VERSION_MAJOR 2)
+set(OpenMPI_VERSION_MINOR 1)
+set(OpenMPI_VERSION_PATCH 2)
 set(OpenMPI_VERSION ${OpenMPI_VERSION_MAJOR}.${OpenMPI_VERSION_MINOR}.${OpenMPI_VERSION_PATCH})
-set(OpenMPI_URL_STRING     ${JALI_TPLS_DOWNLOAD_URL})
+set(OpenMPI_URL_STRING     "https://www.open-mpi.org/software/ompi/v2.1/downloads/")
 set(OpenMPI_ARCHIVE_FILE   openmpi-${OpenMPI_VERSION}.tar.bz2)
-set(OpenMPI_MD5_SUM        e58a1ea7b8af62453aaa0ddaee5f26a0) 
-
+set(OpenMPI_SAVEAS_FILE    ${OpenMPI_ARCHIVE_FILE})
+set(OpenMPI_MD5_SUM        ff2e55cc529802e7b0738cf87acd3ee4)
 #
 # TPL: CURL
 #
 set(CURL_VERSION_MAJOR 7)
-set(CURL_VERSION_MINOR 37)
-set(CURL_VERSION_PATCH 0)
-set(CURL_VERSION ${CURL_VERSION_MAJOR}.${CURL_VERSION_MINOR}.${CURL_VERSION_PATCH})
-set(CURL_URL_STRING     ${JALI_TPLS_DOWNLOAD_URL})
-set(CURL_ARCHIVE_FILE   curl-${CURL_VERSION}.tar.bz2)
-set(CURL_MD5_SUM        7dda0cc2e4136f78d5801ac347be696b)
+set(CURL_VERSION_MINOR 56)
+set(CURL_VERSION_PATCH 1)
+set(CURL_VERSION ${CURL_VERSION_MAJOR}_${CURL_VERSION_MINOR}_${CURL_VERSION_PATCH})
+set(CURL_URL_STRING     "https://github.com/curl/curl/archive")
+set(CURL_ARCHIVE_FILE   curl-${CURL_VERSION_MAJOR}_${CURL_VERSION_MINOR}_${CURL_VERSION_PATCH}.tar.gz)
+set(CURL_SAVEAS_FILE    curl-${CURL_VERSION}.tar.gz)
+set(CURL_MD5_SUM        48c0db0d7b1407e19c51e8ef4f798d78)
 
 #
 # TPL: zlib
@@ -139,6 +129,7 @@ set(ZLIB_VERSION_PATCH 11)
 set(ZLIB_VERSION ${ZLIB_VERSION_MAJOR}.${ZLIB_VERSION_MINOR}.${ZLIB_VERSION_PATCH})
 set(ZLIB_URL_STRING     ${JALI_TPLS_DOWNLOAD_URL})
 set(ZLIB_ARCHIVE_FILE   zlib-${ZLIB_VERSION}.tar.gz)
+set(ZLIB_SAVEAS_FILE    ${ZLIB_ARCHIVE_FILE})
 set(ZLIB_MD5_SUM        1c9f62f0778697a09d36121ead88e08e) 
 
 #
@@ -150,6 +141,7 @@ set(METIS_VERSION_PATCH 0)
 set(METIS_VERSION ${METIS_VERSION_MAJOR}.${METIS_VERSION_MINOR}.${METIS_VERSION_PATCH})
 set(METIS_URL_STRING     ${JALI_TPLS_DOWNLOAD_URL})
 set(METIS_ARCHIVE_FILE   metis-${METIS_VERSION}.tar.gz)
+set(METIS_SAVEAS_FILE    ${METIS_ARCHIVE_FILE})
 set(METIS_MD5_SUM        5465e67079419a69e0116de24fce58fe)
 
 #
@@ -161,7 +153,8 @@ set(UnitTest_VERSION_PATCH 0)
 set(UnitTest_VERSION ${UnitTest_VERSION_MAJOR}.${UnitTest_VERSION_MINOR}.${UnitTest_VERSION_PATCH})
 set(UnitTest_URL_STRING     ${JALI_TPLS_DOWNLOAD_URL})
 set(UnitTest_ARCHIVE_FILE   unittest-cpp-${UnitTest_VERSION}.tgz)
-set(UnitTest_MD5_SUM       29f958e355e516e7ab016b467974728d)
+set(UnitTest_SAVEAS_FILE    ${UnitTest_ARCHIVE_FILE})
+set(UnitTest_MD5_SUM      29f958e355e516e7ab016b467974728d) 
 
 #
 # TPL: Boost
@@ -173,6 +166,7 @@ set(Boost_VERSION        ${Boost_VERSION_MAJOR}.${Boost_VERSION_MINOR}.${Boost_V
 set(Boost_VERSION_STRING ${Boost_VERSION_MAJOR}_${Boost_VERSION_MINOR}_${Boost_VERSION_PATCH})
 set(Boost_URL_STRING     ${JALI_TPLS_DOWNLOAD_URL})
 set(Boost_ARCHIVE_FILE   boost_${Boost_VERSION_STRING}.tar.bz2)
+set(Boost_SAVEAS_FILE    ${Boost_ARCHIVE_FILE})
 set(Boost_MD5_SUM        1c837ecd990bb022d07e7aab32b09847)
 
 #
@@ -184,28 +178,34 @@ set(HDF5_VERSION_PATCH 18)
 set(HDF5_VERSION ${HDF5_VERSION_MAJOR}.${HDF5_VERSION_MINOR}.${HDF5_VERSION_PATCH})
 set(HDF5_URL_STRING     ${JALI_TPLS_DOWNLOAD_URL})
 set(HDF5_ARCHIVE_FILE   hdf5-${HDF5_VERSION}.tar.gz)
-set(HDF5_MD5_SUM        dd2148b740713ca0295442ec683d7b1c)      
+set(HDF5_SAVEAS_FILE    ${HDF5_ARCHIVE_FILE})
+set(HDF5_MD5_SUM        dd2148b740713ca0295442ec683d7b1c)
+
 
 #
 # TPL: NetCDF
 #
 set(NetCDF_VERSION_MAJOR 4)
-set(NetCDF_VERSION_MINOR 4)
-set(NetCDF_VERSION_PATCH 1.1)
+set(NetCDF_VERSION_MINOR 5)
+set(NetCDF_VERSION_PATCH 0)
 set(NetCDF_VERSION ${NetCDF_VERSION_MAJOR}.${NetCDF_VERSION_MINOR}.${NetCDF_VERSION_PATCH})
-set(NetCDF_URL_STRING     ${JALI_TPLS_DOWNLOAD_URL})
-set(NetCDF_ARCHIVE_FILE   netcdf-${NetCDF_VERSION}.tar.gz)
-set(NetCDF_MD5_SUM        503a2d6b6035d116ed53b1d80c811bda)
+set(NetCDF_URL_STRING     "https://github.com/Unidata/netcdf-c/archive/")
+set(NetCDF_ARCHIVE_FILE   v${NetCDF_VERSION}.tar.gz)
+set(netCDF_SAVEAS_FILE    netcdf-${NetCDF_VERSION}.tar.gz)
+set(NetCDF_MD5_SUM        a523ad253bd832efa632847940c2317e)
 
 #
 # TPL: NetCDF Fortran
 #
 set(NetCDF_Fortran_VERSION_MAJOR 4)
-set(NetCDF_Fortran_VERSION_MINOR 2)
-set(NetCDF_Fortran_VERSION ${NetCDF_Fortran_VERSION_MAJOR}.${NetCDF_Fortran_VERSION_MINOR})
+set(NetCDF_Fortran_VERSION_MINOR 4)
+set(NetCDF_Fortran_VERSION_PATCH 4)
+set(NetCDF_Fortran_VERSION ${NetCDF_Fortran_VERSION_MAJOR}.${NetCDF_Fortran_VERSION_MINOR}.${NetCDF_Fortran_VERSION_PATCH})
 set(NetCDF_Fortran_URL_STRING     ${JALI_TPLS_DOWNLOAD_URL})
-set(NetCDF_Fortran_ARCHIVE_FILE   netcdf-fortran-${NetCDF_Fortran_VERSION}.tar.gz)
-set(NetCDF_Fortran_MD5_SUM        cc3bf530223e8f4aff93793b9f197bf3) 
+set(NetCDF_Fortran_URL_STRING     "https://github.com/Unidata/netcdf-fortran/archive/")
+set(NetCDF_Fortran_ARCHIVE_FILE   v${NetCDF_Fortran_VERSION}.tar.gz)
+set(NetCDF_Fortran_SAVEAS_FILE    netcdf-fortran-${NetCDF_Fortran_VERSION}.tar.gz)
+set(NetCDF_Fortran_MD5_SUM        418c7e998e63e6d76b2da14019fa9c8f) 
 
 #
 # TPL: ExodusII
@@ -262,5 +262,6 @@ set(SEACAS_VERSION_PATCH 0)
 set(SEACAS_VERSION ${SEACAS_VERSION_MAJOR})
 set(SEACAS_URL_STRING     ${JALI_TPLS_DOWNLOAD_URL})
 set(SEACAS_ARCHIVE_FILE   seacas-${SEACAS_VERSION}.tgz)
+set(SEACAS_SAVEAS_FILE    ${SEACAS_ARCHIVE_FILE})
 set(SEACAS_MD5_SUM        3235d1b885ee8e1a04408382f50bd0f0)
 

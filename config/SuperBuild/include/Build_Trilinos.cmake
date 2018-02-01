@@ -57,6 +57,9 @@ if ( ENABLE_STK_Mesh )
   list(APPEND Trilinos_CMAKE_PACKAGE_ARGS "-DSTK_ENABLE_SEACASNemesis:STRING=OFF")
 endif()
 
+# Disable Pamgen ( doesn't compile with gnu++14 standard )
+list(APPEND Trilinos_CMAKE_PACKAGE_ARGS "-DTrilinos_ENABLE_Pamgen:STRING=OFF")
+
 #  - Trilinos TPL Configuration
 
 set(Trilinos_CMAKE_TPL_ARGS)
@@ -95,9 +98,13 @@ endif()
 
 # Boost
 list(APPEND Trilinos_CMAKE_TPL_ARGS
+            "-DTPL_ENABLE_BoostLib:BOOL=ON" 
             "-DTPL_ENABLE_Boost:BOOL=ON" 
+            "-DTPL_ENABLE_GLM:BOOL=OFF" 
+            "-DTPL_BoostLib_INCLUDE_DIRS:FILEPATH=${TPL_INSTALL_PREFIX}/include"
+            "-DBoostLib_LIBRARY_DIRS:FILEPATH=${TPL_INSTALL_PREFIX}/lib"
             "-DTPL_Boost_INCLUDE_DIRS:FILEPATH=${TPL_INSTALL_PREFIX}/include"
-            "-DTPL_Boost_LIBRARY_DIRS:FILEPATH=${TPL_INSTALL_PREFIX}/lib")
+            "-DBoost_LIBRARY_DIRS:FILEPATH=${TPL_INSTALL_PREFIX}/lib")
 
 # NetCDF
 list(APPEND Trilinos_CMAKE_TPL_ARGS
@@ -121,22 +128,22 @@ set(Trilinos_CMAKE_EXTRA_ARGS
     "-DTrilinos_ENABLE_Gtest:BOOL=OFF"
     "-DCMAKE_VERBOSE_MAKEFILE:BOOL=ON"
     )
+
 if ( CMAKE_BUILD_TYPE )
   list(APPEND Trilinos_CMAKE_EXTRA_ARGS
               "-DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}")
-  message(DEBUG "CMAKE_BUILD_TYPE = ${CMAKE_BUILD_TYPE}")
 
   if ( ${CMAKE_BUILD_TYPE} STREQUAL "Debug" )
     list(APPEND Trilinos_CMAKE_EXTRA_ARGS
               "-DEpetra_ENABLE_FATAL_MESSAGES:BOOL=ON")
   endif()
-  message(DEBUG "Trilinos_CMAKE_EXTRA_ARGS = ${Trilinos_CMAKE_EXTRA_ARGS}")
+  #message(DEBUG ": Trilinos_CMAKE_EXTRA_ARGS = ${Trilinos_CMAKE_EXTRA_ARGS}")
 endif()
 
 if ( BUILD_SHARED_LIBS )
   list(APPEND Trilinos_CMAKE_EXTRA_ARGS
     "-DBUILD_SHARED_LIBS:BOOL=${BUILD_SHARED_LIBS}")
-  message(DEBUG "Trilinos_CMAKE_EXTRA_ARGS = ${Trilinos_CMAKE_EXTRA_ARGS}")
+  #message(DEBUG ": Trilinos_CMAKE_EXTRA_ARGS = ${Trilinos_CMAKE_EXTRA_ARGS}")
 endif()
 
 
@@ -171,7 +178,7 @@ set(Trilinos_CMAKE_LANG_ARGS
 # Trilinos patches
 set(ENABLE_Trilinos_Patch ON)
 if (ENABLE_Trilinos_Patch)
-  set(Trilinos_patch_file trilinos-ifpack-hypre.patch trilinos-duplicate-parameters.patch)
+  set(Trilinos_patch_file trilinos-ifpack-hypre2.patch)
   configure_file(${SuperBuild_TEMPLATE_FILES_DIR}/trilinos-patch-step.sh.in
                  ${Trilinos_prefix_dir}/trilinos-patch-step.sh
                  @ONLY)
@@ -198,11 +205,19 @@ ExternalProject_Add(${Trilinos_BUILD_TARGET}
                     PATCH_COMMAND ${Trilinos_PATCH_COMMAND}
                     # -- Configure
                     SOURCE_DIR    ${Trilinos_source_dir}           # Source directory
-		    CMAKE_ARGS          ${Trilinos_Config_File_ARGS}
-                    CMAKE_CACHE_ARGS    ${Trilinos_CMAKE_LANG_ARGS} 
-                                        ${Trilinos_CMAKE_ARGS}
+                    CMAKE_ARGS          ${Trilinos_Config_File_ARGS}
+                    CMAKE_CACHE_ARGS    ${Trilinos_CMAKE_ARGS} 
+                                        -DCMAKE_C_FLAGS:STRING=${Jali_COMMON_CFLAGS}  # Ensure uniform build
+                                        -DCMAKE_C_COMPILER:FILEPATH=${CMAKE_C_COMPILER}
+                                        -DCMAKE_CXX_FLAGS:STRING=${Jali_COMMON_CXXFLAGS}
+                                        -DCMAKE_CXX_COMPILER:FILEPATH=${CMAKE_CXX_COMPILER}
+                                        -DCMAKE_Fortran_FLAGS:STRING=${Jali_COMMON_FCFLAGS}
+                                        -DCMAKE_Fortran_COMPILER:FILEPATH=${CMAKE_Fortran_COMPILER}
                                         -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
-					-DTrilinos_ENABLE_Stratimikos:BOOL=FALSE
+                                        -DTrilinos_ENABLE_Stratimikos:BOOL=FALSE
+                                        -DTrilinos_ENABLE_SEACAS:BOOL=FALSE
+                                        -DCMAKE_INSTALL_RPATH:PATH=${Trilinos_install_dir}/lib
+                                        -DCMAKE_INSTALL_NAME_DIR:PATH=${Trilinos_install_dir}/lib
                     # -- Build
                     BINARY_DIR        ${Trilinos_build_dir}        # Build directory 
                     BUILD_COMMAND     $(MAKE)                      # $(MAKE) enables parallel builds through make
@@ -210,8 +225,9 @@ ExternalProject_Add(${Trilinos_BUILD_TARGET}
                     # -- Install
                     INSTALL_DIR      ${Trilinos_install_dir}        # Install directory
                     # -- Output control
-                    ${Trilinos_logging_args})
+                    ${Trilinos_logging_args}
+		    )
 
 # --- Useful variables for packages that depends on Trilinos
-set(Trilinos_INSTALL_PREFIX  ${Trilinos_install_dir})
-set(Zoltan_INSTALL_PREFIX "${Trilinos_install_dir}")
+global_set(Trilinos_INSTALL_PREFIX  ${Trilinos_install_dir})
+global_set(Zoltan_INSTALL_PREFIX "${Trilinos_install_dir}")
