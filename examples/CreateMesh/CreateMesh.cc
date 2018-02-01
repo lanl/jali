@@ -49,7 +49,7 @@ int main(int argc, char *argv[]) {
 
   // Print out the topological dimension of cells in the mesh
 
-  std::cerr << "Cells are of dimension: " << mymesh->cell_dimension() <<
+  std::cerr << "Cells are of dimension: " << mymesh->manifold_dimension() <<
     std::endl;
 
   // Print out the number of cells in the mesh

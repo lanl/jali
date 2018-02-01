@@ -89,7 +89,7 @@ int main(int argc, char *argv[]) {
   // Topological dimension of cells in the mesh - since this is a 3D
   // mesh, this should be 3
 
-  int celldim = mymesh->cell_dimension();
+  int celldim = mymesh->manifold_dimension();
 
 
   // Create a state manager for handling data associated with mesh entities
