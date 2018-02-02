@@ -191,7 +191,7 @@ set(NetCDF_VERSION_PATCH 0)
 set(NetCDF_VERSION ${NetCDF_VERSION_MAJOR}.${NetCDF_VERSION_MINOR}.${NetCDF_VERSION_PATCH})
 set(NetCDF_URL_STRING     "https://github.com/Unidata/netcdf-c/archive/")
 set(NetCDF_ARCHIVE_FILE   v${NetCDF_VERSION}.tar.gz)
-set(netCDF_SAVEAS_FILE    netcdf-${NetCDF_VERSION}.tar.gz)
+set(NetCDF_SAVEAS_FILE    netcdf-${NetCDF_VERSION}.tar.gz)
 set(NetCDF_MD5_SUM        a523ad253bd832efa632847940c2317e)
 
 #
@@ -230,6 +230,7 @@ else (MSTK_VERSION_PATCH)
 endif (MSTK_VERSION_PATCH)
 set(MSTK_URL_STRING     "https://github.com/MeshToolkit/MSTK/archive")
 set(MSTK_ARCHIVE_FILE   v${MSTK_VERSION}.tar.gz)
+set(MSTK_SAVEAS_FILE   MSTK-${MSTK_VERSION}.tar.gz)
 set(MSTK_MD5_SUM        a9561f1175da2c2863c517b08abe5f16)
 
 #
