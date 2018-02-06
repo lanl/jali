@@ -215,6 +215,7 @@ set(ExodusII_VERSION_MINOR 06)
 set(ExodusII_VERSION ${ExodusII_VERSION_MAJOR}.${ExodusII_VERSION_MINOR})
 set(ExodusII_URL_STRING    ${JALI_TPLS_DOWNLOAD_URL})
 set(ExodusII_ARCHIVE_FILE  exodus-${ExodusII_VERSION}.tar.gz)
+set(ExodusII_SAVEAS_FILE  exodus-${ExodusII_VERSION}.tar.gz)
 set(ExodusII_MD5_SUM       cfd240dbc1251b08fb1d0ee2de40a44c)
 
 #
@@ -242,6 +243,7 @@ set(MOAB_VERSION_MINOR  0)
 set(MOAB_VERSION_PATCH  0)
 set(MOAB_URL_STRING     "ftp://ftp.mcs.anl.gov/pub/fathom")
 set(MOAB_ARCHIVE_FILE   MOAB-${MOAB_VERSION}.tar.gz)
+set(MOAB_SAVEAS_FILE   MOAB-${MOAB_VERSION}.tar.gz)
 set(MOAB_MD5_SUM        1840ca02366f4d3237d44af63e239e3b)
 
 #
@@ -253,6 +255,7 @@ set(Trilinos_VERSION_PATCH 1)
 set(Trilinos_VERSION ${Trilinos_VERSION_MAJOR}-${Trilinos_VERSION_MINOR}-${Trilinos_VERSION_PATCH})
 set(Trilinos_URL_STRING      "https://github.com/trilinos/Trilinos/archive")
 set(Trilinos_ARCHIVE_FILE   trilinos-release-${Trilinos_VERSION}.tar.gz)
+set(Trilinos_SAVEAS_FILE   trilinos-release-${Trilinos_VERSION}.tar.gz)
 set(Trilinos_MD5_SUM        667333dbd7c0f031d47d7c5511fd0810)
 
 #
