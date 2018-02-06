@@ -185,21 +185,60 @@ TEST(MSTK_WRITE_READ_FIELDS) {
   double *cellval1_in = new double[nc];
   status = inmesh->get_field("cellval1", Jali::Entity_kind::CELL, cellval1_in);
   CHECK(status);
-  CHECK_ARRAY_EQUAL(cellval1_out, cellval1_in, nc);
 
   double *cellval2_in = new double[nc];
   status = inmesh->get_field("cellval2", Jali::Entity_kind::CELL, cellval2_in);
   CHECK(status);
-  CHECK_ARRAY_EQUAL(cellval2_out, cellval2_in, nc);
+
+  for (int i = 0; i < nc; i++) {
+    JaliGeometry::Point incen = inmesh->cell_centroid(i);
+
+    // Search for another cell that has the same centroid and compare
+    // the values that were output and the values that were read
+    // in. We cannot rely on the cell numbering being the same
+    bool found = false;
+    for (int j = 0; j < nc; j++) {
+      JaliGeometry::Point outcen = outmesh->cell_centroid(j);
+      JaliGeometry::Point vec = incen - outcen;
+      if (JaliGeometry::norm(vec) < 1.0e-12) {
+        found = true;
+        CHECK_EQUAL(cellval1_out[j], cellval1_in[i]);
+        CHECK_EQUAL(cellval2_out[j], cellval2_in[i]);
+        break;
+      }
+    }
+    CHECK(found);
+  }
 
   std::array<double, 3> *nodevec_in = new std::array<double, 3>[nv];
   status = inmesh->get_field("nodevec", Jali::Entity_kind::NODE, nodevec_in);
-  for (int i = 0; i < nv; i++)
-    CHECK_ARRAY_EQUAL(nodevec_out[i], nodevec_in[i], 3);
+  CHECK(status);
 
   double *nodeval_in = new double[nv];
   status = inmesh->get_field("nodeval", Jali::Entity_kind::NODE, nodeval_in);
-  CHECK_ARRAY_EQUAL(nodeval_out, nodeval_in, nv);
+  CHECK(status);
+
+  for (int i = 0; i < nv; i++) {
+    JaliGeometry::Point xyz_in;
+    inmesh->node_get_coordinates(i, &xyz_in);
+
+    // Search for another node that has the same coordinates and
+    // compare the values that were output and the values that were
+    // read in. We cannot rely on the node numbering being the same
+    bool found = false;
+    for (int j = 0; j < nv; j++) {
+      JaliGeometry::Point xyz_out;
+      outmesh->node_get_coordinates(j, &xyz_out);
+      JaliGeometry::Point vec = xyz_in - xyz_out;
+      if (JaliGeometry::norm(vec) < 1.0e-12) {
+        found = true;
+        CHECK_ARRAY_EQUAL(nodevec_out[j], nodevec_in[i], 3);
+        CHECK_EQUAL(nodeval_out[j], nodeval_in[i]);
+        break;
+      }
+    }
+    CHECK(found);
+  }
 
   delete outmesh;
   delete inmesh;

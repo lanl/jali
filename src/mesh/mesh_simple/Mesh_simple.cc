@@ -101,7 +101,7 @@ Mesh_simple::Mesh_simple(const std::vector<double>& x,
        num_ghost_layers_distmesh, boundary_ghosts_requested,
        partitioner, geom_type, comm) {
   set_space_dimension(1);
-  set_cell_dimension(1);
+  set_manifold_dimension(1);
 
   assert(!boundary_ghosts_requested);  // Cannot yet make boundary ghosts
 

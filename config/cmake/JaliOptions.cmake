@@ -53,24 +53,18 @@ endif(BUILD_STATIC_EXECUTABLES)
 
 # DBC - Design by contract
 option(ENABLE_DBC "Enable Design By Contract (DBC) checking" ON)
-set_feature_info(DBC
+add_feature_info(DBC
                  ENABLE_DBC
                  "Toggle design by contract (DBC) checking")
 if ( ENABLE_DBC )
     add_definitions("-D ENABLE_DBC")
 endif()    
 
-# Trilinos error checking is defined in macros
-# if ( ${CMAKE_BUILD_TYPE} STREQUAL "Debug" )
-#     add_definitions("-DHAVE_FATAL_MESSAGES:BOOL=TRUE")
-# endif()
 
 # Testing
-# We do not have a consistent way to activate the unit and other tests
-# should have a single switch for this. -- lpritch
 cmake_dependent_option(ENABLE_TESTS "Enable unit testing" ON
                        "ENABLE_UnitTest" ON)
-set_feature_info(TESTS
+add_feature_info(TESTS
                  ENABLE_TESTS
                  "Toggle for unit tests")
 if (ENABLE_TESTS)

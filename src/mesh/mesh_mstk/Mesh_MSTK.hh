@@ -375,6 +375,11 @@ class Mesh_MSTK : public Mesh {
                         mpicomm);
   }
 
+  // Run MSTK's internal checks - meant for debugging only
+  // Returns true if everything is ok, false otherwise
+
+  bool run_internal_mstk_checks() const;
+
  protected:
 
   //! Get the number of fields on entities of a particular type along
@@ -490,6 +495,10 @@ class Mesh_MSTK : public Mesh {
                          const JaliGeometry::GeometricModelPtr& gm);
   void post_create_steps_();
 
+  void init_mesh_from_file_(const std::string filename,
+                            const Partitioner_type partitioner =
+                            PARTITIONER_DEFAULT);
+
   void collapse_degen_edges();
   Cell_type MFace_Celltype(MFace_ptr f);
   Cell_type MRegion_Celltype(MRegion_ptr r);
@@ -500,6 +509,8 @@ class Mesh_MSTK : public Mesh {
   void init_pedge_dirs();
   void init_pface_lists();
   void init_pface_dirs();
+  void init_pface_dirs_3();
+  void init_pface_dirs_2();
   void init_pcell_lists();
 
   void init_vertex_id2handle_maps();
@@ -521,7 +532,18 @@ class Mesh_MSTK : public Mesh {
   void create_boundary_ghosts();
 
   void init_set_info();
-  void inherit_labeled_sets(MAttrib_ptr copyatt);
+  void inherit_labeled_sets(MAttrib_ptr copyatt, List_ptr src_entities);
+
+  // internal name of sets (particularly labeled sets)
+  std::string
+  internal_name_of_set(const JaliGeometry::RegionPtr r,
+                       const Entity_kind entity_kind) const;
+
+  // internal name of sets (particularly labeled sets of cells)
+  std::string
+  other_internal_name_of_set(const JaliGeometry::RegionPtr r,
+                             const Entity_kind entity_kind) const;
+
   int  generate_regular_mesh(Mesh_ptr mesh, double x0, double y0, double z0,
                              double x1, double y1, double z1, int nx,
                              int ny, int nz);
@@ -539,19 +561,6 @@ class Mesh_MSTK : public Mesh {
                          const bool request_boundary_ghosts = false,
                          const Partitioner_type partitioner =
                          Partitioner_type::METIS);
-
-  // internal name of sets (particularly labeled sets)
-
-  std::string
-  internal_name_of_set(const JaliGeometry::RegionPtr r,
-                       const Entity_kind entity_kind) const;
-
-  // internal name of sets (particularly labeled sets of cells)
-
-  std::string
-  other_internal_name_of_set(const JaliGeometry::RegionPtr r,
-                             const Entity_kind entity_kind) const;
-
 
 
   // Downward Adjacencies
@@ -633,7 +642,7 @@ class Mesh_MSTK : public Mesh {
                           {MVERTEX, MEDGE,   MEDGE,   MFACE},     // 2d meshes
                           {MVERTEX, MEDGE,   MFACE,   MREGION}};  // 3d meshes
 
-    return kind2mtype[cell_dimension()][(int)kind];
+    return kind2mtype[manifold_dimension()][(int)kind];
   }
 
 

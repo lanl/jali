@@ -124,12 +124,13 @@ function(_HDF5_EXTRA_LIBRARIES _file _var)
   set(_search_key "Extra libraries")
   set(_libraries)
   _HDF5_PARSE_SETTINGS_FILE(${_file} ${_search_key} _library_flags)
-  string( REGEX MATCHALL "[, ]-l([^\", ]+)|^-l([^\", ]+)" _library_name_flags ${_library_flags})
-  foreach ( _lib ${_library_name_flags} )
-    _HDF5_CHOMP_STRING(${_lib} _lib_chomp)
-    string( REGEX REPLACE "^[,]-l|^-l" "" _lib_chomp ${_lib_chomp})
-    list(APPEND _libraries ${_lib_chomp})
-  endforeach()
+  #string( REGEX MATCHALL "[, ]-l([^\", ]+)|^-l([^\", ]+)" _library_name_flags ${_library_flags})
+  #foreach ( _lib ${_library_name_flags} )
+  #  _HDF5_CHOMP_STRING(${_lib} _lib_chomp)
+  #  string( REGEX REPLACE "^[,]-l|^-l" "" _lib_chomp ${_lib_chomp})
+  #  list(APPEND _libraries ${_lib_chomp})
+  #endforeach()
+  string(REGEX REPLACE "^ " "" _libraries "${_library_flags}")
 
   # Grab all the extra library paths to build a search list
   _HDF5_EXTRA_LIBRARY_DIRS(${_file} _search_list)
@@ -245,7 +246,7 @@ endif()
 # Restrict the search to HDF5_ROOT if user does not want other
 # directories searched.
 if ( HDF5_NO_SYSTEM_PATHS )
-  set(_hdf5_FIND_OPTIONS NO_CMAKE_SYSTEM_PATH)
+  set(_hdf5_FIND_OPTIONS NO_CMAKE_SYSTEM_PATH NO_SYSTEM_ENVIRONMENT_PATH)
 endif()
 
 # A list of valid components
@@ -498,7 +499,7 @@ foreach( tool ${_hdf5_TOOLS})
                ${tool}
                HINTS ${_hdf5_BINARY_SEARCH_DIRS}
                ${_hdf5_FIND_OPTIONS})
-  if ("${_hdf5_VAR_NAME}")
+  if (${_hdf5_VAR_NAME})
     list(APPEND HDF5_TOOLS_FOUND ${tool})
   endif()
 endforeach()
