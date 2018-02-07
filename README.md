@@ -1,5 +1,5 @@
 #
-#    Jali VERSION 0.9.8 (Copyright, Los Alamos National Laboratory)
+#    Jali VERSION 1.0.0 (Copyright, Los Alamos National Laboratory)
 #
 
 # Summary
