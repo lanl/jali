@@ -85,7 +85,7 @@ if ( NOT HDF5_IS_PARALLEL )
                         "HDF5 installation to include MPI I/O symbols"
             )            
 endif(NOT HDF5_IS_PARALLEL)
-add_feature_info(HDF5 "I/O library that creates HDF5 formatted files http://www.hdfgroup.org/HDF5")
+add_feature_info(HDF5 ON "I/O library that creates HDF5 formatted files http://www.hdfgroup.org/HDF5")
 
 # Restore policy of preferring offical CMake modules over local ones.
 if (${ADJUST_POLICY})
@@ -188,7 +188,7 @@ add_feature_info(NetCDF "Network Common Data Format (NetCDF) http://www.unidata.
 # Exodus II -http://sourceforge.net/projects/exodusii
 ##############################################################################
 find_package(ExodusII REQUIRED)
-add_feature_info(ExodusII "File format library from Sandia National Labs. https://github.com/gsjaardema/seacas")
+add_feature_info(ExodusII ON "File format library from Sandia National Labs. https://github.com/gsjaardema/seacas")
 
 
 
