@@ -181,7 +181,7 @@ endif()
 # NetCDF - http://www.unidata.ucar.edu/software/netcdf/
 ##############################################################################
 find_package(NetCDF REQUIRED)
-add_feature_info(NetCDF "Network Common Data Format (NetCDF) http://www.unidata.ucar.edu/software/netcdf/")
+add_feature_info(NetCDF ON "Network Common Data Format (NetCDF) http://www.unidata.ucar.edu/software/netcdf/")
 
 
 ##############################################################################
