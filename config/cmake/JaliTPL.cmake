@@ -43,10 +43,7 @@ set(Boost_ADDITIONAL_VERSIONS
     1.53 1.53.0
     1.54 1.55.0)
 find_package( Boost COMPONENTS system filesystem program_options regex REQUIRED)
-add_feature_info(Boost
-                 "C++ Extension library"
-                 "http://www.boost.org"
-                 "Required by the MPC")
+add_feature_info(Boost ON "C++ Extension library http://www.boost.org")
 
 if ( Boost_VERSION) 
 
@@ -88,11 +85,7 @@ if ( NOT HDF5_IS_PARALLEL )
                         "HDF5 installation to include MPI I/O symbols"
             )            
 endif(NOT HDF5_IS_PARALLEL)
-add_feature_info(HDF5
-                "I/O library that creates HDF5 formatted files"
-                "http://www.hdfgroup.org/HDF5"
-                "Required library for several components in Jali"
-                )
+add_feature_info(HDF5 "I/O library that creates HDF5 formatted files http://www.hdfgroup.org/HDF5")
 
 # Restore policy of preferring offical CMake modules over local ones.
 if (${ADJUST_POLICY})
@@ -188,20 +181,14 @@ endif()
 # NetCDF - http://www.unidata.ucar.edu/software/netcdf/
 ##############################################################################
 find_package(NetCDF REQUIRED)
-add_feature_info(NetCDF
-                 "Network Common Data Format (NetCDF)"
-                 "http://www.unidata.ucar.edu/software/netcdf/"
-                 "Required by ExodusII library")
+add_feature_info(NetCDF "Network Common Data Format (NetCDF) http://www.unidata.ucar.edu/software/netcdf/")
 
 
 ##############################################################################
 # Exodus II -http://sourceforge.net/projects/exodusii
 ##############################################################################
 find_package(ExodusII REQUIRED)
-add_feature_info(ExodusII
-                 "File format library. Originated from Sandia."
-                 "http://sourceforge.net/projects/exodusii/"
-                 "Required by all the mesh frameworks to read mesh files")
+add_feature_info(ExodusII "File format library from Sandia National Labs. https://github.com/gsjaardema/seacas")
 
 
 
