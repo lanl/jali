@@ -43,7 +43,7 @@ void Mesh_MSTK::init_mesh_from_file_(std::string const filename,
       int with_attr = 1;  // Redistribute any attributes and sets
 
       // MSTK does not know about INDEX, BLOCK partitioners
-      int method = static_cast<int>(partitioner - 2); 
+      int method = static_cast<int>(partitioner)-2; 
 
       int del_inmesh = 1;  // Delete input mesh (on P0) after distribution
       
