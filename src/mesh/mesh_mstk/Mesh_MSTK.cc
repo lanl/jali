@@ -41,7 +41,10 @@ void Mesh_MSTK::init_mesh_from_file_(std::string const filename,
       int topo_dim = MESH_Num_Regions(mesh) ? 3 : 2;
       int num_ghost_layers = 1;
       int with_attr = 1;  // Redistribute any attributes and sets
-      int method = static_cast<int>(partitioner);
+
+      // MSTK does not know about INDEX, BLOCK partitioners
+      int method = static_cast<int>(partitioner - 2); 
+
       int del_inmesh = 1;  // Delete input mesh (on P0) after distribution
       
       Mesh_ptr globalmesh = mesh;
