@@ -20,6 +20,7 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <memory>
 #include <boost/iterator/permutation_iterator.hpp>
 
 #include "Mesh.hh"    // Jali mesh header

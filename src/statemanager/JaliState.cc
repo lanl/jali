@@ -3,6 +3,7 @@
  * All rights reserved.
  *---------------------------------------------------------------------------~*/
 
+#include <memory>
 #include "JaliState.h"
 #include "JaliStateVector.h"
 
@@ -173,21 +174,29 @@ void State::export_to_mesh() {
     Entity_kind entity_kind = vec->entity_kind();
     bool status = false;
 
-    if (vec->get_data_type() == typeid(double))
-      status = mymesh_->store_field(name, entity_kind, (double *)vec->get_raw_data());
-    else if (vec->get_data_type() == typeid(int))
-      status = mymesh_->store_field(name, entity_kind, (int *)vec->get_raw_data());
-    else if (vec->get_data_type() == typeid(std::array<double, 2>))
-      status = mymesh_->store_field(name, entity_kind,
-                                    (std::array<double, 2> *) vec->get_raw_data());
-    else if (vec->get_data_type() == typeid(std::array<double, 3>))
-      status = mymesh_->store_field(name, entity_kind,
-                                    (std::array<double, 3> *) vec->get_raw_data());
-    else if (vec->get_data_type() == typeid(std::array<double, 6>))
-      status = mymesh_->store_field(name, entity_kind,
-                                    (std::array<double, 6> *) vec->get_raw_data());
+    // We only know how to store univalued data with the mesh
+    if (vec->get_type() == StateVector_type::UNIVAL) {
+      if (vec->get_data_type() == typeid(double)) {
+        auto svec = std::dynamic_pointer_cast<StateVector<double>>(vec);
+        status = mymesh_->store_field(name, entity_kind, svec->get_raw_data());
+      } else if (vec->get_data_type() == typeid(int)) {
+        auto svec = std::dynamic_pointer_cast<StateVector<int>>(vec);
+        status = mymesh_->store_field(name, entity_kind, svec->get_raw_data());
+      } else if (vec->get_data_type() == typeid(std::array<double, 2>)) {
+        auto svec = 
+            std::dynamic_pointer_cast<StateVector<std::array<double, 2>>>(vec);
+        status = mymesh_->store_field(name, entity_kind, svec->get_raw_data());
+      } else if (vec->get_data_type() == typeid(std::array<double, 3>)) {
+        auto svec = 
+            std::dynamic_pointer_cast<StateVector<std::array<double, 3>>>(vec);
+        status = mymesh_->store_field(name, entity_kind, svec->get_raw_data());
+      } else if (vec->get_data_type() == typeid(std::array<double, 6>)) {
+        auto svec =
+            std::dynamic_pointer_cast<StateVector<std::array<double, 6>>>(vec);
+        status = mymesh_->store_field(name, entity_kind, svec->get_raw_data());
+      }
+    }
     
-
     if (!status)
       std::cerr << "Could not export vector " << name << " to mesh file\n";
       

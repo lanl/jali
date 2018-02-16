@@ -79,7 +79,6 @@ class BaseStateVector {
   //! Virtual methods
 
   virtual std::ostream & print(std::ostream & os) const = 0;
-  virtual void* get_raw_data() = 0;
   virtual int size() const = 0;
   virtual const std::type_info& get_data_type() = 0;
   virtual StateVector_type get_type() = 0;
@@ -295,7 +294,7 @@ class StateVector : public BaseStateVector {
 
   /// Get the raw data
 
-  void* get_raw_data() { return (void*)(&((*mydata_)[0])); }
+  T *get_raw_data() { return &((*mydata_)[0]); }
 
   /// Get a shared pointer to the data
 
@@ -647,11 +646,11 @@ class MMStateVector : public BaseStateVector {
 
   /// Get the raw data (NOT USEFUL)
 
-  void* get_raw_data() { return (void*)(&((*mydata_)[0])); }
+  T *get_raw_data() { return &((*mydata_)[0]); }
 
   /// Get the raw data for a material
 
-  void *get_raw_data(int m) { return (void *)(&((*mydata_)[m][0])); }
+  T *get_raw_data(int m) { return &((*mydata_)[m][0]); }
 
   /// Get a shared ptr to the data
 
