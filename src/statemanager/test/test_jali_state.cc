@@ -15,18 +15,6 @@
 
 #include "UnitTest++.h"
 
-// Enum for field names
-enum FieldNames : int
-{
-  cellvars = 0,
-  nodevars,
-  cellvars2,
-  f1,
-  i1,
-  v1
-};
-
-
 // Vector type for 2d doubles
 struct Vec2d {
   double x;
@@ -60,11 +48,11 @@ TEST(Jali_State_Var_Types) {
   std::shared_ptr<Jali::Mesh> dataMesh = factory(0.0, 0.0, 1.0, 1.0, 2, 2);
   std::shared_ptr<Jali::State> dstate = Jali::State::create(dataMesh);
 
-  dstate->add("f1", dataMesh, Jali::Entity_kind::CELL, Jali::Entity_type::ALL,
+  dstate->add("fc1", dataMesh, Jali::Entity_kind::CELL, Jali::Entity_type::ALL,
               ftest);
-  dstate->add(FieldNames::i1, dataMesh, Jali::Entity_kind::NODE,
+  dstate->add("in1", dataMesh, Jali::Entity_kind::NODE,
               Jali::Entity_type::ALL, itest);
-  dstate->add("v1", dataMesh, Jali::Entity_kind::CELL, Jali::Entity_type::ALL,
+  dstate->add("vc1", dataMesh, Jali::Entity_kind::CELL, Jali::Entity_type::ALL,
               vtest);
 
   // Iterate through all state vectors and count them
@@ -120,7 +108,7 @@ TEST(Jali_State_On_Mesh) {
 
   CHECK(mesh1 != nullptr);
 
-  // Create a state object 
+  // Create a state object
 
   std::shared_ptr<Jali::State> mystate = Jali::State::create(mesh1);
 
@@ -169,12 +157,12 @@ TEST(Jali_State_On_Mesh) {
 
 
 
-  // Define a state vector on cells with integer id and initialized
-  // from constant value
+  // Define a state vector on cells initialized from constant value
 
   double constval = 5.5;
-  Jali::StateVector<double, Jali::Mesh> myvec3(FieldNames::cellvars, mesh1,
-                                               nullptr, Jali::Entity_kind::CELL,
+  Jali::StateVector<double, Jali::Mesh> myvec3("cellvars_const", mesh1,
+                                               nullptr,
+                                               Jali::Entity_kind::CELL,
                                                Jali::Entity_type::ALL,
                                                constval);
 
@@ -182,7 +170,7 @@ TEST(Jali_State_On_Mesh) {
   // Add a third vector to state using the same constant value
 
   Jali::StateVector<double, Jali::Mesh>& addvec3 =
-      mystate->add<double, Jali::Mesh, Jali::StateVector>(FieldNames::cellvars,
+      mystate->add<double, Jali::Mesh, Jali::StateVector>("cellvars_const",
                    mesh1, Jali::Entity_kind::CELL, Jali::Entity_type::ALL,
                    constval);
   CHECK_EQUAL(mesh1->num_cells(), addvec3.size());
@@ -191,12 +179,12 @@ TEST(Jali_State_On_Mesh) {
 
 
 
-  // Add a state vector on nodes with integer id and not initialized
+  // Add a state vector on nodes not initialized
   // to anything - NOTE THAT WE HAVE TO TELL IT THAT IT IS TYPE 'int'
   // SINCE THERE IS NO INPUT DATA TO INFER THIS FROM
 
   Jali::StateVector<int, Jali::Mesh>& addvec4 =
-      mystate->add<int, Jali::Mesh, Jali::StateVector>(FieldNames::nodevars,
+      mystate->add<int, Jali::Mesh, Jali::StateVector>("nodevars_postinit",
                                                        mesh1,
                                                        Jali::Entity_kind::NODE,
                                                        Jali::Entity_type::ALL);
@@ -255,7 +243,7 @@ TEST(Jali_State_On_Mesh) {
     CHECK_EQUAL(myvec1[i], myvec1_copy[i]);
 
 
-  // Retrieve the second state vector more easily as a shared_ptr
+  // Retrieve the second state vector more directly
 
   Jali::StateVector<double, Jali::Mesh> myvec2_copy;
   bool found;
@@ -271,9 +259,9 @@ TEST(Jali_State_On_Mesh) {
 
 
 
-  // Retrieve the third state vector by integer ID and check its contents
+  // Retrieve the third state vector and check its contents
 
-  found = mystate->get<double, Jali::Mesh>(FieldNames::cellvars, mesh1,
+  found = mystate->get<double, Jali::Mesh>("cellvars_const", mesh1,
                                            Jali::Entity_kind::CELL,
                                            Jali::Entity_type::ALL,
                                            &myvec2_copy);
@@ -285,10 +273,10 @@ TEST(Jali_State_On_Mesh) {
 
   
 
-  // Retrieve the fourth state vector by integer ID and check its contents
+  // Retrieve the fourth state vector and check its contents
 
   Jali::StateVector<int, Jali::Mesh> myintvec_copy;
-  found = mystate->get<int, Jali::Mesh>(FieldNames::nodevars, mesh1,
+  found = mystate->get<int, Jali::Mesh>("nodevars_postinit", mesh1,
                                         Jali::Entity_kind::NODE,
                                         Jali::Entity_type::ALL,
                                         &myintvec_copy);
@@ -317,7 +305,7 @@ TEST(Jali_State_On_Mesh) {
   // Try to retrieve the vector by name and mesh but without the
   // kind/type of entity it lives on
 
-  itc = mystate->find<int, Jali::Mesh, Jali::StateVector>(FieldNames::nodevars,
+  itc = mystate->find<int, Jali::Mesh, Jali::StateVector>("nodevars_postinit",
                                                           mesh1);
   CHECK(mystate->end() != itc);
 
@@ -332,19 +320,46 @@ TEST(Jali_State_On_Mesh) {
 
 
 
+
+  // Retrieve a shared pointer to a state vector
+
+  std::shared_ptr<Jali::StateVector<double, Jali::Mesh>> myvec2_sptr;
+  found = mystate->get("cellvars", mesh1, Jali::Entity_kind::CELL,
+                       Jali::Entity_type::ALL, &myvec2_sptr);
+  CHECK(found);
+  CHECK_EQUAL(myvec1.size(), myvec2_sptr->size());
+  for (int i = 0; i < myvec2_sptr->size(); ++i)
+    CHECK_EQUAL(myvec1[i], (*myvec2_sptr)[i]);
+
+
+  // Get raw data from a state vector
+
+  std::shared_ptr<Jali::StateVector<double, Jali::Mesh> const> myvec2_sptr2;
+  found = mystate->get("cellvars", mesh1, Jali::Entity_kind::CELL,
+                       Jali::Entity_type::ALL, &myvec2_sptr2);
+  CHECK(found);
+  CHECK_EQUAL(myvec1.size(), myvec2_sptr->size());
+
+  double const *myarray = myvec2_sptr2->get_raw_data();
+
+  for (int i = 0; i < myvec1.size(); ++i)
+    CHECK_EQUAL(myvec1[i], myarray[i]);
+
+  
+
   // Retrieve state vectors (not contents of a state vector) through iterators
 
   Jali::State::iterator it = mystate->begin();
   while (it != mystate->end()) {
     std::shared_ptr<Jali::BaseStateVector> sv = *it;
-    if (sv->name() == sv->int_to_string(FieldNames::nodevars)) {
+    if (sv->name() == "nodevars_postinit") {
       Jali::StateVector<int, Jali::Mesh> myvec6 =
           *(std::dynamic_pointer_cast<Jali::StateVector<int, Jali::Mesh>>(sv));
 
       CHECK(myvec6.entity_kind() == Jali::Entity_kind::NODE &&
             myvec6.entity_type() == Jali::Entity_type::ALL);
     } 
-    else if (sv->name() == sv->int_to_string(FieldNames::cellvars)) {
+    else if (sv->name() == "cellvars_const") {
       Jali::StateVector<double, Jali::Mesh> myvec6 =
           *(std::dynamic_pointer_cast<Jali::StateVector<double, Jali::Mesh>>(sv));
 
