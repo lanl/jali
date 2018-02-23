@@ -296,6 +296,10 @@ class StateVector : public BaseStateVector {
 
   T *get_raw_data() { return &((*mydata_)[0]); }
 
+  /// Get the raw data
+
+  T const *get_raw_data() const { return &((*mydata_)[0]); }
+
   /// Get a shared pointer to the data
 
   std::shared_ptr<T> get_data() { return mydata_; }
@@ -652,6 +656,10 @@ class MMStateVector : public BaseStateVector {
 
   T *get_raw_data(int m) { return &((*mydata_)[m][0]); }
 
+  /// Get the raw data for a material
+
+  T const *get_raw_data(int m) const { return &((*mydata_)[m][0]); }
+
   /// Get a shared ptr to the data
 
   std::shared_ptr<std::vector<std::vector<T>>> get_data() { return mydata_; }
@@ -659,6 +667,10 @@ class MMStateVector : public BaseStateVector {
   /// Get a reference to the data for one material
 
   std::vector<T>& get_matdata(int m) { return (*mydata_)[m]; }
+
+  /// Get a reference to the data for one material
+
+  std::vector<T> const& get_matdata(int m) const { return (*mydata_)[m]; }
 
   /// Type of data
 
@@ -684,7 +696,7 @@ class MMStateVector : public BaseStateVector {
   /// @param j Material index (like 0th material, 2nd material etc.,
   ///          not material 51965 or Steel) if layout is CELL_CENTRIC,
   ///          cell index if layout = MATERIAL_CENTRIC
-  /// @param layout Way in which we want to retreieve the data (CELL_CENTRIC
+  /// @param layout Way in which we want to retrieve the data (CELL_CENTRIC
   //                means the first index is the cell index and the second is
   //                material index, MATERIAL_CENTRIC is the reverse)
   ///
