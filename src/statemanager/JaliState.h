@@ -482,7 +482,7 @@ class State : public std::enable_shared_from_this<State> {
     
     const_iterator it = find<T, DomainType, StateVecType>(name, domain, kind, type);
     if (it != state_vectors_.cend()) {
-      *vector = *(std::dynamic_pointer_cast<StateVecType<T const, DomainType> const>(*it));
+      *vector = *(std::dynamic_pointer_cast<StateVecType<T, DomainType> const>(*it));
       return true;
     } else {
       return false;
@@ -512,9 +512,9 @@ class State : public std::enable_shared_from_this<State> {
 
   template <class T, class DomainType,
             template <class /* T */, class /* DomainType */> class StateVecType>
-  bool get(std::string name, StateVecType<T, DomainType> *vector_ptr) {
+  bool get(std::string name, StateVecType<T, DomainType> *vector) {
     return get(name, mymesh_, Entity_kind::ANY_KIND, Entity_type::ALL,
-               vector_ptr);
+               vector);
   }
   
 
@@ -544,9 +544,9 @@ class State : public std::enable_shared_from_this<State> {
   template <class T, class DomainType,
             template <class /* T */, class /* DomainType */> class StateVecType>
   bool get(std::string name,
-           StateVecType<T, DomainType> const *vector_ptr) {
+           StateVecType<T, DomainType> const *vector) const {
     return get(name, mymesh_, Entity_kind::ANY_KIND, Entity_type::ALL,
-               vector_ptr);
+               vector);
   }
   
 
