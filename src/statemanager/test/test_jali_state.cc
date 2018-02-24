@@ -321,18 +321,23 @@ TEST(Jali_State_On_Mesh) {
 
 
 
-  // Retrieve a shared pointer to a state vector
+  // Retrieve a shared pointer to a state vector and non-const data that
+  // it is pointing to
 
   std::shared_ptr<Jali::StateVector<double, Jali::Mesh>> myvec2_sptr;
   found = mystate->get("cellvars", mesh1, Jali::Entity_kind::CELL,
                        Jali::Entity_type::ALL, &myvec2_sptr);
   CHECK(found);
   CHECK_EQUAL(myvec1.size(), myvec2_sptr->size());
-  for (int i = 0; i < myvec2_sptr->size(); ++i)
-    CHECK_EQUAL(myvec1[i], (*myvec2_sptr)[i]);
+
+  double *myarray = myvec2_sptr->get_raw_data();
+
+  for (int i = 0; i < myvec1.size(); ++i)
+    CHECK_EQUAL(myvec1[i], myarray[i]);
 
 
-  // Get raw data from a state vector
+  // Retrieve a shared pointer to a state vector and const data that
+  // it is pointing to
 
   std::shared_ptr<Jali::StateVector<double, Jali::Mesh> const> myvec2_sptr2;
   found = mystate->get("cellvars", mesh1, Jali::Entity_kind::CELL,
@@ -340,10 +345,10 @@ TEST(Jali_State_On_Mesh) {
   CHECK(found);
   CHECK_EQUAL(myvec1.size(), myvec2_sptr->size());
 
-  double const *myarray = myvec2_sptr2->get_raw_data();
+  double const *myarray2 = myvec2_sptr2->get_raw_data();
 
   for (int i = 0; i < myvec1.size(); ++i)
-    CHECK_EQUAL(myvec1[i], myarray[i]);
+    CHECK_EQUAL(myvec1[i], myarray2[i]);
 
   
 
