@@ -350,7 +350,7 @@ TEST(Jali_State_On_Mesh) {
   for (int i = 0; i < myvec1.size(); ++i)
     CHECK_EQUAL(myvec1[i], myarray2[i]);
 
-  
+
 
   // Retrieve state vectors (not contents of a state vector) through iterators
 
@@ -469,9 +469,9 @@ TEST(Jali_MMState_On_Mesh) {
   std::vector<std::vector<int>> matcells = {{0, 1, 3, 4, 6, 7},
                                             {1, 2, 4, 5},
                                             {4, 5, 7, 8}};
-  std::vector<std::vector<int>> cell_matindex = {{0, 1, -1, 2, 3, -1, 4, 5, -1},
-                                              {-1, 0, 1, -1, 2, 3, -1, -1, -1},
-                                              {-1, -1, -1, -1, 0, 1, -1, 2, 3}};
+  std::vector<std::vector<int>> cellmats = {{0}, {0, 1}, {1},
+                                            {0}, {0, 1, 2}, {1, 2},
+                                            {0}, {0, 2}, {2}};
 
   mystate->add_material("steel1", matcells[0]);
   mystate->add_material("aluminum1", matcells[1]);
@@ -491,6 +491,13 @@ TEST(Jali_MMState_On_Mesh) {
   CHECK_EQUAL(mystate->material_name(0), "steel1");
   CHECK_EQUAL(mystate->material_name(1), "aluminum1");
   CHECK_EQUAL(mystate->material_name(2), "aluminum2");
+
+  for (int i = 0; i < 9; i++) {
+    CHECK_EQUAL(cellmats[i].size(), mystate->num_cell_materials(i));
+    std::vector<int> const& cellmats2 = mystate->cell_materials(i);
+    for (int j = 0; j < cellmats[i].size(); j++)
+      CHECK_EQUAL(cellmats[i][j], cellmats2[j]);
+  }
 
   // Create a multi-material state vector corresponding to volume fractions
   // of materials as shown in fig above. Because we will add another material
@@ -609,6 +616,21 @@ TEST(Jali_MMState_On_Mesh) {
   mystate->add_material("steel2", matcells3);
   nmats = mystate->num_materials();
 
+  // Material 3 is added to cells 3, 4, 6, 7 but material 0 is not removed
+  // (only its volume fraction is zeroed out)
+  cellmats[3].push_back(3);
+  cellmats[4].push_back(3);
+  cellmats[6].push_back(3);
+  cellmats[7].push_back(3);
+  
+  for (int i = 0; i < 9; i++) {
+    CHECK_EQUAL(cellmats[i].size(), mystate->num_cell_materials(i));
+    std::vector<int> const& cellmats2 = mystate->cell_materials(i);
+    for (int j = 0; j < cellmats[i].size(); j++)
+      CHECK_EQUAL(cellmats[i][j], cellmats2[j]);
+  }
+
+  
   // Set the volume fractions material 3 in cells in the input vectors
   vf_in[3][3] = 0.5;
   vf_in[3][4] = 0.25;
@@ -639,6 +661,8 @@ TEST(Jali_MMState_On_Mesh) {
   vf(0, 4) = 0.25;
   vf(0, 6) = vf(0, 7) = 0.0;
 
+
+  
   // Since the new material that displaced the old material has the
   // same density, the expected cell densities should be the same as
   // before. Verify against values from state vectors
