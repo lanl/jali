@@ -432,7 +432,7 @@ class MMStateVector : public BaseStateVector {
                 Entity_kind kind,
                 Entity_type type,
                 Data_layout layout = Jali::Data_layout::MATERIAL_CENTRIC,
-                T const ** const data = nullptr) :
+                T const * const * data = nullptr) :
       BaseStateVector(name, state, kind, type), mydomain_(domain) {
     assert(state != nullptr);
     allocate();
@@ -461,7 +461,7 @@ class MMStateVector : public BaseStateVector {
                 Entity_kind kind,
                 Entity_type type,
                 Data_layout layout = Jali::Data_layout::MATERIAL_CENTRIC,
-                T const ** const data = nullptr) :
+                T const * const * data = nullptr) :
       BaseStateVector(identifier, state, kind, type), mydomain_(domain) {
     assert(state != nullptr);
     allocate();
@@ -578,7 +578,7 @@ class MMStateVector : public BaseStateVector {
     determined based on material sets in the mesh
   */
 
-  void assign(Data_layout layout, double const **data) {
+  void assign(Data_layout layout, double const * const * const data) {
     int nummats = state_get_num_materials(mystate_);
     mydata_->resize(nummats);
     
@@ -589,11 +589,13 @@ class MMStateVector : public BaseStateVector {
       std::vector<int> const& entities = mset->entities();
       int numents = entities.size();
       (*mydata_)[m].resize(numents);
-      for (int i = 0; i < numents; i++) {
-        int c = entities[i];   // cell of material set
-        // rectangular to compact storage
-        (*mydata_)[m][i] = (layout == Data_layout::CELL_CENTRIC) ? data[c][m] :
-            data[m][c];
+      if (data) {
+        for (int i = 0; i < numents; i++) {
+          int c = entities[i];   // cell of material set
+          // rectangular to compact storage
+          (*mydata_)[m][i] = (layout == Data_layout::CELL_CENTRIC) ? data[c][m] :
+              data[m][c];
+        }
       }
     }
   }
