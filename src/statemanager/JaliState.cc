@@ -18,7 +18,7 @@ void State::add_material(std::string const& matname,
       std::cerr << "Material name \"" << matname << "\" already used\n";
       return;
     }
-    
+
   // Find a cell set with this name in the mesh. If it doesn't
   // exist, create it
   std::shared_ptr<MeshSet> matset =
@@ -31,9 +31,16 @@ void State::add_material(std::string const& matname,
   }
 
   matset->add_entities(matcells);
-    
+
   material_cellsets_.push_back(matset);
-    
+
+  int matid = num_materials()-1;
+  if (cell_materials_.size() == 0)
+    cell_materials_.resize(mymesh_->num_entities(Jali::Entity_kind::CELL,
+                                                 Jali::Entity_type::ALL));
+  for (auto const& c : matcells)
+    cell_materials_[c].push_back(matid);
+
   // GO TO EACH MMStateVector AND ADD ENTRIES FOR THIS MATERIAL
   for (auto &sv : state_vectors_) {
     if (sv->get_type() == StateVector_type::MULTIVAL) {
@@ -51,6 +58,13 @@ void State::rem_material(int m) {
   std::shared_ptr<MeshSet> matset = material_cellsets_[m];
   if (!matset) return;
 
+  for (auto const& c : material_cellsets_[m]->entities()) {
+    int nmats = cell_materials_[c].size();
+    for (int i = 0; i < nmats; i++)
+      if (m == cell_materials_[c][i])
+        cell_materials_[c].erase(cell_materials_[c].begin()+i);
+  }
+
   material_cellsets_.erase(material_cellsets_.begin()+m);
 
   // GO TO EACH MMStateVector AND REMOVE ENTRIES FOR THIS MATERIAL
@@ -67,7 +81,10 @@ void State::rem_material(int m) {
 void State::add_cells_to_material(int m, std::vector<int> const& cells) {
   assert(m < material_cellsets_.size());
   material_cellsets_[m]->add_entities(cells);
-    
+
+  for (auto const& c : cells)
+    cell_materials_[c].push_back(m);
+
   for (auto & sv : state_vectors_) {
     if (sv->get_type() == StateVector_type::MULTIVAL) {
       auto mmv = std::dynamic_pointer_cast<MMStateVector<double, Mesh>>(sv);
@@ -76,9 +93,9 @@ void State::add_cells_to_material(int m, std::vector<int> const& cells) {
     }
   }
 }
-  
+
 /// Remove cells from a material
-  
+
 void State::rem_cells_from_material(int m, std::vector<int> const& cells) {
 
   // NOT IMPLEMENTED - THERE ARE MAJOR CONSIDERATIONS OF EFFICIENCY
@@ -106,14 +123,14 @@ void State::init_from_mesh() {
     Entity_kind kind = (Entity_kind) ikind;
     if (kind != Entity_kind::NODE && kind != Entity_kind::FACE &&
         kind != Entity_kind::CELL) continue;
-    
+
     mymesh_->get_field_info(kind, &num, &varnames, &vartypes);
     if (!num) continue;
 
     int spacedim = mymesh_->space_dimension();
-    
+
     int nent = mymesh_->num_entities(kind, Entity_type::ALL);
-    
+
     for (int i = 0; i < num; i++) {
       if (vartypes[i] == "INT") {
         int *data = new int[nent];
@@ -183,11 +200,11 @@ void State::export_to_mesh() {
         auto svec = std::dynamic_pointer_cast<StateVector<int>>(vec);
         status = mymesh_->store_field(name, entity_kind, svec->get_raw_data());
       } else if (vec->get_data_type() == typeid(std::array<double, 2>)) {
-        auto svec = 
+        auto svec =
             std::dynamic_pointer_cast<StateVector<std::array<double, 2>>>(vec);
         status = mymesh_->store_field(name, entity_kind, svec->get_raw_data());
       } else if (vec->get_data_type() == typeid(std::array<double, 3>)) {
-        auto svec = 
+        auto svec =
             std::dynamic_pointer_cast<StateVector<std::array<double, 3>>>(vec);
         status = mymesh_->store_field(name, entity_kind, svec->get_raw_data());
       } else if (vec->get_data_type() == typeid(std::array<double, 6>)) {
@@ -196,10 +213,10 @@ void State::export_to_mesh() {
         status = mymesh_->store_field(name, entity_kind, svec->get_raw_data());
       }
     }
-    
+
     if (!status)
       std::cerr << "Could not export vector " << name << " to mesh file\n";
-      
+
     ++it;
   }
 }
