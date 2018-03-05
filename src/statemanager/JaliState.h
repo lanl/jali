@@ -50,7 +50,6 @@ class State : public std::enable_shared_from_this<State> {
     // See StackOverflow.com https://stackoverflow.com/questions/8147027/how-do-i-call-stdmake-shared-on-a-class-with-only-protected-or-private-const
     //
     // or search for "shared_ptr from protected or private constructor"
-
   }
 
 
@@ -74,7 +73,7 @@ class State : public std::enable_shared_from_this<State> {
 
   int num_materials() const {
     int nsets = material_cellsets_.size();
-    return nsets ? nsets : 1;
+    return nsets;
   }
 
   /// Name of the i'th material
@@ -85,7 +84,7 @@ class State : public std::enable_shared_from_this<State> {
   }
 
   /// material index by name (-1 if not found)
-  
+
   int material_index_by_name(std::string const& name) const {
     int nsets = material_cellsets_.size();
     for (int m = 0; m < nsets; m++)
@@ -98,22 +97,49 @@ class State : public std::enable_shared_from_this<State> {
   //
   // if there is only one material in the problem, return a
   // nullptr. This means the code should work with the entire mesh
- 
+
   std::shared_ptr<MeshSet> material_set(int m) const {
     return material_cellsets_[m];
   }
 
-  /// Get the cells in the i'th material. If there is only one material
-  /// in the mesh, then return an empty vector
-  
+
+  /// Get the number of cells in the material
+
+  int num_material_cells(int m) const {
+    int nsets = material_cellsets_.size();
+    if (nsets && m < nsets)
+      return material_cellsets_[m]->num_entities();
+  }
+
+
+  /// Get the cells in the m'th material. If no materials have been defined
+  /// return reference to a dummy vector thats empty
+
   std::vector<int> const& material_cells(int m) const {
     int nsets = material_cellsets_.size();
     if (nsets && m < nsets)
       return material_cellsets_[m]->entities();
+    else
+      return dummy_cellset_->entities();
   }
 
+
+  /// Get the number of materials in a cell
+
+  int num_cell_materials(int c) const {
+    int nsets = material_cellsets_.size();
+    return nsets ? cell_materials_[c].size() : 0;
+  }
+
+  /// Get the materials in a cell
+
+  std::vector<int> const& cell_materials(int c) const {
+    return cell_materials_[c];
+  }
+
+
   /// Get the mesh cell set associated with material with given name
-  
+
   std::shared_ptr<MeshSet> material_set_by_name(std::string const& name) const {
     int nsets = material_cellsets_.size();
     for (int m = 0; m < nsets; m++)
@@ -150,9 +176,9 @@ class State : public std::enable_shared_from_this<State> {
   /// Add cells to a material
 
   void add_cells_to_material(int m, std::vector<int> const& cells);
-  
+
   /// Remove cells from a material (EXPENSIVE - NOT IMPLEMENTED)
-  
+
   void rem_cells_from_material(int m, std::vector<int> const& cells);
 
   //! Typedefs for iterators for going through all the state vectors
@@ -160,7 +186,7 @@ class State : public std::enable_shared_from_this<State> {
   typedef
   std::vector<std::shared_ptr<BaseStateVector>>::iterator
   iterator;
-  
+
   typedef
   std::vector<std::shared_ptr<BaseStateVector>>::const_iterator
   const_iterator;
@@ -246,7 +272,7 @@ class State : public std::enable_shared_from_this<State> {
 
 
 
-  /*! 
+  /*!
     @brief Find iterator to state vector by name and type
     @tparam T          Data type
     @tparam DomainType Type of domain data is defined on (Mesh, MeshTile)
@@ -279,7 +305,7 @@ class State : public std::enable_shared_from_this<State> {
   }
 
 
-  /*! 
+  /*!
     @brief Find const iterator to state vector by name and type
     @tparam T          Data type
     @tparam DomainType Type of domain data is defined on (Mesh, MeshTile)
@@ -314,7 +340,7 @@ class State : public std::enable_shared_from_this<State> {
 
 
 
-  /*! 
+  /*!
     @brief Find iterator to state vector by name
     @tparam T          Data type
     @tparam DomainType Type of domain data is defined on (Mesh, MeshTile)
@@ -355,13 +381,13 @@ class State : public std::enable_shared_from_this<State> {
       else
         ++it;
     }
-      
+
     return it;
   }
 
 
 
-  /*! 
+  /*!
     @brief Find a const iterator to state vector by name
     @tparam T          Data type
     @tparam DomainType Type of domain data is defined on (Mesh, MeshTile)
@@ -386,7 +412,7 @@ class State : public std::enable_shared_from_this<State> {
                       std::shared_ptr<DomainType> domain,
                       Entity_kind kind = Entity_kind::ANY_KIND,
                       Entity_type type = Entity_type::ALL) const {
-    
+
     const_iterator it = state_vectors_.begin();
     while (it != state_vectors_.end()) {
       std::shared_ptr<StateVecType<T, DomainType>> sv =
@@ -402,13 +428,13 @@ class State : public std::enable_shared_from_this<State> {
       else
         ++it;
     }
-      
+
     return it;
   }
 
 
 
-  /*! 
+  /*!
     @brief Retrieve a state vector by name given the domain and entity type it
     is defined on
     @tparam T          Data type
@@ -430,7 +456,7 @@ class State : public std::enable_shared_from_this<State> {
     this is a copy into *vector, its an inexpensive shallow copy of
     the meta data only
   */
-  
+
   template <class T, class DomainType,
             template<class /* T */, class /* DomainType */> class StateVecType>
   bool get(std::string name,
@@ -438,7 +464,7 @@ class State : public std::enable_shared_from_this<State> {
            Entity_kind kind,
            Entity_type type,
            StateVecType<T, DomainType> *vector) {
-    
+
     iterator it = find<T, DomainType, StateVecType>(name, domain, kind, type);
     if (it != state_vectors_.end()) {
       *vector = *(std::dynamic_pointer_cast<StateVecType<T, DomainType>>(*it));
@@ -449,7 +475,7 @@ class State : public std::enable_shared_from_this<State> {
   }
 
 
-  /*! 
+  /*!
     @brief Retrieve a const state vector by name given the domain and entity
     type it is defined on
     @tparam T          Data type
@@ -471,7 +497,7 @@ class State : public std::enable_shared_from_this<State> {
     this is a copy into *vector, its an inexpensive shallow copy of
     the meta data only
   */
-  
+
   template <class T, class DomainType,
             template<class /* T */, class /* DomainType */> class StateVecType>
   bool get(std::string name,
@@ -479,7 +505,7 @@ class State : public std::enable_shared_from_this<State> {
            Entity_kind kind,
            Entity_type type,
            StateVecType<T, DomainType> const *vector) const {
-    
+
     const_iterator it = find<T, DomainType, StateVecType>(name, domain, kind, type);
     if (it != state_vectors_.cend()) {
       *vector = *(std::dynamic_pointer_cast<StateVecType<T, DomainType> const>(*it));
@@ -490,7 +516,7 @@ class State : public std::enable_shared_from_this<State> {
   }
 
 
-  /*! 
+  /*!
     @brief Retrieve a state vector on the mesh by name (regardless of what
     type of entity it is on)
     @tparam T           Data type
@@ -516,12 +542,12 @@ class State : public std::enable_shared_from_this<State> {
     return get(name, mymesh_, Entity_kind::ANY_KIND, Entity_type::ALL,
                vector);
   }
-  
 
 
 
 
-  /*! 
+
+  /*!
     @brief Retrieve a const state vector on the mesh by name (regardless of
     what type of entity it is on)
     @tparam T           Data type
@@ -548,12 +574,12 @@ class State : public std::enable_shared_from_this<State> {
     return get(name, mymesh_, Entity_kind::ANY_KIND, Entity_type::ALL,
                vector);
   }
-  
 
 
 
 
-  /*! 
+
+  /*!
     @brief Retrieve a shared pointer to a state vector by name given the domain
     and type of entity it is defined on
     @tparam T            Data type
@@ -583,7 +609,7 @@ class State : public std::enable_shared_from_this<State> {
            Entity_kind kind,
            Entity_type type,
            std::shared_ptr<StateVecType<T, DomainType>> *vector_ptr) {
-    
+
     iterator it = find<T, DomainType, StateVecType>(name, domain, kind, type);
     if (it != state_vectors_.end()) {
       *vector_ptr = std::dynamic_pointer_cast<StateVecType<T, DomainType>>(*it);
@@ -594,7 +620,7 @@ class State : public std::enable_shared_from_this<State> {
   }
 
 
-  /*! 
+  /*!
     @brief Retrieve a shared pointer to a const state vector by name given
     the domain
     and type of entity it is defined on
@@ -625,7 +651,7 @@ class State : public std::enable_shared_from_this<State> {
            Entity_kind kind,
            Entity_type type,
            std::shared_ptr<StateVecType<T, DomainType> const> *vector_ptr) const {
-    
+
     const_iterator it = find<T, DomainType, StateVecType>(name, domain, kind, type);
     if (it != state_vectors_.cend()) {
       *vector_ptr = std::dynamic_pointer_cast<StateVecType<T, DomainType> const>(*it);
@@ -637,8 +663,8 @@ class State : public std::enable_shared_from_this<State> {
 
 
 
-  /*! 
-    @brief Retrieve a shared pointer to a state vector by name given the 
+  /*!
+    @brief Retrieve a shared pointer to a state vector by name given the
     domain it is defined on (regardless of entity type it is on)
     @tparam T           Data type
     @tparam DomainType  Type of domain data is defined on (Mesh, MeshTile)
@@ -669,7 +695,7 @@ class State : public std::enable_shared_from_this<State> {
   bool get(std::string name,
            std::shared_ptr<DomainType> domain,
            std::shared_ptr<StateVecType<T, DomainType>> *vector_ptr) {
-    
+
     return get(name, domain, Entity_kind::ANY_KIND, Entity_type::ALL,
                vector_ptr);
   }
@@ -677,7 +703,7 @@ class State : public std::enable_shared_from_this<State> {
 
 
 
-  /*! 
+  /*!
     @brief Retrieve a shared pointer to a const state vector by name given
     the domain it is defined on (regardless of entity type it is on)
     @tparam T           Data type
@@ -709,7 +735,7 @@ class State : public std::enable_shared_from_this<State> {
   bool get(std::string name,
            std::shared_ptr<DomainType> domain,
            std::shared_ptr<StateVecType<T, DomainType> const> *vector_ptr) const {
-    
+
     return get(name, domain, Entity_kind::ANY_KIND, Entity_type::ALL,
                vector_ptr);
   }
@@ -717,7 +743,7 @@ class State : public std::enable_shared_from_this<State> {
 
 
 
-  /*! 
+  /*!
     @brief Add an uninitialized state vector using a string identifier
     @tparam T          Data type
     @tparam DomainType Type of domain data is defined on (Mesh, MeshTile)
@@ -739,13 +765,13 @@ class State : public std::enable_shared_from_this<State> {
                                    std::shared_ptr<DomainType> domain,
                                    Entity_kind kind,
                                    Entity_type type) {
-    
+
     iterator it = find<T, DomainType, StateVecType>(name, domain, kind, type);
     if (it == end()) {
       // a search of the state vectors by name and kind of entity turned up
       // empty, so add the vector to the list; if not, warn about duplicate
       // state data
-      
+
       // add the index of this vector in state_vectors_ to the vector of
       // indexes for this entity type, to allow iteration over state
       // vectors on this entity type with a permutation iterator
@@ -772,7 +798,7 @@ class State : public std::enable_shared_from_this<State> {
 
 
 
-  /*! 
+  /*!
     @brief Add a single valued state vector (class StateVector) using a string identifier and optional array data
     @tparam T          Data type
     @tparam DomainType Type of domain data is defined on (Mesh, MeshTile)
@@ -793,13 +819,13 @@ class State : public std::enable_shared_from_this<State> {
                                   Entity_kind kind,
                                   Entity_type type,
                                   T const * const data) {
-    
+
     iterator it = find<T, DomainType, StateVector>(name, domain, kind, type);
     if (it == end()) {
       // a search of the state vectors by name and kind of entity turned up
       // empty, so add the vector to the list; if not, warn about duplicate
       // state data
-      
+
       // add the index of this vector in state_vectors_ to the vector of
       // indexes for this entity type, to allow iteration over state
       // vectors on this entity type with a permutation iterator
@@ -824,7 +850,7 @@ class State : public std::enable_shared_from_this<State> {
 
 
 
-  /*! 
+  /*!
     @brief Add a multi-valued state vector (class MMStateVector) using a string identifier and 2D array data
     @tparam T          Data type
     @tparam DomainType Type of domain data is defined on (Mesh, MeshTile)
@@ -845,14 +871,14 @@ class State : public std::enable_shared_from_this<State> {
                                     Entity_kind kind,
                                     Entity_type type,
                                     Data_layout  layout,
-                                    T const ** const data) {
-    
+                                    T const * const * data) {
+
     iterator it = find<T, DomainType, MMStateVector>(name, domain, kind, type);
     if (it == end()) {
       // a search of the state vectors by name and kind of entity turned up
       // empty, so add the vector to the list; if not, warn about duplicate
       // state data
-      
+
       // add the index of this vector in state_vectors_ to the vector of
       // indexes for this entity type, to allow iteration over state
       // vectors on this entity type with a permutation iterator
@@ -877,7 +903,7 @@ class State : public std::enable_shared_from_this<State> {
 
 
 
-  /*! 
+  /*!
     @brief Add state vector using a string identifier and a single value
     @tparam T          Data type
     @tparam DomainType Type of domain data is defined on (Mesh, MeshTile)
@@ -897,7 +923,7 @@ class State : public std::enable_shared_from_this<State> {
     std::enable_if....type') because complex template deduction rules
     are making the compiler invoke the reference version, when we call
     it with a non-const pointer.
-    
+
     So, if we call
 
     double data[10];
@@ -918,18 +944,18 @@ class State : public std::enable_shared_from_this<State> {
 
   template <class T, class DomainType,
             template<class /* T */, class /* DomainType */> class StateVecType>
-  typename 
+  typename
   std::enable_if<(!std::is_pointer<T>::value && !std::is_array<T>::value),
                  StateVecType<T, DomainType>&>::type
   add(std::string name, std::shared_ptr<DomainType> domain, Entity_kind kind,
       Entity_type type, T const& data) {
-    
+
     iterator it = find<T, DomainType, StateVecType>(name, domain, kind, type);
     if (it == end()) {
       // a search of the state vectors by name and kind of entity turned up
       // empty, so add the vector to the list; if not, warn about duplicate
       // state data
-      
+
       auto vector =
           std::make_shared<StateVecType<T, DomainType>>(name, domain,
                                                         shared_from_this(),
@@ -1009,7 +1035,7 @@ class State : public std::enable_shared_from_this<State> {
         vector_copy = std::make_shared<StateVecType<T, DomainType>>(in_vec);
       }
       state_vectors_.emplace_back(vector_copy);
-      
+
       // add the index of this vector in state_vectors_ to the vector of
       // indexes for this entity type, to allow iteration over state
       // vectors on this entity type with a permutation iterator
@@ -1047,8 +1073,14 @@ class State : public std::enable_shared_from_this<State> {
   //  the add functions to send a shared_ptr to state vector
   //  constructors in which case State cannot be created on the stack,
   //  only on the heap
-  
-  explicit State(std::shared_ptr<Jali::Mesh> mesh) : mymesh_(mesh) {}
+
+  explicit State(std::shared_ptr<Jali::Mesh> mesh) : mymesh_(mesh) {
+    Entity_ID_List dummy_owned_cells, dummy_ghost_cells;
+    dummy_cellset_ = std::make_shared<MeshSet>("dummy_cellset_",
+                                               *mesh, Entity_kind::CELL,
+                                               dummy_owned_cells,
+                                               dummy_ghost_cells, false);
+  }
 
 
  private:
@@ -1060,6 +1092,12 @@ class State : public std::enable_shared_from_this<State> {
   // material, there will be no meshset stored because its the whole
   // mesh
   std::vector<std::shared_ptr<MeshSet>> material_cellsets_;
+
+  // One dummy material set (to return when no materials are defined)
+  std::shared_ptr<MeshSet> dummy_cellset_;
+
+  // Lists of materials in cells
+  std::vector<std::vector<int>> cell_materials_;
 
   // All the state vectors
   std::vector<std::shared_ptr<BaseStateVector>> state_vectors_;
