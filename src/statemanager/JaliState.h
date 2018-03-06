@@ -134,7 +134,7 @@ class State : public std::enable_shared_from_this<State> {
   /// Get the materials in a cell
 
   std::vector<int> const& cell_materials(int c) const {
-    return cell_materials_[c];
+    return material_cellsets_.size() ? cell_materials_[c] : dummy_cellmats_;
   }
 
 
@@ -946,7 +946,7 @@ class State : public std::enable_shared_from_this<State> {
             template<class /* T */, class /* DomainType */> class StateVecType>
   typename
   std::enable_if<(!std::is_pointer<T>::value && !std::is_array<T>::value),
-                 StateVecType<T, DomainType>&>::type
+                 StateVecType<T, DomainType>>::type
   add(std::string name, std::shared_ptr<DomainType> domain, Entity_kind kind,
       Entity_type type, T const& data) {
 
@@ -1095,6 +1095,9 @@ class State : public std::enable_shared_from_this<State> {
 
   // One dummy material set (to return when no materials are defined)
   std::shared_ptr<MeshSet> dummy_cellset_;
+
+  // Dummy material vector (to return in cell_materials when no mats are defined)
+  std::vector<int> dummy_cellmats_;
 
   // Lists of materials in cells
   std::vector<std::vector<int>> cell_materials_;
