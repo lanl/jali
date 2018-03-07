@@ -935,8 +935,16 @@ class State : public std::enable_shared_from_this<State> {
 
     http://stackoverflow.com/questions/13665574/template-argument-deduction-and-pointers-to-constants
 
-    The alternate approach to avoid this mess is to make the pointer
-    version of the routine take a non-const pointer.
+
+    We could make it work for some cases using
+
+    template <class T, class DomainType,
+              template<class, class> class StateVecType>
+    auto add(........,
+             T const& data) -> StateVecType<decltype(data+data), DomainType>&
+
+    but this does not work if T is a double[3] or std::array<double, 3>
+    as there is no + operator defined for these types
 
     ******************************************************************
 
@@ -946,9 +954,9 @@ class State : public std::enable_shared_from_this<State> {
             template<class /* T */, class /* DomainType */> class StateVecType>
   typename
   std::enable_if<(!std::is_pointer<T>::value && !std::is_array<T>::value),
-                 StateVecType<T, DomainType>>::type
-  add(std::string name, std::shared_ptr<DomainType> domain, Entity_kind kind,
-      Entity_type type, T const& data) {
+      StateVecType<T, DomainType>>::type &
+      add(std::string name, std::shared_ptr<DomainType> domain,
+          Entity_kind kind, Entity_type type, T const& data) {
 
     iterator it = find<T, DomainType, StateVecType>(name, domain, kind, type);
     if (it == end()) {
