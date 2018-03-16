@@ -4,6 +4,7 @@
 //
 
 #include <iostream>
+#include <iomanip>
 
 #include "mpi.h"
 
@@ -108,6 +109,138 @@ int main(int argc, char *argv[]) {
 
   std::shared_ptr<Jali::State> mystate = Jali::State::create(mymesh);
 
+
+  // Define a multi-material state vector on cells to store volume fractions
+  // Create 3 material sets in the state corresponding to a T-junction
+  // configuration. The cell numbering is as follows
+  //
+  //     3 7 11 15
+  //     2 6 10 14
+  //     1 5  9 13
+  //     0 4  8 12
+  //
+  //     *--------*----:---*--------*--------*
+  //     |        |    :   |        |        |
+  //     |    0   | 0  : 2 |    2   |    2   |
+  //     |        |    :   |        |        |
+  //     *--------*----:---*--------*--------*
+  //     |        |    : 2 |    2   |    2   |
+  //     |        |    +............|........|
+  //     |    0   |  0 : 1 |    1   |    1   |
+  //     *--------*----:---*--------*--------*
+  //     |        |    :   |        |        |
+  //     |    0   |  0 : 1 |    1   |    1   |
+  //     |        |    :   |        |        |
+  //     *--------*----:---*--------*--------*
+  //     |        |    :   |        |        |
+  //     |    0   |  0 : 1 |    1   |    1   |
+  //     |        |    :   |        |        |
+  //     *--------*----:---*--------*--------*
+
+  // cells in the materials (for initialization)
+  std::vector<std::vector<int>> matcells = {{0, 1, 2, 3, 4, 5, 6, 7},
+                                            {4, 5, 6, 8, 9, 10, 12, 13, 14},
+                                            {6, 7, 10, 11, 14, 15}};
+
+  mystate->add_material("steel1", matcells[0]);
+  mystate->add_material("aluminum1", matcells[1]);
+  mystate->add_material("aluminum2", matcells[2]);
+
+  int nmats = mystate->num_materials();
+
+  // Print out some material info
+
+  std::cerr << "Materials in problem are ";
+  for (int m = 0; m < nmats; m++)
+    std::cerr << "\"" << mystate->material_name(m) << "\" ";
+  std::cerr << "\n";
+
+  // Create a multi-material state vector corresponding to volume
+  // fractions of materials as shown in fig above. The initialization
+  // uses a full 2-dimensional array that specifies volume fractions
+  // for each cell in each material (material-centric layout of
+  // data). Although the data is specified in full, the actual
+  // representation internally will be compact - only those cells that
+  // are defined to be in the materials will have volume fractions
+  // associated with them.
+  
+  double **vf_in = new double*[3];
+  for (int i = 0; i < 3; i++)
+    vf_in[i] = new double[16];
+
+  double vfarr[3][16] = {{1.0, 1.0, 1.0, 1.0, 0.5, 0.5, 0.5, 0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
+                         {0.0, 0.0, 0.0, 0.0, 0.5, 0.5, 0.25, 0.0, 1.0, 1.0, 0.5, 0.0, 1.0, 1.0, 0.5, 0.0},
+                         {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25, 0.5, 0.0, 0.0, 0.5, 1.0, 0.0, 0.0, 0.5, 1.0}};
+  for (int m = 0; m < 3; m++)
+    for (int c = 0; c < 16; c++)
+      vf_in[m][c] = vfarr[m][c];
+
+  Jali::MultiStateVector<double>& vf =
+      mystate->add<double, Jali::Mesh>("volfrac", mymesh,
+                                       Jali::Entity_kind::CELL,
+                                       Jali::Entity_type::ALL,
+                                       Jali::Data_layout::MATERIAL_CENTRIC,
+                                       (double const **) vf_in);
+
+  
+  // Create another UNINITIALIZED multimaterial vector 
+  Jali::MultiStateVector<double>& vf_alt =
+      mystate->add<double, Jali::Mesh,
+                   Jali::MultiStateVector>("volfrac", mymesh,
+                                           Jali::Entity_kind::CELL,
+                                           Jali::Entity_type::ALL);
+
+  // Then assign it data in a cell-centric layout (first index is cell)
+  double **vf_in2 = new double*[16];
+  for (int i = 0; i < 16; i++)
+    vf_in2[i] = new double[3];
+
+  for (int c = 0; c < 16; c++)
+    for (int m = 0; m < 3; m++)
+      vf_in2[c][m] = vfarr[m][c];
+  
+
+  vf_alt.assign(Jali::Data_layout::CELL_CENTRIC, (double const **)vf_in2);
+
+  // Check that the multimaterial vectors created differently are equivalent
+
+  for (int m = 0; m < nmats; m++) {
+    // Retrieve material 'm' data en masse for the first vector vf. On
+    // the other hand, use the operator() to retrieve data for the
+    // second vector vfalt
+    std::vector<double>& vfmat = vf.get_matdata(m);
+
+    // We need the indices of cells in the material
+    std::vector<int> const& matcells = mystate->material_cells(m);
+
+    for (int ic = 0; ic < vfmat.size(); ic++) {
+      int c = matcells[ic];
+
+      // Note that we are using the local cell index in material for
+      // vfmat, the data array for the material, but the mesh cell
+      // index for direct retrieval of data from vf_alt
+      assert(fabs(vfmat[ic] - vf_alt(m, c)) < 1.0e-10);
+    }
+  }
+
+  // Print this info out
+
+  std::cerr << "Multi-material state vector \"volfracs\"\n";
+  for (int c = 0; c < 16; c++) {
+    std::cerr << "Cell: " << c << "  Materials: ";
+    std::vector<int> cmats = mystate->cell_materials(c);
+    for (int im = 0; im < cmats.size(); im++) {
+      int m = cmats[im];
+      std::cerr << mystate->material_name(m) << "  ";
+    }
+    std::cerr << "  Vol. Fracs.:";
+    for (int im = 0; im < cmats.size(); im++) {
+      int m = cmats[im];
+      std::cerr << " " << std::setw(3) << vf(m, c) << " ";
+    }
+    std::cerr << "\n";
+  }
+  std::cerr << "\n\n";
 
   // Create some CELL-based data
 
