@@ -20,6 +20,9 @@ struct Vec2d {
   double x;
   double y;
 
+  Vec2d() : x(0.0), y(0.0) {}
+  Vec2d(double xvalue, double yvalue) : x(xvalue), y(yvalue) {}
+  
   void set(double xvalue, double yvalue) {
     x = xvalue;  y = yvalue;
   }
@@ -36,7 +39,7 @@ struct Vec2d {
 
 TEST(Jali_State_Var_Types) {
 
-  const int n_cells = 4;
+  constexpr int n_cells = 4;
   int n_nodes = 9;
   float ftest[] = {1.1, 2.2, 3.3, 4.4};
   int itest[] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
@@ -86,12 +89,12 @@ TEST(Jali_State_Var_Types) {
 
   int testCnt = 0;
   for (Jali::State::iterator it = dstate->begin(); it != dstate->end(); it++) {
-    std::shared_ptr<Jali::BaseStateVector> sv = *it;
-    if (typeid(float) == sv->get_data_type())
+    std::shared_ptr<Jali::StateVectorBase> sv = *it;
+    if (typeid(float) == sv->data_type())
       CHECK_EQUAL(testCnt, 0);
-    else if (typeid(int) == sv->get_data_type())
+    else if (typeid(int) == sv->data_type())
       CHECK_EQUAL(testCnt, 1);
-    else if (typeid(Vec2d) == sv->get_data_type())
+    else if (typeid(Vec2d) == sv->data_type())
       CHECK_EQUAL(testCnt, 2);
     else
       CHECK_EQUAL(0, 1);  // This else should never be reached in this test
@@ -118,7 +121,7 @@ TEST(Jali_State_On_Mesh) {
 
   std::vector<double> data1 = {1.0, 3.0, 2.5, 4.5, -1.0, -1.0, -1.0, -1.0,
                                -1.0, -1.0, -1.0, -1.0};
-  Jali::StateVector<double, Jali::Mesh> myvec1("cellvars", mesh1, nullptr,
+  Jali::UniStateVector<double, Jali::Mesh> myvec1("cellvars", mesh1, nullptr,
                                                Jali::Entity_kind::CELL,
                                                Jali::Entity_type::ALL,
                                                &(data1[0]));
@@ -126,7 +129,7 @@ TEST(Jali_State_On_Mesh) {
   // Add the first vector to state using the state vector object (deep copy)
 
   int add_status;
-  Jali::StateVector<double, Jali::Mesh>& addvec1 = mystate->add(myvec1);
+  Jali::UniStateVector<double, Jali::Mesh>& addvec1 = mystate->add(myvec1);
   CHECK_EQUAL(addvec1.size(), myvec1.size());
   for (int i = 0; i < addvec1.size(); ++i)
     CHECK_EQUAL(addvec1[i], myvec1[i]);
@@ -139,7 +142,7 @@ TEST(Jali_State_On_Mesh) {
   // boundary ghost nodes
 
   double data2[9] = {0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0};
-  Jali::StateVector<double, Jali::Mesh> myvec2("nodevars", mesh1, nullptr,
+  Jali::UniStateVector<double, Jali::Mesh> myvec2("nodevars", mesh1, nullptr,
                                                Jali::Entity_kind::NODE,
                                                Jali::Entity_type::ALL,
                                                &(data2[0]));
@@ -147,7 +150,7 @@ TEST(Jali_State_On_Mesh) {
   // Add a second vector to state using the pointer to the array
   // data
 
-  Jali::StateVector<double, Jali::Mesh>& addvec2 =
+  Jali::UniStateVector<double, Jali::Mesh>& addvec2 =
       mystate->add("nodevars", mesh1, Jali::Entity_kind::NODE,
                   Jali::Entity_type::ALL, data2);
   CHECK_EQUAL(9, addvec2.size());
@@ -160,7 +163,7 @@ TEST(Jali_State_On_Mesh) {
   // Define a state vector on cells initialized from constant value
 
   double constval = 5.5;
-  Jali::StateVector<double, Jali::Mesh> myvec3("cellvars_const", mesh1,
+  Jali::UniStateVector<double, Jali::Mesh> myvec3("cellvars_const", mesh1,
                                                nullptr,
                                                Jali::Entity_kind::CELL,
                                                Jali::Entity_type::ALL,
@@ -169,8 +172,8 @@ TEST(Jali_State_On_Mesh) {
 
   // Add a third vector to state using the same constant value
 
-  Jali::StateVector<double, Jali::Mesh>& addvec3 =
-      mystate->add<double, Jali::Mesh, Jali::StateVector>("cellvars_const",
+  Jali::UniStateVector<double, Jali::Mesh>& addvec3 =
+      mystate->add<double, Jali::Mesh, Jali::UniStateVector>("cellvars_const",
                    mesh1, Jali::Entity_kind::CELL, Jali::Entity_type::ALL,
                    constval);
   CHECK_EQUAL(mesh1->num_cells(), addvec3.size());
@@ -183,8 +186,8 @@ TEST(Jali_State_On_Mesh) {
   // to anything - NOTE THAT WE HAVE TO TELL IT THAT IT IS TYPE 'int'
   // SINCE THERE IS NO INPUT DATA TO INFER THIS FROM
 
-  Jali::StateVector<int, Jali::Mesh>& addvec4 =
-      mystate->add<int, Jali::Mesh, Jali::StateVector>("nodevars_postinit",
+  Jali::UniStateVector<int, Jali::Mesh>& addvec4 =
+      mystate->add<int, Jali::Mesh, Jali::UniStateVector>("nodevars_postinit",
                                                        mesh1,
                                                        Jali::Entity_kind::NODE,
                                                        Jali::Entity_type::ALL);
@@ -202,14 +205,14 @@ TEST(Jali_State_On_Mesh) {
   std::shared_ptr<Jali::Mesh> mesh2 = mf(0.0, 0.0, 1.0, 1.0, 3, 3);
 
   std::vector<double> data5 = {1.0, 3.0, 2.5, 4.5, 1.0, 2.0, 7.0, 2.0, 9.0};
-  Jali::StateVector<double, Jali::Mesh> myvec5("cellvars2", mesh2, nullptr,
+  Jali::UniStateVector<double, Jali::Mesh> myvec5("cellvars2", mesh2, nullptr,
                     Jali::Entity_kind::CELL, Jali::Entity_type::PARALLEL_OWNED,
                     &(data5[0]));
 
   // Try to add the fifth vector (defined on a different mesh) to it - it
   // should copy the data but be assigned to mesh1 instead of mesh2 (deep copy)
 
-  Jali::StateVector<double, Jali::Mesh> &addvec5 = mystate->add(myvec5);
+  Jali::UniStateVector<double, Jali::Mesh> &addvec5 = mystate->add(myvec5);
 
   // The mesh() functions gives references to the Mesh object and the
   // Mesh object has no == or != operator (too expensive), so make
@@ -226,17 +229,21 @@ TEST(Jali_State_On_Mesh) {
 
   Jali::State::const_iterator itc;
 
+  // First retrieve the state vector with just the name
+
+  itc = mystate->find("cellvars");
+  CHECK(mystate->cend() != itc);
 
   // Make sure retrieve first state vector by name
 
-  itc = mystate->find<double, Jali::Mesh, Jali::StateVector>("cellvars", mesh1,
+  itc = mystate->find<double, Jali::Mesh, Jali::UniStateVector>("cellvars", mesh1,
                       Jali::Entity_kind::CELL, Jali::Entity_type::ALL);
-  CHECK(mystate->end() != itc);
+  CHECK(mystate->cend() != itc);
 
   // Make sure the object we retrieved is identical to the one we put in
 
-  Jali::StateVector<double> myvec1_copy =
-      *(std::static_pointer_cast<Jali::StateVector<double, Jali::Mesh>>(*itc));
+  Jali::UniStateVector<double> myvec1_copy =
+      *(std::static_pointer_cast<Jali::UniStateVector<double, Jali::Mesh>>(*itc));
 
   CHECK_EQUAL(myvec1.size(), myvec1_copy.size());
   for (int i = 0; i < myvec1.size(); ++i)
@@ -245,7 +252,7 @@ TEST(Jali_State_On_Mesh) {
 
   // Retrieve the second state vector more directly
 
-  Jali::StateVector<double, Jali::Mesh> myvec2_copy;
+  Jali::UniStateVector<double, Jali::Mesh> myvec2_copy;
   bool found;
   found = mystate->get<double, Jali::Mesh>("nodevars", mesh1,
                                            Jali::Entity_kind::NODE,
@@ -275,7 +282,7 @@ TEST(Jali_State_On_Mesh) {
 
   // Retrieve the fourth state vector and check its contents
 
-  Jali::StateVector<int, Jali::Mesh> myintvec_copy;
+  Jali::UniStateVector<int, Jali::Mesh> myintvec_copy;
   found = mystate->get<int, Jali::Mesh>("nodevars_postinit", mesh1,
                                         Jali::Entity_kind::NODE,
                                         Jali::Entity_type::ALL,
@@ -305,14 +312,14 @@ TEST(Jali_State_On_Mesh) {
   // Try to retrieve the vector by name and mesh but without the
   // kind/type of entity it lives on
 
-  itc = mystate->find<int, Jali::Mesh, Jali::StateVector>("nodevars_postinit",
-                                                          mesh1);
+  itc = mystate->find<int, Jali::Mesh,
+                      Jali::UniStateVector>("nodevars_postinit", mesh1);
   CHECK(mystate->end() != itc);
 
   // Make sure the object we retrieved is identical to the one we put in
 
   myintvec_copy =
-      *(std::static_pointer_cast<Jali::StateVector<int, Jali::Mesh>>(*itc));
+      *(std::dynamic_pointer_cast<Jali::UniStateVector<int, Jali::Mesh>>(*itc));
 
   CHECK_EQUAL(addvec4.size(), myintvec_copy.size());
   for (int i = 0; i < addvec4.size(); ++i)
@@ -324,7 +331,7 @@ TEST(Jali_State_On_Mesh) {
   // Retrieve a shared pointer to a state vector and non-const data that
   // it is pointing to
 
-  std::shared_ptr<Jali::StateVector<double, Jali::Mesh>> myvec2_sptr;
+  std::shared_ptr<Jali::UniStateVector<double, Jali::Mesh>> myvec2_sptr;
   found = mystate->get("cellvars", mesh1, Jali::Entity_kind::CELL,
                        Jali::Entity_type::ALL, &myvec2_sptr);
   CHECK(found);
@@ -339,7 +346,7 @@ TEST(Jali_State_On_Mesh) {
   // Retrieve a shared pointer to a state vector and const data that
   // it is pointing to
 
-  std::shared_ptr<Jali::StateVector<double, Jali::Mesh> const> myvec2_sptr2;
+  std::shared_ptr<Jali::UniStateVector<double, Jali::Mesh> const> myvec2_sptr2;
   found = mystate->get("cellvars", mesh1, Jali::Entity_kind::CELL,
                        Jali::Entity_type::ALL, &myvec2_sptr2);
   CHECK(found);
@@ -356,24 +363,24 @@ TEST(Jali_State_On_Mesh) {
 
   Jali::State::iterator it = mystate->begin();
   while (it != mystate->end()) {
-    std::shared_ptr<Jali::BaseStateVector> sv = *it;
+    std::shared_ptr<Jali::StateVectorBase> sv = *it;
     if (sv->name() == "nodevars_postinit") {
-      Jali::StateVector<int, Jali::Mesh> myvec6 =
-          *(std::dynamic_pointer_cast<Jali::StateVector<int, Jali::Mesh>>(sv));
+      Jali::UniStateVector<int, Jali::Mesh> myvec6 =
+          *(std::dynamic_pointer_cast<Jali::UniStateVector<int, Jali::Mesh>>(sv));
 
       CHECK(myvec6.entity_kind() == Jali::Entity_kind::NODE &&
             myvec6.entity_type() == Jali::Entity_type::ALL);
     } 
     else if (sv->name() == "cellvars_const") {
-      Jali::StateVector<double, Jali::Mesh> myvec6 =
-          *(std::dynamic_pointer_cast<Jali::StateVector<double, Jali::Mesh>>(sv));
+      Jali::UniStateVector<double, Jali::Mesh> myvec6 =
+          *(std::dynamic_pointer_cast<Jali::UniStateVector<double, Jali::Mesh>>(sv));
 
       CHECK(myvec6.entity_kind() == Jali::Entity_kind::CELL &&
             myvec6.entity_type() == Jali::Entity_type::ALL);
     } 
     else {
-      Jali::StateVector<double, Jali::Mesh> myvec6 =
-          *(std::dynamic_pointer_cast<Jali::StateVector<double, Jali::Mesh>>(sv));
+      Jali::UniStateVector<double, Jali::Mesh> myvec6 =
+          *(std::dynamic_pointer_cast<Jali::UniStateVector<double, Jali::Mesh>>(sv));
       
       CHECK((myvec6.name() == "cellvars" &&
              myvec6.entity_kind() == Jali::Entity_kind::CELL &&
@@ -395,14 +402,14 @@ TEST(Jali_State_On_Mesh) {
   // Retrieve state vectors (not contents of a state vector) through [] operator
 
   myvec1_copy =
-      *(std::dynamic_pointer_cast<Jali::StateVector<double, Jali::Mesh>>((*mystate)[0]));
+      *(std::dynamic_pointer_cast<Jali::UniStateVector<double, Jali::Mesh>>((*mystate)[0]));
   CHECK(myvec1_copy.name() == "cellvars" &&
         myvec1_copy.entity_kind() == Jali::Entity_kind::CELL &&
         myvec1_copy.entity_type() == Jali::Entity_type::ALL);
 
 
   myvec1_copy =
-      *(std::dynamic_pointer_cast<Jali::StateVector<double, Jali::Mesh>>((*mystate)[1]));
+      *(std::dynamic_pointer_cast<Jali::UniStateVector<double, Jali::Mesh>>((*mystate)[1]));
   CHECK(myvec1_copy.name() == "nodevars" &&
         myvec1_copy.entity_kind() == Jali::Entity_kind::NODE &&
         myvec1_copy.entity_type() == Jali::Entity_type::ALL);
@@ -413,7 +420,7 @@ TEST(Jali_State_On_Mesh) {
 
   // Make sure the code fails if we ask for the right name but wrong entity type
 
-  itc = mystate->find<double, Jali::Mesh, Jali::StateVector>("cellvars",
+  itc = mystate->find<double, Jali::Mesh, Jali::UniStateVector>("cellvars",
                       mesh1, Jali::Entity_kind::FACE, Jali::Entity_type::ALL);
   CHECK(mystate->end() == itc);
 
@@ -443,14 +450,18 @@ TEST(Jali_MMState_On_Mesh) {
   // Define a single valued state vector on cells with string ids and
   // initialized to 0
 
-  Jali::StateVector<double, Jali::Mesh>& rhocell =
-      mystate->add<double, Jali::Mesh, Jali::StateVector>("cell_density",
+  Jali::UniStateVector<double, Jali::Mesh>& rhocell =
+      mystate->add<double, Jali::Mesh, Jali::UniStateVector>("cell_density",
                    mesh, Jali::Entity_kind::CELL, Jali::Entity_type::ALL, 0.0);
 
 
   // Define a multi-material state vector on cells to store volume fractions
   // Create 3 material sets in the state corresponding to a T-junction
-  // configuration
+  // configuration. The cell numbering is as follows
+  //
+  //     2 5 8
+  //     1 4 7
+  //     0 3 6
   //
   //     *--------*----:---*--------*
   //     |        |    :   |        |
@@ -466,12 +477,12 @@ TEST(Jali_MMState_On_Mesh) {
   //     |        |    :   |        |
   //     *--------*----:---*--------*
 
-  std::vector<std::vector<int>> matcells = {{0, 1, 3, 4, 6, 7},
-                                            {1, 2, 4, 5},
+  std::vector<std::vector<int>> matcells = {{0, 1, 2, 3, 4, 5},
+                                            {3, 4, 6, 7},
                                             {4, 5, 7, 8}};
-  std::vector<std::vector<int>> cellmats = {{0}, {0, 1}, {1},
-                                            {0}, {0, 1, 2}, {1, 2},
-                                            {0}, {0, 2}, {2}};
+  std::vector<std::vector<int>> cellmats = {{0}, {0}, {0},
+                                            {0, 1}, {0, 1, 2}, {0, 2},
+                                            {1}, {1, 2}, {2}};
 
   mystate->add_material("steel1", matcells[0]);
   mystate->add_material("aluminum1", matcells[1]);
@@ -507,8 +518,8 @@ TEST(Jali_MMState_On_Mesh) {
   for (int i = 0; i < 4; i++)
     vf_in[i] = new double[9];
 
-  double vfarr[4][9] = {{1.0, 0.5, 0.0, 1.0, 0.5,  0.0, 1.0, 0.5, 0.0},
-                        {0.0, 0.5, 1.0, 0.0, 0.25, 0.5, 0.0, 0.0, 0.0},
+  double vfarr[4][9] = {{1.0, 1.0, 1.0, 0.5, 0.5,  0.5, 0.0, 0.0, 0.0},
+                        {0.0, 0.0, 0.0, 0.5, 0.25, 0.0, 1.0, 0.5, 0.0},
                         {0.0, 0.0, 0.0, 0.0, 0.25, 0.5, 0.0, 0.5, 1.0}};
   for (int m = 0; m < 3; m++)
     for (int c = 0; c < 9; c++)
@@ -516,7 +527,7 @@ TEST(Jali_MMState_On_Mesh) {
   for (int c = 0; c < 9; c++)
     vf_in[3][c] = 0.0;
 
-  Jali::MMStateVector<double>& vf =
+  Jali::MultiStateVector<double>& vf =
       mystate->add<double, Jali::Mesh>("volfrac", mesh,
                                        Jali::Entity_kind::CELL,
                                        Jali::Entity_type::ALL,
@@ -524,8 +535,8 @@ TEST(Jali_MMState_On_Mesh) {
                                        (double const **) vf_in);
   
   // Create another UNINITIALIZED multimaterial vector and then assign it data
-  Jali::MMStateVector<double>& vf_alt =
-      mystate->add<double, Jali::Mesh, Jali::MMStateVector>("volfrac", mesh,
+  Jali::MultiStateVector<double>& vf_alt =
+      mystate->add<double, Jali::Mesh, Jali::MultiStateVector>("volfrac", mesh,
                    Jali::Entity_kind::CELL, Jali::Entity_type::ALL);
   vf_alt.assign(Jali::Data_layout::MATERIAL_CENTRIC, (double const **)vf_in);
 
@@ -538,16 +549,48 @@ TEST(Jali_MMState_On_Mesh) {
     for (int c = 0; c < vfmat.size(); c++)
       CHECK_EQUAL(vfmat[c], vfmat_alt[c]);
   }
-      
 
 
+  
+  // Create a multi-material state vector corresponding to centroids of the
+  // materials. Similar to the volume fract array we will keep a spot for the
+  // fourth material
+  Vec2d origin(0.0, 0.0);
+  Jali::MultiStateVector<Vec2d>& matcenvec =
+      mystate->add<Vec2d, Jali::Mesh,
+                   Jali::MultiStateVector>("centroids",
+                                           mesh,
+                                           Jali::Entity_kind::CELL,
+                                           Jali::Entity_type::ALL,
+                                           origin);
+
+  // set centroids for materials (these vectors are per material, so we use
+  // local indices)
+  Vec2d *mat0cen = matcenvec.get_raw_data(0);
+  mat0cen[0] = Vec2d(0.5, 0.5); mat0cen[1] = Vec2d(0.5, 1.5);
+  mat0cen[2] = Vec2d(0.5, 2.5); mat0cen[3] = Vec2d(1.25, 0.5);
+  mat0cen[4] = Vec2d(1.25, 1.5); mat0cen[5] = Vec2d(1.25, 2.5);
+
+  Vec2d *mat1cen = matcenvec.get_raw_data(1);
+  mat1cen[0] = Vec2d(1.75, 0.5); mat1cen[1] = Vec2d(1.75, 1.25);
+  mat1cen[2] = Vec2d(2.5, 0.5);
+  mat1cen[3].set(2.5, 1.25);  // mix it up
+
+  std::vector<Vec2d>& mat2cen = matcenvec.get_matdata(2);
+  mat2cen[0].x = 1.75; mat2cen[0].y = 1.75;
+  mat2cen[1].x = 2.5;  mat2cen[1].y = 1.75;
+  mat2cen[2].set(1.75, 2.5);
+  mat2cen[3].set(2.5, 2.5);
+
+  
+  
   // Create a multi-material state vector corresponding to density of the
-  // materials (rho_0 = 10.0; rho_1 = 2.0; rho_2 = 2.0). Similar to the 
+  // materials (rho_0 = 10.0; rho_1 = 2.0; rho_2 = 2.0). Similar to the
   // volume fraction array, we will keep a spot for the fourth material
   double rho_in[4] = {10.0, 2.0, 2.0, 0.0};
 
-  Jali::MMStateVector<double, Jali::Mesh> & rhomat =
-      mystate->add<double, Jali::Mesh, Jali::MMStateVector>("mat_density",
+  Jali::MultiStateVector<double, Jali::Mesh> & rhomat =
+      mystate->add<double, Jali::Mesh, Jali::MultiStateVector>("mat_density",
                    mesh, Jali::Entity_kind::CELL, Jali::Entity_type::ALL);
 
   for (int m = 0; m < nmats; m++) {
@@ -612,16 +655,24 @@ TEST(Jali_MMState_On_Mesh) {
   //     |        |    :   |        |
   //     *--------*----:---*--------*
 
-  std::vector<int> matcells3 = {3, 4, 6, 7};
+  // Add it without initialization of cells
+  std::vector<int> matcells3;
   mystate->add_material("steel2", matcells3);
   nmats = mystate->num_materials();
 
-  // Material 3 is added to cells 3, 4, 6, 7 but material 0 is not removed
+  // Now add the cells to the material
+  matcells3.push_back(1);
+  matcells3.push_back(2);
+  matcells3.push_back(4);
+  matcells3.push_back(5);
+  mystate->add_cells_to_material(nmats-1, matcells3);
+
+  // Material 3 is added to cells 1, 2, 4, 5 but material 0 is not removed
   // (only its volume fraction is zeroed out)
-  cellmats[3].push_back(3);
+  cellmats[1].push_back(3);
+  cellmats[2].push_back(3);
   cellmats[4].push_back(3);
-  cellmats[6].push_back(3);
-  cellmats[7].push_back(3);
+  cellmats[5].push_back(3);
   
   for (int i = 0; i < 9; i++) {
     CHECK_EQUAL(cellmats[i].size(), mystate->num_cell_materials(i));
@@ -632,17 +683,23 @@ TEST(Jali_MMState_On_Mesh) {
 
   
   // Set the volume fractions material 3 in cells in the input vectors
-  vf_in[3][3] = 0.5;
+  vf_in[3][1] = 0.5;
+  vf_in[3][2] = 1.0;
   vf_in[3][4] = 0.25;
-  vf_in[3][6] = 1.0;
-  vf_in[3][7] = 0.5;
+  vf_in[3][5] = 0.5;
 
   // Set the volume fractions material 3 in cells in the state vectors
-  vf(3, 3) = 0.5;
+  vf(3, 1) = 0.5;
+  vf(3, 2) = 1.0;
   vf(3, 4) = 0.25;
-  vf(3, 6) = 1.0;
-  vf(3, 7) = 0.5;
+  vf(3, 5) = 0.5;
 
+  // Set the centroids of material 3  in state vector
+  matcenvec(3, 1) = Vec2d(0.5, 1.75);
+  matcenvec(3, 2).set(0.5, 2.5);
+  matcenvec(3, 4).set(1.25, 1.75);
+  matcenvec(3, 5).x = 1.25; matcenvec(3, 5).y = 2.5;
+  
   // Set the density of material 3 to be the same as material 0
   rho_in[3] = rho_in[0];
 
@@ -651,16 +708,23 @@ TEST(Jali_MMState_On_Mesh) {
     rho = rho_in[3];
 
   // Adjust the volume fractions of material 0 in the input vector
-  vf_in[0][3] = 0.5;
+  vf_in[0][1] = 0.5;
   vf_in[0][4] = 0.25;
-  vf_in[0][6] = vf_in[0][7] = 0.0;
+  vf_in[0][2] = vf_in[0][5] = 0.0;
 
   // Adjust the volume fractions of material 0 in the state vector (we
   // don't have rem_cells_from_material implemented yet)
-  vf(0, 3) = 0.5;
+  vf(0, 1) = 0.5;
   vf(0, 4) = 0.25;
-  vf(0, 6) = vf(0, 7) = 0.0;
+  vf(0, 2) = vf(0, 5) = 0.0;
 
+  // Adjust the centroids of material 0 in the state vector
+  // Access the centroids using the operator(*,*) but just to mix it up
+  // retrieve it in cell dominant way - cell index first, material index next
+  matcenvec(1, 0, Jali::Data_layout::CELL_CENTRIC) = Vec2d(0.5, 1.25);
+  matcenvec(2, 0, Jali::Data_layout::CELL_CENTRIC) = Vec2d(0.0, 0.0); // won't matter
+  matcenvec(4, 0, Jali::Data_layout::CELL_CENTRIC).set(1.25, 1.25);
+  matcenvec(5, 0, Jali::Data_layout::CELL_CENTRIC).set(0.0, 0.0);
 
   
   // Since the new material that displaced the old material has the
@@ -695,7 +759,44 @@ TEST(Jali_MMState_On_Mesh) {
       
   for (int c = 0; c < ncells; c++)
     CHECK_CLOSE(rhocell_exp[c], rhocell[c], 1.0e-12);
- 
+
+
+  // With this final pattern of materials, check the expected centroids of
+  // the materials with the computed ones
+
+  Vec2d exp_matcen[4] = {Vec2d(0.75, 0.75), Vec2d(2.25, 0.75),
+                         Vec2d(2.25, 2.25), Vec2d(0.75, 2.25)};
+
+  Jali::State::const_iterator itcen = mystate->find("centroids", mesh);
+  auto matcenvec2 =
+      std::dynamic_pointer_cast<Jali::MultiStateVector<Vec2d, Jali::Mesh>>(*itcen);
+
+  Jali::State::const_iterator itrho = mystate->find("volfrac");
+  auto volfracvec2 =
+      std::dynamic_pointer_cast<Jali::MultiStateVector<double, Jali::Mesh>>(*itrho);
+      
+  for (int m = 0; m < 4; m++) {
+    Vec2d calc_matcen(0.0, 0.0);
+
+    double volsum = 0.0;
+    std::vector<int> const & matcells = mystate->material_cells(m);
+    for (int ic = 0; ic < matcells.size(); ic++) {
+      int c = matcells[ic];
+      Vec2d cell_cen = (*matcenvec2)(m, c);
+      double vol = mesh->cell_volume(c);
+      double frac = (*volfracvec2)(m, c);
+
+      calc_matcen.x += cell_cen.x*vol*frac;
+      calc_matcen.y += cell_cen.y*vol*frac;
+      volsum += vol*frac;
+    }
+    calc_matcen.x /= volsum;
+    calc_matcen.y /= volsum;
+
+    CHECK_EQUAL(exp_matcen[m].x, calc_matcen.x);
+    CHECK_EQUAL(exp_matcen[m].y, calc_matcen.y);
+  }
+    
 }
 
 
@@ -782,7 +883,7 @@ TEST(Jali_State_Define_MeshTiles) {
 
     // Declare myvec2 more traditionally
 
-    Jali::StateVector<double, Jali::MeshTile>& myvec2 =
+    Jali::UniStateVector<double, Jali::MeshTile>& myvec2 =
         mystate->add("cornervars",
                      meshtile,
                      Jali::Entity_kind::CORNER,
@@ -804,9 +905,9 @@ TEST(Jali_State_Define_MeshTiles) {
 
   // Now retrieve the data we stored to make sure we can find data on tiles
 
-  Jali::StateVector<double, Jali::MeshTile> tilevec1[NTILES];
-  Jali::StateVector<double, Jali::MeshTile> tilevec2[NTILES];
-  Jali::StateVector<std::array<double, 3>, Jali::MeshTile> tilearray3[NTILES];
+  Jali::UniStateVector<double, Jali::MeshTile> tilevec1[NTILES];
+  Jali::UniStateVector<double, Jali::MeshTile> tilevec2[NTILES];
+  Jali::UniStateVector<std::array<double, 3>, Jali::MeshTile> tilearray3[NTILES];
 
   tileID = 0;
   for (auto const& meshtile : meshtiles) {
@@ -929,7 +1030,7 @@ TEST(Jali_State_Define_MeshTiles) {
   tileID = 0;
   for (auto const& meshtile : meshtiles) {
 
-    Jali::StateVector<double, Jali::MeshTile> svec1;
+    Jali::UniStateVector<double, Jali::MeshTile> svec1;
     bool found = mystate->get("cellvars", meshtile,
                               Jali::Entity_kind::CELL, Jali::Entity_type::ALL,
                               &svec1);
@@ -993,7 +1094,7 @@ TEST(Jali_State_Define_MeshTiles) {
     }
 
 
-    Jali::StateVector<std::array<double, 3>, Jali::MeshTile> svec2;
+    Jali::UniStateVector<std::array<double, 3>, Jali::MeshTile> svec2;
     found = mystate->get("cellarrays", meshtile,
                          Jali::Entity_kind::CELL, Jali::Entity_type::ALL,
                          &svec2);
@@ -1054,7 +1155,7 @@ TEST(State_Write_Read_With_Mesh) {
 
   std::vector<double> data1 = {1.0, 3.0, 2.5, 4.5, 0.0, 0.0, 0.0, 0.0,
                                0.0, 0.0, 0.0, 0.0};
-  Jali::StateVector<double> & outvec1 =
+  Jali::UniStateVector<double> & outvec1 =
       mystate1->add("cellvars", mesh1, Jali::Entity_kind::CELL,
                     Jali::Entity_type::ALL, &(data1[0]));
 
@@ -1066,7 +1167,7 @@ TEST(State_Write_Read_With_Mesh) {
     for (int j = 0; j < 2; j++)
       data2[i][j] = 0.4*i+0.1*j;
 
-  Jali::StateVector<std::array<double, 2>> & outvec2 =
+  Jali::UniStateVector<std::array<double, 2>> & outvec2 =
       mystate1->add("nodevars", mesh1, Jali::Entity_kind::NODE,
                     Jali::Entity_type::ALL, &(data2[0]));
 
@@ -1097,7 +1198,7 @@ TEST(State_Write_Read_With_Mesh) {
 
   // Retrieve the cell field and make sure we got back what we put in
 
-  Jali::StateVector<double, Jali::Mesh> invec1;
+  Jali::UniStateVector<double, Jali::Mesh> invec1;
   bool status = mystate2->get("cellvars", mesh2, Jali::Entity_kind::CELL,
                               Jali::Entity_type::ALL, &invec1);
   CHECK(status);
@@ -1126,7 +1227,7 @@ TEST(State_Write_Read_With_Mesh) {
 
   // Retrieve the node field and make sure we got back what we put in
 
-  Jali::StateVector<std::array<double, 2>> invec2;
+  Jali::UniStateVector<std::array<double, 2>> invec2;
   status = mystate2->get("nodevars", mesh2, Jali::Entity_kind::NODE,
                          Jali::Entity_type::ALL, &invec2);
   CHECK(status);
