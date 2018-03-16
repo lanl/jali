@@ -184,11 +184,11 @@ class State : public std::enable_shared_from_this<State> {
   //! Typedefs for iterators for going through all the state vectors
 
   typedef
-  std::vector<std::shared_ptr<BaseStateVector>>::iterator
+  std::vector<std::shared_ptr<StateVectorBase>>::iterator
   iterator;
 
   typedef
-  std::vector<std::shared_ptr<BaseStateVector>>::const_iterator
+  std::vector<std::shared_ptr<StateVectorBase>>::const_iterator
   const_iterator;
 
   /// Iterators for going through all the state vectors
@@ -213,7 +213,7 @@ class State : public std::enable_shared_from_this<State> {
   /// the state vectors on a specified entity
 
   typedef boost::permutation_iterator<
-    std::vector<std::shared_ptr<BaseStateVector>>::iterator,
+    std::vector<std::shared_ptr<StateVectorBase>>::iterator,
     std::vector<int>::iterator
     >
   permutation_type;
@@ -257,8 +257,8 @@ class State : public std::enable_shared_from_this<State> {
 
   /// References to state vectors
 
-  typedef std::shared_ptr<BaseStateVector> pointer;
-  typedef const std::shared_ptr<BaseStateVector> const_pointer;
+  typedef std::shared_ptr<StateVectorBase> pointer;
+  typedef const std::shared_ptr<StateVectorBase> const_pointer;
 
   /// Return pointer to i'th state vector
   pointer operator[](int i) { return state_vectors_[i]; }
@@ -271,9 +271,305 @@ class State : public std::enable_shared_from_this<State> {
 
 
 
+  /*!
+    @brief Find iterator to state vector by name (does not distinguish based
+    on data type of vector, UNIVAL or MULTIVAL or what domain its defined on)
+    @param name        String identifier for vector
+    @param kind        What kind of entity data is defined on (CELL, NODE, etc.)
+    @param type        What type of entity data is defined on (PARALLEL_OWNED, PARALLEL_GHOST, BOUNDARY_GHOST, ALL etc.)
+
+    Find iterator to state vector by NAME and what kind of entity and
+    what type of parallel entity it is defined on.  The type of entity
+    (parameter kind) may be specified as ANY_KIND if caller does
+    not care if the vector is on a particular entity type or knows
+    that there is only one vector by this name defined on a specific
+    entity kind. The function returns an iterator to a state vector in
+    the state manager if found; otherwise, it returns State::end()
+
+    This is the coarsest form of find - it will scoop a vector of any
+    type (UNIVAL or MULTIVAL) containing any data type and defined on
+    any domain (mesh, meshset or meshtile)
+  */
+
+  iterator find(std::string name,
+                Entity_kind kind = Entity_kind::ANY_KIND,
+                Entity_type type = Entity_type::ALL) {
+
+    iterator it = state_vectors_.begin();
+    while (it != state_vectors_.end()) {
+      std::shared_ptr<StateVectorBase> bv = *it;
+      if (bv->name() == name &&
+          ((kind == Entity_kind::ANY_KIND) || (bv->entity_kind() == kind)) &&
+          ((type == Entity_type::ALL) || (bv->entity_type() == type)))
+        break;
+      else
+        ++it;
+    }
+
+    return it;
+  }
+
+
+  /*!  
+    @brief Find const iterator to state vector by name (does not
+    distinguish based on data type of vector, UNIVAL or MULTIVAL or
+    what domain its defined on)
+    @param name        String identifier for vector
+    @param kind        What kind of entity data is defined on (CELL, NODE, etc.)
+    @param type        What type of entity data is defined on (PARALLEL_OWNED, PARALLEL_GHOST, BOUNDARY_GHOST, ALL etc.)
+
+    Find iterator to state vector by NAME and what kind of entity and
+    what type of parallel entity it is defined on.  The type of entity
+    (parameter kind) may be specified as ANY_KIND if caller does
+    not care if the vector is on a particular entity type or knows
+    that there is only one vector by this name defined on a specific
+    entity kind. The function returns an iterator to a state vector in
+    the state manager if found; otherwise, it returns State::end()
+
+    This is the coarsest form of find - it will scoop a vector of any
+    type (UNIVAL or MULTIVAL) containing any data type and defined on
+    any domain (mesh, meshset or meshtile)
+  */
+
+  const_iterator find(std::string name,
+                      Entity_kind kind = Entity_kind::ANY_KIND,
+                      Entity_type type = Entity_type::ALL) const {
+
+    const_iterator it = state_vectors_.cbegin();
+    while (it != state_vectors_.cend()) {
+      std::shared_ptr<StateVectorBase> bv = *it;
+      if (bv->name() == name &&
+          ((kind == Entity_kind::ANY_KIND) || (bv->entity_kind() == kind)) &&
+          ((type == Entity_type::ALL) || (bv->entity_type() == type)))
+        break;
+      else
+        ++it;
+    }
+
+    return it;
+  }
+
 
   /*!
-    @brief Find iterator to state vector by name and type
+    @brief Find iterator to state vector on a given domain (regardless of vector type or data type)
+    @tparam DomainType Type of domain data is defined on (Mesh, MeshTile)
+    @param name        String identifier for vector
+    @param domain      Shared pointer to the domain
+    @param kind        What kind of entity data is defined on (CELL, NODE, etc.)
+    @param type        What type of entity data is defined on (PARALLEL_OWNED, PARALLEL_GHOST, BOUNDARY_GHOST, ALL etc.)
+
+    Find iterator to state vector by NAME, the domain it is defined
+    on, what kind of entity and what type of parallel entity it is
+    defined on.  The type of entity (parameter kind) may be specified
+    as ANY_KIND if caller does not care if the vector is on a
+    particular entity type or knows that there is only one vector by
+    this name defined on a specific entity kind. The function returns
+    an iterator to a state vector in the state manager if found;
+    otherwise, it returns State::end()
+  */
+
+  template <class DomainType>
+  iterator find(std::string name,
+                std::shared_ptr<DomainType> domain,
+                Entity_kind kind = Entity_kind::ANY_KIND,
+                Entity_type type = Entity_type::ALL) {
+
+    iterator it = state_vectors_.begin();
+    while (it != state_vectors_.end()) {
+      std::shared_ptr<StateVectorBase> bv = *it;
+
+      if (bv->name() == name &&
+          ((kind == Entity_kind::ANY_KIND) || (bv->entity_kind() == kind)) &&
+          ((type == Entity_type::ALL) || (bv->entity_type() == type))) {
+
+        StateVector_type bvectype = bv->type();
+        if (bvectype == StateVector_type::UNIVAL) {
+          auto uvec =
+              std::dynamic_pointer_cast<UniStateVectorBase<DomainType>>(bv);
+          if (uvec && uvec->domain() == domain)
+            break;
+        } else if (bvectype == StateVector_type::MULTIVAL) {
+          auto mvec =
+              std::dynamic_pointer_cast<MultiStateVectorBase<DomainType>>(bv);
+          if (mvec && mvec->domain() == domain)
+            break;
+        }
+      }
+      ++it;
+    }
+
+    return it;
+  }
+
+
+
+
+  /*!
+    @brief Find const iterator to state vector on a given domain (regardless of vector type or data type)
+    @tparam DomainType Type of domain data is defined on (Mesh, MeshTile)
+    @param name        String identifier for vector
+    @param domain      Shared pointer to the domain
+    @param kind        What kind of entity data is defined on (CELL, NODE, etc.)
+    @param type        What type of entity data is defined on (PARALLEL_OWNED, PARALLEL_GHOST, BOUNDARY_GHOST, ALL etc.)
+
+    Find const iterator to state vector by NAME, the domain it is defined
+    on, what kind of entity and what type of parallel entity it is
+    defined on.  The type of entity (parameter kind) may be specified
+    as ANY_KIND if caller does not care if the vector is on a
+    particular entity type or knows that there is only one vector by
+    this name defined on a specific entity kind. The function returns
+    an iterator to a state vector in the state manager if found;
+    otherwise, it returns State::end()
+  */
+
+  template <class DomainType>
+  const_iterator find(std::string name,
+                      std::shared_ptr<DomainType> domain,
+                      Entity_kind kind = Entity_kind::ANY_KIND,
+                      Entity_type type = Entity_type::ALL) const {
+
+    const_iterator it = state_vectors_.cbegin();
+    while (it != state_vectors_.cend()) {
+      std::shared_ptr<StateVectorBase> bv = *it;
+
+      if (bv->name() == name &&
+          ((kind == Entity_kind::ANY_KIND) || (bv->entity_kind() == kind)) &&
+          ((type == Entity_type::ALL) || (bv->entity_type() == type))) {
+
+        StateVector_type bvectype = bv->type();
+        if (bvectype == StateVector_type::UNIVAL) {
+          auto uvec =
+              std::dynamic_pointer_cast<UniStateVectorBase<DomainType>>(bv);
+          if (uvec && uvec->domain() == domain)
+            break;
+        } else if (bvectype == StateVector_type::MULTIVAL) {
+          auto mvec =
+              std::dynamic_pointer_cast<MultiStateVectorBase<DomainType>>(bv);
+          if (mvec && mvec->domain() == domain)
+            break;
+        }
+      }
+      ++it;
+    }
+
+    return it;
+  }
+
+
+  /*!
+    @brief Find iterator to state vector on a given domain (regardless of data type)
+    @tparam DomainType Type of domain data is defined on (Mesh, MeshTile)
+    @param vectype     Enum type of state vector (UNIVAL or MULTIVAL)
+    @param name        String identifier for vector
+    @param domain      Shared pointer to the domain
+    @param kind        What kind of entity data is defined on (CELL, NODE, etc.)
+    @param type        What type of entity data is defined on (PARALLEL_OWNED, PARALLEL_GHOST, BOUNDARY_GHOST, ALL etc.)
+
+    Find iterator to state vector by NAME, the domain it is defined
+    on, what kind of entity and what type of parallel entity it is
+    defined on.  The type of entity (parameter kind) may be specified
+    as ANY_KIND if caller does not care if the vector is on a
+    particular entity type or knows that there is only one vector by
+    this name defined on a specific entity kind. The function returns
+    an iterator to a state vector in the state manager if found;
+    otherwise, it returns State::end()
+  */
+
+  template <class DomainType, StateVector_type vectype>
+  iterator find(std::string name,
+                std::shared_ptr<DomainType> domain,
+                Entity_kind kind = Entity_kind::ANY_KIND,
+                Entity_type type = Entity_type::ALL) {
+
+    iterator it = state_vectors_.begin();
+    while (it != state_vectors_.end()) {
+      std::shared_ptr<StateVectorBase> bv = *it;
+
+      if (bv->name() == name &&
+          ((kind == Entity_kind::ANY_KIND) || (bv->entity_kind() == kind)) &&
+          ((type == Entity_type::ALL) || (bv->entity_type() == type))) {
+
+        StateVector_type bvectype = bv->type();
+        if (vectype == StateVector_type::UNIVAL &&
+            bvectype == StateVector_type::UNIVAL) {
+          auto uvec =
+              std::dynamic_pointer_cast<UniStateVectorBase<DomainType>>(bv);
+          if (uvec && uvec->domain() == domain)
+            break;
+        } else if (vectype == StateVector_type::MULTIVAL &&
+                   bvectype == StateVector_type::MULTIVAL) {
+          auto mvec =
+              std::dynamic_pointer_cast<MultiStateVectorBase<DomainType>>(bv);
+          if (mvec && mvec->domain() == domain)
+            break;
+        }
+      }
+      ++it;
+    }
+
+    return it;
+  }
+
+
+
+
+  /*!
+    @brief Find const iterator to state vector on a given domain (regardless of data type)
+    @tparam DomainType Type of domain data is defined on (Mesh, MeshTile)
+    @param vectype     Enum type of state vector (UNIVAL or MULTIVAL)
+    @param name        String identifier for vector
+    @param domain      Shared pointer to the domain
+    @param kind        What kind of entity data is defined on (CELL, NODE, etc.)
+    @param type        What type of entity data is defined on (PARALLEL_OWNED, PARALLEL_GHOST, BOUNDARY_GHOST, ALL etc.)
+
+    Find const iterator to state vector by NAME, the domain it is defined
+    on, what kind of entity and what type of parallel entity it is
+    defined on.  The type of entity (parameter kind) may be specified
+    as ANY_KIND if caller does not care if the vector is on a
+    particular entity type or knows that there is only one vector by
+    this name defined on a specific entity kind. The function returns
+    an iterator to a state vector in the state manager if found;
+    otherwise, it returns State::end()
+  */
+
+  template <class DomainType, StateVector_type vectype>
+  const_iterator find(std::string name,
+                std::shared_ptr<DomainType> domain,
+                Entity_kind kind = Entity_kind::ANY_KIND,
+                Entity_type type = Entity_type::ALL) const {
+
+    iterator it = state_vectors_.cbegin();
+    while (it != state_vectors_.cend()) {
+      std::shared_ptr<StateVectorBase> bv = *it;
+
+      if (bv->name() == name &&
+          ((kind == Entity_kind::ANY_KIND) || (bv->entity_kind() == kind)) &&
+          ((type == Entity_type::ALL) || (bv->entity_type() == type))) {
+
+        StateVector_type bvectype = bv->type();
+        if (vectype == StateVector_type::UNIVAL &&
+            bvectype == StateVector_type::UNIVAL) {
+          auto uvec =
+              std::dynamic_pointer_cast<UniStateVectorBase<DomainType>>(bv);
+          if (uvec && uvec->domain() == domain)
+            break;
+        } else if (vectype == StateVector_type::MULTIVAL &&
+                   bvectype == StateVector_type::MULTIVAL) {
+          auto mvec =
+              std::dynamic_pointer_cast<MultiStateVectorBase<DomainType>>(bv);
+          if (mvec && mvec->domain() == domain)
+            break;
+        }
+      }
+      ++it;
+    }
+
+    return it;
+  }
+
+
+  /*!
+    @brief Find iterator to state vector templated on data type T by name
     @tparam T          Data type
     @tparam DomainType Type of domain data is defined on (Mesh, MeshTile)
     @param vectype     Enum type of state vector (UNIVAL or MULTIVAL)
@@ -299,14 +595,14 @@ class State : public std::enable_shared_from_this<State> {
                 Entity_type type = Entity_type::ALL) {
 
     if (vectype == StateVector_type::UNIVAL)
-      return find<T, DomainType, StateVector>(name, domain, kind, type);
+      return find<T, DomainType, UniStateVector>(name, domain, kind, type);
     else if (vectype == StateVector_type::MULTIVAL)
-      return find<T, DomainType, MMStateVector>(name, domain, kind, type);
+      return find<T, DomainType, MultiStateVector>(name, domain, kind, type);
   }
 
 
   /*!
-    @brief Find const iterator to state vector by name and type
+    @brief Find const iterator to state vector of data type T by name
     @tparam T          Data type
     @tparam DomainType Type of domain data is defined on (Mesh, MeshTile)
     @param vectype     Enum type of state vector (UNIVAL or MULTIVAL)
@@ -332,19 +628,19 @@ class State : public std::enable_shared_from_this<State> {
                 Entity_type type = Entity_type::ALL) const {
 
     if (vectype == StateVector_type::UNIVAL)
-      return find<T, DomainType, StateVector>(name, domain, kind, type);
+      return find<T, DomainType, UniStateVector>(name, domain, kind, type);
     else if (vectype == StateVector_type::MULTIVAL)
-      return find<T, DomainType, MMStateVector>(name, domain, kind, type);
+      return find<T, DomainType, MultiStateVector>(name, domain, kind, type);
   }
 
 
 
 
   /*!
-    @brief Find iterator to state vector by name
+    @brief Find iterator to state vector to data type T by name
     @tparam T          Data type
     @tparam DomainType Type of domain data is defined on (Mesh, MeshTile)
-    @tparam StateVecType  State vector class (StateVector or MMStateVector)
+    @tparam StateVecType  State vector class (UniStateVector or MultiStateVector)
     @param name        String identifier for vector
     @param domain      Shared pointer to the domain
     @param kind        What kind of entity data is defined on (CELL, NODE, etc.)
@@ -373,8 +669,7 @@ class State : public std::enable_shared_from_this<State> {
 
       // Check if we were able to cast the shared_ptr to BaseVector to
       // StateVecType and all the other characteristics match
-      if (sv && (sv->name() == name) &&
-          (sv->domain() == domain) &&
+      if (sv && (sv->name() == name) && (sv->domain() == domain) &&
           ((kind == Entity_kind::ANY_KIND) || (sv->entity_kind() == kind)) &&
           ((type == Entity_type::ALL) || (sv->entity_type() == type)))
         break;
@@ -388,10 +683,10 @@ class State : public std::enable_shared_from_this<State> {
 
 
   /*!
-    @brief Find a const iterator to state vector by name
+    @brief Find a const iterator to state vector of data type T by name
     @tparam T          Data type
     @tparam DomainType Type of domain data is defined on (Mesh, MeshTile)
-    @tparam StateVecType  State vector class (StateVector or MMStateVector)
+    @tparam StateVecType  State vector class (UniStateVector or MultiStateVector)
     @param name        String identifier for vector
     @param domain      Shared pointer to the domain
     @param kind        What kind of entity data is defined on (CELL, NODE, etc.)
@@ -413,15 +708,14 @@ class State : public std::enable_shared_from_this<State> {
                       Entity_kind kind = Entity_kind::ANY_KIND,
                       Entity_type type = Entity_type::ALL) const {
 
-    const_iterator it = state_vectors_.begin();
-    while (it != state_vectors_.end()) {
+    const_iterator it = state_vectors_.cbegin();
+    while (it != state_vectors_.cend()) {
       std::shared_ptr<StateVecType<T, DomainType>> sv =
           std::dynamic_pointer_cast<StateVecType<T, DomainType>>(*it);
 
       // Check if we were able to cast the shared_ptr to BaseVector to
       // StateVecType and all the other characteristics match
-      if (sv && (sv->name() == name) &&
-          (sv->domain() == domain) &&
+      if (sv && (sv->name() == name) && (sv->domain() == domain) &&
           ((kind == Entity_kind::ANY_KIND) || (sv->entity_kind() == kind)) &&
           ((type == Entity_type::ALL) || (sv->entity_type() == type)))
         break;
@@ -439,7 +733,7 @@ class State : public std::enable_shared_from_this<State> {
     is defined on
     @tparam T          Data type
     @tparam DomainType Type of domain data is defined on (Mesh, MeshTile)
-    @tparam StateVecType  State vector class (StateVector or MMStateVector)
+    @tparam StateVecType  State vector class (UniStateVector or MultiStateVector)
     @param name        String identifier for vector
     @param domain      Shared pointer to the domain
     @param kind        What kind of entity data is defined on (CELL, NODE, etc.)
@@ -451,8 +745,8 @@ class State : public std::enable_shared_from_this<State> {
     a vector was found; false otherwise. The caller must know the type
     of elements in the state vector, int, double, std::array<double,
     3> or whatever else. The calling routine must declare the state
-    vector as "T vector" where T is StateVector<int> or
-    StateVector<double> or StateVector<some_other_type>. Even though
+    vector as "T vector" where T is UniStateVector<int> or
+    UniStateVector<double> or StateVector<some_other_type>. Even though
     this is a copy into *vector, its an inexpensive shallow copy of
     the meta data only
   */
@@ -480,7 +774,7 @@ class State : public std::enable_shared_from_this<State> {
     type it is defined on
     @tparam T          Data type
     @tparam DomainType Type of domain data is defined on (Mesh, MeshTile)
-    @tparam StateVecType  State vector class (StateVector or MMStateVector)
+    @tparam StateVecType  State vector class (UniStateVector or MultiStateVector)
     @param name        String identifier for vector
     @param domain      Shared pointer to the domain
     @param kind        What kind of entity data is defined on (CELL, NODE, etc.)
@@ -492,8 +786,8 @@ class State : public std::enable_shared_from_this<State> {
     a vector was found; false otherwise. The caller must know the type
     of elements in the state vector, int, double, std::array<double,
     3> or whatever else. The calling routine must declare the state
-    vector as "T vector" where T is StateVector<int> or
-    StateVector<double> or StateVector<some_other_type>. Even though
+    vector as "T vector" where T is UniStateVector<int> or
+    UniStateVector<double> or UniStateVector<some_other_type>. Even though
     this is a copy into *vector, its an inexpensive shallow copy of
     the meta data only
   */
@@ -521,7 +815,7 @@ class State : public std::enable_shared_from_this<State> {
     type of entity it is on)
     @tparam T           Data type
     @tparam DomainType  Type of domain data is defined on (Mesh, MeshTile)
-    @tparam StateVecType  State vector class (StateVector or MMStateVector)
+    @tparam StateVecType  State vector class (UniStateVector or MultiStateVector)
     @param name         String identifier for vector
     @param vector       Pointer to the state vector
 
@@ -530,8 +824,8 @@ class State : public std::enable_shared_from_this<State> {
     if such a vector was found; false otherwise. The caller must know
     the type of elements in the state vector, int, double,
     std::array<double, 3> or whatever else. The calling routine must
-    declare the state vector as "T vector" where T is StateVector<int>
-    or StateVector<double> or StateVector<some_other_type>. Even
+    declare the state vector as "T vector" where T is UniStateVector<int>
+    or UniStateVector<double> or UniStateVector<some_other_type>. Even
     though this is a copy into *vector, its an inexpensive shallow
     copy of the meta data only
   */
@@ -552,7 +846,7 @@ class State : public std::enable_shared_from_this<State> {
     what type of entity it is on)
     @tparam T           Data type
     @tparam DomainType  Type of domain data is defined on (Mesh, MeshTile)
-    @tparam StateVecType  State vector class (StateVector or MMStateVector)
+    @tparam StateVecType  State vector class (UniStateVector or MultiStateVector)
     @param name         String identifier for vector
     @param vector       Pointer to the state vector
 
@@ -561,8 +855,8 @@ class State : public std::enable_shared_from_this<State> {
     if such a vector was found; false otherwise. The caller must know
     the type of elements in the state vector, int, double,
     std::array<double, 3> or whatever else. The calling routine must
-    declare the state vector as "T vector" where T is StateVector<int>
-    or StateVector<double> or StateVector<some_other_type>. Even
+    declare the state vector as "T vector" where T is UniStateVector<int>
+    or UniStateVector<double> or UniStateVector<some_other_type>. Even
     though this is a copy into *vector, its an inexpensive shallow
     copy of the meta data only
   */
@@ -584,7 +878,7 @@ class State : public std::enable_shared_from_this<State> {
     and type of entity it is defined on
     @tparam T            Data type
     @tparam DomainType   Type of domain data is defined on (Mesh, MeshTile)
-    @tparam StateVecType  State vector class (StateVector or MMStateVector)
+    @tparam StateVecType  State vector class (UniStateVector or MultiStateVector)
     @param name          String identifier for vector
     @param domain        Shared pointer to the domain
     @param kind          What kind of entity data is defined on (CELL, NODE, etc.)
@@ -597,8 +891,8 @@ class State : public std::enable_shared_from_this<State> {
     caller must know the type of elements in the state vector, int,
     double, std::array<double, 3> or whatever else. The calling
     routine must declare the state vector as "T vector" where T is
-    StateVector<int> or StateVector<double> or
-    StateVector<some_other_type>. Even though this is a copy into
+    UniStateVector<int> or UniStateVector<double> or
+    UniStateVector<some_other_type>. Even though this is a copy into
     *vector, its an inexpensive shallow copy of the meta data only
   */
 
@@ -626,7 +920,7 @@ class State : public std::enable_shared_from_this<State> {
     and type of entity it is defined on
     @tparam T            Data type
     @tparam DomainType   Type of domain data is defined on (Mesh, MeshTile)
-    @tparam StateVecType  State vector class (StateVector or MMStateVector)
+    @tparam StateVecType  State vector class (UniStateVector or MultiStateVector)
     @param name          String identifier for vector
     @param domain        Shared pointer to the domain
     @param kind          What kind of entity data is defined on (CELL, NODE, etc.)
@@ -639,8 +933,8 @@ class State : public std::enable_shared_from_this<State> {
     caller must know the type of elements in the state vector, int,
     double, std::array<double, 3> or whatever else. The calling
     routine must declare the state vector as "T vector" where T is
-    StateVector<int> or StateVector<double> or
-    StateVector<some_other_type>. Even though this is a copy into
+    UniStateVector<int> or UniStateVector<double> or
+    UniStateVector<some_other_type>. Even though this is a copy into
     *vector, its an inexpensive shallow copy of the meta data only
   */
 
@@ -668,7 +962,7 @@ class State : public std::enable_shared_from_this<State> {
     domain it is defined on (regardless of entity type it is on)
     @tparam T           Data type
     @tparam DomainType  Type of domain data is defined on (Mesh, MeshTile)
-    @tparam StateVecType  State vector class (StateVector or MMStateVector)
+    @tparam StateVecType  State vector class (UniStateVector or MultiStateVector)
     @param name         String identifier for vector
     @param domain       Shared pointer to the domain
     @param vector_ptr   Shared pointer to the state vector
@@ -678,8 +972,8 @@ class State : public std::enable_shared_from_this<State> {
     if such a vector was found; false otherwise. The caller must know
     the type of elements in the state vector, int, double,
     std::array<double, 3> or whatever else. The calling routine must
-    declare the state vector as "T vector" where T is StateVector<int>
-    or StateVector<double> or StateVector<some_other_type>. Even
+    declare the state vector as "T vector" where T is UniStateVector<int>
+    or UniStateVector<double> or UniStateVector<some_other_type>. Even
     though this is a copy into *vector, its an inexpensive shallow
     copy of the meta data only
 
@@ -708,7 +1002,7 @@ class State : public std::enable_shared_from_this<State> {
     the domain it is defined on (regardless of entity type it is on)
     @tparam T           Data type
     @tparam DomainType  Type of domain data is defined on (Mesh, MeshTile)
-    @tparam StateVecType  State vector class (StateVector or MMStateVector)
+    @tparam StateVecType  State vector class (UniStateVector or MultiStateVector)
     @param name         String identifier for vector
     @param domain       Shared pointer to the domain
     @param vector_ptr   Shared pointer to the state vector
@@ -718,8 +1012,8 @@ class State : public std::enable_shared_from_this<State> {
     if such a vector was found; false otherwise. The caller must know
     the type of elements in the state vector, int, double,
     std::array<double, 3> or whatever else. The calling routine must
-    declare the state vector as "T vector" where T is StateVector<int>
-    or StateVector<double> or StateVector<some_other_type>. Even
+    declare the state vector as "T vector" where T is UniStateVector<int>
+    or UniStateVector<double> or UniStateVector<some_other_type>. Even
     though this is a copy into *vector, its an inexpensive shallow
     copy of the meta data only
 
@@ -747,15 +1041,15 @@ class State : public std::enable_shared_from_this<State> {
     @brief Add an uninitialized state vector using a string identifier
     @tparam T          Data type
     @tparam DomainType Type of domain data is defined on (Mesh, MeshTile)
-    @tparam StateVecType  State vector class (StateVector or MMStateVector)
+    @tparam StateVecType  State vector class (UniStateVector or MultiStateVector)
     @param name        String identifier for vector
     @param domain      Shared pointer to the domain
     @param kind        What kind of entity data is defined on (CELL, NODE, etc.)
     @param type        What type of entity data is defined on (PARALLEL_OWNED, PARALLEL_GHOST, etc.)
     @param data        Raw pointer to data array (optional)
 
-    Add state vector - returns reference to the added StateVector or
-    MMStateVector.
+    Add state vector - returns reference to the added UniStateVector or
+    MultiStateVector.
 
   */
 
@@ -799,7 +1093,7 @@ class State : public std::enable_shared_from_this<State> {
 
 
   /*!
-    @brief Add a single valued state vector (class StateVector) using a string identifier and optional array data
+    @brief Add a single valued state vector (class UniStateVector) using a string identifier and optional array data
     @tparam T          Data type
     @tparam DomainType Type of domain data is defined on (Mesh, MeshTile)
     @param name        String identifier for vector
@@ -808,19 +1102,19 @@ class State : public std::enable_shared_from_this<State> {
     @param type        What type of entity data is defined on (PARALLEL_OWNED, PARALLEL_GHOST, etc.)
     @param data        Raw pointer to data array
 
-    Add state vector - returns reference to the added StateVector.
+    Add state vector - returns reference to the added UniStateVector.
     The data is copied from the input memory location into an
     internal buffer.
   */
 
   template <class T, class DomainType>
-  StateVector<T, DomainType>& add(std::string name,
+  UniStateVector<T, DomainType>& add(std::string name,
                                   std::shared_ptr<DomainType> domain,
                                   Entity_kind kind,
                                   Entity_type type,
                                   T const * const data) {
 
-    iterator it = find<T, DomainType, StateVector>(name, domain, kind, type);
+    iterator it = find<T, DomainType, UniStateVector>(name, domain, kind, type);
     if (it == end()) {
       // a search of the state vectors by name and kind of entity turned up
       // empty, so add the vector to the list; if not, warn about duplicate
@@ -835,7 +1129,7 @@ class State : public std::enable_shared_from_this<State> {
       names_.emplace_back(name);
 
       auto vector =
-          std::make_shared<StateVector<T, DomainType>>(name, domain,
+          std::make_shared<UniStateVector<T, DomainType>>(name, domain,
                                                        shared_from_this(),
                                                        kind, type,
                                                        data);
@@ -843,7 +1137,7 @@ class State : public std::enable_shared_from_this<State> {
       return (*vector);
     } else {  // found a state vector by same name
       std::cerr << "Attempted to add duplicate state vector. Ignoring\n";
-      return (*(std::dynamic_pointer_cast<StateVector<T, DomainType>>(*it)));
+      return (*(std::dynamic_pointer_cast<UniStateVector<T, DomainType>>(*it)));
     }
   }
 
@@ -851,7 +1145,7 @@ class State : public std::enable_shared_from_this<State> {
 
 
   /*!
-    @brief Add a multi-valued state vector (class MMStateVector) using a string identifier and 2D array data
+    @brief Add a multi-valued state vector (class MultiStateVector) using a string identifier and 2D array data
     @tparam T          Data type
     @tparam DomainType Type of domain data is defined on (Mesh, MeshTile)
     @param name        String identifier for vector
@@ -860,20 +1154,20 @@ class State : public std::enable_shared_from_this<State> {
     @param type        What type of entity data is defined on (PARALLEL_OWNED, PARALLEL_GHOST, etc.)
     @param data        Raw pointer to data array
 
-    Add state vector - returns reference to the added MMStateVector.
+    Add state vector - returns reference to the added MultiStateVector.
     The data is copied from the input memory location into an
     internal buffer.
   */
 
   template <class T, class DomainType>
-  MMStateVector<T, DomainType>& add(std::string name,
+  MultiStateVector<T, DomainType>& add(std::string name,
                                     std::shared_ptr<DomainType> domain,
                                     Entity_kind kind,
                                     Entity_type type,
                                     Data_layout  layout,
                                     T const * const * data) {
 
-    iterator it = find<T, DomainType, MMStateVector>(name, domain, kind, type);
+    iterator it = find<T, DomainType, MultiStateVector>(name, domain, kind, type);
     if (it == end()) {
       // a search of the state vectors by name and kind of entity turned up
       // empty, so add the vector to the list; if not, warn about duplicate
@@ -888,7 +1182,7 @@ class State : public std::enable_shared_from_this<State> {
       names_.emplace_back(name);
 
       auto vector =
-          std::make_shared<MMStateVector<T, DomainType>>(name, domain,
+          std::make_shared<MultiStateVector<T, DomainType>>(name, domain,
                                                          shared_from_this(),
                                                          kind, type, layout,
                                                          data);
@@ -896,7 +1190,7 @@ class State : public std::enable_shared_from_this<State> {
       return (*vector);
     } else {  // found a state vector by same name
       std::cerr << "Attempted to add duplicate state vector. Ignoring\n";
-      return (*(std::dynamic_pointer_cast<MMStateVector<T, DomainType>>(*it)));
+      return (*(std::dynamic_pointer_cast<MultiStateVector<T, DomainType>>(*it)));
     }
   }
 
@@ -1104,14 +1398,15 @@ class State : public std::enable_shared_from_this<State> {
   // One dummy material set (to return when no materials are defined)
   std::shared_ptr<MeshSet> dummy_cellset_;
 
-  // Dummy material vector (to return in cell_materials when no mats are defined)
+  // Dummy material vector (to return in cell_materials when no mats
+  // are defined)
   std::vector<int> dummy_cellmats_;
 
   // Lists of materials in cells
   std::vector<std::vector<int>> cell_materials_;
 
   // All the state vectors
-  std::vector<std::shared_ptr<BaseStateVector>> state_vectors_;
+  std::vector<std::shared_ptr<StateVectorBase>> state_vectors_;
 
   // Stores which indices of state_vectors_ correspond to data stored
   // on each entity kind
