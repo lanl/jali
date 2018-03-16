@@ -43,9 +43,9 @@ void State::add_material(std::string const& matname,
 
   // GO TO EACH MMStateVector AND ADD ENTRIES FOR THIS MATERIAL
   for (auto &sv : state_vectors_) {
-    if (sv->get_type() == StateVector_type::MULTIVAL) {
-      auto mmv = std::dynamic_pointer_cast<MMStateVector<double, Mesh>>(sv);
-      mmv->add_material(matcells.size());
+    if (sv->type() == StateVector_type::MULTIVAL) {
+      auto mv = std::dynamic_pointer_cast<MultiStateVectorBase<Mesh>>(sv);
+      if (mv) mv->add_material(matcells.size());
     }
   }
 }
@@ -69,9 +69,9 @@ void State::rem_material(int m) {
 
   // GO TO EACH MMStateVector AND REMOVE ENTRIES FOR THIS MATERIAL
   for (auto &sv : state_vectors_) {
-    if (sv->get_type() == StateVector_type::MULTIVAL) {
-      auto mmv = std::dynamic_pointer_cast<MMStateVector<double, Mesh>>(sv);
-      mmv->rem_material(m);
+    if (sv->type() == StateVector_type::MULTIVAL) {
+      auto mv = std::dynamic_pointer_cast<MultiStateVectorBase<Mesh>>(sv);
+      if (mv) mv->rem_material(m);
     }
   }
 }
@@ -86,10 +86,10 @@ void State::add_cells_to_material(int m, std::vector<int> const& cells) {
     cell_materials_[c].push_back(m);
 
   for (auto & sv : state_vectors_) {
-    if (sv->get_type() == StateVector_type::MULTIVAL) {
-      auto mmv = std::dynamic_pointer_cast<MMStateVector<double, Mesh>>(sv);
-      int size = mmv->size(m);
-      mmv->resize(m, size+cells.size(), 0.0);
+    if (sv->type() == StateVector_type::MULTIVAL) {
+      auto mv = std::dynamic_pointer_cast<MultiStateVectorBase<Mesh>>(sv);
+      int size = mv->size(m);
+      mv->resize(m, size+cells.size());
     }
   }
 }
@@ -135,38 +135,38 @@ void State::init_from_mesh() {
       if (vartypes[i] == "INT") {
         int *data = new int[nent];
         mymesh_->get_field(varnames[i], kind, data);
-        Jali::StateVector<int, Mesh> & sv = add(varnames[i], mymesh_,
-                                                kind,
-                                                Entity_type::ALL, data);
+        UniStateVector<int, Mesh> & sv = add(varnames[i], mymesh_,
+                                             kind,
+                                             Entity_type::ALL, data);
       } else if (vartypes[i] == "DOUBLE") {
         double *data = new double[nent];
         mymesh_->get_field(varnames[i], kind, data);
-        Jali::StateVector<double, Mesh> & sv = add(varnames[i], mymesh_,
-                                                         kind,
-                                                         Entity_type::ALL,
-                                                         data);
+        UniStateVector<double, Mesh> & sv = add(varnames[i], mymesh_,
+                                                kind,
+                                                Entity_type::ALL,
+                                                data);
       } else if (vartypes[i] == "VECTOR") {
         if (spacedim == 2) {
           std::array<double, 2> *data = new std::array<double, 2>[nent];
           mymesh_->get_field(varnames[i], kind, data);
-          Jali::StateVector<std::array<double, 2>, Mesh> & sv =
+          UniStateVector<std::array<double, 2>, Mesh> & sv =
               add(varnames[i], mymesh_, kind, Entity_type::ALL, data);
         } else if (spacedim == 3) {
           std::array<double, 3> *data = new std::array<double, 3>[nent];
           mymesh_->get_field(varnames[i], kind, data);
-          Jali::StateVector<std::array<double, 3>, Mesh> & sv =
+          UniStateVector<std::array<double, 3>, Mesh> & sv =
               add(varnames[i], mymesh_, kind, Entity_type::ALL, data);
         }
       } else if (vartypes[i] == "TENSOR") {  // assumes symmetric tensors
         if (spacedim == 2) {  // lower half & diagonal of 2x2 tensor
           std::array<double, 3> *data = new std::array<double, 3>[nent];
           mymesh_->get_field(varnames[i], kind, data);
-          Jali::StateVector<std::array<double, 3>, Mesh> & sv =
+          UniStateVector<std::array<double, 3>, Mesh> & sv =
               add(varnames[i], mymesh_, kind, Entity_type::ALL, data);
         } else if (spacedim == 3) {  // lower half & diagonal of 3x3 tensor
           std::array<double, 6> *data = new std::array<double, 6>[nent];
           mymesh_->get_field(varnames[i], kind, data);
-          Jali::StateVector<std::array<double, 6>, Mesh> & sv =
+          UniStateVector<std::array<double, 6>, Mesh> & sv =
               add(varnames[i], mymesh_, kind, Entity_type::ALL, data);
         }
       }  // TENSOR
@@ -186,30 +186,30 @@ void State::export_to_mesh() {
   State::const_iterator it = cbegin();
 
   while (it != cend()) {
-    const std::shared_ptr<BaseStateVector> vec = *it;
+    const std::shared_ptr<StateVectorBase> vec = *it;
     std::string name = vec->name();
     Entity_kind entity_kind = vec->entity_kind();
     bool status = false;
 
     // We only know how to store univalued data with the mesh
-    if (vec->get_type() == StateVector_type::UNIVAL) {
-      if (vec->get_data_type() == typeid(double)) {
-        auto svec = std::dynamic_pointer_cast<StateVector<double>>(vec);
+    if (vec->type() == StateVector_type::UNIVAL) {
+      if (vec->data_type() == typeid(double)) {
+        auto svec = std::dynamic_pointer_cast<UniStateVector<double>>(vec);
         status = mymesh_->store_field(name, entity_kind, svec->get_raw_data());
-      } else if (vec->get_data_type() == typeid(int)) {
-        auto svec = std::dynamic_pointer_cast<StateVector<int>>(vec);
+      } else if (vec->data_type() == typeid(int)) {
+        auto svec = std::dynamic_pointer_cast<UniStateVector<int>>(vec);
         status = mymesh_->store_field(name, entity_kind, svec->get_raw_data());
-      } else if (vec->get_data_type() == typeid(std::array<double, 2>)) {
+      } else if (vec->data_type() == typeid(std::array<double, 2>)) {
         auto svec =
-            std::dynamic_pointer_cast<StateVector<std::array<double, 2>>>(vec);
+            std::dynamic_pointer_cast<UniStateVector<std::array<double, 2>>>(vec);
         status = mymesh_->store_field(name, entity_kind, svec->get_raw_data());
-      } else if (vec->get_data_type() == typeid(std::array<double, 3>)) {
+      } else if (vec->data_type() == typeid(std::array<double, 3>)) {
         auto svec =
-            std::dynamic_pointer_cast<StateVector<std::array<double, 3>>>(vec);
+            std::dynamic_pointer_cast<UniStateVector<std::array<double, 3>>>(vec);
         status = mymesh_->store_field(name, entity_kind, svec->get_raw_data());
-      } else if (vec->get_data_type() == typeid(std::array<double, 6>)) {
+      } else if (vec->data_type() == typeid(std::array<double, 6>)) {
         auto svec =
-            std::dynamic_pointer_cast<StateVector<std::array<double, 6>>>(vec);
+            std::dynamic_pointer_cast<UniStateVector<std::array<double, 6>>>(vec);
         status = mymesh_->store_field(name, entity_kind, svec->get_raw_data());
       }
     }
@@ -227,7 +227,7 @@ void State::export_to_mesh() {
 std::ostream & operator<<(std::ostream & os, State const & s) {
   State::const_iterator it = s.cbegin();
   while (it != s.cend()) {
-    const std::shared_ptr<BaseStateVector> vec = *it;
+    const std::shared_ptr<StateVectorBase> vec = *it;
     vec->print(os);
     ++it;
   }
