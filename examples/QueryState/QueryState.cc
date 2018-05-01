@@ -4,6 +4,7 @@
 //
 
 #include <iostream>
+#include <iomanip>
 
 #include "mpi.h"
 
@@ -33,18 +34,18 @@ using namespace Jali;
 //
 // So, as an example:
 //
-// Jali::StateVector<int> v1("vec1", Jali::CELL, data);
+// Jali::UniStateVector<int> v1("vec1", Jali::CELL, data);
 //
-// Jali::StateVector<int> & v1_ref = v1; - both point to SAME data
+// Jali::UniStateVector<int> & v1_ref = v1; - both point to SAME data
 //
-// Jali::StateVector<int> v2;            - default construction
-// v2 = v1;                              - v1 and v2 point to SAME data
+// Jali::UniStateVector<int> v2;            - default construction
+// v2 = v1;                                 - v1 and v2 point to SAME data
 //
-// Jali::StateVector<int> v3 = v1;       - copy construction
-//                                       - v1 and v3 point to DIFFERENT data
+// Jali::UniStateVector<int> v3 = v1;       - copy construction
+//                                          - v1 and v3 point to DIFFERENT data
 //
-// Jali::StateVector<int> v4(v1);        - copy construction
-//                                       - v1 and v4 point to DIFFERENT data
+// Jali::UniStateVector<int> v4(v1);        - copy construction
+//                                          - v1 and v4 point to DIFFERENT data
 //
 // IN PARTICULAR NOTE THE DIFFERENCE BETWEEN v2 AND v3
 //
@@ -109,6 +110,138 @@ int main(int argc, char *argv[]) {
   std::shared_ptr<Jali::State> mystate = Jali::State::create(mymesh);
 
 
+  // Define a multi-material state vector on cells to store volume fractions
+  // Create 3 material sets in the state corresponding to a T-junction
+  // configuration. The cell numbering is as follows
+  //
+  //     3 7 11 15
+  //     2 6 10 14
+  //     1 5  9 13
+  //     0 4  8 12
+  //
+  //     *--------*----:---*--------*--------*
+  //     |        |    :   |        |        |
+  //     |    0   | 0  : 2 |    2   |    2   |
+  //     |        |    :   |        |        |
+  //     *--------*----:---*--------*--------*
+  //     |        |    : 2 |    2   |    2   |
+  //     |        |    +............|........|
+  //     |    0   |  0 : 1 |    1   |    1   |
+  //     *--------*----:---*--------*--------*
+  //     |        |    :   |        |        |
+  //     |    0   |  0 : 1 |    1   |    1   |
+  //     |        |    :   |        |        |
+  //     *--------*----:---*--------*--------*
+  //     |        |    :   |        |        |
+  //     |    0   |  0 : 1 |    1   |    1   |
+  //     |        |    :   |        |        |
+  //     *--------*----:---*--------*--------*
+
+  // cells in the materials (for initialization)
+  std::vector<std::vector<int>> matcells = {{0, 1, 2, 3, 4, 5, 6, 7},
+                                            {4, 5, 6, 8, 9, 10, 12, 13, 14},
+                                            {6, 7, 10, 11, 14, 15}};
+
+  mystate->add_material("steel1", matcells[0]);
+  mystate->add_material("aluminum1", matcells[1]);
+  mystate->add_material("aluminum2", matcells[2]);
+
+  int nmats = mystate->num_materials();
+
+  // Print out some material info
+
+  std::cerr << "Materials in problem are ";
+  for (int m = 0; m < nmats; m++)
+    std::cerr << "\"" << mystate->material_name(m) << "\" ";
+  std::cerr << "\n";
+
+  // Create a multi-material state vector corresponding to volume
+  // fractions of materials as shown in fig above. The initialization
+  // uses a full 2-dimensional array that specifies volume fractions
+  // for each cell in each material (material-centric layout of
+  // data). Although the data is specified in full, the actual
+  // representation internally will be compact - only those cells that
+  // are defined to be in the materials will have volume fractions
+  // associated with them.
+  
+  double **vf_in = new double*[3];
+  for (int i = 0; i < 3; i++)
+    vf_in[i] = new double[16];
+
+  double vfarr[3][16] = {{1.0, 1.0, 1.0, 1.0, 0.5, 0.5, 0.5, 0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
+                         {0.0, 0.0, 0.0, 0.0, 0.5, 0.5, 0.25, 0.0, 1.0, 1.0, 0.5, 0.0, 1.0, 1.0, 0.5, 0.0},
+                         {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25, 0.5, 0.0, 0.0, 0.5, 1.0, 0.0, 0.0, 0.5, 1.0}};
+  for (int m = 0; m < 3; m++)
+    for (int c = 0; c < 16; c++)
+      vf_in[m][c] = vfarr[m][c];
+
+  Jali::MultiStateVector<double>& vf =
+      mystate->add<double, Jali::Mesh>("volfrac", mymesh,
+                                       Jali::Entity_kind::CELL,
+                                       Jali::Entity_type::ALL,
+                                       Jali::Data_layout::MATERIAL_CENTRIC,
+                                       (double const **) vf_in);
+
+  
+  // Create another UNINITIALIZED multimaterial vector 
+  Jali::MultiStateVector<double>& vf_alt =
+      mystate->add<double, Jali::Mesh,
+                   Jali::MultiStateVector>("volfrac", mymesh,
+                                           Jali::Entity_kind::CELL,
+                                           Jali::Entity_type::ALL);
+
+  // Then assign it data in a cell-centric layout (first index is cell)
+  double **vf_in2 = new double*[16];
+  for (int i = 0; i < 16; i++)
+    vf_in2[i] = new double[3];
+
+  for (int c = 0; c < 16; c++)
+    for (int m = 0; m < 3; m++)
+      vf_in2[c][m] = vfarr[m][c];
+  
+
+  vf_alt.assign(Jali::Data_layout::CELL_CENTRIC, (double const **)vf_in2);
+
+  // Check that the multimaterial vectors created differently are equivalent
+
+  for (int m = 0; m < nmats; m++) {
+    // Retrieve material 'm' data en masse for the first vector vf. On
+    // the other hand, use the operator() to retrieve data for the
+    // second vector vfalt
+    std::vector<double>& vfmat = vf.get_matdata(m);
+
+    // We need the indices of cells in the material
+    std::vector<int> const& matcells = mystate->material_cells(m);
+
+    for (int ic = 0; ic < vfmat.size(); ic++) {
+      int c = matcells[ic];
+
+      // Note that we are using the local cell index in material for
+      // vfmat, the data array for the material, but the mesh cell
+      // index for direct retrieval of data from vf_alt
+      assert(fabs(vfmat[ic] - vf_alt(m, c)) < 1.0e-10);
+    }
+  }
+
+  // Print this info out
+
+  std::cerr << "Multi-material state vector \"volfracs\"\n";
+  for (int c = 0; c < 16; c++) {
+    std::cerr << "Cell: " << c << "  Materials: ";
+    std::vector<int> cmats = mystate->cell_materials(c);
+    for (int im = 0; im < cmats.size(); im++) {
+      int m = cmats[im];
+      std::cerr << mystate->material_name(m) << "  ";
+    }
+    std::cerr << "  Vol. Fracs.:";
+    for (int im = 0; im < cmats.size(); im++) {
+      int m = cmats[im];
+      std::cerr << " " << std::setw(3) << vf(m, c) << " ";
+    }
+    std::cerr << "\n";
+  }
+  std::cerr << "\n\n";
+
   // Create some CELL-based data
 
   double data[16] = {0.0, 1.0, 2.0, 3.0, 5.5, -1.0, 2.0, 3.0,
@@ -117,24 +250,24 @@ int main(int argc, char *argv[]) {
   // Add it to state and get back a reference
   //
   // DO
-  //   StateVector<double>& myvec = mystate.add(...)
+  //   UniStateVector<double>& myvec = mystate.add(...)
   //
   // DON'T DO
-  //   StateVector<double> myvec = mystate.add(...)
+  //   UniStateVector<double> myvec = mystate.add(...)
   // This will do a copy construction and myvec data space will be different
   // from the state vector data space!!
 
   // NOTE that there is an implicit second template parameter "Mesh" here
-  // that is figured out from the arguments to the add function. 
+  // that is figured out from the arguments to the add function.
 
-  StateVector<double> & myvec = mystate->add("myzonevar", mymesh,
-                                             Entity_kind::CELL,
-                                             Entity_type::ALL, data);
+  UniStateVector<double> & myvec = mystate->add("myzonevar", mymesh,
+                                                Entity_kind::CELL,
+                                                Entity_type::ALL, data);
   
 
   // Try to retrieve it through a get function
 
-  StateVector<double, Jali::Mesh> myvec_copy1;
+  UniStateVector<double, Jali::Mesh> myvec_copy1;
   bool found = mystate->get("myzonevar", mymesh, Entity_kind::CELL,
                             Entity_type::ALL, &myvec_copy1);
 
@@ -156,7 +289,7 @@ int main(int argc, char *argv[]) {
   // Assign to another state vector AFTER creating the vector as a
   // default vector. Should be a shallow copy
 
-  StateVector<double> myvec_copy2;
+  UniStateVector<double> myvec_copy2;
   myvec_copy2 = myvec;
 
 
@@ -189,13 +322,13 @@ int main(int argc, char *argv[]) {
   // explicitly tell the state manager the data type (double) since
   // there is no input data for it to infer it from
 
-  StateVector<double>& newvec =
-      mystate->add<double, Jali::Mesh, Jali::StateVector>("vector2",
-                                                          mymesh, 
-                                                          Entity_kind::CELL,
-                                                          Entity_type::ALL);
+  UniStateVector<double>& newvec =
+      mystate->add<double, Jali::Mesh, Jali::UniStateVector>("vector2",
+                                                             mymesh,
+                                                             Entity_kind::CELL,
+                                                             Entity_type::ALL);
 
-  // Modify newvec 
+  // Modify newvec
 
   for (auto const& c : mymesh->cells())
     newvec[c] = 2.0*c;
@@ -204,7 +337,7 @@ int main(int argc, char *argv[]) {
   // Retrieve the vector from the state manager separately and make sure
   // that the changes in newvec were reflected in the state manager
 
-  StateVector<double, Mesh> newvec_copy;
+  UniStateVector<double, Mesh> newvec_copy;
   found = mystate->get("vector2", mymesh, Entity_kind::CELL,
                        Entity_type::ALL, &newvec_copy);
   
@@ -221,11 +354,11 @@ int main(int argc, char *argv[]) {
 
   // Print out myvec
 
-  std::cerr << "StateVector " << myvec.name() << ":" << std::endl;
+  std::cerr << "UniStateVector " << myvec.name() << ":" << std::endl;
   std::cerr << myvec << std::endl;
 
 
-  // Define a more complicated StateVector and print it.
+  // Define a more complicated UniStateVector and print it.
 
   // Note: This is a standalone vector that is not added to the
   // state. Such vectors could be used as temporaries in a calculation
@@ -245,11 +378,11 @@ int main(int argc, char *argv[]) {
                                        {21.5, -2.4, -1}};
 
 
-  StateVector<std::array<double, 3>> vec2d("vec3", mymesh, nullptr,
-                                           Entity_kind::NODE,
-                                           Entity_type::PARALLEL_OWNED,
-                                           &(arrdata[0]));
-
+  UniStateVector<std::array<double, 3>> vec2d("vec3", mymesh, nullptr,
+                                              Entity_kind::NODE,
+                                              Entity_type::PARALLEL_OWNED,
+                                              &(arrdata[0]));
+  
   std::cerr << vec2d << std::endl;
 
 
@@ -275,7 +408,7 @@ int main(int argc, char *argv[]) {
 
   i = 0;
   for (auto const& meshtile : mymesh->tiles()) {
-    StateVector<double, MeshTile> tilevec_get;
+    UniStateVector<double, MeshTile> tilevec_get;
     found = mystate->get("vector_on_tile", meshtile, Entity_kind::CELL,
                          Entity_type::PARALLEL_OWNED, &tilevec_get);
 
@@ -283,7 +416,7 @@ int main(int argc, char *argv[]) {
     std::cerr << tilevec_get << std::endl;
     std::cerr << std::endl;
 
-    StateVector<std::array<double, 3>, MeshTile> tilevec2d_get;
+    UniStateVector<std::array<double, 3>, MeshTile> tilevec2d_get;
     found = mystate->get("2Darray_on_tile", meshtile, Entity_kind::CORNER,
                          Entity_type::PARALLEL_OWNED, &tilevec2d_get);
 

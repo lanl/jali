@@ -2358,6 +2358,12 @@ std::vector<std::shared_ptr<MeshSet>> Mesh::sets(const Entity_kind kind) const {
   }
 }
 
+// Return a list of sets on entities of 'kind'
+
+std::vector<std::shared_ptr<MeshSet>> const& Mesh::sets() const {
+  return meshsets_;
+}
+
 
 // Is there a set with this name and entity type
 

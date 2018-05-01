@@ -110,7 +110,7 @@ int main(int argc, char *argv[]) {
   // to get at the StateVector. This means one needs to know the template
   // argument for StateVector (in this case it is "double")
 
-  StateVector<double> rhovec;
+  UniStateVector<double> rhovec;
   bool found = mystate->get(density_name, mymesh, Entity_kind::CELL,
                             Entity_type::ALL, &rhovec);
   if (!found) {
@@ -141,7 +141,7 @@ int main(int argc, char *argv[]) {
 
   // Add the average density data as a new state vector
 
-  StateVector<double>& rhobarvec = mystate->add("rhobar", mymesh,
+  UniStateVector<double>& rhobarvec = mystate->add("rhobar", mymesh,
                                                 Entity_kind::CELL,
                                                 Entity_type::ALL,
                                                 ave_density);
@@ -152,7 +152,7 @@ int main(int argc, char *argv[]) {
 
   // Retrieve the vector of velocities
 
-  StateVector<std::array<double, 3>, Mesh> vels;
+  UniStateVector<std::array<double, 3>, Mesh> vels;
   found = mystate->get(velocity_name, mymesh, Entity_kind::NODE,
                        Entity_type::ALL, &vels);
   if (!found) {
@@ -242,10 +242,10 @@ void initialize_data(const std::shared_ptr<Mesh> mesh,
   // This says to create a vector named "rhoMetal" on each cell
   // initialized to 0.0
 
-  StateVector<double, Mesh>& density =
-      state->add<double, Mesh, StateVector>(density_name, mesh,
-                                            Entity_kind::CELL,
-                                            Entity_type::ALL, 0.0);
+  UniStateVector<double, Mesh>& density =
+      state->add<double, Mesh, UniStateVector>(density_name, mesh,
+                                               Entity_kind::CELL,
+                                               Entity_type::ALL, 0.0);
 
 
   // Create a density vector that will be used to initialize a state
@@ -268,11 +268,11 @@ void initialize_data(const std::shared_ptr<Mesh> mesh,
   // Note that we did not send in the second template parameter Mesh -
   // it is the default
 
-  StateVector<std::array<double, 3>>& velocity =
-      state->add<std::array<double, 3>, Mesh, StateVector>(velocity_name,
-                                                           mesh,
-                                                           Entity_kind::NODE,
-                                                           Entity_type::ALL,
-                                                           initarray);
+  UniStateVector<std::array<double, 3>>& velocity =
+      state->add<std::array<double, 3>, Mesh, UniStateVector>(velocity_name,
+                                                              mesh,
+                                                              Entity_kind::NODE,
+                                                              Entity_type::ALL,
+                                                              initarray);
 }
 

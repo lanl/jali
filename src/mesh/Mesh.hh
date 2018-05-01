@@ -975,6 +975,10 @@ class Mesh {
 
   std::vector<std::shared_ptr<MeshSet>> sets(const Entity_kind kind) const;
 
+  //! Return a list of all sets
+
+  std::vector<std::shared_ptr<MeshSet>> const& sets() const;
+
   //! Is this is a valid name of a geometric region defined on for
   //! containing entities of 'kind'
 
