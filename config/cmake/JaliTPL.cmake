@@ -44,7 +44,7 @@ set(Boost_ADDITIONAL_VERSIONS
     1.54 1.55.0)
 find_package( Boost COMPONENTS system filesystem program_options regex REQUIRED)
 option(ENABLE_BOOST "Boost info" ON)
-add_feature_info(Boost ENABLE_BOOST "C++ Extension library http://www.boost.org")
+add_feature_info(Boost ENABLE_BOOST "Cpp Extension library http://www.boost.org")
 
 if ( Boost_VERSION) 
 
