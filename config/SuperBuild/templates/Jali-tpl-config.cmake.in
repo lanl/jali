@@ -1,3 +1,45 @@
+# Copyright (c) 2017, Los Alamos National Security, LLC
+# All rights reserved.
+
+# Copyright 2017. Los Alamos National Security, LLC. This software was
+# produced under U.S. Government contract DE-AC52-06NA25396 for Los
+# Alamos National Laboratory (LANL), which is operated by Los Alamos
+# National Security, LLC for the U.S. Department of Energy. The
+# U.S. Government has rights to use, reproduce, and distribute this
+# software.  NEITHER THE GOVERNMENT NOR LOS ALAMOS NATIONAL SECURITY,
+# LLC MAKES ANY WARRANTY, EXPRESS OR IMPLIED, OR ASSUMES ANY LIABILITY
+# FOR THE USE OF THIS SOFTWARE.  If software is modified to produce
+# derivative works, such modified software should be clearly marked, so
+# as not to confuse it with the version available from LANL.
+ 
+# Additionally, redistribution and use in source and binary forms, with
+# or without modification, are permitted provided that the following
+# conditions are met:
+
+# 1.  Redistributions of source code must retain the above copyright
+# notice, this list of conditions and the following disclaimer.
+# 2.  Redistributions in binary form must reproduce the above copyright
+# notice, this list of conditions and the following disclaimer in the
+# documentation and/or other materials provided with the distribution.
+# 3.  Neither the name of Los Alamos National Security, LLC, Los Alamos
+# National Laboratory, LANL, the U.S. Government, nor the names of its
+# contributors may be used to endorse or promote products derived from
+# this software without specific prior written permission.
+ 
+# THIS SOFTWARE IS PROVIDED BY LOS ALAMOS NATIONAL SECURITY, LLC AND
+# CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING,
+# BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+# FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL LOS
+# ALAMOS NATIONAL SECURITY, LLC OR CONTRIBUTORS BE LIABLE FOR ANY
+# DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+# GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
+# IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+# OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+# ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
 # --------------------------------------------------------------------------- #
 #                                                                             #
 # Jali CMake Configuration File                                             #
@@ -63,12 +105,6 @@ set(UnitTest_DIR @TPL_INSTALL_PREFIX@ CACHE PATH "UnitTest installation prefix")
 set(ENABLE_METIS @ENABLE_METIS@ CACHE BOOL "ENABLE METIS Partitioning library")  
 set(METIS_DIR  @METIS_DIR@ CACHE PATH "METIS installation prefix")
 
-# CCSE
-set(CCSE_DIR @TPL_INSTALL_PREFIX@ CACHE PATH "CCSE installation prefix")
-set(ENABLE_MPI TRUE CACHE BOOL "CCSE required MPI flag")
-set(ENABLE_OpenMP @ENABLE_OpenMP@ CACHE BOOL "CCSE required flag")
-set(JALI_PRECISION DOUBLE CACHE STRING "CCSE precision")
-set(JALI_SPACEDIM @CCSE_BL_SPACEDIM@ CACHE STRING "BoxLib Space dimension")
 
 # Boost
 set(BOOST_ROOT @TPL_INSTALL_PREFIX@ CACHE PATH "Boost installation prefix")
@@ -79,9 +115,6 @@ set(Boost_NO_BOOST_CMAKE  TRUE CACHE BOOL "Prevent FindBoost from looking for a 
 # HDF5  
 set(HDF5_ROOT @TPL_INSTALL_PREFIX@ CACHE PATH "HDF5 installation prefix")
 set(HDF5_NO_SYSTEM_PATHS TRUE CACHE BOOL "Do not search for HDF5 libraries in system paths")
-
-# ASCEM-IO  
-set(ASCEMIO_DIR @TPL_INSTALL_PREFIX@ CACHE PATH "ASCEM-IO installation prefix")
 
 # NetCDF
 set(NetCDF_DIR @TPL_INSTALL_PREFIX@ CACHE PATH "NetCDF installation prefix")
@@ -101,13 +134,6 @@ set(MSTK_VERSION @MSTK_VERSION@ CACHE STRING "MSTK Version string")
 # MOAB
 set(MOAB_DIR @TPL_INSTALL_PREFIX@ CACHE PATH "MOAB installation prefix")
 
-# PETSc
-set(ENABLE_PETSC @ENABLE_PETSC@ CACHE BOOL "Build PETSc interfaces")
-set(PETSC_DIR @PETSC_DIR@ CACHE PATH "PETSc installation prefix")
-
-# HYPRE
-set(ENABLE_HYPRE @ENABLE_HYPRE@ CACHE BOOL "Enable HYPRE (Ifpack) solver interface")
-
 # Trilinos
 set(Trilinos_INSTALL_PREFIX @Trilinos_INSTALL_PREFIX@ CACHE PATH "Trilinos installation prefix")
 
@@ -115,12 +141,3 @@ set(Trilinos_INSTALL_PREFIX @Trilinos_INSTALL_PREFIX@ CACHE PATH "Trilinos insta
 set(ENABLE_ZOLTAN @ENABLE_ZOLTAN@ CACHE BOOL "ENABLE Zoltan Partitioning library")  
 set(ZOLTAN_DIR  @Trilinos_INSTALL_PREFIX@ CACHE PATH "ZOLTAN installation prefix")
 
-
-# XERCES
-set(XERCES_DIR @TPL_INSTALL_PREFIX@ CACHE PATH "XERCES installation prefix")
-
-# ALQUIMIA
-set(ALQUIMIA_DIR @TPL_INSTALL_PREFIX@ CACHE PATH "ALQUIMIA installation prefix")
-
-# PFLOTRAN
-set(PFLOTRAN_DIR @TPL_INSTALL_PREFIX@ CACHE PATH "PFLOTRAN installation prefix")

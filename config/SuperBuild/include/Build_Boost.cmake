@@ -1,4 +1,43 @@
-#  -*- mode: cmake -*-
+# Copyright (c) 2017, Los Alamos National Security, LLC
+# All rights reserved.
+
+# Copyright 2017. Los Alamos National Security, LLC. This software was
+# produced under U.S. Government contract DE-AC52-06NA25396 for Los
+# Alamos National Laboratory (LANL), which is operated by Los Alamos
+# National Security, LLC for the U.S. Department of Energy. The
+# U.S. Government has rights to use, reproduce, and distribute this
+# software.  NEITHER THE GOVERNMENT NOR LOS ALAMOS NATIONAL SECURITY,
+# LLC MAKES ANY WARRANTY, EXPRESS OR IMPLIED, OR ASSUMES ANY LIABILITY
+# FOR THE USE OF THIS SOFTWARE.  If software is modified to produce
+# derivative works, such modified software should be clearly marked, so
+# as not to confuse it with the version available from LANL.
+ 
+# Additionally, redistribution and use in source and binary forms, with
+# or without modification, are permitted provided that the following
+# conditions are met:
+
+# 1.  Redistributions of source code must retain the above copyright
+# notice, this list of conditions and the following disclaimer.
+# 2.  Redistributions in binary form must reproduce the above copyright
+# notice, this list of conditions and the following disclaimer in the
+# documentation and/or other materials provided with the distribution.
+# 3.  Neither the name of Los Alamos National Security, LLC, Los Alamos
+# National Laboratory, LANL, the U.S. Government, nor the names of its
+# contributors may be used to endorse or promote products derived from
+# this software without specific prior written permission.
+ 
+# THIS SOFTWARE IS PROVIDED BY LOS ALAMOS NATIONAL SECURITY, LLC AND
+# CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING,
+# BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+# FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL LOS
+# ALAMOS NATIONAL SECURITY, LLC OR CONTRIBUTORS BE LIABLE FOR ANY
+# DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+# GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
+# IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+# OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+# ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #
 # Build TPL: Boost 
@@ -18,9 +57,10 @@ jali_tpl_version_write(FILENAME ${TPL_VERSIONS_INCLUDE_FILE}
 set(Boost_projects "system,filesystem,program_options,regex,graph")
 
 # --- Define the configure command
-# bjam args escape spaces not quote them
+message("  etc: BOOST FLAGS ISSUES")
 set(Boost_bjam_args "cxxflags=${Jali_COMMON_CXXFLAGS}")
 string(REPLACE " " "\\ " Boost_bjam_args ${Boost_bjam_args})
+message("  etc: bjam args escape spaces not quote them: ${Boost_bjam_args}")
 
 # determin link type
 if (BUILD_SHARED_LIBS)
@@ -41,6 +81,9 @@ message(STATUS "BOOST: compiler_id_lc       = ${compiler_id_lc}")
 
 if (compiler_id_lc)
   if (APPLE)
+    message(STATUS "BOOST: CMAKE_SYSTEM         = ${CMAKE_SYSTEM}")
+    message(STATUS "BOOST: CMAKE_SYSTEM_VERSION = ${CMAKE_SYSTEM_VERSION}")
+    message(STATUS "BOOST: compiler_id_lc       = ${compiler_id_lc}")
     # CMAKE_SYSTEM of the form Darwin-12.5.0
     # CMAKE_SYSTEM_VERSION is 12.5.0 corresponds to OSX 10.8.5
     STRING(REGEX REPLACE "\\..*" "" OS_VERSION_MAJOR ${CMAKE_SYSTEM_VERSION})
@@ -64,22 +107,24 @@ if (compiler_id_lc)
         endif()
       endif()
       # On Mac OS 10.10, we don't know what to do yet
-      if (${OS_VERSION_MAJOR} GREATER 13) # OSX 10.9.x -> Darwin-13.x.y
+      if ( ${OS_VERSION_MAJOR} GREATER 13 ) # OSX 10.9.x -> Darwin-13.x.y
+        message (STATUS "BOOST: CMAKE_CXX_COMPILER   = ${CMAKE_CXX_COMPILER}")
         # Check if it looks like an mpi wrapper
-	if (CMAKE_CXX_COMPILER MATCHES "mpi")
-          execute_process(COMMAND ${CMAKE_CXX_COMPILER} -show
-                          OUTPUT_VARIABLE  COMPILE_CMDLINE OUTPUT_STRIP_TRAILING_WHITESPACE
-                          ERROR_VARIABLE   COMPILE_CMDLINE ERROR_STRIP_TRAILING_WHITESPACE
-                          RESULT_VARIABLE  COMPILER_RETURN)
-
-          # Extract the name of the compiler
-	  if (COMPILER_RETURN EQUAL 0)
-	    string(REPLACE " " ";" COMPILE_CMDLINE_LIST ${COMPILE_CMDLINE})
-	    list(GET COMPILE_CMDLINE_LIST 0 RAW_CXX_COMPILER)
-            message (STATUS "BOOST: RAW_CXX_COMPILER=${RAW_CXX_COMPILER}")
-	  else()
-	    message (FATAL_ERROR "BOOST: Unable to determine the compiler command")
-          endif()
+	if ( CMAKE_CXX_COMPILER MATCHES "mpi" )
+          execute_process(
+            COMMAND ${CMAKE_CXX_COMPILER} -show
+            OUTPUT_VARIABLE  COMPILE_CMDLINE OUTPUT_STRIP_TRAILING_WHITESPACE
+            ERROR_VARIABLE   COMPILE_CMDLINE ERROR_STRIP_TRAILING_WHITESPACE
+            RESULT_VARIABLE  COMPILER_RETURN
+            )
+            # Extract the name of the compiler
+	    if ( COMPILER_RETURN EQUAL 0)
+	        string(REPLACE " " ";" COMPILE_CMDLINE_LIST ${COMPILE_CMDLINE})
+	        list(GET COMPILE_CMDLINE_LIST 0 RAW_CXX_COMPILER)
+		message (STATUS "BOOST: RAW_CXX_COMPILER     = ${RAW_CXX_COMPILER}")
+	    else()
+	        message (FATAL_ERROR "BOOST: Unable to determine the compiler command")
+            endif()
 	else()
           set(RAW_CXX_COMPILER ${CMAKE_CXX_COMPILER})
         endif()
@@ -106,13 +151,12 @@ if (compiler_id_lc)
 
           set(BOOST_using "using ${Boost_user_key} : ${CMAKE_CXX_COMPILER_VERSION} : ${RAW_CXX_COMPILER} \;")
           file (MAKE_DIRECTORY ${Boost_build_dir})
-	  file (WRITE ${Boost_build_dir}/user-config.jam ${BOOST_using} \n)
-
-	  set(Boost_bjam_args "${Boost_bjam_args} --user-config=${Boost_build_dir}/user-config.jam")
-          set(Boost_bootstrap_args)
-	  set(Boost_toolset ${Boost_user_key})
-        elseif ( _version_string MATCHES "LLVM")
-	  message(STATUS "BOOST: compiler is Clang")
+	  file (WRITE ${Boost_build_dir}/user-config.jam ${BOOST_using} \n )
+          set(Boost_bootstrap_args )
+          set(Boost_bjam_args "toolset=gcc-${CMAKE_CXX_COMPILER_VERSION} link=static" )
+          set(Boost_toolset darwin)
+        elseif( _version_string MATCHES "LLVM" )
+	  message (STATUS "BOOST: compiler is Clang" )
         endif()
       endif()
     endif()

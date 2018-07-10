@@ -101,13 +101,11 @@
 #ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 #POSSIBILITY OF SUCH DAMAGE.
 #=============================================================================
-# (To distribute this file outside of CMake, substitute the full
-#  License text for the above reference.)
 
 # 
 # This is a very useful macro that Jali build uses in several places.
 # This macro is part of the CMake 2.8.3 distribution. We include it in the
-# Jali module directory since the minimum cmake versio for Jali is 2.8. 
+# Jali module directory since the minimum cmake version for Jali is 2.8. 
 #
 
 if(__CMAKE_PARSE_ARGUMENTS_INCLUDED)
