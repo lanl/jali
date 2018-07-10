@@ -1,46 +1,7 @@
-/*
-Copyright (c) 2017, Los Alamos National Security, LLC
-All rights reserved.
-
-Copyright 2017. Los Alamos National Security, LLC. This software was
-produced under U.S. Government contract DE-AC52-06NA25396 for Los
-Alamos National Laboratory (LANL), which is operated by Los Alamos
-National Security, LLC for the U.S. Department of Energy. The
-U.S. Government has rights to use, reproduce, and distribute this
-software.  NEITHER THE GOVERNMENT NOR LOS ALAMOS NATIONAL SECURITY,
-LLC MAKES ANY WARRANTY, EXPRESS OR IMPLIED, OR ASSUMES ANY LIABILITY
-FOR THE USE OF THIS SOFTWARE.  If software is modified to produce
-derivative works, such modified software should be clearly marked, so
-as not to confuse it with the version available from LANL.
- 
-Additionally, redistribution and use in source and binary forms, with
-or without modification, are permitted provided that the following
-conditions are met:
-
-1.  Redistributions of source code must retain the above copyright
-notice, this list of conditions and the following disclaimer.
-2.  Redistributions in binary form must reproduce the above copyright
-notice, this list of conditions and the following disclaimer in the
-documentation and/or other materials provided with the distribution.
-3.  Neither the name of Los Alamos National Security, LLC, Los Alamos
-National Laboratory, LANL, the U.S. Government, nor the names of its
-contributors may be used to endorse or promote products derived from
-this software without specific prior written permission.
- 
-THIS SOFTWARE IS PROVIDED BY LOS ALAMOS NATIONAL SECURITY, LLC AND
-CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING,
-BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
-FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL LOS
-ALAMOS NATIONAL SECURITY, LLC OR CONTRIBUTORS BE LIABLE FOR ANY
-DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
-GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
-IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
-
+/*---------------------------------------------------------------------------~*
+ * Copyright (c) 2015 Los Alamos National Security, LLC
+ * All rights reserved.
+ *---------------------------------------------------------------------------~*/
 
 #include "mpi.h"
 
@@ -53,7 +14,7 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "UnitTest++.h"
 
-TEST(JaliStateVector_Cells_Mesh) {
+TEST(JaliUniStateVector_Cells_Mesh) {
 
   Jali::MeshFactory mf(MPI_COMM_WORLD);
   std::shared_ptr<Jali::Mesh> mesh = mf(0.0, 0.0, 1.0, 1.0, 2, 2);
@@ -63,7 +24,7 @@ TEST(JaliStateVector_Cells_Mesh) {
   // Check array initialization
 
   std::vector<double> data1 = {1.0, 3.0, 2.5, 4.5};
-  Jali::StateVector<double> myvec1("var1", mesh, nullptr,
+  Jali::UniStateVector<double> myvec1("var1", mesh, nullptr,
                                    Jali::Entity_kind::CELL,
                                    Jali::Entity_type::ALL, &(data1[0]));
 
@@ -80,7 +41,7 @@ TEST(JaliStateVector_Cells_Mesh) {
   // Check constant initialization
 
   double data2 = -1.33;
-  Jali::StateVector<double> myvec2("var2", mesh, nullptr,
+  Jali::UniStateVector<double> myvec2("var2", mesh, nullptr,
                                    Jali::Entity_kind::CELL,
                                    Jali::Entity_type::ALL, data2);
 
@@ -92,7 +53,7 @@ TEST(JaliStateVector_Cells_Mesh) {
 
   // Check no initialization
 
-  Jali::StateVector<double> myvec3("var3", mesh, nullptr,
+  Jali::UniStateVector<double> myvec3("var3", mesh, nullptr,
                                    Jali::Entity_kind::CELL,
                                    Jali::Entity_type::ALL);
 
@@ -100,7 +61,7 @@ TEST(JaliStateVector_Cells_Mesh) {
 }
  
 
-TEST(JaliStateVectorNodes) {
+TEST(JaliUniStateVectorNodes) {
 
   Jali::MeshFactory mf(MPI_COMM_WORLD);
   std::shared_ptr<Jali::Mesh> mesh = mf(0.0, 0.0, 1.0, 1.0, 2, 2);
@@ -108,7 +69,7 @@ TEST(JaliStateVectorNodes) {
   CHECK(mesh);
 
   std::vector<double> data1 = {1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0};
-  Jali::StateVector<double> myvec1("var1", mesh, nullptr,
+  Jali::UniStateVector<double> myvec1("var1", mesh, nullptr,
                                    Jali::Entity_kind::NODE,
                                    Jali::Entity_type::PARALLEL_OWNED,
                                    &(data1[0]));
@@ -121,7 +82,7 @@ TEST(JaliStateVectorNodes) {
 }
 
 
-TEST(JaliStateVectorAssignCopy) {
+TEST(JaliUniStateVectorAssignCopy) {
 
   Jali::MeshFactory mf(MPI_COMM_WORLD);
   std::shared_ptr<Jali::Mesh> mesh = mf(0.0, 0.0, 1.0, 1.0, 2, 2);
@@ -129,14 +90,14 @@ TEST(JaliStateVectorAssignCopy) {
   CHECK(mesh);
 
   std::vector<double> data1 = {1.0, 3.0, 2.5, 4.5};
-  Jali::StateVector<double> myvec1("var1", mesh, nullptr,
+  Jali::UniStateVector<double> myvec1("var1", mesh, nullptr,
                                    Jali::Entity_kind::CELL,
                                    Jali::Entity_type::ALL,
                                    &(data1[0]));
 
   // Assignment (NOTE that doing myvec2 = myvec1 is a copy not an assignment)
 
-  Jali::StateVector<double>& myvec2 = myvec1;
+  Jali::UniStateVector<double>& myvec2 = myvec1;
 
   // Pick a particular element from both vectors to compare
 
@@ -150,8 +111,8 @@ TEST(JaliStateVectorAssignCopy) {
 
   // Copy construct two ways
 
-  Jali::StateVector<double> myvec3 = myvec1;
-  Jali::StateVector<double> myvec4(myvec1);
+  Jali::UniStateVector<double> myvec3 = myvec1;
+  Jali::UniStateVector<double> myvec4(myvec1);
 
   // Verify that one of the elements is equal
 
@@ -174,7 +135,7 @@ TEST(JaliStateVectorAssignCopy) {
   std::cout << myvec1 << std::endl;
 }
 
-TEST(JaliStateVectorArray) {
+TEST(JaliUniStateVectorArray) {
 
   Jali::MeshFactory mf(MPI_COMM_WORLD);
   std::shared_ptr<Jali::Mesh> mesh = mf(0.0, 0.0, 1.0, 1.0, 2, 2);
@@ -197,7 +158,7 @@ TEST(JaliStateVectorArray) {
   data1[2][0] = 3.0; data1[2][1] = -3.0;
   data1[3][0] = 4.0; data1[3][1] = -4.0;
 
-  Jali::StateVector<std::array<double, 2>> myvec1("var1", mesh, nullptr,
+  Jali::UniStateVector<std::array<double, 2>> myvec1("var1", mesh, nullptr,
                                                   Jali::Entity_kind::CELL,
                                                   Jali::Entity_type::ALL,
                                                   &(data1[0]));
@@ -215,7 +176,7 @@ TEST(JaliStateVectorArray) {
 }
 
 
-TEST(Jali_MMStateVector_Cells_Mesh) {
+TEST(Jali_MultiStateVector_Cells_Mesh) {
 
   Jali::MeshFactory mf(MPI_COMM_WORLD);
   std::shared_ptr<Jali::Mesh> mesh = mf(0.0, 0.0, 3.0, 3.0, 3, 3);
@@ -269,15 +230,15 @@ TEST(Jali_MMStateVector_Cells_Mesh) {
     for (int c = 0; c < 9; c++)
       vfm[m][c] = vfarr[m][c];
 
-  Jali::MMStateVector<double> myvec1("volfrac1", mesh, state,
+  Jali::MultiStateVector<double> myvec1("volfrac1", mesh, state,
                                      Jali::Entity_kind::CELL,
                                      Jali::Entity_type::ALL,
                                      Jali::Data_layout::MATERIAL_CENTRIC,
                                      (double const **) vfm);
   
-  CHECK(Jali::StateVector_type::MULTIVAL == myvec1.get_type());
+  CHECK(Jali::StateVector_type::MULTIVAL == myvec1.type());
   
-  // Check the operator() for MMStateVector
+  // Check the operator() for MultiStateVector
   
   for (int m = 0; m < 3; m++)
     for (int c = 0; c < 9; c++)
@@ -300,15 +261,15 @@ TEST(Jali_MMStateVector_Cells_Mesh) {
     for (int c = 0; c < 9; c++)
       vfc[c][m] = vfarr[m][c];
 
-  Jali::MMStateVector<double> myvec2("volfrac2", mesh, state,
+  Jali::MultiStateVector<double> myvec2("volfrac2", mesh, state,
                                      Jali::Entity_kind::CELL,
                                      Jali::Entity_type::ALL,
                                      Jali::Data_layout::CELL_CENTRIC,
                                      (double const **) vfc);
   
-  CHECK(Jali::StateVector_type::MULTIVAL == myvec2.get_type());
+  CHECK(Jali::StateVector_type::MULTIVAL == myvec2.type());
   
-  // Check the operator() for MMStateVector - Note that the indices used
+  // Check the operator() for MultiStateVector - Note that the indices used
   // are switched for the call to operator() for myvec2 and so we have to
   // tell the code we are requesting the data in a non-default manner
   
@@ -401,5 +362,57 @@ TEST(Jali_MMStateVector_Cells_Mesh) {
     vol += matvol;
   }
   CHECK_CLOSE(vol, 9.0, 1.0e-8);
+
+
+  // Add a complex data type (type representing material centroids)
+  // and retrieve it
+  class Point2 {
+   public:
+    Point2(double xin, double yin) : x(xin), y(yin) {};
+    Point2() : x(0.0), y(0.0) {};
+    double x;
+    double y;
+  };
+
+
+  std::vector<std::vector<Point2>> matcenarr =
+      {{Point2(0.5, 0.5), Point2(1.25, 0.5), Point2(0.0, 0.0),
+        Point2(0.5, 1.5), Point2(1.25, 1.5), Point2(0.0, 0.0),
+        Point2(0.5, 2.5), Point2(1.25, 1.5), Point2(0.0, 0.0)},
+       {Point2(0.0, 0.0), Point2(1.75, 0.5), Point2(2.5, 0.5),
+        Point2(0.0, 0.0), Point2(1.75, 1.25), Point2(2.5, 1.25),
+        Point2(0.0, 0.0), Point2(0.0, 0.0), Point2(0.0, 0.0)},
+       {Point2(0.0, 0.0), Point2(0.0, 0.0), Point2(0.0, 0.0),
+        Point2(0.0, 0.0), Point2(1.75, 1.75), Point2(2.5, 1.75),
+        Point2(0.0, 0.0), Point2(1.75, 2.5), Point2(2.5, 2.5)}};
+
+  Point2 **matcen = new Point2 *[3];
+  for (int m = 0; m < 3; m++)
+    matcen[m] = new Point2[9];
+  for (int m = 0; m < 3; m++)
+    for (int c = 0; c < 9; c++)
+      matcen[m][c] = matcenarr[m][c];
+  
+  Jali::MultiStateVector<Point2>& cenvec =
+      state->add("mat_centroids", mesh, Jali::Entity_kind::CELL,
+                 Jali::Entity_type::ALL, Jali::Data_layout::MATERIAL_CENTRIC,
+                 (Point2 const * const *) matcen);
+
+  for (int m = 0; m < 3; m++) {
+    std::vector<int> const& matcells = state->material_cells(m);
+
+    std::vector<Point2> matcen_out = cenvec.get_matdata(m);
+
+    int nmatcells = matcells.size();
+    for (int ic = 0; ic < nmatcells; ic++) {
+      int c = matcells[ic];
+      CHECK_CLOSE(matcen[m][c].x, matcen_out[ic].x, 1.0e-12);
+      CHECK_CLOSE(matcen[m][c].y, matcen_out[ic].y, 1.0e-12);
+    }
+  }
+  
+  for (int m = 0; m < 3; m++)
+    delete [] matcen[m];
+  delete [] matcen;
 }
  

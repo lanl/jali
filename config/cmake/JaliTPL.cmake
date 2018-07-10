@@ -1,45 +1,4 @@
-# Copyright (c) 2017, Los Alamos National Security, LLC
-# All rights reserved.
-
-# Copyright 2017. Los Alamos National Security, LLC. This software was
-# produced under U.S. Government contract DE-AC52-06NA25396 for Los
-# Alamos National Laboratory (LANL), which is operated by Los Alamos
-# National Security, LLC for the U.S. Department of Energy. The
-# U.S. Government has rights to use, reproduce, and distribute this
-# software.  NEITHER THE GOVERNMENT NOR LOS ALAMOS NATIONAL SECURITY,
-# LLC MAKES ANY WARRANTY, EXPRESS OR IMPLIED, OR ASSUMES ANY LIABILITY
-# FOR THE USE OF THIS SOFTWARE.  If software is modified to produce
-# derivative works, such modified software should be clearly marked, so
-# as not to confuse it with the version available from LANL.
- 
-# Additionally, redistribution and use in source and binary forms, with
-# or without modification, are permitted provided that the following
-# conditions are met:
-
-# 1.  Redistributions of source code must retain the above copyright
-# notice, this list of conditions and the following disclaimer.
-# 2.  Redistributions in binary form must reproduce the above copyright
-# notice, this list of conditions and the following disclaimer in the
-# documentation and/or other materials provided with the distribution.
-# 3.  Neither the name of Los Alamos National Security, LLC, Los Alamos
-# National Laboratory, LANL, the U.S. Government, nor the names of its
-# contributors may be used to endorse or promote products derived from
-# this software without specific prior written permission.
- 
-# THIS SOFTWARE IS PROVIDED BY LOS ALAMOS NATIONAL SECURITY, LLC AND
-# CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING,
-# BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
-# FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL LOS
-# ALAMOS NATIONAL SECURITY, LLC OR CONTRIBUTORS BE LIABLE FOR ANY
-# DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
-# GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
-# IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-# OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-# ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-
+# -*- mode: cmake -*-
 # 
 # Jali Third Party Library (TPL) Definitions
 #
@@ -84,10 +43,8 @@ set(Boost_ADDITIONAL_VERSIONS
     1.53 1.53.0
     1.54 1.55.0)
 find_package( Boost COMPONENTS system filesystem program_options regex REQUIRED)
-add_feature_info(Boost
-                 "C++ Extension library"
-                 "http://www.boost.org"
-                 "Required by the MPC")
+option(ENABLE_BOOST "Boost info" ON)
+add_feature_info(Boost ENABLE_BOOST "Cpp Extension library http://www.boost.org")
 
 if ( Boost_VERSION) 
 
@@ -129,11 +86,8 @@ if ( NOT HDF5_IS_PARALLEL )
                         "HDF5 installation to include MPI I/O symbols"
             )            
 endif(NOT HDF5_IS_PARALLEL)
-add_feature_info(HDF5
-                "I/O library that creates HDF5 formatted files"
-                "http://www.hdfgroup.org/HDF5"
-                "Required library for several components in Jali"
-                )
+option(ENABLE_HDF5 "HDF5 info" ON)
+add_feature_info(HDF5 ENABLE_HDF5 "I/O library that creates HDF5 formatted files http://www.hdfgroup.org/HDF5")
 
 # Restore policy of preferring offical CMake modules over local ones.
 if (${ADJUST_POLICY})
@@ -229,20 +183,17 @@ endif()
 # NetCDF - http://www.unidata.ucar.edu/software/netcdf/
 ##############################################################################
 find_package(NetCDF REQUIRED)
-add_feature_info(NetCDF
-                 "Network Common Data Format (NetCDF)"
-                 "http://www.unidata.ucar.edu/software/netcdf/"
-                 "Required by ExodusII library")
+option(ENABLE_NetCDF "NetCDF info" ON)
+add_feature_info(NetCDF ENABLE_NetCDF "Network Common Data Format (NetCDF) http://www.unidata.ucar.edu/software/netcdf/")
 
 
 ##############################################################################
 # Exodus II -http://sourceforge.net/projects/exodusii
 ##############################################################################
 find_package(ExodusII REQUIRED)
-add_feature_info(ExodusII
-                 "File format library. Originated from Sandia."
-                 "http://sourceforge.net/projects/exodusii/"
-                 "Required by all the mesh frameworks to read mesh files")
+option(ENABLE_ExodusII "ExodusII info" ON)
+add_feature_info(ExodusII ENABLE_ExodusII "File format library from Sandia National Labs. https://github.com/gsjaardema/seacas")
+
 
 
 
