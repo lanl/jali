@@ -199,7 +199,7 @@ class UniStateVectorBase : public StateVectorBase {
  protected:
   std::shared_ptr<DomainType> mydomain_;
 
-  Mesh & get_mesh_of_domain(std::shared_ptr<MeshTile> meshtile) const {
+  const Mesh & get_mesh_of_domain(std::shared_ptr<MeshTile> meshtile) const {
      return meshtile->mesh();
   }
   Mesh & get_mesh_of_domain(std::shared_ptr<Mesh> mesh) const {
@@ -543,7 +543,7 @@ class MultiStateVectorBase : public StateVectorBase {
  protected:
   std::shared_ptr<DomainType> mydomain_;
 
-  Mesh & get_mesh_of_domain(std::shared_ptr<MeshTile> meshtile) const {
+  const Mesh & get_mesh_of_domain(std::shared_ptr<MeshTile> meshtile) const {
      return meshtile->mesh();
   }
   Mesh & get_mesh_of_domain(std::shared_ptr<Mesh> mesh) const {
