@@ -531,9 +531,6 @@ endif()
 # ZLIB
 include(${SuperBuild_BUILD_FILES_DIR}/Build_zlib.cmake) 
 
-# CURL
-include(${SuperBuild_BUILD_FILES_DIR}/Build_CURL.cmake)
-
 # UnitTest
 append_set(Jali_TPL_CMAKE_ARGS
            -DENABLE_TEST:BOOL=${ENABLE_TESTS})
