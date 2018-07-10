@@ -68,7 +68,7 @@ include_directories(${Boost_INCLUDE_DIRS})
 # Library: 
 #
 add_Jali_library(jali_state 
-  SOURCE JaliStateVector.h JaliState.h JaliState.cc 
+  SOURCE JaliStateVector.h JaliStateVector.cc JaliState.h JaliState.cc 
   LINK_LIBS mesh)
 
 #

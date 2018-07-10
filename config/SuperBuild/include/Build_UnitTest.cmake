@@ -42,8 +42,9 @@
 #
 # Build TPL: UnitTest
 # 
-
 # --- Define all the directories and common external project flags
+set(unittest_depend_projects ZLIB)
+
 define_external_project_args(UnitTest
                              TARGET unittest
                              BUILD_IN_SOURCE)
@@ -122,3 +123,4 @@ ExternalProject_add(${UnitTest_BUILD_TARGET}
                     INSTALL_DIR         ${TPL_INSTALL_PREFIX}        # Install directory
                     # -- Output control
                     ${UnitTest_logging_args})
+

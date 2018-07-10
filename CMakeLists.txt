@@ -44,7 +44,7 @@
 #
 
 # Require cmake 2.8.8 or higher
-cmake_minimum_required(VERSION 2.8.8)
+cmake_minimum_required(VERSION 3.0.0)
 set(CMAKE_CTEST_COMMAND ${CMAKE_CTEST_COMMAND})  
 
 if ("${CMAKE_PATCH_VERSION}" GREATER 11)
@@ -143,25 +143,6 @@ option(ENABLE_Config_Report "Print out detailed information at the end of a conf
 set(Jali_CONFIG_LOG "${Jali_BINARY_DIR}/jali-config.log"
     CACHE string "Jali configuration log file")
 include(JaliConfigReport)
-#if (ENABLE_Config_Report)
-#    set(cat_exec "cat")
-#    if (WIN32)
-#        if( NOT UNIX)
-#            set(cat_exec "type")
-#        endif(NOT UNIX)
-#    endif(WIN32)
-#
-#    execute_process(COMMAND "${cat_exec}" "${Jali_CONFIG_LOG}" OUTPUT_VARIABLE config_output)
-#    print_variable(cat_exec)
-#    print_variable(Jali_CONFIG_LOG)
-#    print_variable(config_output)
-#    message(STATUS "********************************************************************************")
-#    message(STATUS "begin configuration output --\n${config_output}")
-#    message(STATUS "end configuration output --")
-#    message(STATUS "********************************************************************************")
-#
-#endif() 
-
 
 
 # add a target to generate API documentation with Doxygen

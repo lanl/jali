@@ -77,7 +77,7 @@ import/export, mesh partitioning and MPI communication. To build Jali,
 you must point the build system to a directory containing the TPLs or
 build the third party libraries as described below.
 
-Jali *1.0.0*  uses version *1.0.9* or higher of the TPL set. See
+Jali *1.0.0*  uses version *1.1.0* or higher of the TPL set. See
 $JALI_SOURCE/config/SuperBuild/TPLVersions.cmake for details.
 
 # Installation instructions
@@ -100,9 +100,9 @@ TPLs directory depending on how out-of-sync this file is with whats on
 your system):
 
     /bin/tcsh
-    module load openmpi/1.10.0-intel_15.0.3 cmake
+    module load openmpi/2.1.2-intel_17.0.6 cmake
     setenv SOURCE `pwd`
-    setenv TPL_INSTALL_PREFIX /usr/projects/ngc/private/jali-tpl/1.0.9-intel-15.0.3-openmpi-1.10.3
+    setenv TPL_INSTALL_PREFIX /usr/projects/ngc/private/jali-tpl/1.1.0-intel-17.0.6-openmpi-2.1.2
     setenv JALI_INSTALL_PREFIX $SOURCE/inst-jali
     mkdir build-jali
     cd build-jali
@@ -126,7 +126,7 @@ If you want to build a custom set of Jali TPLs and build Jali using
 these TPLs, execute the following from the Jali root directory: 
 
     /bin/tcsh
-    module load openmpi/1.10.0-intel_15.0.3 cmake
+    module load openmpi/2.1.2-intel_17.0.6 cmake
     setenv SOURCE `pwd`
     setenv TPL_INSTALL_PREFIX $SOURCE/inst-tpl
     setenv JALI_INSTALL_PREFIX $SOURCE/inst-jali
@@ -161,7 +161,7 @@ these TPLs, execute the following from the Jali root directory:
     make install
     exit
 
-## Moonlight (or Pinto)
+## Snow
 
 If you want to build only Jali, execute the following from the Jali
 root directory (you may have to modify the exact version number of the
@@ -169,9 +169,9 @@ TPLs directory depending on how out-of-sync this file is with whats on
 your system):
 
     /bin/tcsh
-    module load intel/16.0.3 openmpi/1.10.5
+    module load intel/17.0.4 openmpi/2.1.2
     setenv SOURCE `pwd`
-    setenv TPL_INSTALL_PREFIX /usr/projects/ngc/private/jali-tpl/intel-16.0.3-openmpi-1.10.5
+    setenv TPL_INSTALL_PREFIX /usr/projects/ngc/private/jali-tpl/1.1.0-intel-17.0.4-openmpi-2.1.2
     setenv JALI_INSTALL_PREFIX $SOURCE/inst-jali
     mkdir build-jali
     cd build-jali
@@ -195,7 +195,7 @@ If you want to build a custom set of Jali TPLs and build Jali using
 these TPLs, execute the following from the Jali root directory: 
 
     /bin/tcsh
-    module load intel/16.0.3 openmpi/1.10.5
+    module load intel/17.0.4 openmpi/2.1.2
     setenv SOURCE `pwd`
     setenv TPL_INSTALL_PREFIX $SOURCE/inst-tpl
     setenv JALI_INSTALL_PREFIX $SOURCE/inst-jali
@@ -239,9 +239,9 @@ your system):
 
     /bin/tcsh
     /opt/local/packages/Modules/default/init/sh
-    module load intel/16.0.3 openmpi/1.10.3
+    module load intel/17.0.1 openmpi/1.10.5
     setenv SOURCE `pwd`
-    setenv TPL_INSTALL_PREFIX /usr/local/codes/ngc/private/jali-tpl/intel-16.0.3-openmpi-1.10.3
+    setenv TPL_INSTALL_PREFIX /usr/local/codes/ngc/private/jali-tpl/1.1.0-intel-17.0.1-openmpi-1.10.5
     setenv JALI_INSTALL_PREFIX $SOURCE/inst-jali
     mkdir build-jali
     cd build-jali
@@ -266,7 +266,7 @@ these TPLs, execute the following from the Jali root directory:
 
     /bin/tcsh
     /opt/local/packages/Modules/default/init/sh
-    module load intel/16.0.3 openmpi/1.10.3
+    module load intel/17.0.1 openmpi/1.10.5
     setenv SOURCE `pwd`
     setenv TPL_INSTALL_PREFIX $SOURCE/inst-tpl
     setenv JALI_INSTALL_PREFIX $SOURCE/inst-jali

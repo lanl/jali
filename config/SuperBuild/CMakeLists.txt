@@ -43,35 +43,77 @@
 #
 # Jali SuperBuild
 #       Jali TPL Build Targets
-cmake_minimum_required(VERSION 2.8.8)
+#
+# Set minimum required version of CMake
+# NB: Must go before project() call.
+#
+cmake_minimum_required(VERSION 3.0.0)
 
-if ("${CMAKE_PATCH_VERSION}" GREATER 3)
-  set(ADJUST_POLICY "True")
-endif()
-
-if (${ADJUST_POLICY})
-  cmake_policy(SET CMP0017 NEW)
-endif()
-
-# ############################################################################ #
-# Compiler Definition Warnings
-# ############################################################################ #
-if ( NOT CMAKE_C_COMPILER )
-  message(WARNING "C compiler not specified. CMake will guess!")
-endif()
-
-if ( NOT CMAKE_CXX_COMPILER )
-  message(WARNING "C++ compiler not specified. CMake will guess!")
-endif()
-
-if ( NOT CMAKE_Fortran_COMPILER )
-  message(WARNING "Fortran compiler not specified. CMake will guess!")
-endif()
+#
+# Language standard
+# NB: Seems like a good idea to have this before project() call.
+#
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # ############################################################################ #
 # Define project name (SuperBuild_SOURCE_DIR and SuperBuild_BINARY_DIR)
 # ############################################################################ #
+message(STATUS "\n------------------------------------------------")
+message(STATUS "\n-- CMake: Configuring Jali TPLs build/install.\n--")
+message(STATUS "---------------------------------------------")
 project(SuperBuild C CXX Fortran)
+
+# ############################################################################ #
+# Shared Libraries Definitions
+# ############################################################################ #
+set(CMAKE_SKIP_BUILD_RPATH FALSE)
+set(CMAKE_SKIP_INSTALL_RPATH FALSE)
+set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
+set(CMAKE_INSTALL_RPATH "${TPL_INSTALL_PREFIX}/lib")
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE) 
+
+set(JALI_CMAKE_CACHE_ARGS  "-DCMAKE_INSTALL_RPATH:PATH=${CMAKE_INSTALL_RPATH}")
+list(APPEND JALI_CMAKE_CACHE_ARGS  "-DCMAKE_INSTALL_NAME_DIR:PATH=${CMAKE_INSTALL_RPATH}")
+
+if (BUILD_SHARED_LIBS)
+  set(_shared_flags "-fPIC")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${_shared_flags}")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${_shared_flags}")
+  set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${_shared_flags}")
+
+  set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} ${_shared_flags}")
+  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${_shared_flags}")
+  set(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE} ${_shared_flags}")
+
+  set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} ${_shared_flags}")
+  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${_shared_flags}")
+  set(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG} ${_shared_flags}")
+endif()
+
+# ############################################################################ #
+# Static Libraries Definitions
+# ############################################################################ #
+set(BUILD_STATIC_LIBS TRUE)
+if (BUILD_SHARED_LIBS)
+  set(BUILD_STATIC_LIBS FALSE)
+endif()
+
+
+# ############################################################################ #
+# Compiler Definition Warnings
+# ############################################################################ #
+if (NOT CMAKE_C_COMPILER)
+  message(WARNING "C compiler not specified. CMake will guess!")
+endif()
+
+if (NOT CMAKE_CXX_COMPILER)
+  message(WARNING "C++ compiler not specified. CMake will guess!")
+endif()
+
+if (NOT CMAKE_Fortran_COMPILER)
+  message(WARNING "Fortran compiler not specified. CMake will guess!")
+endif()
 
 # ############################################################################ #
 # Define Jali directories 
@@ -115,8 +157,9 @@ if (NOT MPI_WRAPPERS_IN_USE)
   See previous error messages to determine missing compiler.")
 endif()
 
-
+# Include the TPL version information
 include(${SuperBuild_SOURCE_DIR}/TPLVersions.cmake)
+
 # prepare the version numbers file
 set(TPL_VERSIONS_INCLUDE_FILE ${CMAKE_BINARY_DIR}/tpl_versions.h)
 file(WRITE ${TPL_VERSIONS_INCLUDE_FILE} "")
@@ -129,10 +172,8 @@ Jali_tpl_version_write(FILENAME ${TPL_VERSIONS_INCLUDE_FILE}
 # ############################################################################ #
 # Build options
 # ############################################################################ #
-
-message(STATUS "Setting build type")
 set(SuperBuild_BUILD_TYPE_DFLT "Release")
-if ( NOT CMAKE_BUILD_TYPE ) 
+if (NOT CMAKE_BUILD_TYPE) 
   set(CMAKE_BUILD_TYPE ${SuperBuild_BUILD_TYPE_DFLT})
 endif()
 message(STATUS "Setting build type -- ${CMAKE_BUILD_TYPE}")
@@ -146,18 +187,17 @@ message(STATUS "Download TPL files in ${TPL_DOWNLOAD_DIR}")
 
 # Disable external web downloads
 option(DISABLE_EXTERNAL_DOWNLOAD "Flag to disable external web downloads" FALSE)
-message(STATUS "Printiing DISABLE_EXTERNAL_DOWNLOAD ${DISABLE_EXTERNAL_DOWNLOAD}")
 if (DISABLE_EXTERNAL_DOWNLOAD)
   message(STATUS "Will not download files from the web, instead will search "
                  "for archive files in ${TPL_DOWNLOAD_DIR}")
 else()
   include(CheckDownload)
-  check_download(TEST_FILE MD5SUMS TEST_URL https://raw.githubusercontent.com/amanzi/amanzi-tpls/master/src)
+  check_download(TEST_FILE MD5SUMS TEST_URL ${JALI_TPLS_DOWNLOAD_URL})
 endif()
 
 # TPL install location
 set(TPL_INSTALL_PREFIX_DFLT "${SuperBuild_BINARY_DIR}/external-projects")
-if ( NOT TPL_INSTALL_PREFIX )
+if (NOT TPL_INSTALL_PREFIX)
   set(TPL_INSTALL_PREFIX ${TPL_INSTALL_PREFIX_DFLT})
 endif()
 message(STATUS "Install TPLs in ${TPL_INSTALL_PREFIX}")
@@ -206,14 +246,12 @@ option(ENABLE_TESTS "Build the Jali Test Suite" TRUE)
 
 # --- The FindMPI package for CMake for versions 2.8.6> use compiler wrappers
 #     to determine include paths, link flags and libraries for each language.
-if ( MPI_WRAPPERS_IN_USE )
-
+if (MPI_WRAPPERS_IN_USE)
   set(MPI_C_COMPILER ${CMAKE_C_COMPILER})
   set(MPI_CXX_COMPILER ${CMAKE_CXX_COMPILER})
   set(MPI_Fortran_COMPILER ${CMAKE_Fortran_COMPILER})
 
 else()
-
   message(STATUS "Searching for MPI compiler wrappers to define"
                  " compile and link flags")
 
@@ -234,7 +272,6 @@ else()
                HINTS ${MPI_INSTALL_PREFIX} ENV MPIROOT ENV MPI_ROOT ENV MPI_HOME ENV MPIHOME ENV MPICH_ROOT 
                PATH_SUFFIXES bin Bin
                )
-
 endif()
 
 # --- This package find call will set
@@ -256,25 +293,24 @@ find_package(MPI)
 set(MPI_Fortran_FOUND ${MPI_FORTRAN_FOUND})
 
 # Warn the user if MPI information is not found
-if ( NOT MPI_C_FOUND )
+if (NOT MPI_C_FOUND)
   message(WARNING "Failed to locate MPI C include and library files")
 endif()
 
-if ( NOT MPI_CXX_FOUND )
+if (NOT MPI_CXX_FOUND)
   message(WARNING "Failed to locate MPI C++ include and library files")
 endif()
 
-if ( NOT MPI_Fortran_FOUND )
+if (NOT MPI_Fortran_FOUND)
   message(WARNING "Failed to locate MPI Fortran include and library files")
 endif()
 
-# Add MPI to the build if any MPI_*_FOUND == FALSE
-if ( MPI_C_FOUND AND MPI_CXX_FOUND AND MPI_Fortran_FOUND )
-  message(STATUS "Found MPI")
-  set(BUILD_MPI FALSE)
+# Fail configuration if any MPI_*_FOUND == FALSE
+if (MPI_C_FOUND AND MPI_CXX_FOUND AND MPI_Fortran_FOUND)
+  message(STATUS "Found MPI: MPIEXEC=${MPIEXEC}")
   set(mpi_var_list COMPILER COMPILE_FLAGS INCLUDE_PATH LINK_FLAGS LIBRARIES)
-  foreach ( lang C CXX Fortran )
-    foreach ( var ${mpi_var_list} )
+  foreach(lang C CXX Fortran)
+    foreach(var ${mpi_var_list})
       set(var MPI_${lang}_${var})
       if ("${var}")
 	message(STATUS "      ${var}: ${${var}}")
@@ -282,19 +318,13 @@ if ( MPI_C_FOUND AND MPI_CXX_FOUND AND MPI_Fortran_FOUND )
     endforeach()
   endforeach()  
 else()
-  message(STATUS "Will build MPI with the other TPLs")
-  set(BUILD_MPI TRUE)
-  set(MPI_C_COMPILER       ${TPL_INSTALL_PREFIX}/bin/mpicc)
-  set(MPI_CXX_COMPILER     ${TPL_INSTALL_PREFIX}/bin/mpicxx)
-  set(MPI_Fortran_COMPILER ${TPL_INSTALL_PREFIX}/bin/mpif90)
-  set(MPIEXEC              ${TPL_INSTALL_PREFIX}/bin/mpirun)
+  message(FATAL_ERROR "MPI was not found.")
 endif()
 
-# --- Add the include paths, link flags and libraries if using a 
-#     user requested MPI but not the wrappers from this MPI installation.
-if ( NOT MPI_WRAPPERS_IN_USE AND NOT BUILD_MPI )
-  
-  foreach ( lang C CXX Fortran )
+# Add the include paths, link flags and libraries if using a 
+# user requested MPI but not the wrappers from this MPI installation.
+if (NOT MPI_WRAPPERS_IN_USE)
+  foreach (lang C CXX Fortran)
     # Build MPI compile flags
     set(add_mpi_flags_list)
     if (MPI_${lang}_COMPILE_FLAGS)
@@ -302,21 +332,25 @@ if ( NOT MPI_WRAPPERS_IN_USE AND NOT BUILD_MPI )
 	list(APPEND add_mpi_flags_list ${flag})
       endforeach()
     endif()
+
     if (MPI_${lang}_INCLUDE_PATH)
       foreach (dir ${MPI_${lang}_INCLUDE_PATH} )
 	list(APPEND add_mpi_flags_list "-I${dir}")
       endforeach()
     endif() 
+
     if (MPI_${lang}_LINK_FLAGS)
       foreach (flag ${MPI_${lang}_LINK_FLAGS} )
 	list(APPEND add_mpi_flags_list ${flag})
       endforeach()
     endif()
+
     list(REMOVE_DUPLICATES add_mpi_flags_list)
     list(LENGTH add_mpi_flags_list num_flags)
-    if ( "${num_flags}" GREATER "0" )
+
+    if ("${num_flags}" GREATER "0")
       include(BuildWhitespaceString)
-      if ( CMAKE_${lang}_FLAGS )
+      if (CMAKE_${lang}_FLAGS)
 	build_whitespace_string(new_compile_flags ${CMAKE_${lang}_FLAGS} ${add_mpi_flags_list})
       else()	
 	build_whitespace_string(new_compile_flags ${add_mpi_flags_list})
@@ -324,34 +358,15 @@ if ( NOT MPI_WRAPPERS_IN_USE AND NOT BUILD_MPI )
       set(CMAKE_${lang}_FLAGS "${new_compile_flags}")
       message(STATUS "Update CMAKE_${lang}_FLAGS: ${CMAKE_${lang}_FLAGS}")
     endif()  
-
-
   endforeach()
-
-  
 endif()
-
-# --- Define which compilers to use in MPI dependent projects
-#     If building MPI as an external project use MPI_* compiler
-#     otherwise use the CMAKE_* compilers which are either
-#     MPI compiler wrappers OR have the neccessary flags to build.
-if ( BUILD_MPI )
-  set(CMAKE_C_COMPILER_USE       ${MPI_C_COMPILER})
-  set(CMAKE_CXX_COMPILER_USE     ${MPI_CXX_COMPILER})
-  set(CMAKE_Fortran_COMPILER_USE ${MPI_Fortran_COMPILER})
-else()  
-  set(CMAKE_C_COMPILER_USE       ${CMAKE_C_COMPILER})
-  set(CMAKE_CXX_COMPILER_USE     ${CMAKE_CXX_COMPILER})
-  set(CMAKE_Fortran_COMPILER_USE ${CMAKE_Fortran_COMPILER})
-endif()  
 
 # --- Jali uses MPI_EXEC* not MPIEXEC* variables. This allows the user to 
 #     override the find package results.
 
 # - MPI execute binary
 if (NOT MPI_EXEC)
-
-  if ( MPIEXEC )
+  if (MPIEXEC)
     set(MPI_EXEC "${MPIEXEC}" CACHE STRING "Select MPI executable from FindMPI results")
   else()
     find_program(MPI_EXEC
@@ -359,29 +374,26 @@ if (NOT MPI_EXEC)
                  HINTS ENV MPI_ROOT ENV MPIROOT ENV MPI_PREFIX ENV MPI_HOME ENV MPIHOME
                 )
   endif()
-
 endif()
 
 # - Number of MPI ranks flag
 set(MPI_EXEC_NUMPROCS_FLAG_DFLT -n)
-if(NOT MPI_EXEC_NUMPROCS_FLAG )
-
+if (NOT MPI_EXEC_NUMPROCS_FLAG)
   if (MPIEXEC_NUMPROC_FLAG)
     set(MPI_EXEC_NUMPROCS_FLAG "${MPIEXEC_NUMPROC_FLAG}" CACHE STRING "Set MPI number of procs flag from FindMPI")
   else()
     set(MPI_EXEC_NUMPROCS_FLAG ${MPI_EXEC_NUMPROCS_FLAG_DFLT})
   endif()
-
 endif()
 
 # - Maximum number of processors. This is a limit for the test suite
 #   Some tests require too many processors and it increases the execution time
 #   considerably. 
 set(MPI_EXEC_MAX_NUMPROCS_DFLT 8)
-if ( NOT MPI_EXEC_MAX_NUMPROCS )
+if (NOT MPI_EXEC_MAX_NUMPROCS)
   include(ProcessorCount)
   ProcessorCount(proc_count)
-  if ( NOT proc_count EQUAL 0 )
+  if (NOT proc_count EQUAL 0)
     math(EXPR MPI_EXEC_MAX_NUMPROCS "${proc_count} * 2") 
     message(STATUS "Detected ${proc_count} processors and will set maximum to ${MPI_EXEC_MAX_NUMPROCS}")
   else()
@@ -392,18 +404,28 @@ endif()
 # - Set the pre and post flags
 #   Usage:
 #   ${MPI_EXEC} ${MPI_EXEC_NUMPROCS_FLAG} PROCS ${MPI_EXEC_PREFLAGS} EXECUTABLE ${MPI_EXEC_POSTFLAGS}
-if ( NOT MPI_EXEC_PREFLAGS )
-  if ( MPIEXEC_PREFLAGS )
+if (NOT MPI_EXEC_PREFLAGS)
+  if (MPIEXEC_PREFLAGS)
     set(MPI_EXEC_PREFLAGS "${MPIEXEC_PRFLAGS}" CACHE STRING "Set MPI execute pre flags")
   endif()
 endif()
 
-if ( NOT MPI_EXEC_POSTFLAGS )
-  if ( MPIEXEC_POSTFLAGS )
+if (NOT MPI_EXEC_POSTFLAGS)
+  if (MPIEXEC_POSTFLAGS)
     set(MPI_EXEC_POSTFLAGS "${MPIEXEC_PRFLAGS}" CACHE STRING "Set MPI execute post flags")
   endif()
 endif()
 
+
+# ############################################################################ #
+# LAPACK/BLAS Configuration 
+# ############################################################################ #
+
+# Search for BLAS (Basic Linear Algebra Subprograms) http://www.netlib.org/blas
+find_package(BLAS REQUIRED)
+
+# Search for LAPACK (Linear Algebra PACKage) http://www/netlib.org/lapack
+find_package(LAPACK REQUIRED)
 
 # ############################################################################ #
 # Set common build compiler flags, build types and directories
@@ -458,15 +480,17 @@ message(STATUS "Common compile flags for build type ${CMAKE_BUILD_TYPE}")
 build_whitespace_string(Jali_COMMON_CFLAGS ${CMAKE_C_FLAGS} ${build_c_flags}) 
 build_whitespace_string(Jali_COMMON_CXXFLAGS ${CMAKE_CXX_FLAGS} ${build_cxx_flags}) 
 build_whitespace_string(Jali_COMMON_FCFLAGS ${CMAKE_Fortran_FLAGS} ${build_fortran_flags}) 
-message(STATUS "\tC flags\t\t${Jali_COMMON_CFLAGS}")
-message(STATUS "\tC++ flags\t${Jali_COMMON_CXXFLAGS}")
-message(STATUS "\tFortran flags\t${Jali_COMMON_FCFLAGS}")
 
 # Common link flags for projects that do not use CMake
 set(Jali_COMMON_LDFLAGS)
 if (CMAKE_EXE_LINK_FLAGS)
   build_whitespace_string(Jali_COMMON_LDFLAGS ${CMAKE_EXE_LINK_FLAGS})
 endif()
+
+message(STATUS "\tcommon C flags\t\t${Jali_COMMON_CFLAGS}")
+message(STATUS "\tcommon C++ flags\t${Jali_COMMON_CXXFLAGS}")
+message(STATUS "\tcommon Fortran flags\t${Jali_COMMON_FCFLAGS}")
+message(STATUS "\tcommon Linker flags\t${Jali_COMMON_LDFLAGS}")
 
 
 # ############################################################################ #
@@ -521,10 +545,8 @@ endif()
 
 # Boost
 include(${SuperBuild_BUILD_FILES_DIR}/Build_Boost.cmake) 
-#TESTINGinclude(${SuperBuild_BUILD_FILES_DIR}/Build_BoostCmake.cmake) 
 append_set(Jali_TPL_CMAKE_ARGS
            -DBOOST_ROOT:FILEPATH=${TPL_INSTALL_PREFIX}
-           -DBoost_USE_STATIC_LIBS:BOOL=TRUE
            -DBoost_NO_SYSTEM_PATHS:BOOL=TRUE)
 
 # HDF5  
@@ -533,7 +555,10 @@ include(${SuperBuild_BUILD_FILES_DIR}/Build_HDF5.cmake)
 append_set(Jali_TPL_CMAKE_ARGS
            -DHDF5_ROOT:FILEPATH=${TPL_INSTALL_PREFIX})
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> v1.0.0
 # NetCDF
 include(${SuperBuild_BUILD_FILES_DIR}/Build_NetCDF.cmake) 
 append_set(Jali_TPL_CMAKE_ARGS
@@ -569,7 +594,7 @@ append_set(Jali_TPL_CMAKE_ARGS
            -DTrilinos_INSTALL_PREFIX:PATH=${Trilinos_INSTALL_PREFIX})
 
 # SEACAS
-include(${SuperBuild_BUILD_FILES_DIR}/Build_SEACAS.cmake)
+#include(${SuperBuild_BUILD_FILES_DIR}/Build_SEACAS.cmake)
 
 # MSTK
 if ( ENABLE_MSTK_Mesh )
@@ -591,7 +616,6 @@ configure_file(${SuperBuild_TEMPLATE_FILES_DIR}/${SuperBuild_Jali_CACHE_SCRIPT}.
                @ONLY)
 install( FILES "${SuperBuild_BINARY_DIR}/${SuperBuild_Jali_CACHE_SCRIPT}"             
          DESTINATION ${TPL_INSTALL_PREFIX}/share/cmake)
-
 
 #  --- Build the docs
 option(BUILD_DOCS "Build the SuperBuild documentation" FALSE)

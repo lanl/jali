@@ -579,6 +579,18 @@ TEST(MESH_TILES_SETS) {
     // Sanity check - mesh has the right number of entities in the box
     // region - should be 4x4
 
+    bool create_if_missing = true;
+    std::shared_ptr<Jali::MeshSet> mset =
+        mesh->find_meshset_from_region("box1", Jali::Entity_kind::CELL,
+                                       create_if_missing);
+
+    CHECK(mset != nullptr);
+
+    mset = mesh->find_meshset_from_region("plane1", Jali::Entity_kind::FACE,
+                                          create_if_missing);
+    CHECK(mset != nullptr);
+
+
     Jali::Entity_ID_List boxcells;
     mesh->get_set_entities("box1",  Jali::Entity_kind::CELL,
                           Jali::Entity_type::PARALLEL_OWNED, &boxcells);

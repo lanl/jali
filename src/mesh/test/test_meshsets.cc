@@ -209,8 +209,15 @@ TEST(MESH_SETS_3D) {
     // Check that the mesh has the right number of entities in the box
     // region - should be 4x4x4
 
+    bool create_if_missing = true;
+    std::shared_ptr<Jali::MeshSet> mset =
+        mesh->find_meshset_from_region("box1", Jali::Entity_kind::CELL,
+                                       create_if_missing);
+    CHECK(mset != nullptr);
+
     int nboxcells = 0, nboxnodes = 0;
     if (parallel) {
+      
       // Check local number of cells in box1 set
 
       int nboxcells_owned_local =
@@ -297,6 +304,10 @@ TEST(MESH_SETS_3D) {
 
     // Check the number of cells in the union of box1, box2 and box3
 
+    mset = mesh->find_meshset_from_region("ureg", Jali::Entity_kind::CELL,
+                                          create_if_missing);
+    CHECK(mset != nullptr);
+
     int nuregcells = 0;
     int nuregcells_local = 0;
     nuregcells_local = mesh->get_set_size("ureg", Jali::Entity_kind::CELL,
@@ -324,6 +335,10 @@ TEST(MESH_SETS_3D) {
 
     
     // Check the number of cells in the subtraction of box2 from box1
+
+    mset = mesh->find_meshset_from_region("sreg", Jali::Entity_kind::CELL,
+                                          create_if_missing);
+    CHECK(mset != nullptr);
 
     int nsregcells = 0;
     int nsregcells_local = 0;
@@ -354,6 +369,10 @@ TEST(MESH_SETS_3D) {
 
     // Check the number of cells in the intersection of box1 and box3
 
+    mset = mesh->find_meshset_from_region("ireg", Jali::Entity_kind::CELL,
+                                          create_if_missing);
+    CHECK(mset != nullptr);
+
     int niregcells = 0;
     int niregcells_local = 0;
     niregcells_local = mesh->get_set_size("ireg", Jali::Entity_kind::CELL,
@@ -381,6 +400,10 @@ TEST(MESH_SETS_3D) {
 
 
     // Check the number of cells in the complement of box1, box2 and box3
+
+    mset = mesh->find_meshset_from_region("creg", Jali::Entity_kind::CELL,
+                                          create_if_missing);
+    CHECK(mset != nullptr);
 
     int ncregcells = 0;
     int ncregcells_local = 0;
@@ -410,6 +433,10 @@ TEST(MESH_SETS_3D) {
 
     // Check that the mesh returns the right number of faces for the
     // left plane
+
+    mset = mesh->find_meshset_from_region("plane1", Jali::Entity_kind::FACE,
+                                          create_if_missing);
+    CHECK(mset != nullptr);
 
     Jali::Entity_ID_List planefaces;
     mesh->get_set_entities("plane1", Jali::Entity_kind::FACE,
@@ -570,6 +597,11 @@ TEST(MESH_SETS_LABELED_3D) {
 
 
     // Now retrieve the sets and make sure we get what we expect
+    bool create_if_missing = true;
+    std::shared_ptr<Jali::MeshSet> mset =
+        mesh->find_meshset_from_region("mat1", Jali::Entity_kind::CELL,
+                                       create_if_missing);
+    CHECK(mset != nullptr);
 
     int nsetcells = 0;
     if (parallel) {
@@ -598,6 +630,10 @@ TEST(MESH_SETS_LABELED_3D) {
     // Check global number of cells and nodes in mat1
     CHECK_EQUAL(9, nsetcells);
 
+    mset = mesh->find_meshset_from_region("mat3", Jali::Entity_kind::CELL,
+                                          create_if_missing);
+    CHECK(mset != nullptr);
+
     nsetcells = 0;
     if (parallel) {
       // Check local number of cells in mat3
@@ -624,6 +660,10 @@ TEST(MESH_SETS_LABELED_3D) {
 
     // Check global number of cells and nodes in mat3
     CHECK_EQUAL(9, nsetcells);
+
+    mset = mesh->find_meshset_from_region("cellset2", Jali::Entity_kind::CELL,
+                                          create_if_missing);
+    CHECK(mset != nullptr);
 
     nsetcells = 0;
     if (parallel) {
@@ -652,6 +692,11 @@ TEST(MESH_SETS_LABELED_3D) {
     // Check global number of cells and nodes in cell set 2
     CHECK_EQUAL(9, nsetcells);
 
+
+    mset = mesh->find_meshset_from_region("cellset3", Jali::Entity_kind::CELL,
+                                          create_if_missing);
+    CHECK(mset != nullptr);
+
     nsetcells = 0;
     if (parallel) {
       // Check local number of cells in cell set 3
@@ -679,7 +724,10 @@ TEST(MESH_SETS_LABELED_3D) {
     // Check global number of cells and nodes in cell set 3
     CHECK_EQUAL(9, nsetcells);
 
-    
+
+    mset = mesh->find_meshset_from_region("face101", Jali::Entity_kind::FACE,
+                                          create_if_missing);
+    CHECK(mset != nullptr);
 
     int nsetfaces = 0;
     if (parallel) {
@@ -708,7 +756,11 @@ TEST(MESH_SETS_LABELED_3D) {
     // Check global number of cells and nodes in cell set 3
     CHECK_EQUAL(9, nsetfaces);
 
-    
+
+    mset = mesh->find_meshset_from_region("face10005", Jali::Entity_kind::FACE,
+                                          create_if_missing);
+    CHECK(mset != nullptr);
+
     nsetfaces = 0;
     if (parallel) {
       // Check local number of cells in side set 10005
@@ -737,6 +789,11 @@ TEST(MESH_SETS_LABELED_3D) {
     CHECK_EQUAL(3, nsetfaces);
 
     
+    mset = mesh->find_meshset_from_region("nodeset20004",
+                                          Jali::Entity_kind::NODE,
+                                          create_if_missing);
+    CHECK(mset != nullptr);
+
     int nsetnodes = 0;
     if (parallel) {
       // Check local number of nodes in nodeset 20004
