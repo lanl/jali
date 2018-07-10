@@ -1,46 +1,7 @@
-/*
-Copyright (c) 2017, Los Alamos National Security, LLC
-All rights reserved.
-
-Copyright 2017. Los Alamos National Security, LLC. This software was
-produced under U.S. Government contract DE-AC52-06NA25396 for Los
-Alamos National Laboratory (LANL), which is operated by Los Alamos
-National Security, LLC for the U.S. Department of Energy. The
-U.S. Government has rights to use, reproduce, and distribute this
-software.  NEITHER THE GOVERNMENT NOR LOS ALAMOS NATIONAL SECURITY,
-LLC MAKES ANY WARRANTY, EXPRESS OR IMPLIED, OR ASSUMES ANY LIABILITY
-FOR THE USE OF THIS SOFTWARE.  If software is modified to produce
-derivative works, such modified software should be clearly marked, so
-as not to confuse it with the version available from LANL.
- 
-Additionally, redistribution and use in source and binary forms, with
-or without modification, are permitted provided that the following
-conditions are met:
-
-1.  Redistributions of source code must retain the above copyright
-notice, this list of conditions and the following disclaimer.
-2.  Redistributions in binary form must reproduce the above copyright
-notice, this list of conditions and the following disclaimer in the
-documentation and/or other materials provided with the distribution.
-3.  Neither the name of Los Alamos National Security, LLC, Los Alamos
-National Laboratory, LANL, the U.S. Government, nor the names of its
-contributors may be used to endorse or promote products derived from
-this software without specific prior written permission.
- 
-THIS SOFTWARE IS PROVIDED BY LOS ALAMOS NATIONAL SECURITY, LLC AND
-CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING,
-BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
-FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL LOS
-ALAMOS NATIONAL SECURITY, LLC OR CONTRIBUTORS BE LIABLE FOR ANY
-DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
-GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
-IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
-
+//
+// Copyright Los Alamos National Security, LLC 2009-2015
+// All rights reserved. See Copyright notice in main directory
+//
 
 #include <iostream>
 #include <vector>
@@ -149,7 +110,7 @@ int main(int argc, char *argv[]) {
   // to get at the StateVector. This means one needs to know the template
   // argument for StateVector (in this case it is "double")
 
-  StateVector<double> rhovec;
+  UniStateVector<double> rhovec;
   bool found = mystate->get(density_name, mymesh, Entity_kind::CELL,
                             Entity_type::ALL, &rhovec);
   if (!found) {
@@ -180,7 +141,7 @@ int main(int argc, char *argv[]) {
 
   // Add the average density data as a new state vector
 
-  StateVector<double>& rhobarvec = mystate->add("rhobar", mymesh,
+  UniStateVector<double>& rhobarvec = mystate->add("rhobar", mymesh,
                                                 Entity_kind::CELL,
                                                 Entity_type::ALL,
                                                 ave_density);
@@ -191,7 +152,7 @@ int main(int argc, char *argv[]) {
 
   // Retrieve the vector of velocities
 
-  StateVector<std::array<double, 3>, Mesh> vels;
+  UniStateVector<std::array<double, 3>, Mesh> vels;
   found = mystate->get(velocity_name, mymesh, Entity_kind::NODE,
                        Entity_type::ALL, &vels);
   if (!found) {
@@ -281,10 +242,10 @@ void initialize_data(const std::shared_ptr<Mesh> mesh,
   // This says to create a vector named "rhoMetal" on each cell
   // initialized to 0.0
 
-  StateVector<double, Mesh>& density =
-      state->add<double, Mesh, StateVector>(density_name, mesh,
-                                            Entity_kind::CELL,
-                                            Entity_type::ALL, 0.0);
+  UniStateVector<double, Mesh>& density =
+      state->add<double, Mesh, UniStateVector>(density_name, mesh,
+                                               Entity_kind::CELL,
+                                               Entity_type::ALL, 0.0);
 
 
   // Create a density vector that will be used to initialize a state
@@ -307,11 +268,11 @@ void initialize_data(const std::shared_ptr<Mesh> mesh,
   // Note that we did not send in the second template parameter Mesh -
   // it is the default
 
-  StateVector<std::array<double, 3>>& velocity =
-      state->add<std::array<double, 3>, Mesh, StateVector>(velocity_name,
-                                                           mesh,
-                                                           Entity_kind::NODE,
-                                                           Entity_type::ALL,
-                                                           initarray);
+  UniStateVector<std::array<double, 3>>& velocity =
+      state->add<std::array<double, 3>, Mesh, UniStateVector>(velocity_name,
+                                                              mesh,
+                                                              Entity_kind::NODE,
+                                                              Entity_type::ALL,
+                                                              initarray);
 }
 
