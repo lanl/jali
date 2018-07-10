@@ -156,7 +156,7 @@ class Mesh {
        const JaliGeometry::Geom_type geom_type =
        JaliGeometry::Geom_type::CARTESIAN,
        const MPI_Comm incomm = MPI_COMM_WORLD) :
-    spacedim(3), celldim(3), mesh_type_(Mesh_type::GENERAL),
+    space_dim_(3), manifold_dim_(3), mesh_type_(Mesh_type::GENERAL),
     cell_geometry_precomputed(false), face_geometry_precomputed(false),
     edge_geometry_precomputed(false), side_geometry_precomputed(false),
     corner_geometry_precomputed(false),
@@ -205,38 +205,22 @@ class Mesh {
     return geomtype;
   }
 
-  //! Set the spatial dimension of points in the mesh - typically
-  //! invoked by the constructor of a derived mesh class
-
-  inline
+  //! Set/get the space dimension of points
+  //! often invoked by the constructor of a derived mesh class
   void set_space_dimension(const unsigned int dim) {
-    spacedim = dim;
+    space_dim_ = dim;
   }
-
-  //! Spatial dimension of points in the mesh
-
-  inline
   unsigned int space_dimension() const {
-    return spacedim;
+    return space_dim_;
   }
 
-  //! Set the topological dimension of mesh cells - typically
-  //! invoked by the constructor of a derived mesh class
-
-  inline
-  void set_cell_dimension(const unsigned int dim) {
-    celldim = dim;   // 3 is solid mesh, 2 is surface mesh, 1 is wire mesh
+  //! Set/get the manifold dimension - 
+  //! often invoked by the constructor of a derived mesh class
+  void set_manifold_dimension(const unsigned int dim) {
+    manifold_dim_ = dim;   // 3 is solid mesh, 2 is surface mesh, 1 is wire mesh
   }
-
-
-  //! Topological dimension of mesh cells (hexes, tets, polyhedra have
-  //! a cell dimension of 3; quads, triangles and polygons have a cell
-  //! dimension of 2; line elements - NOT SUPPORTED - have a dimension
-  //! of 1; particles - NOT SUPPORTED - have a dimension of 0)
-
-  inline
-  unsigned int cell_dimension() const {
-    return celldim;
+  unsigned int manifold_dimension() const {
+    return manifold_dim_;
   }
 
   //! Set the pointer to a geometric model underpinning the mesh
@@ -1030,20 +1014,28 @@ class Mesh {
 
   std::vector<std::shared_ptr<MeshSet>> sets(const Entity_kind kind) const;
 
-  //! Is this is a valid name of a set containing entities of 'kind'
+  //! Is this is a valid name of a geometric region defined on for
+  //! containing entities of 'kind'
 
-  bool valid_set_name(const std::string setname,
+  bool valid_region_name(const std::string setname,
                       const Entity_kind kind) const;
 
-  //! Find a meshset with 'setname' containing entities of 'kind'
-  //! (non-const variant - create the set if it is missing and it
-  //! corresponds to a valid region).
+  // Find a meshset containing entities of 'kind' defined on a
+  // geometric region 'regname' (non-const version - create the set if
+  // it is missing, it is requested through the create_if_missing flag
+  // and it corresponds to a valid region).
 
-  std::shared_ptr<MeshSet> find_meshset(const std::string setname,
-                                        const Entity_kind kind);
+  std::shared_ptr<MeshSet>
+  find_meshset_from_region(std::string regname, Entity_kind kind,
+                           bool create_if_missing);
+
+  // Find a meshset containing entities of 'kind' defined on a geometric
+  // region 'regname' (const version - do nothing if it is missing).
+
+  std::shared_ptr<MeshSet>
+  find_meshset_from_region(std::string setname, Entity_kind kind) const;
 
   //! Find a meshset with 'setname' containing entities of 'kind'
-  //! (const version - do nothing if the set does not exist)
 
   std::shared_ptr<MeshSet> find_meshset(const std::string setname,
                                         const Entity_kind kind) const;
@@ -1171,9 +1163,9 @@ class Mesh {
 
   //! build a mesh set
 
-  std::shared_ptr<MeshSet> build_set(const std::string setname,
-                                     const Entity_kind kind,
-                                     const bool build_reverse_map = true);
+  std::shared_ptr<MeshSet> build_set_from_region(const std::string setname,
+                                                 const Entity_kind kind,
+                                                 const bool build_reverse_map = true);
 
   //! get labeled set entities
   //
@@ -1345,7 +1337,7 @@ class Mesh {
 
   // Data
 
-  unsigned int celldim, spacedim;
+  unsigned int manifold_dim_, space_dim_;
   JaliGeometry::Geom_type geomtype = JaliGeometry::Geom_type::CARTESIAN;
 
   MPI_Comm comm;
@@ -2186,7 +2178,7 @@ Entity_ID Mesh::corner_get_cell(const Entity_ID cornerid) const {
 inline
 void Mesh::node_get_coordinates(const Entity_ID nodeid,
                                 std::array<double, 3> *ncoord) const {
-  assert(spacedim == 3);
+  assert(space_dim_ == 3);
   JaliGeometry::Point p;
   node_get_coordinates(nodeid, &p);
   (*ncoord)[0] = p[0];
@@ -2200,7 +2192,7 @@ void Mesh::node_get_coordinates(const Entity_ID nodeid,
 inline
 void Mesh::node_get_coordinates(const Entity_ID nodeid,
                                 std::array<double, 2> *ncoord) const {
-  assert(spacedim == 2);
+  assert(space_dim_ == 2);
   JaliGeometry::Point p;
   node_get_coordinates(nodeid, &p);
   (*ncoord)[0] = p[0];
@@ -2212,7 +2204,7 @@ void Mesh::node_get_coordinates(const Entity_ID nodeid,
 
 inline
 void Mesh::node_get_coordinates(const Entity_ID nodeid, double *ncoord) const {
-  assert(spacedim == 1);
+  assert(space_dim_ == 1);
   JaliGeometry::Point p;
   node_get_coordinates(nodeid, &p);
   *ncoord = p[0];

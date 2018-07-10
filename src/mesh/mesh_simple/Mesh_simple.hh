@@ -227,7 +227,7 @@ public:
 
   void edge_get_nodes_internal(const Entity_ID edgeid, Entity_ID *nodeid0,
                                Entity_ID *nodeid1) const {
-    if (spacedim == 1) {
+    if (space_dim_ == 1) {
       // In 1D will define faces, edges and nodes to be the same
       // So the edge will be degenerate
       // edgeid and nodeid are the same in 1d
@@ -435,7 +435,7 @@ public:
 
   void cell_get_edges_internal(const Entity_ID cellid,
                                Entity_ID_List *edgeids) const {
-    if (spacedim == 1) {
+    if (space_dim_ == 1) {
       edgeids->clear();
       // edgeid and cellid are the same in 1d
       edgeids->push_back(cellid);
@@ -462,7 +462,7 @@ public:
                                         Entity_ID_List *edgeids,
                                         std::vector<dir_t> *edgedirs,
                                         bool ordered=true) const {
-    if (spacedim == 1) {
+    if (space_dim_ == 1) {
       edgeids->clear();
       edgedirs->clear();
     } else {

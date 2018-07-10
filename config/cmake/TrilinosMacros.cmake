@@ -57,7 +57,7 @@ macro(TRILINOS_PACKAGE_ENABLED_TPLS package)
     find_package(${package}
                  NO_MODULE
                  HINTS ${Trilinos_DIR}
-                 PATH_SUFFIXES include)
+                 PATH_SUFFIXES lib/cmake/Trilinos)
   endif() 
 
   if ( ${${package}_FOUND} ) 

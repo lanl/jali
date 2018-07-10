@@ -80,19 +80,191 @@ MeshSet::MeshSet(std::string const& name,
     name_(name),
     kind_(kind),
     entityids_owned_(owned_entities),
-    entityids_ghost_(ghost_entities) {
+    entityids_ghost_(ghost_entities),
+    have_reverse_map_(build_reverse_map) {
 
   entityids_all_ = entityids_owned_;
   entityids_all_.insert(entityids_all_.end(), entityids_ghost_.begin(),
                         entityids_ghost_.end());
 
   if (build_reverse_map) {
+    have_reverse_map_ = true;
     mesh2subset_.resize(mesh_.num_entities(kind, Entity_type::ALL), -1);
     int nall = entityids_all_.size();
     for (int i = 0; i < nall; ++i)
       mesh2subset_[entityids_all_[i]] = i;
   }
 }  // MeshSet::MeshSet
+
+
+// Add entity to meshset (no check for duplicates)
+
+void MeshSet::add_entity(Entity_ID const& mesh_entity) {
+  Entity_type etype = mesh_.entity_get_type(kind_, mesh_entity);
+
+  if (etype == Entity_type::PARALLEL_OWNED) {
+    int nowned_old = entityids_owned_.size();
+
+    entityids_owned_.push_back(mesh_entity);
+    entityids_all_.insert(entityids_all_.begin()+nowned_old, mesh_entity);
+
+    if (have_reverse_map_) mesh2subset_[mesh_entity] = nowned_old;
+
+  } else if (etype == Entity_type::PARALLEL_GHOST) {
+
+    entityids_ghost_.push_back(mesh_entity);
+
+    entityids_all_.push_back(mesh_entity);
+    if (have_reverse_map_) mesh2subset_[mesh_entity] = entityids_all_.size()-1;
+
+  } else
+    return;  // Doesn't make sense to add any other type like BOUNDARY_GHOST
+
+}
+
+
+// Remove entity from meshset (PREFERABLY USE rem_entities)
+
+void MeshSet::rem_entity(Entity_ID const& mesh_entity) {
+  Entity_type etype = mesh_.entity_get_type(kind_, mesh_entity);
+    int size;
+    if (etype == Entity_type::PARALLEL_OWNED) {
+      size = entityids_owned_.size();
+      auto const& it = std::find(entityids_owned_.begin(),
+                                 entityids_owned_.end(), mesh_entity);
+      if (it != entityids_owned_.end()) {
+        *it = entityids_owned_[size-1];  // replace mesh_entity with last entry
+        entityids_owned_.resize(size-1);
+      }
+    } else if (etype == Entity_type::PARALLEL_GHOST) {
+      size = entityids_ghost_.size();
+      auto const& it = std::find(entityids_ghost_.begin(),
+                                 entityids_ghost_.end(), mesh_entity);
+      if (it != entityids_ghost_.end()) {
+        *it = entityids_ghost_[size-1];  // replace mesh_entity with last entry
+        entityids_ghost_.resize(size-1);
+      }
+    }
+    else
+      return;  // No other type like BOUNDARY_GHOST can be part of set
+
+    size = entityids_all_.size();
+    auto const& it = std::find(entityids_all_.begin(),
+                               entityids_all_.end(), mesh_entity);
+    if (it != entityids_all_.end()) {
+      *it = entityids_all_[size-1];  // replace mesh_entity with last entry
+      entityids_all_.resize(size-1);
+    }
+
+    if (have_reverse_map_) mesh2subset_[mesh_entity] = -1;
+  }
+
+
+// Add a group of entities to meshset (no check for duplicates)
+
+void MeshSet::add_entities(std::vector<Entity_ID> const& entities) {
+  int nowned_old = entityids_owned_.size();
+  int nghost_old = entityids_ghost_.size();
+  int nall = entities.size();
+  int nowned = 0;
+  int nghost = 0;
+  for (auto const& mesh_entity : entities) {
+    Entity_type etype = mesh_.entity_get_type(kind_, mesh_entity);
+    if (etype == Entity_type::PARALLEL_OWNED)
+      nowned++;
+    else if (etype == Entity_type::PARALLEL_GHOST)
+      nghost++;
+  }
+  if (nall == nowned)
+    entityids_owned_.insert(entityids_owned_.end(), entities.begin(),
+                            entities.end());
+  else if (nall == nghost)
+    entityids_owned_.insert(entityids_ghost_.end(), entities.begin(),
+                            entities.end());
+  else
+    for (auto const& mesh_entity : entities)
+      add_entity(mesh_entity);
+  
+  // entityids_all should always have owned entities first and ghost
+  // entities last - so we can't just put in entities at the end -
+  // we have to make a new list with the updated owned and ghost
+  // entities and concatenate them (if there are any ghosts)
+  
+  if (entityids_ghost_.size()) {
+    std::vector<Entity_ID> tmp_list(entityids_owned_);
+    tmp_list.insert(tmp_list.end(), entityids_ghost_.begin(),
+                    entityids_ghost_.end());
+    entityids_all_.swap(tmp_list);
+  } else
+    entityids_all_.insert(entityids_all_.begin(), entities.begin(),
+                          entities.end());
+
+  if (have_reverse_map_) {  // have to update mesh to subset map
+    // new owned entities should have gone in after old owned entities
+    int start = nowned_old;
+    for (int i = start; i < start + nowned; i++)
+      mesh2subset_[entityids_all_[i]] = i;
+    
+    // new ghost entities should have gone in after old+new owned
+    // entities and old ghost entities
+    start = nowned_old + nowned + nghost_old;
+    for (int i = start; i < start + nghost; i++)
+      mesh2subset_[entityids_all_[i]] = i;
+  }
+}
+
+
+// Remove a group of entities from a subset
+
+void MeshSet::rem_entities(std::vector<Entity_ID> const& entities) {
+  // Replace each to-be-removed entry with an entry from the end of
+  // the list.  Then shrink the lists.
+  
+  int size = entityids_owned_.size();
+  int ndel = 0;
+  for (auto const& mesh_entity : entities) {
+    Entity_type etype = mesh_.entity_get_type(kind_, mesh_entity);
+    if (etype == Entity_type::PARALLEL_OWNED) {
+      auto const& it = std::find(entityids_owned_.begin(),
+                                 entityids_owned_.end(), mesh_entity);
+      if (it != entityids_owned_.end()) {
+        *it = entityids_owned_[size-ndel-1];
+        ndel++;
+      }
+    }
+  }
+  entityids_owned_.resize(size-ndel);
+  
+  size = entityids_ghost_.size();
+  ndel = 0;
+  for (auto const& mesh_entity : entities) {
+    auto const& it = std::find(entityids_ghost_.begin(),
+                               entityids_ghost_.end(), mesh_entity);
+    if (it != entityids_ghost_.end()) {
+      *it = entityids_ghost_[size-ndel-1];
+      ndel++;
+    }
+  }
+  entityids_ghost_.resize(size-ndel);
+  
+  size = entityids_all_.size();
+  ndel = 0;
+  for (auto const& mesh_entity : entities) {
+    auto const& it = std::find(entityids_all_.begin(),
+                               entityids_all_.end(), mesh_entity);
+    if (it != entityids_all_.end()) {
+      *it = entityids_all_[size-ndel-1];
+      ndel++;
+    }
+  }
+  entityids_all_.resize(size-ndel);
+
+  if (have_reverse_map_) {
+    int nall = entityids_all_.size();
+    for (int i = 0; i < nall; i++)
+      mesh2subset_[entityids_all_[i]] = i;
+  }
+}
 
 // Standalone function to make a set and return a pointer to it so
 // that Mesh.hh can use a forward declaration of MeshSet and this
