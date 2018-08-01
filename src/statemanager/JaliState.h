@@ -109,6 +109,8 @@ class State : public std::enable_shared_from_this<State> {
     int nsets = material_cellsets_.size();
     if (nsets && m < nsets)
       return material_cellsets_[m]->num_entities();
+    else
+      return 0;
   }
 
 
@@ -538,7 +540,7 @@ class State : public std::enable_shared_from_this<State> {
                 Entity_kind kind = Entity_kind::ANY_KIND,
                 Entity_type type = Entity_type::ALL) const {
 
-    iterator it = state_vectors_.cbegin();
+    const_iterator it = state_vectors_.cbegin();
     while (it != state_vectors_.cend()) {
       std::shared_ptr<StateVectorBase> bv = *it;
 
