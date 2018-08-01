@@ -79,6 +79,7 @@
 #   1.0.8       - MSTK updated to 2.27rc3
 #   1.0.9       - MSTK updated to 2.27 and UnitTest++ updated to 1.6.0
 #   1.1.0       - MSTK updated to 3.0.3, UnitTest++ to 2.0.0, Trilinos to 12.10.1, HDF5 1.8.18, Seacas to #173a1e6, zlib to 1.2.11, Boost to 1.63.0, NetCDF to 4.5.0, MOAB to 5.0.0, 
+#   1.1.1       - Boost upgraded to 1.67 for compiling with CUDA 9
 
 include(CMakeParseArguments)
 
@@ -199,14 +200,14 @@ set(UnitTest_MD5_SUM      29f958e355e516e7ab016b467974728d)
 # TPL: Boost
 #
 set(Boost_VERSION_MAJOR 1)
-set(Boost_VERSION_MINOR 63)
+set(Boost_VERSION_MINOR 67)
 set(Boost_VERSION_PATCH 0)
 set(Boost_VERSION        ${Boost_VERSION_MAJOR}.${Boost_VERSION_MINOR}.${Boost_VERSION_PATCH})
 set(Boost_VERSION_STRING ${Boost_VERSION_MAJOR}_${Boost_VERSION_MINOR}_${Boost_VERSION_PATCH})
 set(Boost_URL_STRING     ${JALI_TPLS_DOWNLOAD_URL})
 set(Boost_ARCHIVE_FILE   boost_${Boost_VERSION_STRING}.tar.bz2)
 set(Boost_SAVEAS_FILE    ${Boost_ARCHIVE_FILE})
-set(Boost_MD5_SUM        1c837ecd990bb022d07e7aab32b09847)
+set(Boost_MD5_SUM        ced776cb19428ab8488774e1415535ab)
 
 #
 # TPL: HDF5
