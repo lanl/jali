@@ -1,37 +1,41 @@
 /*
-Copyright (c) 2017, Los Alamos National Security, LLC
+Copyright (c) 2019, Triad National Security, LLC
 All rights reserved.
 
-Copyright 2017. Los Alamos National Security, LLC. This software was
-produced under U.S. Government contract DE-AC52-06NA25396 for Los
-Alamos National Laboratory (LANL), which is operated by Los Alamos
-National Security, LLC for the U.S. Department of Energy. The
-U.S. Government has rights to use, reproduce, and distribute this
-software.  NEITHER THE GOVERNMENT NOR LOS ALAMOS NATIONAL SECURITY,
-LLC MAKES ANY WARRANTY, EXPRESS OR IMPLIED, OR ASSUMES ANY LIABILITY
-FOR THE USE OF THIS SOFTWARE.  If software is modified to produce
-derivative works, such modified software should be clearly marked, so
-as not to confuse it with the version available from LANL.
+Copyright 2019. Triad National Security, LLC. This software was
+produced under U.S. Government contract 89233218CNA000001 for Los
+Alamos National Laboratory (LANL), which is operated by Triad
+National Security, LLC for the U.S. Department of Energy. 
+All rights in the program are reserved by Triad National Security,
+LLC, and the U.S. Department of Energy/National Nuclear Security
+Administration. The Government is granted for itself and others acting
+on its behalf a nonexclusive, paid-up, irrevocable worldwide license
+in this material to reproduce, prepare derivative works, distribute
+copies to the public, perform publicly and display publicly, and to
+ permit others to do so
  
-Additionally, redistribution and use in source and binary forms, with
-or without modification, are permitted provided that the following
-conditions are met:
 
-1.  Redistributions of source code must retain the above copyright
-notice, this list of conditions and the following disclaimer.
-2.  Redistributions in binary form must reproduce the above copyright
-notice, this list of conditions and the following disclaimer in the
-documentation and/or other materials provided with the distribution.
-3.  Neither the name of Los Alamos National Security, LLC, Los Alamos
-National Laboratory, LANL, the U.S. Government, nor the names of its
-contributors may be used to endorse or promote products derived from
-this software without specific prior written permission.
+This is open source software distributed under the 3-clause BSD license.
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+1. Redistributions of source code must retain the above copyright notice,
+   this list of conditions and the following disclaimer.
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+3. Neither the name of Triad National Security, LLC, Los Alamos
+   National Laboratory, LANL, the U.S. Government, nor the names of its
+   contributors may be used to endorse or promote products derived from this
+   software without specific prior written permission.
+
  
-THIS SOFTWARE IS PROVIDED BY LOS ALAMOS NATIONAL SECURITY, LLC AND
+THIS SOFTWARE IS PROVIDED BY TRIAD NATIONAL SECURITY, LLC AND
 CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING,
 BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
-FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL LOS
-ALAMOS NATIONAL SECURITY, LLC OR CONTRIBUTORS BE LIABLE FOR ANY
+FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
+TRIAD NATIONAL SECURITY, LLC OR CONTRIBUTORS BE LIABLE FOR ANY
 DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
 GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
@@ -93,6 +97,9 @@ void Mesh_MSTK::init_mesh_from_file_(std::string const filename,
       ok &= MSTK_Mesh_Distribute(globalmesh, &mesh, &topo_dim,
                                  num_ghost_layers_distmesh_, with_attr, method,
                                  del_inmesh, mpicomm);
+
+      if (contiguous_gids_)
+        ok &= MESH_Renumber_GlobalIDs(mesh, MALLTYPE, 0, NULL, mpicomm);
     }
   } else if (filename.find(".par") != std::string::npos) {  // Nemesis file
 
@@ -115,10 +122,10 @@ void Mesh_MSTK::init_mesh_from_file_(std::string const filename,
                                        input_type, mpicomm);
 
     // Global IDs are discontinuous due to elimination of degeneracies
-    // but we cannot renumber global IDs until interprocessor
-    // connectivity has been established
-
-    ok &= MESH_Renumber_GlobalIDs(mesh, MALLTYPE, 0, NULL, mpicomm);
+    // but we cannot renumber global IDs (if requested) until
+    // interprocessor connectivity has been established
+    if (contiguous_gids_)
+      ok &= MESH_Renumber_GlobalIDs(mesh, MALLTYPE, 0, NULL, mpicomm);
 
   } else {
     std::stringstream mesg_stream;
@@ -153,14 +160,17 @@ Mesh_MSTK::Mesh_MSTK(const std::string filename, const MPI_Comm& incomm,
                      const int num_ghost_layers_distmesh,
                      const bool boundary_ghosts_requested,
                      const Partitioner_type partitioner,
+                     const bool contiguous_gids,
                      const JaliGeometry::Geom_type geom_type) :
-Mesh(request_faces, request_edges, request_sides, request_wedges,
-     request_corners, num_tiles_ini, num_ghost_layers_tile,
-     num_ghost_layers_distmesh, boundary_ghosts_requested,
-     partitioner, geom_type, incomm),
-  mpicomm(incomm), meshxyz(NULL),
-  faces_initialized(false), edges_initialized(false),
-  target_cell_volumes(NULL), min_cell_volumes(NULL) {
+    Mesh(request_faces, request_edges, request_sides, request_wedges,
+         request_corners, num_tiles_ini, num_ghost_layers_tile,
+         num_ghost_layers_distmesh, boundary_ghosts_requested,
+         partitioner, geom_type, incomm),
+    mpicomm(incomm), meshxyz(NULL),
+    faces_initialized(false), edges_initialized(false),
+    target_cell_volumes(NULL), min_cell_volumes(NULL),
+    contiguous_gids_(contiguous_gids)
+{
 
   int numprocs;
   MPI_Comm_size(mpicomm, &numprocs);
@@ -252,14 +262,17 @@ Mesh_MSTK::Mesh_MSTK(const double x0, const double y0, const double z0,
                      const int num_ghost_layers_tile,
                      const int num_ghost_layers_distmesh,
                      const bool boundary_ghosts_requested,
-                     const Partitioner_type partitioner) :
-Mesh(request_faces, request_edges, request_sides, request_wedges,
-     request_corners, num_tiles, num_ghost_layers_tile,
-     num_ghost_layers_distmesh, boundary_ghosts_requested,
-     partitioner, JaliGeometry::Geom_type::CARTESIAN, incomm),
+                     const Partitioner_type partitioner,
+                     const bool contiguous_gids) :
+    Mesh(request_faces, request_edges, request_sides, request_wedges,
+         request_corners, num_tiles, num_ghost_layers_tile,
+         num_ghost_layers_distmesh, boundary_ghosts_requested,
+         partitioner, JaliGeometry::Geom_type::CARTESIAN, incomm),
     mpicomm(incomm), meshxyz(NULL),
     faces_initialized(false), edges_initialized(false),
-    target_cell_volumes(NULL), min_cell_volumes(NULL) {
+    target_cell_volumes(NULL), min_cell_volumes(NULL),
+    contiguous_gids_(contiguous_gids)
+{
 
   int ok;
 
@@ -391,14 +404,16 @@ Mesh_MSTK::Mesh_MSTK(const double x0, const double y0,
                      const int num_ghost_layers_distmesh,
                      const bool boundary_ghosts_requested,
                      const Partitioner_type partitioner,
+                     const bool contiguous_gids,
                      const JaliGeometry::Geom_type geom_type) :
-Mesh(request_faces, request_edges, request_sides, request_wedges,
-     request_corners, num_tiles, num_ghost_layers_tile,
-     num_ghost_layers_distmesh, boundary_ghosts_requested,
-     partitioner, geom_type, incomm),
+    Mesh(request_faces, request_edges, request_sides, request_wedges,
+         request_corners, num_tiles, num_ghost_layers_tile,
+         num_ghost_layers_distmesh, boundary_ghosts_requested,
+         partitioner, geom_type, incomm),
     mpicomm(incomm), meshxyz(NULL),
     faces_initialized(false), edges_initialized(false),
-                   target_cell_volumes(NULL), min_cell_volumes(NULL) {
+    target_cell_volumes(NULL), min_cell_volumes(NULL),
+    contiguous_gids_(contiguous_gids) {
 
   int ok;
   int space_dim = 2;
@@ -519,12 +534,13 @@ Mesh_MSTK::Mesh_MSTK(const std::shared_ptr<Mesh> inmesh,
                      const int num_ghost_layers_distmesh,
                      const bool boundary_ghosts_requested,
                      const Partitioner_type partitioner,
+                     const bool contiguous_gids,
                      const JaliGeometry::Geom_type geom_type) :
-    mpicomm(inmesh->get_comm()),
-  Mesh(request_faces, request_edges, request_sides, request_wedges,
-       request_corners, num_tiles, num_ghost_layers_tile,
-       num_ghost_layers_distmesh, boundary_ghosts_requested,
-       partitioner, geom_type, inmesh->get_comm()) {
+    mpicomm(inmesh->get_comm()), contiguous_gids_(contiguous_gids),
+    Mesh(request_faces, request_edges, request_sides, request_wedges,
+         request_corners, num_tiles, num_ghost_layers_tile,
+         num_ghost_layers_distmesh, boundary_ghosts_requested,
+         partitioner, geom_type, inmesh->get_comm()) {
 
   Mesh_MSTK *inmesh_mstk = dynamic_cast<Mesh_MSTK *>(inmesh.get());
   Mesh_ptr mstk_source_mesh = inmesh_mstk->mesh;
@@ -583,13 +599,14 @@ Mesh_MSTK::Mesh_MSTK(const Mesh& inmesh,
                      const int num_ghost_layers_distmesh,
                      const bool boundary_ghosts_requested,
                      const Partitioner_type partitioner,
+                     const bool contiguous_gids,
                      const JaliGeometry::Geom_type geom_type) :
-  mpicomm(inmesh.get_comm()),
-  Mesh(request_faces, request_edges, request_sides, request_wedges,
-       request_corners, num_tiles, num_ghost_layers_tile,
-       num_ghost_layers_distmesh, boundary_ghosts_requested,
-       partitioner, geom_type, inmesh.get_comm()) {
-
+    mpicomm(inmesh.get_comm()), contiguous_gids_(contiguous_gids),
+    Mesh(request_faces, request_edges, request_sides, request_wedges,
+         request_corners, num_tiles, num_ghost_layers_tile,
+         num_ghost_layers_distmesh, boundary_ghosts_requested,
+         partitioner, geom_type, inmesh.get_comm()) {
+  
   Mesh_ptr inmesh_mstk = ((Mesh_MSTK&) inmesh).mesh;
 
   List_ptr src_ents = List_New(10);
@@ -652,13 +669,14 @@ Mesh_MSTK::Mesh_MSTK(const Mesh& inmesh,
                      const int num_ghost_layers_distmesh,
                      const bool boundary_ghosts_requested,
                      const Partitioner_type partitioner,
+                     const bool contiguous_gids,
                      const JaliGeometry::Geom_type geom_type) :
-mpicomm(inmesh.get_comm()),
-  Mesh(request_faces, request_edges, request_sides, request_wedges,
-       request_corners, num_tiles, num_ghost_layers_tile,
-       num_ghost_layers_distmesh, boundary_ghosts_requested,
-       partitioner, geom_type, inmesh.get_comm()) {
- 
+    mpicomm(inmesh.get_comm()), contiguous_gids_(contiguous_gids),
+    Mesh(request_faces, request_edges, request_sides, request_wedges,
+         request_corners, num_tiles, num_ghost_layers_tile,
+         num_ghost_layers_distmesh, boundary_ghosts_requested,
+         partitioner, geom_type, inmesh.get_comm()) {
+  
   Mesh_ptr inmesh_mstk = ((Mesh_MSTK&) inmesh).mesh;
 
   // store pointers to the MESH_XXXFromID functions so that they can
@@ -4625,7 +4643,7 @@ int Mesh_MSTK::generate_regular_mesh(Mesh_ptr mesh, double x0, double y0,
     |  |        |  |        |  |        |  |       |  |        | 5|
     |  |________|__|        |  |_____5__|__|       |6 |_1______|__|
     |  /3       |  /4      4|  /        |  /       |  /        |  /
-    | /         | /         | /9       2| /10      | /      3  | /
+    | /         | /         | /9       2| /10      | /       3 | /
     |/__________|/          |/__________|/         |/__________|/
    1             2                1
 

@@ -1,36 +1,40 @@
-# Copyright (c) 2017, Los Alamos National Security, LLC
+# Copyright (c) 2019, Triad National Security, LLC
 # All rights reserved.
 
-# Copyright 2017. Los Alamos National Security, LLC. This software was
-# produced under U.S. Government contract DE-AC52-06NA25396 for Los
-# Alamos National Laboratory (LANL), which is operated by Los Alamos
-# National Security, LLC for the U.S. Department of Energy. The
-# U.S. Government has rights to use, reproduce, and distribute this
-# software.  NEITHER THE GOVERNMENT NOR LOS ALAMOS NATIONAL SECURITY,
-# LLC MAKES ANY WARRANTY, EXPRESS OR IMPLIED, OR ASSUMES ANY LIABILITY
-# FOR THE USE OF THIS SOFTWARE.  If software is modified to produce
-# derivative works, such modified software should be clearly marked, so
-# as not to confuse it with the version available from LANL.
+# Copyright 2019. Triad National Security, LLC. This software was
+# produced under U.S. Government contract 89233218CNA000001 for Los
+# Alamos National Laboratory (LANL), which is operated by Triad
+# National Security, LLC for the U.S. Department of Energy. 
+# All rights in the program are reserved by Triad National Security,
+# LLC, and the U.S. Department of Energy/National Nuclear Security
+# Administration. The Government is granted for itself and others acting
+# on its behalf a nonexclusive, paid-up, irrevocable worldwide license
+# in this material to reproduce, prepare derivative works, distribute
+# copies to the public, perform publicly and display publicly, and to
+ permit others to do so
  
-# Additionally, redistribution and use in source and binary forms, with
-# or without modification, are permitted provided that the following
-# conditions are met:
+# 
+# This is open source software distributed under the 3-clause BSD license.
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
 
-# 1.  Redistributions of source code must retain the above copyright
-# notice, this list of conditions and the following disclaimer.
-# 2.  Redistributions in binary form must reproduce the above copyright
-# notice, this list of conditions and the following disclaimer in the
-# documentation and/or other materials provided with the distribution.
-# 3.  Neither the name of Los Alamos National Security, LLC, Los Alamos
-# National Laboratory, LANL, the U.S. Government, nor the names of its
-# contributors may be used to endorse or promote products derived from
-# this software without specific prior written permission.
+1. Redistributions of source code must retain the above copyright notice,
+   this list of conditions and the following disclaimer.
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+3. Neither the name of Triad National Security, LLC, Los Alamos
+   National Laboratory, LANL, the U.S. Government, nor the names of its
+   contributors may be used to endorse or promote products derived from this
+   software without specific prior written permission.
+
  
-# THIS SOFTWARE IS PROVIDED BY LOS ALAMOS NATIONAL SECURITY, LLC AND
+# THIS SOFTWARE IS PROVIDED BY TRIAD NATIONAL SECURITY, LLC AND
 # CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING,
 # BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
-# FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL LOS
-# ALAMOS NATIONAL SECURITY, LLC OR CONTRIBUTORS BE LIABLE FOR ANY
+# FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
+# TRIAD NATIONAL SECURITY, LLC OR CONTRIBUTORS BE LIABLE FOR ANY
 # DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 # DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
 # GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
@@ -78,7 +82,8 @@
 #   1.0.7       - MSTK updated to 2.27rc2
 #   1.0.8       - MSTK updated to 2.27rc3
 #   1.0.9       - MSTK updated to 2.27 and UnitTest++ updated to 1.6.0
-#   1.1.0       - MSTK updated to 3.0.3, UnitTest++ to 2.0.0, Trilinos to 12.10.1, HDF5 1.8.18, Seacas to #173a1e6, zlib to 1.2.11, Boost to 1.63.0, NetCDF to 4.5.0, MOAB to 5.0.0, 
+#   1.1.0       - MSTK updated to 3.0.3, UnitTest++ to 2.0.0, Trilinos to 12.10.1, HDF5 1.8.18, Seacas to #173a1e6, zlib to 1.2.11, Boost to 1.63.0, NetCDF to 4.5.0, MOAB to 5.0.0,
+#   1.2.0       - MSTK updated to 3.1.1
 
 include(CMakeParseArguments)
 
@@ -261,8 +266,8 @@ set(ExodusII_MD5_SUM       cfd240dbc1251b08fb1d0ee2de40a44c)
 # TPL: MSTK
 #
 set(MSTK_VERSION_MAJOR 3)
-set(MSTK_VERSION_MINOR 0)
-set(MSTK_VERSION_PATCH 3)
+set(MSTK_VERSION_MINOR 1)
+set(MSTK_VERSION_PATCH 1)
 if (MSTK_VERSION_PATCH)
   set(MSTK_VERSION ${MSTK_VERSION_MAJOR}_${MSTK_VERSION_MINOR}_${MSTK_VERSION_PATCH})
 else (MSTK_VERSION_PATCH)
@@ -270,8 +275,8 @@ else (MSTK_VERSION_PATCH)
 endif (MSTK_VERSION_PATCH)
 set(MSTK_URL_STRING     "https://github.com/MeshToolkit/MSTK/archive")
 set(MSTK_ARCHIVE_FILE   v${MSTK_VERSION}.tar.gz)
-set(MSTK_SAVEAS_FILE   MSTK-${MSTK_VERSION}.tar.gz)
-set(MSTK_MD5_SUM        a9561f1175da2c2863c517b08abe5f16)
+set(MSTK_SAVEAS_FILE    MSTK-${MSTK_VERSION}.tar.gz)
+set(MSTK_MD5_SUM        f0040ab3d040189af57130de9addf89e)
 
 #
 # TPL: MOAB

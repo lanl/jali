@@ -169,6 +169,9 @@ void MeshFactory::reset_options(void) {
 
   /// Geometric model
   geometric_model_ = nullptr;
+
+  /// Continuous GIDs
+  contiguous_gids_ = false;
 }
 
 /**
@@ -195,7 +198,8 @@ MeshFactory::create(std::string const& filename) {
                                         num_tiles_, num_ghost_layers_tile_,
                                         num_ghost_layers_distmesh_,
                                         request_boundary_ghosts_,
-                                        partitioner_, geom_type_);
+                                        partitioner_, contiguous_gids_,
+                                        geom_type_);
         if (geometric_model_ &&
             (geometric_model_->dimension() != result->space_dimension())) {
           errmsg.add_data("Geometric model and mesh dimension do not match");
@@ -307,7 +311,7 @@ MeshFactory::create(double const x0, double const y0, double const z0,
                                         num_tiles_, num_ghost_layers_tile_,
                                         num_ghost_layers_distmesh_,
                                         request_boundary_ghosts_,
-                                        partitioner_);
+                                        partitioner_, contiguous_gids_);
         return result;
       }
       default:
@@ -410,7 +414,8 @@ MeshFactory::create(double const x0, double const y0,
                                         num_tiles_, num_ghost_layers_tile_,
                                         num_ghost_layers_distmesh_,
                                         request_boundary_ghosts_,
-                                        partitioner_, geom_type_);
+                                        partitioner_, contiguous_gids_,
+                                        geom_type_);
         return result;
       }
       default: {
@@ -551,7 +556,9 @@ MeshFactory::create(std::shared_ptr<Mesh> const inmesh,
                                         num_tiles_, num_ghost_layers_tile_,
                                         num_ghost_layers_distmesh_,
                                         request_boundary_ghosts_,
-                                        partitioner_, geom_type_);
+                                        partitioner_,
+                                        contiguous_gids_,
+                                        geom_type_);
         return result;
       }
       default: {
