@@ -91,7 +91,7 @@ int main(int argc, char *argv[]) {
 
   std::string facesetnames[3] = {"Face 101", "ZLO FACE Plane", "YLO FACE Box"};
   int nfacesets = 3;
-  Entity_ID_List expected_faces[3] = {{4, 19, 9, 3, 23, 14, 36, 27, 40},
+  Entity_ID_List expected_faces[3] = {{4, 19, 9, 32, 23, 14, 36, 27, 40},
                                       {4, 9, 14, 19, 23, 27, 32, 36, 40},
                                       {0, 6, 11, 42, 47, 51, 75, 80, 84}};
   
