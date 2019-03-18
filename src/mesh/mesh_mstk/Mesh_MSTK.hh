@@ -101,6 +101,7 @@ class Mesh_MSTK : public Mesh {
             const int num_ghost_layers_distmesh = 1,
             const bool request_boundary_ghosts = false,
             const Partitioner_type partitioner = Partitioner_type::METIS,
+            const bool contiguous_gids = false,
             const JaliGeometry::Geom_type geom_type =
             JaliGeometry::Geom_type::CARTESIAN);
   
@@ -123,7 +124,8 @@ class Mesh_MSTK : public Mesh {
             const int num_ghost_layers_tile = 0,
             const int num_ghost_layers_distmesh = 1,
             const bool request_boundary_ghosts = false,
-            const Partitioner_type partitioner = Partitioner_type::METIS);
+            const Partitioner_type partitioner = Partitioner_type::METIS,
+            const bool contiguous_gids = false);
 
 
   // 2D
@@ -143,6 +145,7 @@ class Mesh_MSTK : public Mesh {
             const int num_ghost_layers_distmesh = 1,
             const bool request_boundary_ghosts = false,
             const Partitioner_type partitioner = Partitioner_type::METIS,
+            const bool contiguous_gids = false,
             const JaliGeometry::Geom_type geom_type =
             JaliGeometry::Geom_type::CARTESIAN);
 
@@ -168,6 +171,7 @@ class Mesh_MSTK : public Mesh {
             const int num_ghost_layers_distmesh = 1,
             const bool request_boundary_ghosts = false,
             const Partitioner_type partitioner = Partitioner_type::METIS,
+            const bool contiguous_gids = false,
             const JaliGeometry::Geom_type geom_type =
             JaliGeometry::Geom_type::CARTESIAN);
 
@@ -186,7 +190,7 @@ class Mesh_MSTK : public Mesh {
             const int num_ghost_layers_distmesh = 1,
             const bool request_boundary_ghosts = false,
             const Partitioner_type partitioner = Partitioner_type::METIS,
-            const bool contiguous_ids = false,
+            const bool contiguous_gids = false,
             const JaliGeometry::Geom_type geom_type =
             JaliGeometry::Geom_type::CARTESIAN);
 
@@ -205,6 +209,7 @@ class Mesh_MSTK : public Mesh {
             const int num_ghost_layers_distmesh = 1,
             const bool request_boundary_ghosts = false,
             const Partitioner_type partitioner = Partitioner_type::METIS,
+            const bool contiguous_gids = false,
             const JaliGeometry::Geom_type geom_type =
             JaliGeometry::Geom_type::CARTESIAN);
 
@@ -776,6 +781,8 @@ class Mesh_MSTK : public Mesh {
   double *meshxyz;
   double *target_cell_volumes, *min_cell_volumes, *target_weights;
 
+  // whether to make GIDs continguous or not
+  bool contiguous_gids_;
 };
 
 
