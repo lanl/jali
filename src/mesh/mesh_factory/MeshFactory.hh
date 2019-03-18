@@ -207,6 +207,11 @@ class MeshFactory {
     num_ghost_layers_tile_ = num_layers;
   }
 
+  /// Request that the GIDs be made contiguous
+  void contiguous_gids(bool make_contiguous) {
+    contiguous_gids_ = make_contiguous;
+  }
+
   /// @brief Get explicitly represented entity kinds 
   ///
   /// Get the types of entities that are explicitly requested in the
@@ -430,6 +435,9 @@ class MeshFactory {
 
   /// Geometric model  
   JaliGeometry::GeometricModel *geometric_model_ = nullptr;
+
+  /// Should GIDs be made contiguous?
+  bool contiguous_gids_ = false;
 };
 
 }  // namespace Jali

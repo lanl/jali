@@ -1,35 +1,39 @@
 #!/usr/bin/env python
 
-# Copyright 2017. Los Alamos National Security, LLC. This software was
-# produced under U.S. Government contract DE-AC52-06NA25396 for Los
-# Alamos National Laboratory (LANL), which is operated by Los Alamos
-# National Security, LLC for the U.S. Department of Energy. The
-# U.S. Government has rights to use, reproduce, and distribute this
-# software.  NEITHER THE GOVERNMENT NOR LOS ALAMOS NATIONAL SECURITY,
-# LLC MAKES ANY WARRANTY, EXPRESS OR IMPLIED, OR ASSUMES ANY LIABILITY
-# FOR THE USE OF THIS SOFTWARE.  If software is modified to produce
-# derivative works, such modified software should be clearly marked, so
-# as not to confuse it with the version available from LANL.
+# Copyright 2019. Triad National Security, LLC. This software was
+# produced under U.S. Government contract 89233218CNA000001 for Los
+# Alamos National Laboratory (LANL), which is operated by Triad
+# National Security, LLC for the U.S. Department of Energy. 
+# All rights in the program are reserved by Triad National Security,
+# LLC, and the U.S. Department of Energy/National Nuclear Security
+# Administration. The Government is granted for itself and others acting
+# on its behalf a nonexclusive, paid-up, irrevocable worldwide license
+# in this material to reproduce, prepare derivative works, distribute
+# copies to the public, perform publicly and display publicly, and to
+# permit others to do so
  
-# Additionally, redistribution and use in source and binary forms, with
-# or without modification, are permitted provided that the following
-# conditions are met:
-
-# 1.  Redistributions of source code must retain the above copyright
-# notice, this list of conditions and the following disclaimer.
-# 2.  Redistributions in binary form must reproduce the above copyright
-# notice, this list of conditions and the following disclaimer in the
-# documentation and/or other materials provided with the distribution.
-# 3.  Neither the name of Los Alamos National Security, LLC, Los Alamos
-# National Laboratory, LANL, the U.S. Government, nor the names of its
-# contributors may be used to endorse or promote products derived from
-# this software without specific prior written permission.
- 
-# THIS SOFTWARE IS PROVIDED BY LOS ALAMOS NATIONAL SECURITY, LLC AND
+# 
+# This is open source software distributed under the 3-clause BSD license.
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are
+# met:
+# 
+# 1. Redistributions of source code must retain the above copyright notice,
+#    this list of conditions and the following disclaimer.
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in the
+#    documentation and/or other materials provided with the distribution.
+# 3. Neither the name of Triad National Security, LLC, Los Alamos
+#    National Laboratory, LANL, the U.S. Government, nor the names of its
+#    contributors may be used to endorse or promote products derived from this
+#    software without specific prior written permission.
+# 
+#  
+# THIS SOFTWARE IS PROVIDED BY TRIAD NATIONAL SECURITY, LLC AND
 # CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING,
 # BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
-# FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL LOS
-# ALAMOS NATIONAL SECURITY, LLC OR CONTRIBUTORS BE LIABLE FOR ANY
+# FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
+# TRIAD NATIONAL SECURITY, LLC OR CONTRIBUTORS BE LIABLE FOR ANY
 # DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 # DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
 # GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
@@ -57,7 +61,7 @@ class ConfigurationManager(object):
     return
 
   def checkPythonVersion(self):
-    if not hasattr(sys, 'version_info') or not sys.version_info[0] == 2 or not sys.version_info[1] >= 3:
+    if not hasattr(sys, 'version_info') or not sys.version_info[0] == 2 or not sys.version_info[1] >=3.
       print '*** You must have Python2 version 2.3 or higher to run ./configure        *****'
       print '*          Python is easy to install for end users or sys-admin.              *'
       print '*                  http://www.python.org/download/                            *'

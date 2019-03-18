@@ -186,6 +186,7 @@ class Mesh_MSTK : public Mesh {
             const int num_ghost_layers_distmesh = 1,
             const bool request_boundary_ghosts = false,
             const Partitioner_type partitioner = Partitioner_type::METIS,
+            const bool contiguous_ids = false,
             const JaliGeometry::Geom_type geom_type =
             JaliGeometry::Geom_type::CARTESIAN);
 
