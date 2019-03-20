@@ -61,7 +61,7 @@ function(CHECK_MPI_SOURCE_COMPILES FLAG)
 
   include(CheckCSourceCompiles)
 
-  message(STATUS "Checking whether C compiler can compile MPI program")
+  message(STATUS "Checking whether C compiler is MPI wrapper")
 
   set(_mpi_c_source "
       #include <stdio.h>
@@ -77,22 +77,22 @@ function(CHECK_MPI_SOURCE_COMPILES FLAG)
     # check $VAR for compile status.
     check_c_source_compiles("${_mpi_c_source}" MPI_C)
     if(${MPI_C})
-      message(STATUS "Checking whether C compiler can compile MPI program - yes")
+      message(STATUS "Checking whether C compiler is MPI wrapper - yes")
     else()
-      message(STATUS "Checking whether C compiler can compile MPI program - no")
+      message(STATUS "Checking whether C compiler is MPI wrapper - no")
+      set(MPI_C False CACHE INTERNAL "Test MPI_C")
     endif()   
         
 
-
+    # MPI C++ bindings have disappeared in recent MPI versions - skip check
     include(CheckCXXSourceCompiles)
-    message(STATUS "Checking whether C++ compiler can compile MPI program")
     set(_mpi_cxx_source "
         #include <iostream>
         #include \"mpi.h\"
         int main(int argc, char *argv[])
         {
-          MPI::Init(argc,argv);
-          MPI::Finalize();
+          MPI_Init(argc,argv);
+          MPI_Finalize();
           return 0;
         }")
     
@@ -101,14 +101,14 @@ function(CHECK_MPI_SOURCE_COMPILES FLAG)
     check_cxx_source_compiles("${_mpi_cxx_source}" MPI_CXX)
 
     if(${MPI_CXX})
-      message(STATUS "Checking whether C++ compiler can compile MPI program - yes")
+      message(STATUS "Checking whether CXX compiler is MPI wrapper - yes")
     else()
-      message(STATUS "Checking whether C++ compiler can compile MPI program - no")
+      message(STATUS "Checking whether CXX compiler is MPI wrapper - no")
+      set(MPI_CXX False CACHE INTERNAL "Test MPI_CXX")
     endif() 
 
     # Check the Fortran compiler if enabled
     if ( CMAKE_Fortran_COMPILER ) 
-      message(STATUS "Checking whether Fortran compiler can compile MPI program")
       set(_mpi_fortran_source "
           PROGRAM mpi_test
           INTEGER ierr
@@ -127,33 +127,31 @@ function(CHECK_MPI_SOURCE_COMPILES FLAG)
                   ${test_file}
                   OUTPUT_VARIABLE result)
       if(${MPI_Fortran})
-        message(STATUS "Performing Test MPI_Fortran - Success")
+        message(STATUS "Checking whether Fortran compiler is MPI wrapper - yes")
         file(APPEND ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeOutput.log
                     "Performing Fortran SOURCE FILE Test MPI_Fortran succeeded with the following output:\n"
                     "${result}\n"
                     "Source file was:\n${_mpi_fortran_source}\n")
-        message(STATUS "Checking whether Fortran compiler can compile MPI program - yes")
       else()
-        message(STATUS "Performing Test MPI_Fortran - Failed")
-        set(MPI_Fortran "" CACHE INTERNAL "Test MPI_Fortran")
+        message(STATUS "Checking whether Fortran compiler is MPI wrapper - no")
+        set(MPI_Fortran False CACHE INTERNAL "Test MPI_Fortran")
         file(APPEND ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeError.log
                     "Performing Fortran SOURCE FILE Test MPI_Fortran failed with the following output:\n"
                     "${result}\n"
                     "Source file was:\n${_mpi_fortran_source}\n")
-        message(STATUS "Checking whether Fortran compiler can compile MPI program - no")
        endif()            
 
      endif()
 
      # Now push up the flag to the parent namespace
      if ( CMAKE_Fortran_COMPILER )
-       if ( "${MPI_C}" AND "${MPI_CXX}" AND "${MPI_Fortran}" )
+       if ( ${MPI_C} AND ${MPI_CXX} AND ${MPI_Fortran} )
          set(${FLAG} TRUE PARENT_SCOPE)
        else()
          set(${FLAG} FALSE PARENT_SCOPE)
        endif()
      else()
-       if ( "${MPI_C}" AND "${MPI_CXX}" )
+       if ( ${MPI_C} AND ${MPI_CXX} )
          set(${FLAG} TRUE PARENT_SCOPE)
        else()
          set(${FLAG} FALSE PARENT_SCOPE)
