@@ -349,10 +349,12 @@ if (NOT MPI_WRAPPERS_IN_USE)
       endforeach()
     endif()
 
-    list(REMOVE_DUPLICATES add_mpi_flags_list)
     list(LENGTH add_mpi_flags_list num_flags)
 
     if ("${num_flags}" GREATER "0")
+      list(REMOVE_DUPLICATES add_mpi_flags_list)
+      list(LENGTH add_mpi_flags_list num_flags)
+
       include(BuildWhitespaceString)
       if (CMAKE_${lang}_FLAGS)
 	build_whitespace_string(new_compile_flags ${CMAKE_${lang}_FLAGS} ${add_mpi_flags_list})
