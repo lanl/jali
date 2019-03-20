@@ -128,14 +128,14 @@ file(TO_CMAKE_PATH ${SuperBuild_SOURCE_DIR}/../.. Jali_SOURCE_DIR)
 # Update the CMake module path
 # ############################################################################ #
 set(Jali_MODULE_PATH
-           ${Jali_SOURCE_DIR}/config/cmake
-           ${Jali_SOURCE_DIR}/config/cmake/Utils
-           ${Jali_SOURCE_DIR}/config/cmake/Modules)
+  ${Jali_SOURCE_DIR}/config/cmake
+  ${Jali_SOURCE_DIR}/config/cmake/Utils
+  ${Jali_SOURCE_DIR}/config/cmake/Modules)
 
 set(CMAKE_MODULE_PATH 
-         ${CMAKE_MODULE_PATH} 
-	     ${SuperBuild_SOURCE_DIR}/cmake
-	     ${Jali_MODULE_PATH})
+  ${CMAKE_MODULE_PATH} 
+  ${SuperBuild_SOURCE_DIR}/cmake
+  ${Jali_MODULE_PATH})
 
 # ############################################################################ #
 # Location of the Build_* files and template files
@@ -316,7 +316,7 @@ if (MPI_C_FOUND AND MPI_CXX_FOUND AND MPI_Fortran_FOUND)
   foreach(lang C CXX Fortran)
     foreach(var ${mpi_var_list})
       set(var MPI_${lang}_${var})
-      if ("${var}")
+      if (${var})
 	message(STATUS "      ${var}: ${${var}}")
       endif()
     endforeach()
@@ -351,7 +351,7 @@ if (NOT MPI_WRAPPERS_IN_USE)
 
     list(LENGTH add_mpi_flags_list num_flags)
 
-    if ("${num_flags}" GREATER "0")
+    if (${num_flags} GREATER 0)
       list(REMOVE_DUPLICATES add_mpi_flags_list)
       list(LENGTH add_mpi_flags_list num_flags)
 
