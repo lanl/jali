@@ -156,9 +156,7 @@ include(CheckMPISourceCompiles)
 check_mpi_source_compiles(MPI_WRAPPERS_IN_USE)
 if (NOT MPI_WRAPPERS_IN_USE)
   # MPI_WRAPPERS_IN_USE is FALSE if any of the compilers fail to compile an MPI app
-  #message(FATAL_ERROR "Missing a compiler type for MPI applications -- exiting.
-  message(WARNING " Missing a compiler type for MPI applications.
-  See previous error messages to determine missing compiler.")
+  message(STATUS " MPI wrappers not in use - will try to find them")
 endif()
 
 # Include the TPL version information
