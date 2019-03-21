@@ -3,11 +3,16 @@
 # Jali Third Party Library (TPL) Definitions
 #
 
+# Use <package_name>_ROOT variables in find_package (introduced in 3.12)
+if (${CMAKE_VERSION} VERSION_GREATER 3.12)
+  cmake_policy(SET CMP0074 NEW)
+endif(${CMAKE_VERSION} VERSION_GREATER 3.12)
+
 # Standard CMake modules see CMAKE_ROOT/Modules
 include(FeatureSummary)
 
-# Amanzi CMake modules see <root source>/tools/cmake
-include(CheckMPISourceCompiles)
+# Jali CMake modules see <root source>/tools/cmake
+include(AddImportedLibrary)
 include(TrilinosMacros)
 include(PrintVariable)
 
@@ -18,12 +23,64 @@ include(PrintVariable)
 ##############################################################################
 # MPI
 ##############################################################################
+include(CheckMPISourceCompiles)
 check_mpi_source_compiles(MPI_WRAPPERS_IN_USE)
 
 if ( NOT MPI_WRAPPERS_IN_USE )
-  message(WARNING "At this time, Jali must be compiled with MPI wrappers."
-                  " Build will likely fail. Please define CMAKE_*_COMPILER"
-		  " parameters as MPI compiler wrappers and re-run cmake.")
+  find_package(MPI REQUIRED)
+  
+  # Warn the user if MPI information is not found
+  if (NOT MPI_C_FOUND)
+    message(WARNING "Failed to locate MPI C include and library files")
+  endif()
+  if (NOT MPI_CXX_FOUND)
+    message(WARNING "Failed to locate MPI C++ include and library files")
+  endif()
+
+  # We have to compile Jali and Jali TPLs with MPI - so forcibly set the compilers to the MPI wrappers 
+  set(CMAKE_C_COMPILER ${MPI_C_COMPILER} CACHE FILEPATH "MPI C wrapper to use" FORCE)
+  set(CMAKE_CXX_COMPILER ${MPI_CXX_COMPILER} CACHE FILEPATH "MPI C++ wrapper to use" FORCE)
+  
+endif ( NOT MPI_WRAPPERS_IN_USE )
+
+# - Number of MPI ranks flag
+set(MPI_EXEC_NUMPROCS_FLAG_DFLT -n)
+if (NOT MPI_EXEC_NUMPROCS_FLAG)
+  if (MPIEXEC_NUMPROC_FLAG)
+    set(MPI_EXEC_NUMPROCS_FLAG "${MPIEXEC_NUMPROC_FLAG}" CACHE STRING "Set MPI number of procs flag from FindMPI")
+  else()
+    set(MPI_EXEC_NUMPROCS_FLAG ${MPI_EXEC_NUMPROCS_FLAG_DFLT})
+  endif()
+endif()
+  
+# - Maximum number of processors. This is a limit for the test suite
+#   Some tests require too many processors and it increases the execution time
+#   considerably. 
+set(MPI_EXEC_MAX_NUMPROCS_DFLT 8)
+if (NOT MPI_EXEC_MAX_NUMPROCS)
+  include(ProcessorCount)
+  ProcessorCount(proc_count)
+  if (NOT proc_count EQUAL 0)
+    math(EXPR MPI_EXEC_MAX_NUMPROCS "${proc_count} * 2") 
+    message(STATUS "Detected ${proc_count} processors and will set maximum to ${MPI_EXEC_MAX_NUMPROCS}")
+  else()
+    set(MPI_EXEC_MAX_NUMPROCS ${MPI_EXEC_MAX_NUMPROCS_DFLT})
+  endif()
+endif()  
+
+# - Set the pre and post flags
+#   Usage:
+#   ${MPI_EXEC} ${MPI_EXEC_NUMPROCS_FLAG} PROCS ${MPI_EXEC_PREFLAGS} EXECUTABLE ${MPI_EXEC_POSTFLAGS}
+if (NOT MPI_EXEC_PREFLAGS)
+  if (MPIEXEC_PREFLAGS)
+    set(MPI_EXEC_PREFLAGS "${MPIEXEC_PRFLAGS}" CACHE STRING "Set MPI execute pre flags")
+  endif()
+endif()
+
+if (NOT MPI_EXEC_POSTFLAGS)
+  if (MPIEXEC_POSTFLAGS)
+    set(MPI_EXEC_POSTFLAGS "${MPIEXEC_PRFLAGS}" CACHE STRING "Set MPI execute post flags")
+  endif()
 endif()
 
 ##############################################################################
@@ -71,13 +128,7 @@ endif()
 # HDF5 - http://www.hdfgroup.org/HDF5/
 ##############################################################################
 
-# We need to use the project-local HDF5 finder. Temporarily Change
-# policy CMP0017 if were using cmake 2.8.3 or later
-if (${ADJUST_POLICY})
-  cmake_policy(SET CMP0017 OLD)
-endif()
-
-find_package(HDF5 1.8.0 REQUIRED)
+find_package(HDF5 1.8.18 REQUIRED C HL)
 if ( NOT HDF5_IS_PARALLEL ) 
     message(WARNING     "The HDF5 installation found in ${HDF5_DIR} is not "
                         "a parallel build. At this time, this installation "
@@ -89,10 +140,6 @@ endif(NOT HDF5_IS_PARALLEL)
 option(ENABLE_HDF5 "HDF5 info" ON)
 add_feature_info(HDF5 ENABLE_HDF5 "I/O library that creates HDF5 formatted files http://www.hdfgroup.org/HDF5")
 
-# Restore policy of preferring offical CMake modules over local ones.
-if (${ADJUST_POLICY})
-  cmake_policy(SET CMP0017 NEW)
-endif()
 
 ##############################################################################
 # Trilinos http://trilinos.sandia.gov
@@ -201,17 +248,6 @@ add_feature_info(ExodusII ENABLE_ExodusII "File format library from Sandia Natio
 #---------------------------- Mesh Frameworks -------------------------------#
 ##############################################################################
 
-# Enable ALL possible mesh frameworks
-#option(ENABLE_ALL_Mesh "Build all Jali mesh frameworks" OFF)
-#if(ENABLE_ALL_Mesh)
-#    set(ENABLE_STK_Mesh ON)
-#    set(ENABLE_MOAB_Mesh ON)
-#    set(ENABLE_MSTK_Mesh ON)
-#endif()    
-#add_feature_info(ALL_Mesh
-#                 ENABLE_ALL_Mesh
-#                 "Build all available mesh frameworks"
-#                  )    
 
 ##############################################################################
 # STK - Sierra Mesh Tool Kit part of Trilinos
@@ -280,6 +316,5 @@ option(ENABLE_OpenMP "Build Jali executables with OpenMP" OFF)
 #                 )
 if (ENABLE_OpenMP)
     find_package(OpenMP)
-    find_package(OpenMP_Fortran)
 endif()
 
