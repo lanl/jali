@@ -280,7 +280,7 @@ add_feature_info(MSTK_Mesh
                  "A mesh framework"
                  )
 if (ENABLE_MSTK_Mesh)
-    find_package(MSTK REQUIRED)
+  find_package(MSTK REQUIRED)
 endif() 
 
 
