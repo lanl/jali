@@ -103,18 +103,15 @@ endif()
 
 
 # Some defines to indicate which partitioners are enabled
-if (Jali_TPL_METIS_ENABLED OR Jali_TPL_Zoltan_ENABLED)
-  if (Jali_TPL_METIS_ENABLED)
-    message(STATUS "Adding definition Jali_HAVE_METIS")
-    add_definitions("-DJali_HAVE_METIS")
-  endif(Jali_TPL_METIS_ENABLED)
-  if (Jali_TPL_Zoltan_ENABLED)
-    message(STATUS "Adding definition Jali_HAVE_ZOLTAN")
-    add_definitions("-DJali_HAVE_ZOLTAN")
-  endif(Jali_TPL_Zoltan_ENABLED)
-else (Jali_TPL_METIS_ENABLED OR Jali_TPL_Zoltan_ENABLED)
-  message(STATUS "No partitioner enabled?")
-endif(Jali_TPL_METIS_ENABLED OR Jali_TPL_Zoltan_ENABLED)
+if (Jali_TPL_METIS_ENABLED)
+  message(STATUS "Adding definition Jali_HAVE_METIS")
+  add_definitions("-DJali_HAVE_METIS")
+endif(Jali_TPL_METIS_ENABLED)
+if (Jali_TPL_Zoltan_ENABLED)
+  message(STATUS "Adding definition Jali_HAVE_ZOLTAN")
+  add_definitions("-DJali_HAVE_ZOLTAN")
+endif(Jali_TPL_Zoltan_ENABLED)
+
 
 
 
