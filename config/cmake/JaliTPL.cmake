@@ -43,6 +43,18 @@ if ( NOT MPI_WRAPPERS_IN_USE )
   
 endif ( NOT MPI_WRAPPERS_IN_USE )
 
+
+# --- Jali uses MPI_EXEC* not MPIEXEC* variables. This allows the user to 
+#     override the find package results.
+
+# - MPI execute binary
+if (MPIEXEC)
+  set(MPI_EXEC ${MPIEXEC} CACHE STRING "Custom MPI Executable specified" FORCE)
+else()
+  set(MPI_EXEC ${MPIEXEC_EXECUTABLE} CACHE STRING "MPI Executable found by FindMPI" FORCE)
+endif()
+
+
 # - Number of MPI ranks flag
 set(MPI_EXEC_NUMPROCS_FLAG_DFLT -n)
 if (NOT MPI_EXEC_NUMPROCS_FLAG)
