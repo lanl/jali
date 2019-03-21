@@ -107,55 +107,11 @@ function(CHECK_MPI_SOURCE_COMPILES FLAG)
       set(MPI_CXX False CACHE INTERNAL "Test MPI_CXX")
     endif() 
 
-    # Check the Fortran compiler if enabled
-    if ( CMAKE_Fortran_COMPILER ) 
-      set(_mpi_fortran_source "
-          PROGRAM mpi_test
-          INTEGER ierr
-          call MPI_Init(ierr)
-          call MPI_Finalize(ierr)
-          STOP
-          END PROGRAM")
-
-      # As of CMAKE 2.8.6 no CheckFortranSourceCompiles macro
-      set(test_file "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/test_mpi.f") 
-      file(WRITE "${test_file}" "${_mpi_fortran_source}\n")
-
-      message(STATUS "Performing Test MPI_Fortran")
-      try_compile(MPI_Fortran
-                  ${CMAKE_BINARY_DIR}
-                  ${test_file}
-                  OUTPUT_VARIABLE result)
-      if(${MPI_Fortran})
-        message(STATUS "Checking whether Fortran compiler is MPI wrapper - yes")
-        file(APPEND ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeOutput.log
-                    "Performing Fortran SOURCE FILE Test MPI_Fortran succeeded with the following output:\n"
-                    "${result}\n"
-                    "Source file was:\n${_mpi_fortran_source}\n")
-      else()
-        message(STATUS "Checking whether Fortran compiler is MPI wrapper - no")
-        set(MPI_Fortran False CACHE INTERNAL "Test MPI_Fortran")
-        file(APPEND ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeError.log
-                    "Performing Fortran SOURCE FILE Test MPI_Fortran failed with the following output:\n"
-                    "${result}\n"
-                    "Source file was:\n${_mpi_fortran_source}\n")
-       endif()            
-
-     endif()
-
      # Now push up the flag to the parent namespace
-     if ( CMAKE_Fortran_COMPILER )
-       if ( ${MPI_C} AND ${MPI_CXX} AND ${MPI_Fortran} )
-         set(${FLAG} TRUE PARENT_SCOPE)
-       else()
-         set(${FLAG} FALSE PARENT_SCOPE)
-       endif()
+     if ( ${MPI_C} AND ${MPI_CXX} )
+       set(${FLAG} TRUE PARENT_SCOPE)
      else()
-       if ( ${MPI_C} AND ${MPI_CXX} )
-         set(${FLAG} TRUE PARENT_SCOPE)
-       else()
-         set(${FLAG} FALSE PARENT_SCOPE)
-       endif()
-     endif()  
+       set(${FLAG} FALSE PARENT_SCOPE)
+     endif()
          
 endfunction(CHECK_MPI_SOURCE_COMPILES)
