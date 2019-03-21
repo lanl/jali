@@ -257,7 +257,7 @@ else(NetCDF_C_LIBRARIES AND NetCDF_INCLUDE_DIRS)
         # hdf5_hl.
         set(_NetCDF_C_LIBRARY_LINK_LIBS)
         if(NetCDF_NEEDS_HDF5) 
-  	find_package(HDF5 QUIET REQUIRED)
+  	find_package(HDF5 QUIET REQUIRED C HL)
   	if ( HDF5_FOUND )
   	  if ( NOT HDF5_HL_FOUND )
   	    message(WARNING "NetCDF calls the HDF5 HL library but this HDF5 does not have one")
