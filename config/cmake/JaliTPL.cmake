@@ -68,6 +68,7 @@ include(PrintVariable)
 ##############################################################################
 # MPI
 ##############################################################################
+ENABLE_LANGUAGE(C CXX Fortran)  # Fortran for Exodus II fortran interface
 include(CheckMPISourceCompiles)
 check_mpi_source_compiles(MPI_WRAPPERS_IN_USE)
 
