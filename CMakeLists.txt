@@ -50,14 +50,6 @@
 cmake_minimum_required(VERSION 3.8.0)
 set(CMAKE_CTEST_COMMAND ${CMAKE_CTEST_COMMAND})  
 
-#if ("${CMAKE_PATCH_VERSION}" GREATER 11)
-#  cmake_policy(SET CMP0022 NEW)
-#endif()
-
-#if ("${CMAKE_MAJOR_VERSION}" GREATER 2)
-#  cmake_policy(SET CMP0037 OLD)
-#  cmake_policy(SET CMP0048 OLD)
-#endif()
 
 # Enable testing, ctest needs this
 # all add_test commands are ignored unless this is called!
@@ -119,15 +111,14 @@ if (Jali_TPL_Zoltan_ENABLED)
   message(STATUS "Adding definition Jali_HAVE_ZOLTAN")
   add_definitions("-DJali_HAVE_ZOLTAN")
 endif(Jali_TPL_Zoltan_ENABLED)
-if ((NOT Jali_TPL_METIS_ENABLED) AND (NOT Jali_TPL_Zoltan_ENABLED))
-  message(STATUS "No partitioner enabled?")
-endif()
+
+
 
 
 # A property for accumulating the a global amanzi link line.
 set_property(GLOBAL PROPERTY Jali_LINK_LINE "-L${CMAKE_INSTALL_PREFIX}/lib")
 
-# A property for accumulating amanzi library targets
+# A property for accumulating Jali library targets
 set_property(GLOBAL PROPERTY Jali_LIBRARY_TARGETS)
 set(Jali_LINK_LINE_FILE "${Jali_BINARY_DIR}/link_line")  # A filename to write link-line to.
 include(InstallManager)
@@ -160,6 +151,5 @@ if(DOXYGEN_FOUND)
 endif(DOXYGEN_FOUND)
 
 
-# compile examples only if requested
 
 add_subdirectory(examples)

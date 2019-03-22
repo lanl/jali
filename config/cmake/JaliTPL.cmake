@@ -1,13 +1,138 @@
+# Copyright (c) 2019, Triad National Security, LLC
+# All rights reserved.
+
+# Copyright 2019. Triad National Security, LLC. This software was
+# produced under U.S. Government contract 89233218CNA000001 for Los
+# Alamos National Laboratory (LANL), which is operated by Triad
+# National Security, LLC for the U.S. Department of Energy. 
+# All rights in the program are reserved by Triad National Security,
+# LLC, and the U.S. Department of Energy/National Nuclear Security
+# Administration. The Government is granted for itself and others acting
+# on its behalf a nonexclusive, paid-up, irrevocable worldwide license
+# in this material to reproduce, prepare derivative works, distribute
+# copies to the public, perform publicly and display publicly, and to
+# permit others to do so
+ 
+# 
+# This is open source software distributed under the 3-clause BSD license.
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are
+# met:
+# 
+# 1. Redistributions of source code must retain the above copyright notice,
+#    this list of conditions and the following disclaimer.
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in the
+#    documentation and/or other materials provided with the distribution.
+# 3. Neither the name of Triad National Security, LLC, Los Alamos
+#    National Laboratory, LANL, the U.S. Government, nor the names of its
+#    contributors may be used to endorse or promote products derived from this
+#    software without specific prior written permission.
+
+ 
+# THIS SOFTWARE IS PROVIDED BY TRIAD NATIONAL SECURITY, LLC AND
+# CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING,
+# BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+# FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
+# TRIAD NATIONAL SECURITY, LLC OR CONTRIBUTORS BE LIABLE FOR ANY
+# DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+# GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
+# IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+# OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+# ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+#
+# Functions for building and managing binaries.
+#
+
+include(CMakeParseArguments)
+include(PrintVariable)
+include(InstallManager)
+
+#
+# Usage:
+#
+# ADD_Jali_EXECUTABLE(<target name>
+#                       SOURCE file1 file2 ....
+#                       LINK_LIBS lib1 lib2 .....
+#                       OUPUT_NAME name
+#                       OUTPUT_DIRECTORY dir
+#                       NO_INSTALL)
+# 
+#
+# Arguments:
+#
+#   target CMake target name defined for this binary
+#
+#   SOURCE List of source files to compile 
+#
+#   LINK_LIBS Defines the list of link libraries required to build and link target
+#
+#   OUTPUT_NAME (Optional) Set the output name to OUTPUT_NAME, will use the CMake defaults
+#   if this is not set.
+#
+#   OUTPUT_DIRECTORY (Optional) Set the output directory, default is CMAKE_CURRENT_BINARY_DIR
+#
+#   NO_INSTALL (Optional) All binaries defined by this function will be added to the install
+#   target. Use this option to not install the binary.
+#
+# 
+function(ADD_Jali_EXECUTABLE target)
+
+  # --- Parse the input
+  set(options NO_INSTALL)
+  set(oneValueArgs OUTPUT_NAME OUTPUT_DIRECTORY)
+  set(multiValueArgs SOURCE LINK_LIBS)
+  cmake_parse_arguments(Jali_BIN "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+
+  # --- Check the input
+  if ( NOT Jali_BIN_SOURCE )
+    message(FATAL "Can not define binary ${target} without source files.")
+  endif()
+
+  # --- Define the executable
+  add_executable(${target} ${Jali_BIN_SOURCE})
+
+  # --- Add link libraries
+  if ( Jali_BIN_LINK_LIBS )
+    target_link_libraries(${target} ${Jali_BIN_LINK_LIBS})
+  endif()
+
+  # --- Add target to the install target
+  if ( NOT "${Jali_BIN_NO_INSTALL}" )
+    add_install_binary(${target})
+  endif()
+
+  # --- Change the output name and directory if requested
+  if ( Jali_BIN_OUTPUT_NAME )
+    set_target_properties( ${target} PROPERTIES OUTPUT_NAME ${Jali_BIN_OUTPUT_NAME})
+  endif()
+
+  if ( Jali_BIN_OUTPUT_DIRECTORY )
+    set_target_properties(${target} PROPERTIES OUTPUT_DIRECTORY ${Jali_BIN_OUTPUT_NAME})
+  endif()
+
+
+
+endfunction(ADD_Jali_EXECUTABLE)
+
 # -*- mode: cmake -*-
 # 
 # Jali Third Party Library (TPL) Definitions
 #
 
+# Use <package_name>_ROOT variables in find_package (introduced in 3.12)
+if (${CMAKE_VERSION} VERSION_GREATER 3.12)
+  cmake_policy(SET CMP0074 NEW)
+endif(${CMAKE_VERSION} VERSION_GREATER 3.12)
+
 # Standard CMake modules see CMAKE_ROOT/Modules
 include(FeatureSummary)
 
-# Amanzi CMake modules see <root source>/tools/cmake
-include(CheckMPISourceCompiles)
+# Jali CMake modules see <root source>/tools/cmake
+include(AddImportedLibrary)
 include(TrilinosMacros)
 include(PrintVariable)
 
@@ -18,12 +143,76 @@ include(PrintVariable)
 ##############################################################################
 # MPI
 ##############################################################################
+include(CheckMPISourceCompiles)
 check_mpi_source_compiles(MPI_WRAPPERS_IN_USE)
 
 if ( NOT MPI_WRAPPERS_IN_USE )
-  message(WARNING "At this time, Jali must be compiled with MPI wrappers."
-                  " Build will likely fail. Please define CMAKE_*_COMPILER"
-		  " parameters as MPI compiler wrappers and re-run cmake.")
+  find_package(MPI REQUIRED)
+  
+  # Warn the user if MPI information is not found
+  if (NOT MPI_C_FOUND)
+    message(WARNING "Failed to locate MPI C include and library files")
+  endif()
+  if (NOT MPI_CXX_FOUND)
+    message(WARNING "Failed to locate MPI C++ include and library files")
+  endif()
+
+  # We have to compile Jali and Jali TPLs with MPI - so forcibly set the compilers to the MPI wrappers 
+  set(CMAKE_C_COMPILER ${MPI_C_COMPILER} CACHE FILEPATH "MPI C wrapper to use" FORCE)
+  set(CMAKE_CXX_COMPILER ${MPI_CXX_COMPILER} CACHE FILEPATH "MPI C++ wrapper to use" FORCE)
+  
+endif ( NOT MPI_WRAPPERS_IN_USE )
+
+
+# --- Jali uses MPI_EXEC* not MPIEXEC* variables. This allows the user to 
+#     override the find package results.
+
+# - MPI execute binary
+if (MPIEXEC)
+  set(MPI_EXEC ${MPIEXEC} CACHE STRING "Custom MPI Executable specified" FORCE)
+else()
+  set(MPI_EXEC ${MPIEXEC_EXECUTABLE} CACHE STRING "MPI Executable found by FindMPI" FORCE)
+endif()
+
+
+# - Number of MPI ranks flag
+set(MPI_EXEC_NUMPROCS_FLAG_DFLT -n)
+if (NOT MPI_EXEC_NUMPROCS_FLAG)
+  if (MPIEXEC_NUMPROC_FLAG)
+    set(MPI_EXEC_NUMPROCS_FLAG "${MPIEXEC_NUMPROC_FLAG}" CACHE STRING "Set MPI number of procs flag from FindMPI")
+  else()
+    set(MPI_EXEC_NUMPROCS_FLAG ${MPI_EXEC_NUMPROCS_FLAG_DFLT})
+  endif()
+endif()
+  
+# - Maximum number of processors. This is a limit for the test suite
+#   Some tests require too many processors and it increases the execution time
+#   considerably. 
+set(MPI_EXEC_MAX_NUMPROCS_DFLT 8)
+if (NOT MPI_EXEC_MAX_NUMPROCS)
+  include(ProcessorCount)
+  ProcessorCount(proc_count)
+  if (NOT proc_count EQUAL 0)
+    math(EXPR MPI_EXEC_MAX_NUMPROCS "${proc_count} * 2") 
+    message(STATUS "Detected ${proc_count} processors and will set maximum to ${MPI_EXEC_MAX_NUMPROCS}")
+  else()
+    set(MPI_EXEC_MAX_NUMPROCS ${MPI_EXEC_MAX_NUMPROCS_DFLT})
+  endif()
+endif()  
+
+# - Set the pre and post flags
+#   Usage:
+#   ${MPI_EXEC} ${MPI_EXEC_NUMPROCS_FLAG} PROCS ${MPI_EXEC_PREFLAGS} EXECUTABLE ${MPI_EXEC_POSTFLAGS}
+if (NOT MPI_EXEC_PREFLAGS)
+  if (MPIEXEC_PREFLAGS)
+    set(MPI_EXEC_PREFLAGS "${MPIEXEC_PRFLAGS}" CACHE STRING "Set MPI execute pre flags")
+  endif()
+endif()
+
+if (NOT MPI_EXEC_POSTFLAGS)
+  if (MPIEXEC_POSTFLAGS)
+    set(MPI_EXEC_POSTFLAGS "${MPIEXEC_PRFLAGS}" CACHE STRING "Set MPI execute post flags")
+  endif()
 endif()
 
 ##############################################################################
@@ -71,13 +260,7 @@ endif()
 # HDF5 - http://www.hdfgroup.org/HDF5/
 ##############################################################################
 
-# We need to use the project-local HDF5 finder. Temporarily Change
-# policy CMP0017 if were using cmake 2.8.3 or later
-if (${ADJUST_POLICY})
-  cmake_policy(SET CMP0017 OLD)
-endif()
-
-find_package(HDF5 1.8.0 REQUIRED)
+find_package(HDF5 1.8.18 REQUIRED C HL)
 if ( NOT HDF5_IS_PARALLEL ) 
     message(WARNING     "The HDF5 installation found in ${HDF5_DIR} is not "
                         "a parallel build. At this time, this installation "
@@ -89,10 +272,6 @@ endif(NOT HDF5_IS_PARALLEL)
 option(ENABLE_HDF5 "HDF5 info" ON)
 add_feature_info(HDF5 ENABLE_HDF5 "I/O library that creates HDF5 formatted files http://www.hdfgroup.org/HDF5")
 
-# Restore policy of preferring offical CMake modules over local ones.
-if (${ADJUST_POLICY})
-  cmake_policy(SET CMP0017 NEW)
-endif()
 
 ##############################################################################
 # Trilinos http://trilinos.sandia.gov
@@ -201,17 +380,6 @@ add_feature_info(ExodusII ENABLE_ExodusII "File format library from Sandia Natio
 #---------------------------- Mesh Frameworks -------------------------------#
 ##############################################################################
 
-# Enable ALL possible mesh frameworks
-#option(ENABLE_ALL_Mesh "Build all Jali mesh frameworks" OFF)
-#if(ENABLE_ALL_Mesh)
-#    set(ENABLE_STK_Mesh ON)
-#    set(ENABLE_MOAB_Mesh ON)
-#    set(ENABLE_MSTK_Mesh ON)
-#endif()    
-#add_feature_info(ALL_Mesh
-#                 ENABLE_ALL_Mesh
-#                 "Build all available mesh frameworks"
-#                  )    
 
 ##############################################################################
 # STK - Sierra Mesh Tool Kit part of Trilinos
@@ -244,7 +412,7 @@ add_feature_info(MSTK_Mesh
                  "A mesh framework"
                  )
 if (ENABLE_MSTK_Mesh)
-    find_package(MSTK REQUIRED)
+  find_package(MSTK REQUIRED)
 endif() 
 
 
@@ -280,6 +448,5 @@ option(ENABLE_OpenMP "Build Jali executables with OpenMP" OFF)
 #                 )
 if (ENABLE_OpenMP)
     find_package(OpenMP)
-    find_package(OpenMP_Fortran)
 endif()
 

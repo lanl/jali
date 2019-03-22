@@ -100,7 +100,7 @@ endif()
 if (ENABLE_MSTK_Mesh)
     include_directories(${MSTK_INCLUDE_DIR} ${MSTK_SOURCE_DIR})
     list(APPEND mesh_factory_frameworks mstk_mesh)
-    add_definitions("-DHAVE_MSTK_MESH -DMSTK_HAVE_MPI")
+    add_definitions("-DHAVE_MSTK_MESH")
 endif()
 
 add_Jali_library(mesh_factory
