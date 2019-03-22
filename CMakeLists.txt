@@ -75,6 +75,8 @@ set(CMAKE_MODULE_PATH
     ${Jali_MODULE_PATH}/Modules
     ${Jali_MODULE_PATH}/Utils)
 
+message(STATUS "CMAKE MODULE PATH  ${CMAKE_MODULE_PATH}")
+
 # Code version defined
 #include(JaliVersion)
 
