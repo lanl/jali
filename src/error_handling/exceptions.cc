@@ -46,6 +46,8 @@
 
 */
 
+#include "exceptions.hh"
+
 #include <sstream>
 
 namespace Exceptions {
