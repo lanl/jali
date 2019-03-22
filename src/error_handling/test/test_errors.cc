@@ -45,6 +45,8 @@
  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 */
+
+#include <UnitTest++.h>
 #include <iostream>
 
 #include "../errors.hh"
