@@ -64,9 +64,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Define project name (SuperBuild_SOURCE_DIR and SuperBuild_BINARY_DIR)
 # ############################################################################ #
 message(STATUS "\n------------------------------------------------")
-message(STATUS "\n-- CMAKE: Configuring Jali TPLs build/install.\n--")
+message(STATUS "\n-- CMake: Configuring Jali TPLs build/install.\n--")
 message(STATUS "---------------------------------------------")
-project(SuperBuild C CXX)
+project(SuperBuild C CXX Fortran)
+
 
 # ############################################################################ #
 # TPL versions
@@ -178,6 +179,12 @@ option(ENABLE_TESTS "Build the Jali Test Suite" TRUE)
 
 
 # ############################################################################ #
+# Compiler checks
+# ############################################################################ #
+include(FortranCInterface)
+FortranCInterface_VERIFY()
+
+# ############################################################################ #
 # MPI Configuration 
 # ############################################################################ #
 
@@ -199,7 +206,16 @@ if (NOT MPI_WRAPPERS_IN_USE)
   # We have to compile Jali and Jali TPLs with MPI - so forcibly set the compilers to the MPI wrappers 
   set(CMAKE_C_COMPILER ${MPI_C_COMPILER} CACHE FILEPATH "MPI C wrapper to use" FORCE)
   set(CMAKE_CXX_COMPILER ${MPI_CXX_COMPILER} CACHE FILEPATH "MPI C++ wrapper to use" FORCE)
+  set(CMAKE_Fortran_COMPILER ${MPI_Fortran_COMPILER} CACHE FILEPATH "MPI Fortran wrapper to use" FORCE)
   
+  # The FindMPI package uses FindPackageHandleStandardArgs
+  # to MPI_<lang>_FOUND. For consistency, set MPI_FORTRAN_FOUND
+  # to MPI_Fortran_FOUND
+  set(MPI_Fortran_FOUND ${MPI_FORTRAN_FOUND})
+  
+  if (NOT MPI_Fortran_FOUND)
+    message(WARNING "Failed to locate MPI Fortran include and library files")
+  endif()
 endif()
 
 # - Number of MPI ranks flag
@@ -241,6 +257,7 @@ if (NOT MPI_EXEC_POSTFLAGS)
     set(MPI_EXEC_POSTFLAGS "${MPIEXEC_PRFLAGS}" CACHE STRING "Set MPI execute post flags")
   endif()
 endif()
+
 
 # ############################################################################ #
 # Set common build compiler flags, build types and directories
@@ -299,6 +316,14 @@ set(Jali_CMAKE_CXX_COMPILER_ARGS
      -DCMAKE_CXX_FLAGS_MINSIZEREL:STRING=${CMAKE_CXX_FLAGS_MINSIZEREL}
      -DCMAKE_CXX_FLAGS_RELEASE:STRING=${CMAKE_CXX_FLAGS_RELEASE}
      -DCMAKE_CXX_FLAGS_RELWITHDEBINFO:STRING=${CMAKE_CXX_FLAGS_RELWITHDEBINFO})
+
+# Fortran language flags    
+set(Jali_CMAKE_Fortran_COMPILER_ARGS
+     -DCMAKE_Fortran_FLAGS:STRING=${CMAKE_Fortran_FLAGS}
+     -DCMAKE_Fortran_FLAGS_DEBUG:STRING=${CMAKE_Fortran_FLAGS_DEBUG}
+     -DCMAKE_Fortran_FLAGS_MINSIZEREL:STRING=${CMAKE_Fortran_FLAGS_MINSIZEREL}
+     -DCMAKE_Fortran_FLAGS_RELEASE:STRING=${CMAKE_Fortran_FLAGS_RELEASE}
+     -DCMAKE_Fortran_FLAGS_RELWITHDEBINFO:STRING=${CMAKE_Fortran_FLAGS_RELWITHDEBINFO})
 
 # Link flags
 set(Jali_CMAKE_LINKER_ARGS
@@ -410,6 +435,11 @@ include(${SuperBuild_BUILD_FILES_DIR}/Build_NetCDF.cmake)
 append_set(Jali_TPL_CMAKE_ARGS
            -DNetCDF_DIR:FILEPATH=${TPL_INSTALL_PREFIX})
 
+# NetCDF Fortran
+#include(${SuperBuild_BUILD_FILES_DIR}/Build_NetCDF_Fortran.cmake)
+#append_set(Jali_TPL_CMAKE_ARGS
+#           -DNetCDF_FORTRAN_DIR:FILEPATH=${TPL_INSTALL_PREFIX})
+
 # ExodusII
 include(${SuperBuild_BUILD_FILES_DIR}/Build_ExodusII.cmake) 
 append_set(Jali_TPL_CMAKE_ARGS
@@ -449,7 +479,6 @@ endif()
 # ############################################################################ #
 #  Final steps
 # ############################################################################ #
-
 
 #  --- Create a CMake cache scipt
 set(SuperBuild_Jali_CACHE_SCRIPT Jali-tpl-config.cmake)
