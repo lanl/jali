@@ -43,43 +43,6 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#
-# Functions for building and managing binaries.
-#
-
-include(CMakeParseArguments)
-include(PrintVariable)
-include(InstallManager)
-
-#
-# Usage:
-#
-# ADD_Jali_EXECUTABLE(<target name>
-#                       SOURCE file1 file2 ....
-#                       LINK_LIBS lib1 lib2 .....
-#                       OUPUT_NAME name
-#                       OUTPUT_DIRECTORY dir
-#                       NO_INSTALL)
-# 
-#
-# Arguments:
-#
-#   target CMake target name defined for this binary
-#
-#   SOURCE List of source files to compile 
-#
-#   LINK_LIBS Defines the list of link libraries required to build and link target
-#
-#   OUTPUT_NAME (Optional) Set the output name to OUTPUT_NAME, will use the CMake defaults
-#   if this is not set.
-#
-#   OUTPUT_DIRECTORY (Optional) Set the output directory, default is CMAKE_CURRENT_BINARY_DIR
-#
-#   NO_INSTALL (Optional) All binaries defined by this function will be added to the install
-#   target. Use this option to not install the binary.
-#
-# 
-
 # --------------------------------------------------------------------------- #
 #                                                                             #
 # Jali CMake Configuration File                                             #
