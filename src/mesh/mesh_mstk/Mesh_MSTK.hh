@@ -597,11 +597,20 @@ class Mesh_MSTK : public Mesh {
   other_internal_name_of_set(const JaliGeometry::RegionPtr r,
                              const Entity_kind entity_kind) const;
 
-  int  generate_regular_mesh(Mesh_ptr mesh, double x0, double y0, double z0,
-                             double x1, double y1, double z1, int nx,
-                             int ny, int nz);
-  int  generate_regular_mesh(Mesh_ptr mesh, double x0, double y0,
-                             double x1, double y1, int nx, int ny);
+  int  generate_regular_mesh(Mesh_ptr mesh,
+			     double x0, double y0, double z0,
+                             double x1, double y1, double z1,
+			     int nx, int ny, int nz,
+			     double X0 = 0.0, double Y0 = 0.0, double Z0 = 0.0,
+			     double X1 = 0.0, double Y1 = 0.0, double Z1 = 0.0,
+			     int NX = 0, int NY = 0, int NZ = 0);
+
+  int  generate_regular_mesh(Mesh_ptr mesh,
+			     double x0, double y0, double x1, double y1,
+			     int nx, int ny,
+			     double X0 = 0.0, double Y0 = 0.0,
+			     double X1 = 0.0, double Y1 = 0.0,
+			     int NX = 0, int NY = 0);
 
   void extract_mstk_mesh(const Mesh_MSTK& inmesh,
                          const List_ptr entity_ids,
