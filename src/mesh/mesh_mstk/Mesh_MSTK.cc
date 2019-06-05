@@ -348,7 +348,7 @@ Mesh_MSTK::Mesh_MSTK(const double x0, const double y0, const double z0,
                                blocknumcells[myprocid][1],
                                blocknumcells[myprocid][2],
 			       domain[0], domain[2], domain[4],
-			       domain[1], domain[3], domain[6],
+			       domain[1], domain[3], domain[5],
 			       num_cells_in_dir[0],
 			       num_cells_in_dir[1],
 			       num_cells_in_dir[2]);
@@ -361,7 +361,7 @@ Mesh_MSTK::Mesh_MSTK(const double x0, const double y0, const double z0,
     }
 
 
-    int input_type = 0;  // No parallel info is given - figure it all out
+    int input_type = 1;  // No parallel info is given - figure it all out
 
     // Establish interprocessor connectivity and ghost layers
 
@@ -496,7 +496,7 @@ Mesh_MSTK::Mesh_MSTK(const double x0, const double y0,
     }
 
 
-    int input_type = 0;  // No parallel info is given - figure it all out
+    int input_type = 1;  // No parallel info is given - figure it all out
 
     // Establish interprocessor connectivity and ghost layers
 
@@ -4719,14 +4719,14 @@ int Mesh_MSTK::generate_regular_mesh(Mesh_ptr mesh, double x0, double y0,
   dy = (y1-y0)/ny;
   dz = (z1-z0)/nz;
 
-  DX = (X1-X0)/NX;
-  DY = (Y1-Y0)/NY;
-  DZ = (Z1-Z0)/NZ;
-
   if (NX && NY && NZ) {
+    DX = (X1-X0)/NX;
+    DY = (Y1-Y0)/NY;
+    DZ = (Z1-Z0)/NZ;
+
     IOFFSET = (x0 - X0)/DX;
     JOFFSET = (y0 - Y0)/DY;
-    KOFFSET = (z0 - Z1)/DZ;
+    KOFFSET = (z0 - Z0)/DZ;
   }
 
   verts = (MVertex_ptr ***) malloc((nx+1)*sizeof(MVertex_ptr **));
@@ -4762,7 +4762,7 @@ int Mesh_MSTK::generate_regular_mesh(Mesh_ptr mesh, double x0, double y0,
         MV_Set_GEntID(mv, gid);
 
         globalid = IG*(NY+1)*(NZ+1) + JG*(NZ+1) + KG;
-        MV_Set_GlobalID(mv, globalid);
+        MV_Set_GlobalID(mv, globalid+1);
       }
     }
   }
@@ -4796,7 +4796,7 @@ int Mesh_MSTK::generate_regular_mesh(Mesh_ptr mesh, double x0, double y0,
 
 	int LOFFSET = IG*((NY+1)*NZ + NY*(NZ+1) + (NY+1)*(NZ+1));
 	globalid = LOFFSET + JG*NZ + KG;
-	ME_Set_GlobalID(me, globalid);
+	ME_Set_GlobalID(me, globalid+1);
       }
     }
   }
@@ -4825,7 +4825,7 @@ int Mesh_MSTK::generate_regular_mesh(Mesh_ptr mesh, double x0, double y0,
 
 	int LOFFSET = IG*((NY+1)*NZ + NY*(NZ+1) + (NY+1)*(NZ+1));
 	globalid =  LOFFSET + (NY+1)*NZ + JG*(NZ+1) + KG;
-	ME_Set_GlobalID(me, globalid);
+	ME_Set_GlobalID(me, globalid+1);
       }
     }
   }
@@ -4854,7 +4854,7 @@ int Mesh_MSTK::generate_regular_mesh(Mesh_ptr mesh, double x0, double y0,
 
 	int LOFFSET = IG*((NY+1)*(NZ) + (NY)*(NZ+1) + (NY+1)*(NZ+1));
 	globalid =  LOFFSET + (NY+1)*NZ + NY*(NZ+1) + JG*(NZ+1) + KG;
-	ME_Set_GlobalID(me, globalid);
+	ME_Set_GlobalID(me, globalid+1);
       }
     }
   }
@@ -4887,7 +4887,7 @@ int Mesh_MSTK::generate_regular_mesh(Mesh_ptr mesh, double x0, double y0,
 
 	int LOFFSET = IG*(NY*NZ + (NY)*(NZ+1) + (NZ)*(NY+1));
 	globalid = LOFFSET + JG*NZ + KG;
-	MF_Set_GlobalID(mf, globalid);
+	MF_Set_GlobalID(mf, globalid+1);
       }
     }
   }
@@ -4916,16 +4916,19 @@ int Mesh_MSTK::generate_regular_mesh(Mesh_ptr mesh, double x0, double y0,
 
 	int LOFFSET = IG*(NY*NZ + (NY)*(NZ+1) + (NZ)*(NY+1));
 	globalid = LOFFSET + NY*NZ + JG*NZ + KG;
-	MF_Set_GlobalID(mf, globalid);
+	MF_Set_GlobalID(mf, globalid+1);
       }
     }
   }
 
   /* Faces normal to Z direction */
   for (k = 0; k < nz+1; ++k) {
+    KG = KOFFSET + k;
     for (i = 0; i < nx; ++i) {
+      IG = IOFFSET + i;
       for (j = 0; j < ny; ++j) {
         mf = MF_New(mesh);
+        JG = JOFFSET + j;
 
         fverts[0] = verts[i][j][k];
         fverts[1] = verts[i+1][j][k];
@@ -4942,7 +4945,7 @@ int Mesh_MSTK::generate_regular_mesh(Mesh_ptr mesh, double x0, double y0,
 
 	int LOFFSET = IG*(NY*NZ + (NY)*(NZ+1) + (NZ)*(NY+1));
 	globalid = LOFFSET + NY*NZ + (NY+1)*NZ + JG*(NZ+1) + KG;
-	MF_Set_GlobalID(mf, globalid);
+	MF_Set_GlobalID(mf, globalid+1);
       }
     }
   }
@@ -4967,7 +4970,7 @@ int Mesh_MSTK::generate_regular_mesh(Mesh_ptr mesh, double x0, double y0,
         MR_Set_Vertices(mr, 8, rverts, 6, NULL);
 
 	globalid = IG*NY*NZ + JG*NZ + KG;
-	MR_Set_GlobalID(mr, globalid);
+	MR_Set_GlobalID(mr, globalid+1);
       }
     }
   }
@@ -4999,8 +5002,10 @@ int Mesh_MSTK::generate_regular_mesh(Mesh_ptr mesh, double x0, double y0,
   dy = (y1-y0)/ny;
 
   if (NX && NY) {
+    DX = (X1 - X0)/NX;
+    DY = (Y1 - Y0)/NY;
     IOFFSET = (x0 - X0)/DX;
-    JOFFSET = (y0 - y1)/DY;
+    JOFFSET = (y0 - Y0)/DY;
   }
 
   verts = (MVertex_ptr **) malloc((nx+1)*sizeof(MVertex_ptr *));
@@ -5055,7 +5060,7 @@ int Mesh_MSTK::generate_regular_mesh(Mesh_ptr mesh, double x0, double y0,
       }
 
       globalid = IG*(NY+1) + JG;
-      MV_Set_GlobalID(mv, globalid);
+      MV_Set_GlobalID(mv, globalid+1);
       
       verts[i][j] = mv;
     }
@@ -5091,7 +5096,7 @@ int Mesh_MSTK::generate_regular_mesh(Mesh_ptr mesh, double x0, double y0,
         }
 
         globalid = LOFFSET + NY + JG;
-        ME_Set_GlobalID(me, globalid);
+        ME_Set_GlobalID(me, globalid+1);
         
         fedges[0] = me;
         dir[0] = 1;
@@ -5120,7 +5125,7 @@ int Mesh_MSTK::generate_regular_mesh(Mesh_ptr mesh, double x0, double y0,
         }
 
         globalid = LOFFSET + NY + (NY+1) + JG;
-        ME_Set_GlobalID(me, globalid);
+        ME_Set_GlobalID(me, globalid+1);
         
         fedges[1] = me;
         dir[1] = 1;
@@ -5148,7 +5153,7 @@ int Mesh_MSTK::generate_regular_mesh(Mesh_ptr mesh, double x0, double y0,
         }
 
         globalid = LOFFSET + NY + JG + 1;
-        ME_Set_GlobalID(me, globalid);
+        ME_Set_GlobalID(me, globalid+1);
         
         fedges[2] = me;
         dir[2] = 1;
@@ -5177,7 +5182,7 @@ int Mesh_MSTK::generate_regular_mesh(Mesh_ptr mesh, double x0, double y0,
         }
 
         globalid = LOFFSET + JG;
-        ME_Set_GlobalID(me, globalid);
+        ME_Set_GlobalID(me, globalid+1);
         
         fedges[3] = me;
         dir[3] = 1;
@@ -5190,7 +5195,7 @@ int Mesh_MSTK::generate_regular_mesh(Mesh_ptr mesh, double x0, double y0,
       MF_Set_GEntID(mf, 1);
 
       globalid = IG*NY + JG;
-      MF_Set_GlobalID(mf, globalid);
+      MF_Set_GlobalID(mf, globalid+1);
     }
   }
 
