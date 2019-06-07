@@ -4724,9 +4724,9 @@ int Mesh_MSTK::generate_regular_mesh(Mesh_ptr mesh, double x0, double y0,
     DY = (Y1-Y0)/NY;
     DZ = (Z1-Z0)/NZ;
 
-    IOFFSET = (x0 - X0)/DX;
-    JOFFSET = (y0 - Y0)/DY;
-    KOFFSET = (z0 - Z0)/DZ;
+    IOFFSET = ceil((x0 - X0)/DX);
+    JOFFSET = ceil((y0 - Y0)/DY);
+    KOFFSET = ceil((z0 - Z0)/DZ);
   } else {
     NX = nx;
     NY = ny;
@@ -5008,8 +5008,8 @@ int Mesh_MSTK::generate_regular_mesh(Mesh_ptr mesh, double x0, double y0,
   if (NX && NY) {
     DX = (X1 - X0)/NX;
     DY = (Y1 - Y0)/NY;
-    IOFFSET = (x0 - X0)/DX;
-    JOFFSET = (y0 - Y0)/DY;
+    IOFFSET = ceil((x0 - X0)/DX);
+    JOFFSET = ceil((y0 - Y0)/DY);
   } else {
     NX = nx;
     NY = ny;
