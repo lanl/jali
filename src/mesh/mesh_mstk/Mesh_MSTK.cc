@@ -3378,7 +3378,7 @@ Entity_ID Mesh_MSTK::GID(const Entity_ID lid, const Entity_kind kind) const {
   }
 
   if (serial_run)
-    return MEnt_ID(ent)-1;
+    return MEnt_GlobalID(ent) ? MEnt_GlobalID(ent)-1 : MEnt_ID(ent)-1;
   else
     return MEnt_GlobalID(ent)-1;
 }  // Mesh_MSTK::GID
@@ -4727,6 +4727,10 @@ int Mesh_MSTK::generate_regular_mesh(Mesh_ptr mesh, double x0, double y0,
     IOFFSET = (x0 - X0)/DX;
     JOFFSET = (y0 - Y0)/DY;
     KOFFSET = (z0 - Z0)/DZ;
+  } else {
+    NX = nx;
+    NY = ny;
+    NZ = nz;
   }
 
   verts = (MVertex_ptr ***) malloc((nx+1)*sizeof(MVertex_ptr **));
@@ -4736,20 +4740,20 @@ int Mesh_MSTK::generate_regular_mesh(Mesh_ptr mesh, double x0, double y0,
       verts[j][k] = (MVertex_ptr *) malloc((nz+1)*sizeof(MVertex_ptr));
   }
 
-  for (k = 0; k < nz+1; ++k) {
-    xyz[2] = (k == nz) ? z1 : z0 + k*dz;
-    kk =  (k%nz) ? 1 : (k ? 2 : 0);
-    KG = KOFFSET + k;  // global k-index
+  for (i = 0; i < nx+1; ++i) {
+    xyz[0] = (i == nx) ? x1 : x0 + i*dx;
+    ii = (i%nx) ? 1 : (i ? 2 : 0);
+    IG = IOFFSET + i;  // global i-index
 
     for (j = 0; j < ny+1; ++j) {
       xyz[1] = (j == ny) ? y1 : y0 + j*dy;
       jj = (j%ny) ? 1 : (j ? 2 : 0);
       JG = JOFFSET + j;  // global j-index
-
-      for (i = 0; i < nx+1; ++i) {
-        xyz[0] = (i == nx) ? x1 : x0 + i*dx;
-        ii = (i%nx) ? 1 : (i ? 2 : 0);
-        IG = IOFFSET + i;  // global i-index
+      
+      for (k = 0; k < nz+1; ++k) {
+        xyz[2] = (k == nz) ? z1 : z0 + k*dz;
+        kk =  (k%nz) ? 1 : (k ? 2 : 0);
+        KG = KOFFSET + k;  // global k-index
 
         mv = MV_New(mesh);
         MV_Set_Coords(mv, xyz);
@@ -4804,10 +4808,10 @@ int Mesh_MSTK::generate_regular_mesh(Mesh_ptr mesh, double x0, double y0,
   /* Y direction edges */
   for (i = 0; i < nx+1; ++i) {
     IG = IOFFSET + i;
-    for (k = 0; k < nz+1; ++k) {
-      KG = KOFFSET + k;
-      for (j = 0; j < ny; ++j) {
-	JG = JOFFSET + j;
+    for (j = 0; j < ny; ++j) {
+      JG = JOFFSET + j;
+      for (k = 0; k < nz+1; ++k) {
+        KG = KOFFSET + k;
         me = ME_New(mesh);
 
         everts[0] = verts[i][j][k];
@@ -4831,12 +4835,12 @@ int Mesh_MSTK::generate_regular_mesh(Mesh_ptr mesh, double x0, double y0,
   }
 
   /* X direction edges */
-  for (j = 0; j < ny+1; ++j) {
-    JG = JOFFSET + j;
+  for (i = 0; i < nx; ++i) {
+    IG = IOFFSET + i;
     for (k = 0; k < nz+1; ++k) {
       KG = KOFFSET + k;
-      for (i = 0; i < nx; ++i) {
-	IG = IOFFSET + i;
+      for (j = 0; j < ny+1; ++j) {
+        JG = JOFFSET + j;
         me = ME_New(mesh);
 
         everts[0] = verts[i][j][k];
@@ -4893,10 +4897,10 @@ int Mesh_MSTK::generate_regular_mesh(Mesh_ptr mesh, double x0, double y0,
   }
 
   /* Faces normal to Y direction */
-  for (j = 0; j < ny+1; ++j) {
-    JG = JOFFSET + j;
-    for (i = 0; i < nx; ++i) {
-      IG = IOFFSET + i;
+  for (i = 0; i < nx; ++i) {
+    IG = IOFFSET + i;
+    for (j = 0; j < ny+1; ++j) {
+      JG = JOFFSET + j;
       for (k = 0; k < nz; ++k) {
 	KG = KOFFSET + k;
         mf = MF_New(mesh);
@@ -4922,13 +4926,13 @@ int Mesh_MSTK::generate_regular_mesh(Mesh_ptr mesh, double x0, double y0,
   }
 
   /* Faces normal to Z direction */
-  for (k = 0; k < nz+1; ++k) {
-    KG = KOFFSET + k;
-    for (i = 0; i < nx; ++i) {
-      IG = IOFFSET + i;
-      for (j = 0; j < ny; ++j) {
+  for (i = 0; i < nx; ++i) {
+    IG = IOFFSET + i;
+    for (j = 0; j < ny; ++j) {
+      JG = JOFFSET + j;
+      for (k = 0; k < nz+1; ++k) {
+        KG = KOFFSET + k;
         mf = MF_New(mesh);
-        JG = JOFFSET + j;
 
         fverts[0] = verts[i][j][k];
         fverts[1] = verts[i+1][j][k];
@@ -5006,6 +5010,9 @@ int Mesh_MSTK::generate_regular_mesh(Mesh_ptr mesh, double x0, double y0,
     DY = (Y1 - Y0)/NY;
     IOFFSET = (x0 - X0)/DX;
     JOFFSET = (y0 - Y0)/DY;
+  } else {
+    NX = nx;
+    NY = ny;
   }
 
   verts = (MVertex_ptr **) malloc((nx+1)*sizeof(MVertex_ptr *));
@@ -5013,14 +5020,14 @@ int Mesh_MSTK::generate_regular_mesh(Mesh_ptr mesh, double x0, double y0,
     verts[i] = (MVertex_ptr *) malloc((ny+1)*sizeof(MVertex_ptr));
 
   xyz[2] = 0.0;
-  for (j = 0; j < ny+1; ++j) {
-    xyz[1] = (j == ny) ? y1 : y0 + j*dy;
-    JG = JOFFSET + j;
-
-    for (i = 0; i < nx+1; ++i) {
-      xyz[0] = (i == nx) ? x1 : x0 + i*dx;
-      IG = IOFFSET + i;
-
+  for (i = 0; i < nx+1; ++i) {
+    xyz[0] = (i == nx) ? x1 : x0 + i*dx;
+    IG = IOFFSET + i;
+    
+    for (j = 0; j < ny+1; ++j) {
+      xyz[1] = (j == ny) ? y1 : y0 + j*dy;
+      JG = JOFFSET + j;
+      
       mv = MV_New(mesh);
       MV_Set_Coords(mv, xyz);
 
@@ -5070,10 +5077,10 @@ int Mesh_MSTK::generate_regular_mesh(Mesh_ptr mesh, double x0, double y0,
   for (i = 0; i < nx; ++i) {
     IG = IOFFSET + i;
     for (j = 0; j < ny; ++j) {
-      mf = MF_New(mesh);
-
       JG = JOFFSET + j;
       int LOFFSET = IG*NY + IG*(NY+1);
+
+      mf = MF_New(mesh);
 
       /* edge 0 - bottom edge */
       v0 = verts[i][j];
