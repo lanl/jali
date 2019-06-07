@@ -126,9 +126,19 @@ if (BUILD_TESTS)
                          test/Main.cc
                          test/test_hex_3x3x3_4P.cc
     			 test/test_hex_3x3x3_par_read_4P.cc
-                         test/test_quad_gen_3x3_4P.cc
-                         test/test_hex_gen_3x3x3_4P.cc
+                         test/test_quad_gen_5x5_par.cc
+                         test/test_hex_gen_5x5x5_par.cc
 			 test/test_edges_4P.cc
+                    LINK_LIBS mstk_mesh ${UnitTest_LIBRARIES})
+
+    # Test: mstk_mesh_parallel
+    add_Jali_test(mstk_mesh_parallel8 test_parallel8_mstk_mesh
+                    KIND unit
+                    NPROCS 8
+                    SOURCE
+                         test/Main.cc
+                         test/test_quad_gen_5x5_par.cc
+                         test/test_hex_gen_5x5x5_par.cc
                     LINK_LIBS mstk_mesh ${UnitTest_LIBRARIES})
 
 endif()
