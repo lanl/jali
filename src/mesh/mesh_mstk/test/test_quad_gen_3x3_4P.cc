@@ -52,11 +52,6 @@
 #include "../Mesh_MSTK.hh"
 
 TEST(MSTK_QUAD_GEN_3x3_4P) {
-
-  int i, j, k, err, nc, nf, nv;
-  std::vector<Jali::Entity_ID> faces(6), nodes(8);
-  std::vector<JaliGeometry::Point> ccoords(8), fcoords(4);
-
   int rank, size;
 
   int initialized;
@@ -76,8 +71,57 @@ TEST(MSTK_QUAD_GEN_3x3_4P) {
 
   // Load a single hex from the hex1.exo file
 
-  Jali::Mesh *mesh(new Jali::Mesh_MSTK(0.0, 0.0, 1.0, 1.0, 3, 3,
-                                       MPI_COMM_WORLD));
+  Jali::Mesh_MSTK parmesh(0.0, 0.0, 1.0, 1.0, 3, 3, MPI_COMM_WORLD);
 
+  // Create a serial version of the same mesh
+  MPI_Comm serialcomm;
+  MPI_Comm_split(MPI_COMM_WORLD, rank, rank, &serialcomm);
+  Jali::Mesh_MSTK serialmesh(0.0, 0.0, 1.0, 1.0, 3, 3, serialcomm);
+
+
+  // For each mesh vertex, find a vertex with the same GID in the
+  // serial mesh and compare its coordinates.
+
+  int NN = serialmesh.num_nodes();
+  std::vector<JaliGeometry::Point> serialpnts(NN);
+  for (int i = 0; i < NN; i++) {
+    int gid = serialmesh.GID(i, Jali::Entity_kind::NODE);
+    JaliGeometry::Point pnt;
+    serialmesh.node_get_coordinates(i, &pnt);
+    serialpnts[gid] = pnt;
+  }
+
+  int nn = parmesh.num_nodes();
+  for (int i = 0; i < nn; i++) {
+    int gid = parmesh.GID(i, Jali::Entity_kind::NODE);
+    JaliGeometry::Point pnt;
+    parmesh.node_get_coordinates(i, &pnt);
+    JaliGeometry::Point diff = pnt - serialpnts[gid];
+    if (JaliGeometry::L22(diff) > 1.0e-16) {
+      std::cout << "Point " << gid << " of type " <<
+          parmesh.entity_get_type(Jali::Entity_kind::NODE, i) << "in local mesh on rank " << rank << " has coordinates " << pnt << "\n";
+      std::cout << "Point " << gid << " in GLOBAL mesh has coordinates " << serialpnts[gid] << "\n";
+    }
+    CHECK(JaliGeometry::L22(diff) < 1.0e-16);
+  }
+  
+  // For each mesh cell, find a cell with the same GID in the
+  // serial mesh and compare its centroid.
+
+  int NC = serialmesh.num_cells();
+  serialpnts.resize(NC);
+  for (int i = 0; i < NC; i++) {
+    int gid = serialmesh.GID(i, Jali::Entity_kind::CELL);
+    serialpnts[gid] = serialmesh.cell_centroid(i);
+  }
+
+  int nc = parmesh.num_cells();
+  for (int i = 0; i < nc; i++) {
+    int gid = parmesh.GID(i, Jali::Entity_kind::CELL);
+    JaliGeometry::Point pnt = parmesh.cell_centroid(i);
+    JaliGeometry::Point diff = pnt - serialpnts[gid];
+    CHECK(JaliGeometry::L22(diff) < 1.0e-16);
+  }
+  
 }
 
