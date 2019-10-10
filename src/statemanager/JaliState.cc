@@ -274,6 +274,7 @@ std::ostream & operator<<(std::ostream & os, State const & s) {
     vec->print(os);
     ++it;
   }
+  return os;
 }
 
 }  // namespace Jali
