@@ -182,18 +182,27 @@ if (BUILD_TESTS)
 
     # Test: mesh geometry
 
-    set(test_src_files test/Main.cc test/test_mesh_geometry.cc)
-
     add_Jali_test(mesh_geometry test_mesh_geometry
                     KIND unit
-		    SOURCE ${test_src_files}
+		    SOURCE test/Main.cc test/test_mesh_geometry.cc
 		    LINK_LIBS ${test_link_libs})
 
-    # Test mesh entity iterators
+    # Test mesh entities
 
     add_Jali_test(mesh_iterators test_entity_iterators
                   KIND unit
                   SOURCE test/Main.cc test/test_entity_iterators.cc
+		  LINK_LIBS ${test_link_libs})
+
+    add_Jali_test(mesh_entity_counts_serial mesh_entity_counts_serial
+                  KIND unit
+		  SOURCE test/Main.cc test/test_entity_counts.cc
+		  LINK_LIBS ${test_link_libs})
+
+    add_Jali_test(mesh_entity_counts_parallel mesh_entity_counts_parallel
+                  KIND unit
+		  NPROCS 4
+		  SOURCE test/Main.cc test/test_entity_counts.cc
 		  LINK_LIBS ${test_link_libs})
 
     # Test side entities
