@@ -2458,7 +2458,7 @@ void Mesh::init_sets_from_geometric_model(
         mset = build_set_from_region(rgn->name(), entity_kind, false);
     }
   }
-}  // init_sets (must be called before querying sets from regions)
+}  // init_sets_from_geometric_model (must be called before querying sets from regions)
 
 
 // Add a meshset to the mesh
@@ -2567,7 +2567,7 @@ bool Mesh::valid_region_name(std::string name, Entity_kind kind) const {
 std::shared_ptr<MeshSet>
 Mesh::find_meshset_from_region(std::string regname, const Entity_kind kind,
                                bool create_if_missing = false) {
-  assert(true && "Deprecated - Initialize sets using init_sets and then query specific sets using find_meshset");
+  assert(true && "Deprecated - Initialize sets using init_sets_from_geometric_model and then query specific sets using find_meshset");
   
   if (valid_region_name(regname, kind)) {
     for (auto const& set : meshsets_) {
@@ -2586,7 +2586,7 @@ Mesh::find_meshset_from_region(std::string regname, const Entity_kind kind,
 std::shared_ptr<MeshSet>
 Mesh::find_meshset_from_region(std::string regname, const Entity_kind kind)
     const {
-  assert(true && "Deprecated - Initialize sets using init_sets and then query specific sets using find_meshset");
+  assert(true && "Deprecated - Initialize sets using init_sets_from_geometric_model and then query specific sets using find_meshset");
   
   if (valid_region_name(regname, kind)) {
     for (auto const& set : meshsets_) {
