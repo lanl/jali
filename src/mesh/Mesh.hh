@@ -54,6 +54,7 @@
 #include <memory>
 #include <vector>
 #include <array>
+#include <map>
 #include <string>
 #include <algorithm>
 #include <cassert>
@@ -1028,7 +1029,7 @@ class Mesh {
   bool valid_region_name(const std::string setname,
                       const Entity_kind kind) const;
 
-  // Find a meshset containing entities of 'kind' defined on a
+  // DEPRECATED - Find a meshset containing entities of 'kind' defined on a
   // geometric region 'regname' (non-const version - create the set if
   // it is missing, it is requested through the create_if_missing flag
   // and it corresponds to a valid region).
@@ -1037,7 +1038,7 @@ class Mesh {
   find_meshset_from_region(std::string regname, Entity_kind kind,
                            bool create_if_missing);
 
-  // Find a meshset containing entities of 'kind' defined on a geometric
+  // DEPRECATED - Find a meshset containing entities of 'kind' defined on a geometric
   // region 'regname' (const version - do nothing if it is missing).
 
   std::shared_ptr<MeshSet>
@@ -1063,14 +1064,6 @@ class Mesh {
                              const Entity_kind kind,
                              const Entity_type type) const;
 
-
-  //! Get entities of 'type' in set (non-const version - create the
-  //! set if it is missing and it corresponds to a valid region).
-
-  void get_set_entities(const std::string setname,
-                         const Entity_kind kind,
-                         const Entity_type type,
-                         Entity_ID_List *entids);
 
   //! Get entities of 'type' in set (const version - return empty list
   //! if the set does not exist)
@@ -1102,6 +1095,39 @@ class Mesh {
 
   virtual
   void cache_extra_variables();
+
+  // Initialize/re-initialize meshsets from regions of the geometric
+  // model The routine tries to anticipate and initialize which mesh
+  // entity kinds may be queried of the geometric region. The default
+  // behaviour is to initialize sets of entities of the same or lower
+  // dimension as the region dimension (choosing from CELL, FACE,
+  // NODE). E.g. meshsets of kind CELL, FACE, NODE will be enabled for
+  // a 3D box region in a 3D model but only FACE and NODE for a 2D
+  // plane in a 3D model. Labeled sets (sets that are read from a
+  // file) are special in that they are tied to a particular kind of
+  // entity. Logical sets are also special in that they can be queried
+  // for only those kinds of entities their component regions allow.
+  
+  void init_sets_from_geometric_model();
+
+  
+  // Initialize/re-initialize meshsets from regions of the geometric
+  // model with specific kinds of entity sets requested for some or
+  // all regions. Not all region names need to be specified in the
+  // map. Unspecified regions will have default behavior (as above)
+
+  void init_sets_from_geometric_model(
+      std::map<std::string,std::vector<Entity_kind>> region_to_entity_kinds_map);
+  
+  //! Add a meshset created in some manner
+
+  void add_set(std::shared_ptr<MeshSet> set);
+
+  //! build a mesh set from a specific geometric region (and add it to the mesh)
+
+  std::shared_ptr<MeshSet> build_set_from_region(const std::string setname,
+                                                 const Entity_kind kind,
+                                                 const bool build_reverse_map = true);
 
  protected:
 
@@ -1163,17 +1189,6 @@ class Mesh {
   virtual
   void edge_get_nodes_internal(const Entity_ID edgeid,
                                Entity_ID *enode0, Entity_ID *enode1) const = 0;
-
-  //! Some functionality for mesh sets
-
-  void init_sets();
-  void add_set(std::shared_ptr<MeshSet> set);
-
-  //! build a mesh set
-
-  std::shared_ptr<MeshSet> build_set_from_region(const std::string setname,
-                                                 const Entity_kind kind,
-                                                 const bool build_reverse_map = true);
 
   //! get labeled set entities
   //

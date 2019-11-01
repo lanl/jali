@@ -2356,15 +2356,110 @@ Entity_type Mesh::entity_get_type(const Entity_kind kind,
   }
 }
 
+// Initialize mesh sets from regions (default behavior for all cells)
 
-// Initialize mesh sets - not much to do
-
-void Mesh::init_sets() {
-  if (!meshsets_initialized_) {
-    meshsets_initialized_ = true;
-    meshsets_.clear();
-  }
+void Mesh::init_sets_from_geometric_model() {
+  std::map<std::string, std::vector<Entity_kind>> empty_map;
+  init_sets_from_geometric_model(empty_map);
 }
+
+
+
+// Initialize mesh sets from regions
+
+// @param region_entity_kinds_map    Map from region names to the kinds
+// of entities we want to retrieve on them - empty map means that we
+// will try to ask for default kinds of entities on each region (if
+// possible - labeled sets are tied to specific Entity_kind)
+
+void Mesh::init_sets_from_geometric_model(
+    std::map<std::string, std::vector<Entity_kind>> region_to_entity_kinds_map
+                                          ) {
+  if (!geometric_model_) return;
+
+  std::map<std::string, Entity_kind> str_to_kind = {
+      {"CELL", Entity_kind::CELL},
+      {"FACE", Entity_kind::FACE},
+      {"EDGE", Entity_kind::EDGE},
+      {"NODE", Entity_kind::NODE}};
+  
+  unsigned int gdim = geometric_model_->dimension();
+    
+  unsigned int ngr = geometric_model_->Num_Regions();
+  for (int i = 0; i < ngr; i++) {
+    JaliGeometry::RegionPtr rgn = geometric_model_->Region_i(i);
+
+    unsigned int rdim = rgn->dimension();
+      
+    if (rgn->type() == JaliGeometry::Region_type::LABELEDSET) {
+      // The entity type is predetermined
+      JaliGeometry::LabeledSetRegionPtr lsrgn =
+          dynamic_cast<JaliGeometry::LabeledSetRegionPtr> (rgn);
+      std::string entity_type = lsrgn->entity_str();
+
+      std::size_t pos = entity_type.rfind("::");
+      if (pos != std::string::npos) pos += 2; else pos = 0;
+      Entity_kind entity_kind = str_to_kind.at(entity_type.substr(pos));
+
+      auto mset = find_meshset(rgn->name(), entity_kind);
+      if (mset) continue;
+      
+      mset = build_set_from_region(rgn->name(), entity_kind, false);
+
+    } else {
+      // We have to account for users querying any type of entity on
+      // the region
+
+      auto mset = find_meshset(rgn->name(), Entity_kind::CELL);
+      if (mset) continue;
+
+      
+      std::vector<Entity_kind> entity_kinds;
+      auto it = region_to_entity_kinds_map.find(rgn->name());
+      if (it != region_to_entity_kinds_map.end())
+        entity_kinds = it->second;
+      else {
+        if (rgn->dimension() == gdim)
+          entity_kinds.push_back(Entity_kind::CELL);
+        if (faces_requested && rgn->dimension() >= gdim-1)
+          entity_kinds.push_back(Entity_kind::FACE);
+        entity_kinds.push_back(Entity_kind::NODE);
+      }
+
+      if (rgn->type() == JaliGeometry::Region_type::LOGICAL) {
+        // If the logical region combines a labeled set, then we can only
+        // make a set with the entity_kind the labeled set supports
+        
+        JaliGeometry::LogicalRegionPtr boolregion =
+            (JaliGeometry::LogicalRegionPtr) rgn;
+        std::vector<std::string> region_names = boolregion->component_regions();
+
+        for (std::string & regname : region_names) {
+          JaliGeometry::RegionPtr rgn1 = geometric_model_->FindRegion(regname);
+          assert(rgn1);
+          if (rgn1->type() == JaliGeometry::Region_type::LABELEDSET) {
+            entity_kinds.clear();
+            
+            JaliGeometry::LabeledSetRegionPtr lsrgn =
+                dynamic_cast<JaliGeometry::LabeledSetRegionPtr>(rgn1);
+            std::string entity_type = lsrgn->entity_str();
+
+            std::size_t pos = entity_type.rfind("::");
+            if (pos != std::string::npos) pos += 2; else pos = 0;
+            Entity_kind entity_kind = str_to_kind.at(entity_type.substr(pos));
+            entity_kinds.push_back(entity_kind);
+
+            break;
+          }
+        }
+      }
+
+      for (Entity_kind entity_kind : entity_kinds)
+        mset = build_set_from_region(rgn->name(), entity_kind, false);
+    }
+  }
+}  // init_sets (must be called before querying sets from regions)
+
 
 // Add a meshset to the mesh
 
@@ -2472,6 +2567,8 @@ bool Mesh::valid_region_name(std::string name, Entity_kind kind) const {
 std::shared_ptr<MeshSet>
 Mesh::find_meshset_from_region(std::string regname, const Entity_kind kind,
                                bool create_if_missing = false) {
+  assert(true && "Deprecated - Initialize sets using init_sets and then query specific sets using find_meshset");
+  
   if (valid_region_name(regname, kind)) {
     for (auto const& set : meshsets_) {
       if (set->name() == regname && set->kind() == kind)
@@ -2489,6 +2586,8 @@ Mesh::find_meshset_from_region(std::string regname, const Entity_kind kind,
 std::shared_ptr<MeshSet>
 Mesh::find_meshset_from_region(std::string regname, const Entity_kind kind)
     const {
+  assert(true && "Deprecated - Initialize sets using init_sets and then query specific sets using find_meshset");
+  
   if (valid_region_name(regname, kind)) {
     for (auto const& set : meshsets_) {
       if (set->name() == regname && set->kind() == kind)
@@ -2534,44 +2633,6 @@ unsigned int Mesh::get_set_size(const std::string setname,
     return mset->num_entities(type);
   else
     return 0;
-}
-
-// Get entities of 'type' in set (non-const version - create the set
-// if it is missing and it corresponds to a valid region).
-
-void Mesh::get_set_entities(const std::string setname, const Entity_kind kind,
-                            const Entity_type type,
-                            Entity_ID_List *entids) {
-  std::shared_ptr<MeshSet> mset = find_meshset(setname, kind);
-  if (mset) {
-    if (type == Entity_type::PARALLEL_OWNED)
-      *entids = mset->entities<Entity_type::PARALLEL_OWNED>();
-    else if (type == Entity_type::PARALLEL_GHOST)
-      *entids = mset->entities<Entity_type::PARALLEL_GHOST>();
-    else if (type == Entity_type::ALL)
-      *entids = mset->entities<Entity_type::ALL>();
-    else
-      entids->clear();
-  }
-  else 
-    entids->clear();
-
-#ifdef DEBUG
-  if (type != Entity_type::GHOST) {
-    int nent_loc = entids->size();
-    int nent_glob;
-    
-    MPI_Allreduce(&nent_loc, &nent_glob, 1, MPI_INT, MPI_SUM, mpicomm);
-    if (nent_glob == 0) {
-      std::stringstream mesg_stream;
-      mesg_stream << "Could not retrieve any mesh entities of type " << kind <<
-          " for set " << setname << std::endl;
-      Errors::Message mesg(mesg_stream.str());
-      Exceptions::Jali_throw(mesg);
-    }
-  }
-#endif
-
 }
 
 // Get set entities of 'type' (const version - return empty list if
@@ -2782,13 +2843,13 @@ std::shared_ptr<MeshSet> Mesh::build_set_from_region(const std::string setname,
                                        Entity_type::ALL);
 
         for (int iface = 0; iface < nface; iface++) {
+          JaliGeometry::Point fcen = face_centroid(iface);
           if (region->inside(face_centroid(iface))) {
             Entity_type ftype = entity_get_type(Entity_kind::FACE, iface);
-            if (entity_get_type(Entity_kind::FACE, iface) ==
-                Entity_type::PARALLEL_OWNED)
+            int gid = GID(iface, Entity_kind::FACE);
+            if (ftype == Entity_type::PARALLEL_OWNED)
               owned_faces.push_back(iface);
-            else if (entity_get_type(Entity_kind::FACE, iface) ==
-                     Entity_type::PARALLEL_GHOST)
+            else if (ftype == Entity_type::PARALLEL_GHOST)
               ghost_faces.push_back(iface);
           }
         }
@@ -2940,7 +3001,9 @@ std::shared_ptr<MeshSet> Mesh::build_set_from_region(const std::string setname,
       }
 
       std::shared_ptr<MeshSet> mset1 =
-          Mesh::find_meshset(region_names[r], kind);  // creates it if missing
+          Mesh::find_meshset(region_names[r], kind);
+      if (!mset1)
+        mset1 = build_set_from_region(region_names[r], kind, with_reverse_map);
       assert(mset1);
       msets.push_back(mset1);
     }
@@ -2971,12 +3034,18 @@ std::shared_ptr<MeshSet> Mesh::build_set_from_region(const std::string setname,
       std::vector<std::shared_ptr<MeshSet>> msets1;
       for (auto const& set : msets)
         if (set != msets[0]) msets1.push_back(set);
-      mset = subtract(msets[0], msets1, temporary);
+      mset = subtract(msets[0], msets1, temporary);      
     }
+
+    // While building logical meshsets, the resulting meshset name reflects
+    // the operation but we need it to have the original region name so
+    // we can find it later
+    
+    mset->set_name(setname);
   }
    
   return mset;
-}
+}  // build_set_from_region
 
 
 
@@ -3403,6 +3472,12 @@ int Mesh::block_partition_regular_mesh(int const dim,
   for (int i = 0; i < dim; i++)
     nblockcells_in_dir[i] = num_cells_in_dir[i];
 
+  int ncells_total = 1;
+  for (int i = 0; i < dim; i++)
+    ncells_total *= num_cells_in_dir[i];
+  assert (num_blocks_requested <= ncells_total);
+    
+  
   if (num_blocks_requested > 1) {
     // First try bisection
     
