@@ -77,8 +77,6 @@
 #include "GeometricModel.hh"
 
 TEST(MESH_SETS_3D) {
-  return;
-
   int nproc, me;
   MPI_Comm_size(MPI_COMM_WORLD, &nproc);
   MPI_Comm_rank(MPI_COMM_WORLD, &me);
@@ -196,6 +194,10 @@ TEST(MESH_SETS_3D) {
       // Create a mesh
       
       mesh = factory(-1.0, -1.0, -1.0, 1.0, 1.0, 1.0, 8, 8, 8);
+
+      // Exlicitly ask mesh to create sets from geometric regions
+
+      mesh->init_sets_from_geometric_model();
       
     } catch (const Errors::Message& e) {
       std::cerr << ": mesh error: " << e.what() << std::endl;
@@ -212,12 +214,6 @@ TEST(MESH_SETS_3D) {
 
     // Check that the mesh has the right number of entities in the box
     // region - should be 4x4x4
-
-    bool create_if_missing = true;
-    std::shared_ptr<Jali::MeshSet> mset =
-        mesh->find_meshset_from_region("box1", Jali::Entity_kind::CELL,
-                                       create_if_missing);
-    CHECK(mset != nullptr);
 
     int nboxcells = 0, nboxnodes = 0;
     if (parallel) {
@@ -308,10 +304,6 @@ TEST(MESH_SETS_3D) {
 
     // Check the number of cells in the union of box1, box2 and box3
 
-    mset = mesh->find_meshset_from_region("ureg", Jali::Entity_kind::CELL,
-                                          create_if_missing);
-    CHECK(mset != nullptr);
-
     int nuregcells = 0;
     int nuregcells_local = 0;
     nuregcells_local = mesh->get_set_size("ureg", Jali::Entity_kind::CELL,
@@ -339,10 +331,6 @@ TEST(MESH_SETS_3D) {
 
     
     // Check the number of cells in the subtraction of box2 from box1
-
-    mset = mesh->find_meshset_from_region("sreg", Jali::Entity_kind::CELL,
-                                          create_if_missing);
-    CHECK(mset != nullptr);
 
     int nsregcells = 0;
     int nsregcells_local = 0;
@@ -373,10 +361,6 @@ TEST(MESH_SETS_3D) {
 
     // Check the number of cells in the intersection of box1 and box3
 
-    mset = mesh->find_meshset_from_region("ireg", Jali::Entity_kind::CELL,
-                                          create_if_missing);
-    CHECK(mset != nullptr);
-
     int niregcells = 0;
     int niregcells_local = 0;
     niregcells_local = mesh->get_set_size("ireg", Jali::Entity_kind::CELL,
@@ -404,10 +388,6 @@ TEST(MESH_SETS_3D) {
 
 
     // Check the number of cells in the complement of box1, box2 and box3
-
-    mset = mesh->find_meshset_from_region("creg", Jali::Entity_kind::CELL,
-                                          create_if_missing);
-    CHECK(mset != nullptr);
 
     int ncregcells = 0;
     int ncregcells_local = 0;
@@ -437,10 +417,6 @@ TEST(MESH_SETS_3D) {
 
     // Check that the mesh returns the right number of faces for the
     // left plane
-
-    mset = mesh->find_meshset_from_region("plane1", Jali::Entity_kind::FACE,
-                                          create_if_missing);
-    CHECK(mset != nullptr);
 
     Jali::Entity_ID_List planefaces;
     mesh->get_set_entities("plane1", Jali::Entity_kind::FACE,
@@ -477,6 +453,323 @@ TEST(MESH_SETS_3D) {
   }
 
 }
+
+
+// test for specifying which entity kinds you want to query on specific regions
+
+TEST(MESH_SETS_3D_INIT) {
+  int nproc, me;
+  MPI_Comm_size(MPI_COMM_WORLD, &nproc);
+  MPI_Comm_rank(MPI_COMM_WORLD, &me);
+
+  int dim = 3;
+
+  // Create a box region which does not quite cover the whole
+  // domain - only a central square that is a bit over half the size
+  // of the domain in each direction
+    
+  std::vector<JaliGeometry::RegionPtr> gregions;
+  JaliGeometry::Point box1lo(-0.51, -0.51, -0.51), box1hi(0.51, 0.51, 0.51);
+  JaliGeometry::BoxRegion box1("box1", 1, box1lo, box1hi);
+  gregions.push_back(&box1);
+    
+  // Create another box region identical to box1
+
+  JaliGeometry::Point box2lo(-0.51, -0.51, -0.51), box2hi(0.51, 0.51, 0.51);
+  JaliGeometry::BoxRegion box2("box2", 2, box2lo, box2hi);
+  gregions.push_back(&box2);
+    
+  // Create a "plane" region consisting of the left boundary
+    
+  JaliGeometry::Point planepnt1(-1.0, 0.0, 0.0);
+  JaliGeometry::Point planenormal1(-1.0, 0.0, 0.0);
+  JaliGeometry::PlaneRegion plane1("plane1", 2, planepnt1, planenormal1);
+  gregions.push_back(&plane1);
+
+  // Create a "plane" region consisting of the right boundary
+    
+  JaliGeometry::Point planepnt2(1.0, 0.0, 0.0);
+  JaliGeometry::Point planenormal2(1.0, 0.0, 0.0);
+  JaliGeometry::PlaneRegion plane2("plane2", 2, planepnt2, planenormal2);
+  gregions.push_back(&plane2);
+  
+  // Create a geometric model with these regions
+    
+  JaliGeometry::GeometricModel gm(dim, gregions);
+
+  // Specify that we want to be able to query only cells and faces
+  // (not nodes) on box1 and only nodes on plane2 but default sets of
+  // entities on the others
+
+  std::map<std::string, std::vector<Jali::Entity_kind>> rgn_to_kind_map =
+      {{"box1", {Jali::Entity_kind::CELL, Jali::Entity_kind::FACE}},
+       {"plane2", {Jali::Entity_kind::NODE}}};
+
+  const Jali::MeshFramework_t frameworks[] = {Jali::MSTK, Jali::Simple};
+  const char *framework_names[] = {"MSTK", "Simple"};
+  const int numframeworks = sizeof(frameworks)/sizeof(Jali::MeshFramework_t);
+  Jali::MeshFramework_t the_framework;
+  for (int i = 0; i < numframeworks; i++) {
+    // Set the framework
+    the_framework = frameworks[i];
+    if (!Jali::framework_available(the_framework)) continue;
+    
+    bool parallel = (nproc > 1);
+    if (!Jali::framework_generates(the_framework, parallel, dim))
+      continue;
+    
+    std::cerr << "Testing mesh sets with " << framework_names[i] <<
+        std::endl;
+    
+    // Create the mesh
+    Jali::MeshFactory factory(MPI_COMM_WORLD);
+    std::shared_ptr<Jali::Mesh> mesh;
+    
+    bool faces_requested = true;
+    bool edges_requested = (the_framework == Jali::MSTK) ? true : false;
+    bool sides_requested = false;
+    bool wedges_requested = false;
+    bool corners_requested = false;
+    
+    int ierr = 0;
+    int aerr = 0;
+    try {
+      factory.framework(the_framework);
+
+      std::vector<Jali::Entity_kind> entitylist;
+      entitylist.push_back(Jali::Entity_kind::FACE);
+      if (edges_requested) entitylist.push_back(Jali::Entity_kind::EDGE);
+      if (sides_requested) entitylist.push_back(Jali::Entity_kind::SIDE);
+      if (wedges_requested) entitylist.push_back(Jali::Entity_kind::WEDGE);
+      if (corners_requested) entitylist.push_back(Jali::Entity_kind::CORNER);
+      factory.included_entities(entitylist);
+
+      factory.partitioner(Jali::Partitioner_type::BLOCK);
+      
+      factory.geometric_model(&gm);
+
+      // Create a mesh
+      
+      mesh = factory(-1.0, -1.0, -1.0, 1.0, 1.0, 1.0, 8, 8, 8);
+
+      // Exlicitly ask mesh to create sets from geometric regions
+
+      mesh->init_sets_from_geometric_model(rgn_to_kind_map);
+      
+    } catch (const Errors::Message& e) {
+      std::cerr << ": mesh error: " << e.what() << std::endl;
+      ierr++;
+    } catch (const std::exception& e) {
+      std::cerr << ": error: " << e.what() << std::endl;
+      ierr++;
+    }
+
+    MPI_Allreduce(&ierr, &aerr, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+    CHECK_EQUAL(aerr, 0);
+
+    // Now retrieve the sets and make sure we get what we expect
+
+    // Check that the mesh has the right number of entities in the box
+    // region 1 - should be 4x4x4
+
+    int nboxcells = 0, nboxfaces = 0, nboxnodes = 0;
+    if (parallel) {
+      
+      // Check local number of cells in box1 set
+
+      int nboxcells_owned_local =
+          mesh->get_set_size("box1", Jali::Entity_kind::CELL,
+                             Jali::Entity_type::PARALLEL_OWNED);
+      if (nproc == 4)
+        CHECK_EQUAL(16, nboxcells_owned_local);
+      MPI_Allreduce(&nboxcells_owned_local, &nboxcells, 1, MPI_INT,
+                    MPI_SUM, MPI_COMM_WORLD);
+
+      int nboxcells_ghost_local =
+          mesh->get_set_size("box1", Jali::Entity_kind::CELL,
+                             Jali::Entity_type::PARALLEL_GHOST);
+      if (nproc == 4)
+        CHECK_EQUAL(20, nboxcells_ghost_local);
+          
+      int nboxcells_all_local =
+          mesh->get_set_size("box1", Jali::Entity_kind::CELL,
+                             Jali::Entity_type::ALL);
+      if (nproc == 4)
+        CHECK_EQUAL(36, nboxcells_all_local);
+
+      
+      // Retrieve local number of faces in box1 set
+
+      int nboxfaces_owned_local =
+          mesh->get_set_size("box1", Jali::Entity_kind::FACE,
+                             Jali::Entity_type::PARALLEL_OWNED);
+      CHECK(nboxfaces_owned_local);
+      MPI_Allreduce(&nboxfaces_owned_local, &nboxfaces, 1, MPI_INT,
+                    MPI_SUM, MPI_COMM_WORLD);
+      
+
+      // Check local number of nodes in box1 set (SHOULD BE ZERO SINCE
+      // WE SAID WE WON'T QUERY THEM)
+
+      int nboxnodes_all_local =
+          mesh->get_set_size("box1", Jali::Entity_kind::NODE,
+                             Jali::Entity_type::PARALLEL_OWNED);
+      CHECK_EQUAL(0, nboxnodes_all_local);
+      nboxnodes = nboxnodes_all_local;  // They are all verified to be zero
+    } else {
+      nboxcells = mesh->get_set_size("box1", Jali::Entity_kind::CELL,
+                                     Jali::Entity_type::PARALLEL_OWNED);
+      nboxfaces = mesh->get_set_size("box1", Jali::Entity_kind::FACE,
+                                     Jali::Entity_type::PARALLEL_OWNED);
+      nboxnodes = mesh->get_set_size("box1", Jali::Entity_kind::NODE,
+                                     Jali::Entity_type::PARALLEL_OWNED);
+    }
+
+    // Check global number of cells and nodes in box1 set
+
+    CHECK_EQUAL(64, nboxcells);
+    CHECK_EQUAL(240, nboxfaces);
+    CHECK_EQUAL(0, nboxnodes);  // we promised we wouldn't ask for these
+
+
+
+    // Check the number of cells, faces and nodes in box2 (same as box1 but
+    // we didn't specify what kinds of entities we would query, so we should
+    // be able to ask for cells, faces and nodes
+
+    // Check that the mesh has the right number of entities in the box
+    // region - should be 4x4x4
+
+    nboxcells = 0;
+    nboxfaces = 0;
+    nboxnodes = 0;
+    if (parallel) {
+      
+      // Check local number of cells in box1 set
+
+      int nboxcells_owned_local =
+          mesh->get_set_size("box2", Jali::Entity_kind::CELL,
+                             Jali::Entity_type::PARALLEL_OWNED);
+      if (nproc == 4)
+        CHECK_EQUAL(16, nboxcells_owned_local);
+      MPI_Allreduce(&nboxcells_owned_local, &nboxcells, 1, MPI_INT,
+                    MPI_SUM, MPI_COMM_WORLD);
+
+      int nboxcells_ghost_local =
+          mesh->get_set_size("box2", Jali::Entity_kind::CELL,
+                             Jali::Entity_type::PARALLEL_GHOST);
+      if (nproc == 4)
+        CHECK_EQUAL(20, nboxcells_ghost_local);
+          
+      int nboxcells_all_local =
+          mesh->get_set_size("box2", Jali::Entity_kind::CELL,
+                             Jali::Entity_type::ALL);
+      if (nproc == 4)
+        CHECK_EQUAL(36, nboxcells_all_local);
+
+      
+      // Retrieve local number of faces in box2 set
+
+      int nboxfaces_owned_local =
+          mesh->get_set_size("box2", Jali::Entity_kind::FACE,
+                             Jali::Entity_type::PARALLEL_OWNED);
+      CHECK(nboxfaces_owned_local);
+      MPI_Allreduce(&nboxfaces_owned_local, &nboxfaces, 1, MPI_INT,
+                    MPI_SUM, MPI_COMM_WORLD);
+      
+
+      // Check local number of nodes in box2 set 
+
+      int nboxnodes_owned_local =
+          mesh->get_set_size("box2", Jali::Entity_kind::NODE,
+                             Jali::Entity_type::PARALLEL_OWNED);
+      CHECK(nboxnodes_owned_local);
+      MPI_Allreduce(&nboxnodes_owned_local, &nboxnodes, 1, MPI_INT,
+                    MPI_SUM, MPI_COMM_WORLD);
+    } else {
+      nboxcells = mesh->get_set_size("box2", Jali::Entity_kind::CELL,
+                                     Jali::Entity_type::PARALLEL_OWNED);
+      nboxfaces = mesh->get_set_size("box2", Jali::Entity_kind::FACE,
+                                     Jali::Entity_type::PARALLEL_OWNED);
+      nboxnodes = mesh->get_set_size("box2", Jali::Entity_kind::NODE,
+                                     Jali::Entity_type::PARALLEL_OWNED);
+    }
+
+    // Check global number of cells and nodes in box2 set
+
+    CHECK_EQUAL(64, nboxcells);
+    CHECK_EQUAL(240, nboxfaces);
+    CHECK_EQUAL(125, nboxnodes);  // we promised we wouldn't ask for these
+    
+
+    
+    // Check that the mesh returns the right number of faces for the
+    // left plane
+
+    Jali::Entity_ID_List planefaces;
+    mesh->get_set_entities("plane1", Jali::Entity_kind::FACE,
+                           Jali::Entity_type::PARALLEL_OWNED, &planefaces);
+
+    // In the parallel case, with 4 procs we don't know if the face
+    // will be cut zero, one or two times by the partitioner
+
+    if (!parallel)
+      CHECK_EQUAL(64, planefaces.size());
+    else {
+      int nfaces_local = planefaces.size();
+      int nfaces = 0;
+      MPI_Allreduce(&nfaces_local, &nfaces, 1, MPI_INT, MPI_SUM,
+                     MPI_COMM_WORLD);
+      CHECK_EQUAL(64, nfaces);
+    }
+
+    
+    // Check that the mesh returns the zero faces for the right plane
+    // (we promised we wouldn't query them) but the correct number of nodes 
+
+    mesh->get_set_entities("plane2", Jali::Entity_kind::FACE,
+                           Jali::Entity_type::PARALLEL_OWNED, &planefaces);
+    CHECK_EQUAL(0, planefaces.size());
+
+    // Check that the mesh returns the right number of nodes for the right plane
+
+    Jali::Entity_ID_List planenodes;
+    mesh->get_set_entities("plane2", Jali::Entity_kind::NODE,
+                           Jali::Entity_type::PARALLEL_OWNED, &planenodes);
+    if (!parallel)
+      CHECK_EQUAL(81, planenodes.size());
+    else {
+      int nnodes_local = planenodes.size();
+      int nnodes = 0;
+      MPI_Allreduce(&nnodes_local, &nnodes, 1, MPI_INT, MPI_SUM,
+                     MPI_COMM_WORLD);
+      CHECK_EQUAL(81, nnodes);
+    }
+
+    // Now let us explicitly ask to build the FACE set for plane2 and see if
+    // we get the right answer
+
+    mesh->build_set_from_region("plane2", Jali::Entity_kind::FACE, false);
+    mesh->get_set_entities("plane2", Jali::Entity_kind::FACE,
+                           Jali::Entity_type::PARALLEL_OWNED, &planefaces);
+
+    // In the parallel case, with 4 procs we don't know if the face
+    // will be cut zero, one or two times by the partitioner
+
+    if (!parallel)
+      CHECK_EQUAL(64, planefaces.size());
+    else {
+      int nfaces_local = planefaces.size();
+      int nfaces = 0;
+      MPI_Allreduce(&nfaces_local, &nfaces, 1, MPI_INT, MPI_SUM,
+                     MPI_COMM_WORLD);
+      CHECK_EQUAL(64, nfaces);
+    }
+  }  // for each framework
+}
+
+
+
 
 
 //! Test the reading of labeled sets from an Exodus II file - Only
@@ -588,6 +881,10 @@ TEST(MESH_SETS_LABELED_3D) {
     
       mesh = factory(filename);
 
+      // Explicitly ask mesh to create sets from geometric regions
+
+      mesh->init_sets_from_geometric_model();
+      
     } catch (const Errors::Message& e) {
       std::cerr << ": mesh error: " << e.what() << std::endl;
       ierr++;
@@ -601,11 +898,6 @@ TEST(MESH_SETS_LABELED_3D) {
 
 
     // Now retrieve the sets and make sure we get what we expect
-    bool create_if_missing = true;
-    std::shared_ptr<Jali::MeshSet> mset =
-        mesh->find_meshset_from_region("mat1", Jali::Entity_kind::CELL,
-                                       create_if_missing);
-    CHECK(mset != nullptr);
 
     int nsetcells = 0;
     if (parallel) {
@@ -634,10 +926,6 @@ TEST(MESH_SETS_LABELED_3D) {
     // Check global number of cells and nodes in mat1
     CHECK_EQUAL(9, nsetcells);
 
-    mset = mesh->find_meshset_from_region("mat3", Jali::Entity_kind::CELL,
-                                          create_if_missing);
-    CHECK(mset != nullptr);
-
     nsetcells = 0;
     if (parallel) {
       // Check local number of cells in mat3
@@ -664,10 +952,6 @@ TEST(MESH_SETS_LABELED_3D) {
 
     // Check global number of cells and nodes in mat3
     CHECK_EQUAL(9, nsetcells);
-
-    mset = mesh->find_meshset_from_region("cellset2", Jali::Entity_kind::CELL,
-                                          create_if_missing);
-    CHECK(mset != nullptr);
 
     nsetcells = 0;
     if (parallel) {
@@ -697,10 +981,6 @@ TEST(MESH_SETS_LABELED_3D) {
     CHECK_EQUAL(9, nsetcells);
 
 
-    mset = mesh->find_meshset_from_region("cellset3", Jali::Entity_kind::CELL,
-                                          create_if_missing);
-    CHECK(mset != nullptr);
-
     nsetcells = 0;
     if (parallel) {
       // Check local number of cells in cell set 3
@@ -728,10 +1008,6 @@ TEST(MESH_SETS_LABELED_3D) {
     // Check global number of cells and nodes in cell set 3
     CHECK_EQUAL(9, nsetcells);
 
-
-    mset = mesh->find_meshset_from_region("face101", Jali::Entity_kind::FACE,
-                                          create_if_missing);
-    CHECK(mset != nullptr);
 
     int nsetfaces = 0;
     if (parallel) {
@@ -761,10 +1037,6 @@ TEST(MESH_SETS_LABELED_3D) {
     CHECK_EQUAL(9, nsetfaces);
 
 
-    mset = mesh->find_meshset_from_region("face10005", Jali::Entity_kind::FACE,
-                                          create_if_missing);
-    CHECK(mset != nullptr);
-
     nsetfaces = 0;
     if (parallel) {
       // Check local number of cells in side set 10005
@@ -793,11 +1065,6 @@ TEST(MESH_SETS_LABELED_3D) {
     CHECK_EQUAL(3, nsetfaces);
 
     
-    mset = mesh->find_meshset_from_region("nodeset20004",
-                                          Jali::Entity_kind::NODE,
-                                          create_if_missing);
-    CHECK(mset != nullptr);
-
     int nsetnodes = 0;
     if (parallel) {
       // Check local number of nodes in nodeset 20004
