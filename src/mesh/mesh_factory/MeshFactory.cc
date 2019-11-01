@@ -85,6 +85,7 @@ std::string framework_name(MeshFramework_t const& f) {
       Errors::Message mesg("Unknown framework");
       Exceptions::Jali_throw(mesg);
   }
+  return "UNKNOWN_FRAMEWORK";
 }
 
 /// Check if a framework is available for use
@@ -227,6 +228,7 @@ MeshFactory::create(std::string const& filename) {
   }
   MPI_Allreduce(&ierr, &aerr, 1, MPI_INT, MPI_SUM, comm_);
   if (aerr > 0) Exceptions::Jali_throw(errmsg);
+  return nullptr;
 }
 
 /**
@@ -332,6 +334,7 @@ MeshFactory::create(double const x0, double const y0, double const z0,
   }
   MPI_Allreduce(&ierr, &aerr, 1, MPI_INT, MPI_SUM, comm_);
   if (aerr > 0) Exceptions::Jali_throw(errmsg);
+  return nullptr;
 }
 
 
@@ -436,6 +439,7 @@ MeshFactory::create(double const x0, double const y0,
   }
   MPI_Allreduce(&ierr, &aerr, 1, MPI_INT, MPI_SUM, comm_);
   if (aerr > 0) Exceptions::Jali_throw(errmsg);
+  return nullptr;
 }
 
 
@@ -517,6 +521,7 @@ MeshFactory::create(std::vector<double> const& x) {
   }
   MPI_Allreduce(&ierr, &aerr, 1, MPI_INT, MPI_SUM, comm_);
   if (aerr > 0) Exceptions::Jali_throw(errmsg);
+  return nullptr;
 }
 
 /**
@@ -580,6 +585,7 @@ MeshFactory::create(std::shared_ptr<Mesh> const inmesh,
   }
   MPI_Allreduce(&ierr, &aerr, 1, MPI_INT, MPI_SUM, comm_);
   if (aerr > 0) Exceptions::Jali_throw(errmsg);
+  return nullptr;
 }
 
 }  // namespace Jali

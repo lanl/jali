@@ -651,6 +651,7 @@ Entity_ID Mesh::entity_get_parent(const Entity_kind kind,
   Errors::Message mesg("Parent/daughter entities not"
                        " enabled in this framework.");
   Exceptions::Jali_throw(mesg);
+  return -1;
 }
 
 

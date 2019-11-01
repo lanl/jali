@@ -362,6 +362,7 @@ class UniStateVector : public UniStateVectorBase<DomainType> {
     StateVectorBase::entity_type_ = in_vector.entity_type_;
     UniStateVectorBase<DomainType>::mydomain_ = in_vector.mydomain_;
     mydata_ = in_vector.mydata_;  // shared_ptr counter will increment
+    return *this;
   }
 
   /// Destructor

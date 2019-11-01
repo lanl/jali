@@ -125,6 +125,7 @@ LogicalRegion::inside(const Point& p) const
 {
   Errors::Message mesg("In/out check not implemented for logical regions \n because the check may not be implemented for one of its component regions");
   Exceptions::Jali_throw(mesg);
+  return false;
 }
 
 } // namespace JaliGeometry
