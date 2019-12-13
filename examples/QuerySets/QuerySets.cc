@@ -81,10 +81,11 @@ int main(int argc, char *argv[]) {
 
   // Some sets that we want to query
 
-  std::string cellsetnames[3] = {"Bottom LabeledSet", "Bottom+Middle Box",
-                                 "Middle Layer"};
+  std::string cellsetnames[4] = {"Bottom LabeledSet", "Bottom Box",
+                                 "Bottom+Middle Box", "Middle Layer"};
   int ncellsets = 3;
-  Entity_ID_List expected_cells[3] = {{0, 1, 2, 3, 4, 5, 6, 7, 8},
+  Entity_ID_List expected_cells[4] = {{0, 1, 2, 3, 4, 5, 6, 7, 8},
+                                      {0, 1, 2, 3, 4, 5, 6, 7, 8},
                                       {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
                                        12, 13, 14, 15, 16, 17},
                                       {9, 10, 11, 12, 13, 14, 15, 16, 17}};
@@ -128,28 +129,36 @@ int main(int argc, char *argv[]) {
   // Labeled set - an Exodus element block with ID 10000. The second
   // argument is a set ID and can be any unique number.
 
-  gregions.emplace_back(new LabeledSetRegion(cellsetnames[0], 1, "CELL",
+  gregions.emplace_back(new LabeledSetRegion(cellsetnames[0], 1,
+                                             "Entity_kind::CELL",
                                              exofilename, "Exodus II", "10000"));
 
-  // Box Region
-
-  Point boxlo(0.0, 0.0, 0.0), boxhi(1.0, 1.0, 0.66);
+  // Box Region for bottom layer
+  Point boxlo(0.0, 0.0, 0.0), boxhi(1.0, 1.0, 0.33);
+  
   gregions.emplace_back(new BoxRegion(cellsetnames[1], 2, boxlo, boxhi));
+
+  // Box Region for bottom and middle layer
+  boxlo.set(0.0, 0.0, 0.0);
+  boxhi.set(1.0, 1.0, 0.66);
+
+  gregions.emplace_back(new BoxRegion(cellsetnames[2], 2, boxlo, boxhi));
 
   // Logical region from two other regions - Extract cells of the
   // bottom layer by subtracting the middle layer from the
   // bottom+middle layer
 
   std::vector<std::string> setnames;
-  setnames.push_back(cellsetnames[1]);  // Bottom+Middle box
-  setnames.push_back(cellsetnames[0]);  // Bottom Labeled Set
-  gregions.emplace_back(new LogicalRegion(cellsetnames[2], 99, "Subtract",
+  setnames.push_back(cellsetnames[2]);  // Bottom+Middle box
+  setnames.push_back(cellsetnames[1]);  // Bottom Labeled Set
+  gregions.emplace_back(new LogicalRegion(cellsetnames[3], 99, "Subtract",
                                           setnames));
   
 
   // Labeled set - an Exodus side set (face set) with ID 101.
 
-  gregions.emplace_back(new LabeledSetRegion(facesetnames[0], 5, "FACE",
+  gregions.emplace_back(new LabeledSetRegion(facesetnames[0], 5,
+                                             "Entity_kind::FACE",
                                              exofilename, "Exodus II", "101"));
 
   // Plane region - designed to capture faces on the bottom surface of the mesh
@@ -216,6 +225,8 @@ int main(int argc, char *argv[]) {
     mesh_factory.geometric_model(gm);
 
     mymesh = mesh_factory(exofilename);
+
+    mymesh->init_sets_from_geometric_model();  // needed for region based sets
   }
 
   //---------------------------------------------------------------------------

@@ -280,8 +280,6 @@ std::shared_ptr<MeshSet> make_meshset(std::string const& name,
                                       Entity_ID_List const& entityids_owned,
                                       Entity_ID_List const& entityids_ghost,
                                       bool build_reverse_map) {
-  if (parent_mesh.num_sets() == 0)
-    parent_mesh.init_sets();
 
   // This is a less than optimal use of the make_shared function since
   // it involves two memory allocations but I am not able to do it in
