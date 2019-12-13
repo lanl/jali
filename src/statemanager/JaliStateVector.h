@@ -208,6 +208,8 @@ class UniStateVectorBase : public StateVectorBase {
     UniStateVectorBase::entity_kind_ = in_vector.entity_kind_;
     UniStateVectorBase::entity_type_ = in_vector.entity_type_;
     mydomain_ = in_vector.mydomain_;
+
+    return *this;
   }
 
   /// Destructor
@@ -361,7 +363,9 @@ class UniStateVector : public UniStateVectorBase<DomainType> {
     StateVectorBase::entity_kind_ = in_vector.entity_kind_;
     StateVectorBase::entity_type_ = in_vector.entity_type_;
     UniStateVectorBase<DomainType>::mydomain_ = in_vector.mydomain_;
+
     mydata_ = in_vector.mydata_;  // shared_ptr counter will increment
+
     return *this;
   }
 
@@ -522,6 +526,8 @@ class MultiStateVectorBase : public StateVectorBase {
     StateVectorBase::entity_kind_ = in_vector.entity_kind_;
     StateVectorBase::entity_type_ = in_vector.entity_type_;
     mydomain_ = in_vector.mydomain_;
+
+    return *this;
   }
 
 
@@ -724,6 +730,8 @@ class MultiStateVector : public MultiStateVectorBase<DomainType> {
     MultiStateVectorBase<DomainType>::mydomain_ = in_vector.mydomain_;
 
     mydata_ = in_vector.mydata_;  // shared_ptr counter will increment
+
+    return *this;
   }
 
 
