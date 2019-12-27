@@ -71,39 +71,27 @@ else()
 endif()
 
 
+## No idea why we need this.
+## I think it was required for Franklin build. -- lpritch
+#if(PREFER_STATIC_LIBRARIES)
+#  # Prefer static libraries, but don't require that everything must be static. 
+#  set(CMAKE_FIND_LIBRARY_SUFFIXES .a .lib)
+#endif(PREFER_STATIC_LIBRARIES)
 
-# No idea why we need this.
-# I think it was required for Franklin build. -- lpritch
-if(PREFER_STATIC_LIBRARIES)
-  # Prefer static libraries, but don't require that everything must be static. 
-  set(CMAKE_FIND_LIBRARY_SUFFIXES .a .lib)
-endif(PREFER_STATIC_LIBRARIES)
-
-if(BUILD_STATIC_EXECUTABLES)
-    set(CMAKE_EXE_LINKER_FLAGS -static)
-    set(CMAKE_FIND_LIBRARY_SUFFIXES .a)
-    set(CMAKE_EXE_LINK_DYNAMIC_C_FLAGS)       # remove -Wl,-Bdynamic
-    set(CMAKE_EXE_LINK_DYNAMIC_CXX_FLAGS)
-    set(CMAKE_SHARED_LIBRARY_C_FLAGS)         # remove -fPIC
-    set(CMAKE_SHARED_LIBRARY_CXX_FLAGS)
-    set(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS)    # remove -rdynamic
-    set(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS)
-endif(BUILD_STATIC_EXECUTABLES)
+#if(BUILD_STATIC_EXECUTABLES)
+#    set(CMAKE_EXE_LINKER_FLAGS -static)
+#    set(CMAKE_FIND_LIBRARY_SUFFIXES .a)
+#    set(CMAKE_EXE_LINK_DYNAMIC_C_FLAGS)       # remove -Wl,-Bdynamic
+#    set(CMAKE_EXE_LINK_DYNAMIC_CXX_FLAGS)
+#    set(CMAKE_SHARED_LIBRARY_C_FLAGS)         # remove -fPIC
+#    set(CMAKE_SHARED_LIBRARY_CXX_FLAGS)
+#    set(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS)    # remove -rdynamic
+##    set(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS)
+#endif(BUILD_STATIC_EXECUTABLES)
 
 #
 # Options
 # 
-
-# DBC - Design by contract
-option(ENABLE_DBC "Enable Design By Contract (DBC) checking" ON)
-add_feature_info(DBC
-                 ENABLE_DBC
-                 "Toggle design by contract (DBC) checking")
-if ( ENABLE_DBC )
-    add_definitions("-D ENABLE_DBC")
-endif()    
-
-
 # Testing
 cmake_dependent_option(ENABLE_TESTS "Enable unit testing" ON
                        "ENABLE_UnitTest" ON)

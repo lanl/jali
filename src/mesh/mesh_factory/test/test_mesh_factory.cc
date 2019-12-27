@@ -49,7 +49,6 @@
 #include <iostream>
 #include <UnitTest++.h>
 
-#include "dbc.hh"
 #include "../MeshFactory.hh"
 
 // Check to see if we have some files to read

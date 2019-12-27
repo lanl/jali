@@ -60,7 +60,6 @@
 #define _BoxRegion_hh_
 
 #include "Region.hh"
-#include "dbc.hh"
 #include "errors.hh"
 
 namespace JaliGeometry {

@@ -63,7 +63,6 @@
 #include "LabeledSetRegion.hh"
 #include "PointRegion.hh"
 #include "LogicalRegion.hh"
-#include "dbc.hh"
 #include "errors.hh"
 
 namespace Jali {

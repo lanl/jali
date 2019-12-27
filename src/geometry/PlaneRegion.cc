@@ -56,7 +56,6 @@
  */
 
 #include "PlaneRegion.hh"
-#include "dbc.hh"
 #include "errors.hh"
 
 namespace JaliGeometry {

@@ -45,13 +45,13 @@ OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "Mesh_simple.hh"
-
 #include <algorithm>
+#include <cassert>
+
+#include "Mesh_simple.hh"
 
 #include "mpi.h"   // only for MPI_COMM_WORLD in Mesh constructor
 
-#include "dbc.hh"
 #include "errors.hh"
 
 namespace Jali {
@@ -765,7 +765,7 @@ void Mesh_simple::node_set_coordinates(const Jali::Entity_ID local_node_id,
   unsigned int offset = (unsigned int) spdim*local_node_id;
 
 
-  ASSERT(ncoord != NULL);
+  assert(ncoord != NULL);
 
   std::vector<double>::iterator destination_begin = coordinates_.begin()
       + offset;

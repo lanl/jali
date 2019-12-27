@@ -55,6 +55,7 @@
 #include <string>
 #include <algorithm>
 #include <typeinfo>
+#include <cassert>
 
 #include "Mesh.hh"    // jali mesh header
 

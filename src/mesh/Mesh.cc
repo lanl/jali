@@ -56,12 +56,11 @@
 #include "zoltan.h"
 #endif
 
-#include <math.h>
 #include <cmath>
 #include <vector>
+#include <cassert>
 
 #include "Geometry.hh"
-#include "dbc.hh"
 #include "errors.hh"
 #include "LabeledSetRegion.hh"
 #include "BoxRegion.hh"
@@ -1259,7 +1258,7 @@ int Mesh::compute_face_geometry(const Entity_ID faceid, double *area,
         }
       }
 
-      ASSERT(found);
+      assert(found);
 
       if (dir == 1)
         *normal0 = normal;
@@ -1300,7 +1299,7 @@ int Mesh::compute_face_geometry(const Entity_ID faceid, double *area,
           }
         }
 
-        ASSERT(found);
+        assert(found);
 
         if (dir == 1)
           *normal0 = normal;
@@ -1339,7 +1338,7 @@ int Mesh::compute_face_geometry(const Entity_ID faceid, double *area,
           }
         }
 
-        ASSERT(found);
+        assert(found);
 
         JaliGeometry::Point cellcen;
         std::vector<JaliGeometry::Point> ccoords;
@@ -1393,7 +1392,7 @@ int Mesh::compute_face_geometry(const Entity_ID faceid, double *area,
         }
       }
 
-      ASSERT(found);
+      assert(found);
 
       if (dir == 1)
         *normal0 = normal;
@@ -1581,8 +1580,8 @@ double Mesh::cell_volume(const Entity_ID cellid, const bool recompute) const {
 // Area/length of face
 
 double Mesh::face_area(const Entity_ID faceid, const bool recompute) const {
-  ASSERT(faces_requested);
-  ASSERT(face_geometry_precomputed);
+  assert(faces_requested);
+  assert(face_geometry_precomputed);
 
   if (recompute) {
     double area;
@@ -1598,8 +1597,8 @@ double Mesh::face_area(const Entity_ID faceid, const bool recompute) const {
 // Length of an edge
 
 double Mesh::edge_length(const Entity_ID edgeid, const bool recompute) const {
-  ASSERT(edges_requested);
-  ASSERT(edge_geometry_precomputed);
+  assert(edges_requested);
+  assert(edge_geometry_precomputed);
 
   if (recompute) {
     double length;
@@ -1614,8 +1613,8 @@ double Mesh::edge_length(const Entity_ID edgeid, const bool recompute) const {
 // Volume/Area of side
 
 double Mesh::side_volume(const Entity_ID sideid, const bool recompute) const {
-  ASSERT(sides_requested);
-  ASSERT(side_geometry_precomputed);
+  assert(sides_requested);
+  assert(side_geometry_precomputed);
 
   if (recompute) {
     double side_volume;
@@ -1631,8 +1630,8 @@ double Mesh::side_volume(const Entity_ID sideid, const bool recompute) const {
 // Volume/Area of wedge
 
 double Mesh::wedge_volume(const Entity_ID wedgeid, const bool recompute) const {
-  ASSERT(wedges_requested);
-  ASSERT(side_geometry_precomputed);
+  assert(wedges_requested);
+  assert(side_geometry_precomputed);
 
   Entity_ID sideid = static_cast<Entity_ID>(wedgeid/2);
 
@@ -1651,8 +1650,8 @@ double Mesh::wedge_volume(const Entity_ID wedgeid, const bool recompute) const {
 
 double Mesh::corner_volume(const Entity_ID cornerid,
                            const bool recompute) const {
-  ASSERT(corners_requested);
-  ASSERT(corner_geometry_precomputed);
+  assert(corners_requested);
+  assert(corner_geometry_precomputed);
 
   if (recompute) {
     double volume;
@@ -1667,7 +1666,7 @@ double Mesh::corner_volume(const Entity_ID cornerid,
 
 JaliGeometry::Point Mesh::cell_centroid(const Entity_ID cellid,
                                         const bool recompute) const {
-  ASSERT(cell_geometry_precomputed);
+  assert(cell_geometry_precomputed);
 
   if (recompute) {
     double volume;
@@ -1683,8 +1682,8 @@ JaliGeometry::Point Mesh::cell_centroid(const Entity_ID cellid,
 
 JaliGeometry::Point Mesh::face_centroid(const Entity_ID faceid,
                                         const bool recompute) const {
-  ASSERT(faces_requested);
-  ASSERT(face_geometry_precomputed);
+  assert(faces_requested);
+  assert(face_geometry_precomputed);
 
   if (recompute) {
     double area;
@@ -1720,8 +1719,8 @@ JaliGeometry::Point Mesh::face_normal(const Entity_ID faceid,
                                       const bool recompute,
                                       const Entity_ID cellid,
                                       int *orientation) const {
-  ASSERT(faces_requested);
-  ASSERT(face_geometry_precomputed);
+  assert(faces_requested);
+  assert(face_geometry_precomputed);
 
   JaliGeometry::Point normal0(space_dim_);
   JaliGeometry::Point normal1(space_dim_);
@@ -1748,7 +1747,7 @@ JaliGeometry::Point Mesh::face_normal(const Entity_ID faceid,
     if (L22(normal0) != 0.0) {
       return normal0;
     } else {
-      ASSERT(L22(normal1) != 0.0);
+      assert(L22(normal1) != 0.0);
       return -normal1;
     }
   } else {
@@ -1767,14 +1766,14 @@ JaliGeometry::Point Mesh::face_normal(const Entity_ID faceid,
         break;
       }
 
-    ASSERT(found);
+    assert(found);
 
     if (orientation) *orientation = dir;
     if (dir == 1) {
-      // ASSERT(L22(normal0) != 0.0);
+      // assert(L22(normal0) != 0.0);
       return normal0;              // Copy to output
     } else {
-      // ASSERT(L22(normal1) != 0.0);
+      // assert(L22(normal1) != 0.0);
       return normal1;              // Copy to output
     }
   }
@@ -1789,8 +1788,8 @@ JaliGeometry::Point Mesh::edge_vector(const Entity_ID edgeid,
                                       const bool recompute,
                                       const Entity_ID pointid,
                                       int *orientation) const {
-  ASSERT(edges_requested);
-  ASSERT(edge_geometry_precomputed);
+  assert(edges_requested);
+  assert(edge_geometry_precomputed);
 
   JaliGeometry::Point evector(space_dim_), ecenter(space_dim_);
   JaliGeometry::Point& evector_ref = evector;  // to avoid extra copying
@@ -1827,8 +1826,8 @@ JaliGeometry::Point Mesh::edge_centroid(const Entity_ID edgeid) const {
   Entity_ID p0, p1;
   JaliGeometry::Point xyz0, xyz1;
 
-  ASSERT(edges_requested);
-  ASSERT(edge_geometry_precomputed);
+  assert(edges_requested);
+  assert(edge_geometry_precomputed);
 
   edge_get_nodes(edgeid, &p0, &p1);
   node_get_coordinates(p0, &xyz0);
@@ -1855,7 +1854,7 @@ JaliGeometry::Point Mesh::edge_centroid(const Entity_ID edgeid) const {
 void Mesh::side_get_coordinates(const Entity_ID sideid,
                                 std::vector<JaliGeometry::Point> *scoords,
                                 bool posvol_order) const {
-  ASSERT(sides_requested);
+  assert(sides_requested);
 
   if (manifold_dim_ == 3) {
     scoords->resize(4);  // sides are tets in 3D cells
@@ -1923,7 +1922,7 @@ void Mesh::side_get_coordinates(const Entity_ID sideid,
 void Mesh::wedge_get_coordinates(const Entity_ID wedgeid,
                                  std::vector<JaliGeometry::Point> *wcoords,
                                  bool posvol_order) const {
-  ASSERT(wedges_requested);
+  assert(wedges_requested);
 
   int np = manifold_dim_ + 1;
   wcoords->resize(np);

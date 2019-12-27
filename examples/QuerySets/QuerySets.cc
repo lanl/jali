@@ -50,7 +50,6 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "mpi.h"
 
-#include "dbc.hh"
 #include "errors.hh"
 #include "Geometry.hh"
 #include "Mesh.hh"

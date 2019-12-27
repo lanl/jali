@@ -56,7 +56,6 @@
  */
 
 #include "PolygonRegion.hh"
-#include "dbc.hh"
 #include "errors.hh"
 
 namespace JaliGeometry {
@@ -121,7 +120,7 @@ void PolygonRegion::init() {
     normal_ = vec0^vec1;
     normal_ /= norm(normal_);
 
-#ifdef ENABLE_DBC
+#ifdef DEBUG
     for (int i = 3; i < num_points_; i++) {
       vec0 = points_[(i+1)%num_points_]-points_[i];
       vec1 = points_[(i-1+num_points_)%num_points_]-points_[i];
@@ -167,7 +166,7 @@ bool
 PolygonRegion::inside(const Point& p) const
 {
 
-#ifdef ENABLE_DBC
+#ifdef DEBUG
   if (p.dim() != points_[0].dim()) {
     std::stringstream tempstr;
     tempstr << "\nMismatch in corner dimension of Polygon \"" << Region::name() << "\" and query point.\n Perhaps the region is improperly defined?\n";
