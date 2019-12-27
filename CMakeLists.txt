@@ -47,7 +47,7 @@
 #       Root CMakeLists.txt file
 #
 
-cmake_minimum_required(VERSION 3.8.0)
+cmake_minimum_required(VERSION 3.11)
 set(CMAKE_CTEST_COMMAND ${CMAKE_CTEST_COMMAND})  
 
 
@@ -76,9 +76,6 @@ set(CMAKE_MODULE_PATH
     ${Jali_MODULE_PATH}/Utils)
 
 message(STATUS "CMAKE MODULE PATH  ${CMAKE_MODULE_PATH}")
-
-# Code version defined
-#include(JaliVersion)
 
 # Addtional build options
 include(JaliOptions)
