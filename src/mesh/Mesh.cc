@@ -2656,11 +2656,11 @@ void Mesh::get_set_entities(const std::string setname, const Entity_kind kind,
     entids->clear();
 
 #ifdef DEBUG
-  if (type != Entity_type::GHOST) {
+  if (type != Entity_type::PARALLEL_GHOST) {
     int nent_loc = entids->size();
     int nent_glob;
     
-    MPI_Allreduce(&nent_loc, &nent_glob, 1, MPI_INT, MPI_SUM, mpicomm);
+    MPI_Allreduce(&nent_loc, &nent_glob, 1, MPI_INT, MPI_SUM, comm);
     if (nent_glob == 0) {
       std::stringstream mesg_stream;
       mesg_stream << "Could not retrieve any mesh entities of type " << kind <<
