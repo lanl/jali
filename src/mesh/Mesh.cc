@@ -2654,23 +2654,6 @@ void Mesh::get_set_entities(const std::string setname, const Entity_kind kind,
   }
   else 
     entids->clear();
-
-#ifdef DEBUG
-  if (type != Entity_type::PARALLEL_GHOST) {
-    int nent_loc = entids->size();
-    int nent_glob;
-    
-    MPI_Allreduce(&nent_loc, &nent_glob, 1, MPI_INT, MPI_SUM, comm);
-    if (nent_glob == 0) {
-      std::stringstream mesg_stream;
-      mesg_stream << "Could not retrieve any mesh entities of type " << kind <<
-          " for set " << setname << std::endl;
-      Errors::Message mesg(mesg_stream.str());
-      Exceptions::Jali_throw(mesg);
-    }
-  }
-#endif
-
 }
 
 std::shared_ptr<MeshSet> Mesh::build_set_from_region(const std::string setname,
