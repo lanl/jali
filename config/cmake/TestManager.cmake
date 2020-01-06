@@ -50,7 +50,6 @@
 #
 
 include(CMakeParseArguments)
-include(PrintVariable)
 
 function(_APPEND_TEST_LABEL test_name label)
 
