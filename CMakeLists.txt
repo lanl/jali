@@ -61,6 +61,10 @@ enable_testing()
 #     Jali_BINARY_DIR
 project(Jali)
 
+if (CMAKE_VERSION_MAJOR EQUAL 3 AND CMAKE_VERSION_MINOR GREATER_EQUAL 13)
+  CMAKE_POLICY(SET CMP0079 NEW)
+endif()
+
 # Useful variables pointing to directories in the source tree
 set(Jali_SOURCE_SRC_DIR      "${Jali_SOURCE_DIR}/src")
 set(Jali_SOURCE_TOOLS_DIR    "${Jali_SOURCE_DIR}/tools")
@@ -72,20 +76,43 @@ set(Jali_PYTHON_DIR          "${Jali_SOURCE_DIR}/tools/py_lib")
 set(Jali_MODULE_PATH "${Jali_SOURCE_CONFIG_DIR}/cmake")
 set(CMAKE_MODULE_PATH 
     ${Jali_MODULE_PATH}
-    ${Jali_MODULE_PATH}/Modules
-    ${Jali_MODULE_PATH}/Utils)
+    ${Jali_MODULE_PATH}/Modules)
 
 message(STATUS "CMAKE MODULE PATH  ${CMAKE_MODULE_PATH}")
 
 # Addtional build options
 include(JaliOptions)
 
-# Find required Jali TPL
+
+# This will be the name of the overall target (no library named
+# libJali will be built)
+add_library(Jali INTERFACE)
+
+# Alias (Daniel Pfeiffer, Effective CMake) - this allows other
+# projects that use Pkg as a subproject to find_package(Nmspc::Pkg)
+# which does nothing because Pkg is already part of the project
+
+add_library(Jali::Jali ALIAS Jali)
+
+
+# Find Jali TPLs (MPI and UnitTest++ - others will be found in subdirs
+# as needed)
 include(JaliTPL)
 
-# The following line allows us to link third-party libraries not explicitly 
-# found by the logic in JaliTPL.cmake.
-link_directories(${CMAKE_INSTALL_PREFIX}/tpls/lib)
+
+# Recurse down and individual component libaries (error_handling,
+# geometry, state, mesh)
+add_subdirectory(src)
+
+target_link_libraries(Jali INTERFACE jali_error_handling)
+target_link_libraries(Jali INTERFACE jali_geometry)
+target_link_libraries(Jali INTERFACE jali_mesh)
+target_link_libraries(Jali INTERFACE jali_mesh_factory)
+target_link_libraries(Jali INTERFACE jali_state)
+
+## The following line allows us to link third-party libraries not explicitly 
+## found by the logic in JaliTPL.cmake.
+# link_directories(${CMAKE_INSTALL_PREFIX}/tpls/lib)       NOT NEEDED?
 
 # Check the mesh framework choice
 if ( (ENABLE_Unstructured)  AND
@@ -101,36 +128,20 @@ if ( (ENABLE_Unstructured)  AND
 endif()    
 
 
-# Some defines to indicate which partitioners are enabled
-if (Jali_TPL_METIS_ENABLED)
-  message(STATUS "Adding definition Jali_HAVE_METIS")
-  add_definitions("-DJali_HAVE_METIS")
-endif(Jali_TPL_METIS_ENABLED)
-if (Jali_TPL_Zoltan_ENABLED)
-  message(STATUS "Adding definition Jali_HAVE_ZOLTAN")
-  add_definitions("-DJali_HAVE_ZOLTAN")
-endif(Jali_TPL_Zoltan_ENABLED)
-
-
-
-
-# A property for accumulating the a global amanzi link line.
-set_property(GLOBAL PROPERTY Jali_LINK_LINE "-L${CMAKE_INSTALL_PREFIX}/lib")
+## A property for accumulating the a global amanzi link line.
+#NONEED set_property(GLOBAL PROPERTY Jali_LINK_LINE "-L${CMAKE_INSTALL_PREFIX}/lib")
 
 # A property for accumulating Jali library targets
-set_property(GLOBAL PROPERTY Jali_LIBRARY_TARGETS)
-set(Jali_LINK_LINE_FILE "${Jali_BINARY_DIR}/link_line")  # A filename to write link-line to.
-include(InstallManager)
-
-# Source files for all binaries and libraries found under src
-add_subdirectory(src)
+#NONEED set_property(GLOBAL PROPERTY Jali_LIBRARY_TARGETS)
+#NONEED set(Jali_LINK_LINE_FILE "${Jali_BINARY_DIR}/link_line")  # A filename to write link-line to.
+#NONEED include(InstallManager)
 
 # Define a list of all enabled TPLs. Must do this AFTER all the 
 # CMakelist.txt files have been processed!
-get_property(Jali_ENABLED_TPLS GLOBAL PROPERTY PACKAGES_FOUND)
+#NONEED get_property(Jali_ENABLED_TPLS GLOBAL PROPERTY PACKAGES_FOUND)
 
 # Make the exports only _after_ doing the build
-create_exports()
+######   create_exports()
 
 option(ENABLE_Config_Report "Print out detailed information at the end of a configuration")
 set(Jali_CONFIG_LOG "${Jali_BINARY_DIR}/jali-config.log"

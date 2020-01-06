@@ -52,7 +52,7 @@
 #
 
 # Jali module, include files found in JALI_MODULE_PATH
-include(PrintVariable)
+# include(PrintVariable)
 include(TestManager)
 
 #
@@ -64,50 +64,85 @@ include(TestManager)
 # through these variables.
 project(GEOMETRY)
 
-# Jali include directories
-include_directories(${DBC_SOURCE_DIR} ${FUNCS_SOURCE_DIR} ${ATK_SOURCE_DIR})
+
+set(GEOMETRY_headers
+  BoxRegion.hh
+  Domain.hh
+  GeometricModel.hh
+  Geometry.hh
+  LabeledSetRegion.hh
+  LogicalRegion.hh
+  PlaneRegion.hh
+  Point.hh
+  PointRegion.hh
+  PolygonRegion.hh
+  Region.hh
+  )
+
+set(GEOMETRY_sources
+  BoxRegion.cc
+  Domain.cc
+  GeometricModel.cc
+  Geometry.cc
+  LabeledSetRegion.cc
+  LogicalRegion.cc
+  PlaneRegion.cc
+  PointRegion.cc
+  Region.cc
+  )
 
 #
-# geometry library
+# Library Target: geometry
 #
-file (GLOB geometry_source_files "*.cc")
-file(GLOB  geometry_inc_files "*.h*")
-#add_Jali_library(geometry 
-#                   SOURCE ${geometry_source_files} HEADERS ${geometry_inc_files}
-#                   LINK_LIBS error_handling functions ${Teuchos_LIBRARIES} )
+add_library(jali_geometry ${GEOMETRY_headers} ${GEOMETRY_sources})
 
-add_Jali_library(geometry 
-                   SOURCE ${geometry_source_files} HEADERS ${geometry_inc_files}
-                   LINK_LIBS error_handling)
+# Alias (Daniel Pfeiffer, Effective CMake) - this allows other
+# projects that use Pkg as a subproject to find_package(Nmspc::Pkg)
+# which does nothing because Pkg is already part of the project
 
+add_library(Jali::jali_geometry ALIAS jali_geometry)
+
+# We should change install_interface to include/error_handling but that requires
+# changing all client codes
+target_include_directories(jali_geometry PUBLIC
+  $<BUILD_INTERFACE:${GEOMETRY_BINARY_DIR}>
+  $<BUILD_INTERFACE:${GEOMETRY_SOURCE_DIR}>
+  $<INSTALL_INTERFACE:include>
+  )
+
+# Make the error handling library a dependency of this target
+target_link_libraries(jali_geometry PUBLIC jali_error_handling)
 
 #
 # Unit tests
 #
 if (BUILD_TESTS)
     
-   # Add UnitTest ExodusII include directories
-   include_directories(${UnitTest_INCLUDE_DIRS})
+  target_include_directories(jali_geometry PRIVATE ${UnitTest_INCLUDE_DIRS})
+  target_link_libraries(jali_geometry PRIVATE ${UnitTest_LIBRARIES})
 
-   # Need to copy files for the tests 
-   if (NOT (${GEOMETRY_SOURCE_DIR} EQUAL ${GEOMETRY_BINARY_DIR}))
-       execute_process(COMMAND ${CMAKE_COMMAND} -E 
-         copy_directory ${GEOMETRY_SOURCE_DIR}/test ${GEOMETRY_BINARY_DIR}/test) 
+  # Need to copy files for the tests 
+  if (NOT (${GEOMETRY_SOURCE_DIR} EQUAL ${GEOMETRY_BINARY_DIR}))
+    execute_process(COMMAND ${CMAKE_COMMAND} -E 
+      copy_directory ${GEOMETRY_SOURCE_DIR}/test ${GEOMETRY_BINARY_DIR}/test) 
    endif()
 
    # Test: test point creation and deletion
    add_Jali_test(point-tests test_points
-                   KIND unit
-		   SOURCE test/Main.cc test/test_points.cc
-		   LINK_LIBS geometry ${UnitTest_LIBRARIES})
-
+     KIND unit
+     SOURCE test/Main.cc test/test_points.cc
+     LINK_LIBS jali_geometry ${UnitTest++_LIBRARIES})
+   
    # Test: test geometric operators
    add_Jali_test(geometry-operators test_geomops
-                   KIND unit
-                   SOURCE test/Main.cc test/test_geometric_ops.cc
-                   LINK_LIBS geometry ${UnitTest_LIBRARIES})
+     KIND unit
+     SOURCE test/Main.cc test/test_geometric_ops.cc
+     LINK_LIBS jali_geometry ${UnitTest++_LIBRARIES})
 
-   # Test: test region creation
+   # Test: test region creation - Why aren't we testing these?? Its
+   # possible if we switch from using the XML parser to something else
+   # to read the specification or just hard code the parameters.
+   
 #   add_Jali_test(geometry-region test_region
 #                   KIND unit
 #                   SOURCE  
@@ -118,7 +153,7 @@ if (BUILD_TESTS)
 #                          test/test_colorfunc_region.cc
 #			  test/test_polygon_region.cc
 #                   LINK_LIBS 
-#                          geometry
+#                          jali_geometry
 #                          ${UnitTest_LIBRARIES}
 #                          ${Teuchos_LIBRARIES}
 #                          ${Epetra_LIBRARIES})  
@@ -130,11 +165,10 @@ if (BUILD_TESTS)
 #                          test/Main.cc
 #                          test/test_geometric_model.cc
 #                   LINK_LIBS 
-#                          geometry
+#                          jali_geometry
 #                          ${UnitTest_LIBRARIES}
 #                          ${Teuchos_LIBRARIES}
 #                          ${Epetra_LIBRARIES})  
-           
 
 endif()
 

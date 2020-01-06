@@ -98,9 +98,8 @@ Mesh_simple::Mesh_simple(double x0, double y0, double z0,
 }
 
 
-// Have to define this dummy routine because we are not able to
-// eliminate the need in FrameworkTraits.cc which uses boost
-// functionality extensively
+// Have to define this dummy routine compiler does not know which mesh
+// framework will be called at runtime
 
 Mesh_simple::Mesh_simple(double x0, double y0,
                          double x1, double y1,
