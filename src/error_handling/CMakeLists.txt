@@ -66,17 +66,18 @@ project(ERROR)
 set(ERROR_headers
   errors.hh
   exceptions.hh)
+list(TRANSFORM ERROR_headers PREPEND "${ERROR_SOURCE_DIR}/")
 
 set(ERROR_sources
   errors.cc
   exceptions.cc)
 
-list(APPEND JALI_headers ${ERROR_headers})
 
 #
 # Library Target: error_handling
 #
-add_library(jali_error_handling ${ERROR_headers} ${ERROR_sources})
+add_library(jali_error_handling ${ERROR_sources})
+set_target_properties(jali_error_handling PROPERTIES PUBLIC_HEADER "${ERROR_headers}")
 
 # Alias (Daniel Pfeiffer, Effective CMake) - this allows other
 # projects that use Pkg as a subproject to find_package(Nmspc::Pkg)

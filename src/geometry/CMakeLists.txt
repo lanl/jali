@@ -78,6 +78,7 @@ set(GEOMETRY_headers
   PolygonRegion.hh
   Region.hh
   )
+list(TRANSFORM GEOMETRY_headers PREPEND "${GEOMETRY_SOURCE_DIR}/")
 
 set(GEOMETRY_sources
   BoxRegion.cc
@@ -94,7 +95,8 @@ set(GEOMETRY_sources
 #
 # Library Target: geometry
 #
-add_library(jali_geometry ${GEOMETRY_headers} ${GEOMETRY_sources})
+add_library(jali_geometry ${GEOMETRY_sources})
+set_target_properties(jali_geometry PROPERTIES PUBLIC_HEADER "${GEOMETRY_headers}")
 
 # Alias (Daniel Pfeiffer, Effective CMake) - this allows other
 # projects that use Pkg as a subproject to find_package(Nmspc::Pkg)

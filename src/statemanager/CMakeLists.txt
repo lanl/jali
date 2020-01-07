@@ -65,6 +65,7 @@ set(JALI_STATE_headers
   JaliState.h
   JaliStateVector.h
   )
+list(TRANSFORM JALI_STATE_headers PREPEND "${JALI_STATE_SOURCE_DIR}/")
 
 set(JALI_STATE_sources
   JaliState.cc
@@ -75,7 +76,8 @@ set(JALI_STATE_sources
 #
 # Library: 
 #
-add_library(jali_state ${JALI_STATE_headers} ${JALI_STATE_sources})
+add_library(jali_state ${JALI_STATE_sources})
+set_target_properties(jali_state PROPERTIES PUBLIC_HEADER "${JALI_STATE_headers}")
 
 # Alias (Daniel Pfeiffer, Effective CMake) - this allows other
 # projects that use Pkg as a subproject to find_package(Nmspc::Pkg)

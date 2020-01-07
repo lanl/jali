@@ -62,23 +62,10 @@ include(TestManager)
 # through these variables.
 project(MSTK_MESH)
 
-# External (TPL) include directories
-
-# Reverse the items in MSTK_INCLUDE_DIRS because when we ask the
-# include_directories command to prepend a set of directories using
-# the BEFORE keyword, it prepends each item in the MSTK_INCLUDE_DIRS
-# list, thereby effectively reversing the order of the
-# directories. For example, if we had MYDIRS=a;b;c and we specified
-# MYDIRS in the include_directories command, then the
-# INCLUDE_DIRECTORIES property for will end up with
-# c;b;a;whatever_existed_before
-
-#list(REVERSE MSTK_INCLUDE_DIRS)
-#include_directories(BEFORE ${MSTK_INCLUDE_DIRS})
-
-
 set(MSTK_MESH_headers
   Mesh_MSTK.hh)
+list(TRANSFORM MSTK_MESH_headers PREPEND "${MSTK_MESH_SOURCE_DIR}/")
+
 set(MSTK_MESH_sources
   Mesh_MSTK.cc)
 
@@ -86,7 +73,8 @@ set(MSTK_MESH_sources
 # Library: mstk_mesh
 #
 
-add_library(jali_mstk_mesh ${MSTK_MESH_headers} ${MSTK_MESH_sources})
+add_library(jali_mstk_mesh ${MSTK_MESH_sources})
+set_target_properties(jali_mstk_mesh PROPERTIES PUBLIC_HEADER "${MSTK_MESH_headers}")
 
 # Alias (Daniel Pfeiffer, Effective CMake) - this allows other
 # projects that use Pkg as a subproject to find_package(Nmspc::Pkg)
@@ -96,8 +84,7 @@ add_library(Jali::jali_mstk_mesh ALIAS jali_mstk_mesh)
 
 
 # Find MSTK. MSTK needs to be built with ExodusII, METIS and ZOLTAN
-#find_package(MSTK QUIET REQUIRED)  # defines target mstk::mstk
-find_package(MSTK REQUIRED)  # defines target mstk::mstk
+find_package(MSTK QUIET REQUIRED)  # defines target mstk::mstk
 
 target_link_libraries(jali_mstk_mesh PUBLIC ${MSTK_LIBRARIES})
 target_link_libraries(jali_mstk_mesh PUBLIC jali_error_handling)

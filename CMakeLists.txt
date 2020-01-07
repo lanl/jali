@@ -163,3 +163,28 @@ endif(DOXYGEN_FOUND)
 
 
 add_subdirectory(examples)
+
+set(jali_target_list jali_error_handling jali_geometry jali_state jali_mesh jali_mesh_factory jali_simple_mesh)
+if (ENABLE_MSTK_Mesh)
+  list(APPEND jali_target_list jali_mstk_mesh)
+endif ()
+
+#################################################################
+# Export Targets
+#########################################################
+
+install(TARGETS ${jali_target_list}
+  EXPORT JaliTargets
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
+  PUBLIC_HEADER DESTINATION include
+  INCLUDES DESTINATION include
+  )
+
+install(EXPORT JaliTargets
+  FILE JaliTargets.cmake
+  NAMESPACE Jali::
+  DESTINATION lib/cmake/Jali
+  )
+  

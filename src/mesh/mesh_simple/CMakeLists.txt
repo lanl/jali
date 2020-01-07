@@ -65,10 +65,13 @@ project(MESH_SIMPLE)
 # Library: simple_mesh
 set(MESH_SIMPLE_headers
   Mesh_simple.hh)
+list(TRANSFORM MESH_SIMPLE_headers PREPEND "${MESH_SIMPLE_SOURCE_DIR}/")
+
 set(MESH_SIMPLE_sources
   Mesh_simple.cc)
 
-add_library(jali_simple_mesh ${MESH_SIMPLE_headers} ${MESH_SIMPLE_sources})
+add_library(jali_simple_mesh ${MESH_SIMPLE_sources})
+set_target_properties(jali_simple_mesh PROPERTIES PUBLIC_HEADER "${MESH_SIMPLE_headers}")
 
 # Alias (Daniel Pfeiffer, Effective CMake) - this allows other
 # projects that use Pkg as a subproject to find_package(Nmspc::Pkg)

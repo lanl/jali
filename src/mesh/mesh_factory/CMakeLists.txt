@@ -71,11 +71,13 @@ project(MESH_FACTORY)
 #
 set(MESH_FACTORY_headers
   MeshFactory.hh)
+list(TRANSFORM MESH_FACTORY_headers PREPEND "${MESH_FACTORY_SOURCE_DIR}/")
 
 set(MESH_FACTORY_sources 
   MeshFactory.cc)
 
-add_library(jali_mesh_factory ${MESH_FACTORY_headers} ${MESH_FACTORY_sources})
+add_library(jali_mesh_factory ${MESH_FACTORY_sources})
+set_target_properties(jali_mesh_factory PROPERTIES PUBLIC_HEADER "${MESH_FACTORY_headers}")
 
 # Alias (Daniel Pfeiffer, Effective CMake) - this allows other
 # projects that use Pkg as a subproject to find_package(Nmspc::Pkg)
@@ -90,18 +92,8 @@ target_include_directories(jali_mesh_factory PUBLIC
   $<INSTALL_INTERFACE:include>
   )
 
-
-#target_link_libraries(mesh_factory ${Boost_LIBRARIES})
-
 target_link_libraries(jali_mesh_factory PUBLIC jali_error_handling)
 target_link_libraries(jali_mesh_factory PUBLIC jali_mesh)
-
-#target_link_libraries(jali_mesh_factory PUBLIC jali_simple_mesh)
-
-#if (ENABLE_MSTK_Mesh)
-#  target_link_libraries(jali_mesh_factory PUBLIC jali_mstk_mesh)
-#  target_compile_definitions(jali_mesh_factory PUBLIC HAVE_MSTK_MESH)
-#endif ()
 
 
 if (BUILD_TESTS)

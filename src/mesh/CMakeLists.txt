@@ -68,6 +68,7 @@ set(JALI_MESH_headers
   MeshTile.hh
   MeshSet.hh
   )
+list(TRANSFORM JALI_MESH_headers PREPEND "${JALI_MESH_SOURCE_DIR}/")
 
 set(JALI_MESH_sources
   Mesh.cc
@@ -77,6 +78,7 @@ set(JALI_MESH_sources
 
 
 add_library(jali_mesh ${JALI_MESH_sources})
+set_target_properties(jali_mesh PROPERTIES PUBLIC_HEADER "${JALI_MESH_headers}")
 
 # Alias (Daniel Pfeiffer, Effective CMake) - this allows other
 # projects that use Pkg as a subproject to find_package(Nmspc::Pkg)
@@ -113,13 +115,6 @@ if (ENABLE_ZOLTAN)
   find_package(Zoltan QUIET REQUIRED) # Defines Zoltan::Zoltan
   target_link_libraries(jali_mesh PUBLIC ${ZOLTAN_LIBRARIES})
 endif (ENABLE_ZOLTAN)
-
-#
-# Install Header files
-#
-#file(GLOB mesh_inc_files "*.hh")
-#add_install_include_file(${mesh_inc_files})
-
 
 # Factory class
 add_subdirectory(mesh_factory)
