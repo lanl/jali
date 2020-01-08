@@ -53,62 +53,74 @@
 #
 # Directories
 #
-set(Jali_BUILD_DIR  @Jali_BINARY_DIR@)
-set(Jali_SOURCE_DIR @Jali_SOURCE_DIR@)
+set(Jali_BUILD_DIR  @Jali_BINARY_DIR@ CACHE FILEPATH "DEPRECATED: Directory Jali is built in")
+set(Jali_SOURCE_DIR @Jali_SOURCE_DIR@ CACHE FILEPATH "DEPRECATED: Directory of Jali source")
 
-set(Jali_INSTALL_PREFIX @CMAKE_INSTALL_PREFIX@)
-set(Jali_INCLUDE_DIR    @CMAKE_INSTALL_PREFIX@/include)
-set(Jali_LIBRARY_DIR    @CMAKE_INSTALL_PREFIX@/lib)
-set(Jali_BINARY_DIR     @CMAKE_INSTALL_PREFIX@/bin)
+set(Jali_INSTALL_PREFIX @CMAKE_INSTALL_PREFIX@ CACHE FILEPATH "DEPRECATED: Where Jali is installed")
+set(Jali_INCLUDE_DIR    @CMAKE_INSTALL_PREFIX@/include CACHE FILEPATH "DEPRECATED: Where Jali include files are installed")
+set(Jali_LIBRARY_DIR    @CMAKE_INSTALL_PREFIX@/lib CACHE FILEPATH "DEPRECATED: Where Jali libraries are installed")
+set(Jali_BINARY_DIR     @CMAKE_INSTALL_PREFIX@/bin CACHE FILEPATH "DEPRECATED: Whre Jali executables are installed")
 
-set(Jali_INCLUDE_DIRS   @Jali_INCLUDE_DIRS@)
-set(Jali_LIBRARY_DIRS   @Jali_LIBRARY_DIRS@)
-set(Jali_LIBRARIES      @Jali_LIBRARIES@)
-
-#
-# Version
-#
-set(Jali_VERSION          @Jali_VERSION@)
+set(Jali_INCLUDE_DIRS   @Jali_INCLUDE_DIRS@ CACHE FILEPATH "DEPRECATED: An alias for Jali_INCLUDE_DIR?")
+set(Jali_LIBRARY_DIRS   @Jali_LIBRARY_DIRS@ CACHE FILEPATH "DEPRECATED: An alias for Jali_LIBRARY_DIR?")
 
 #
 # Compilation 
 #
-set(Jali_BUILD_TYPE        @CMAKE_BUILD_TYPE@)
+set(Jali_C_COMPILER        @CMAKE_C_COMPILER@ CACHE FILEPATH "DEPRECATED: C Compiler used to compile Jali")
+set(Jali_CXX_COMPILER      @CMAKE_CXX_COMPILER@ CACHE FILEPATH "DEPRECATED: C++ Compiler used to compile Jali")
+set(Jali_Fortran_COMPILER  @CMAKE_Fortran_COMPILER@ CACHE FILEPATH "DEPRECATED: Fortran Compiler used to compile - why do we even need this")
 
-set(Jali_BUILD_SHARED_LIBS @BUILD_SHARED_LIBS@)
-
-set(Jali_C_COMPILER        @CMAKE_C_COMPILER@)
-set(Jali_CXX_COMPILER      @CMAKE_CXX_COMPILER@)
-set(Jali_Fortran_COMPILER  @CMAKE_Fortran_COMPILER@)
-
-set(Jali_C_COMPILER_FLAGS  "@CMAKE_C_FLAGS@ ${CMAKE_C_FLAGS_${CMAKE_BUILD_TYPE}}")
-set(Jali_CXX_COMPILER_FLAGS  "@CMAKE_CXX_FLAGS@ ${CMAKE_CXX_FLAGS_${CMAKE_BUILD_TYPE}}")
-set(Jali_Fortran_COMPILER_FLAGS  "@CMAKE_Fortran_FLAGS@ ${CMAKE_Fortran_FLAGS_${CMAKE_BUILD_TYPE}}")
+set(Jali_C_COMPILER_FLAGS  "@CMAKE_C_FLAGS@ ${CMAKE_C_FLAGS_${CMAKE_BUILD_TYPE}}" CACHE STRING "DEPRECATED: C compiler flags used")
+set(Jali_CXX_COMPILER_FLAGS  "@CMAKE_CXX_FLAGS@ ${CMAKE_CXX_FLAGS_${CMAKE_BUILD_TYPE}}" CACHE STRING "DEPRECATED: C++ compiler flags used"))
+set(Jali_Fortran_COMPILER_FLAGS  "@CMAKE_Fortran_FLAGS@ ${CMAKE_Fortran_FLAGS_${CMAKE_BUILD_TYPE}}" CACHE STRING "DEPRECATED: Fortran compiler flags used")
 
 # 
 # Code configuration options
 #
-
-# Grid support
-set(Jali_ENABLE_STRUCTURED      @ENABLE_Structured@)
-set(Jali_ENABLE_UNSTRUCTURED    @ENABLE_Unstructured@)
 
 # Mesh frameworks
 set(Jali_ENABLE_STK_Mesh        @ENABLE_STK_Mesh@)
 set(Jali_ENABLE_MOAB_Mesh       @ENABLE_MOAB_Mesh@)
 set(Jali_ENABLE_MSTK_Mesh       @ENABLE_MSTK_Mesh@)
 
-# CCSE Options
-set(Jali_CCSE_ENABLE_MPI        @ENABLE_MPI@)
-set(Jali_CCSE_ENABLE_OpenMP     @ENABLE_OpenMP@)
-set(Jali_CCSE_SPACEDIM          @Jali_SPACEDIM@)
-set(Jali_CCSE_PRECISION         @Jali_PRECISION@)
-set(Jali_CCSE_DEFINES           @BL_DEFINES@)
+# Do we need these? Won't we get it when we import the Jali targets?
+set(Jali_LIBRARIES      @Jali_LIBRARIES@ CACHE STRING "Jali library targets")
+list(TRANSFORM Jali_LIBRARIES PREPEND "Jali::")
 
-# External Packages
-# Configuration file that defines the TPL include paths
-set(Jali_ENABLED_TPLS           @Jali_ENABLED_TPLS@)
-include("@CMAKE_INSTALL_PREFIX@/lib/JaliConfigTPL.cmake")
+#
+# Version
+#
+set(Jali_VERSION_MAJOR @Jali_VERSION_MAJOR@ CACHE STRING "Major version number of Jali")
+set(Jali_VERSION_MINOR @Jali_VERSION_MINOR@ CACHE STRING "Minor version number of Jali")
+set(Jali_VERSION_PATCH @Jali_VERSION_PATCH@ CACHE STRING "Patch version number of Jali")
+set(Jali_VERSION       "@Jali_VERSION_MAJOR@.@Jali_VERSION_MINOR@.@Jali_VERSION_PATCH@" CACHE STRING "Jali Version")
+
+install(FILES
+  ${PROJECT_SOURCE_DIR}/config/cmake/Modules/FindExodusII.cmake
+  ${PROJECT_SOURCE_DIR}/config/cmake/Modules/FindMETIS.cmake
+  ${PROJECT_SOURCE_DIR}/config/cmake/Modules/FindnetCDF.cmake
+  ${PROJECT_SOURCE_DIR}/config/cmake/Modules/FindParMETIS.cmake
+  ${PROJECT_SOURCE_DIR}/config/cmake/Modules/FindZoltan.cmake
+  ${PROJECT_SOURCE_DIR}/config/cmake/Modules/FindUnitTest++.cmake
+  DESTINATION lib/cmake/jali/modules)
+
+# Find target dependencies (See Daniel Pfeifer, Effective CMake)
+# If you wish to use the modules Jali used to find its dependencies
+# include
+# @CMAKE_INSTALL_PREFIX@/lib/cmake/jali/modules
+# in the cmake module path
+include(CMakeFindDependencyMacro)
+if (Jali_ENABLE_MSTK_Mesh)
+  find_dependency(MSTK)
+endif ()
+
+find_dependency(Boost)
+
+find_dependency(METIS)
+find_dependency(Zoltan)
+
+find_dependency(ExodusII)
 
 # 
 # Exported Targets
