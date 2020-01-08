@@ -65,10 +65,16 @@ if (CMAKE_VERSION_MAJOR EQUAL 3 AND CMAKE_VERSION_MINOR GREATER_EQUAL 13)
   CMAKE_POLICY(SET CMP0079 NEW)
 endif()
 
+
+set(Jali_VERSION_MAJOR 1)
+set(Jali_VERSION_MINOR 1)
+set(Jali_VERSION_PATCH 0)
+
+
 # Useful variables pointing to directories in the source tree
 set(Jali_SOURCE_SRC_DIR      "${Jali_SOURCE_DIR}/src")
 set(Jali_SOURCE_TOOLS_DIR    "${Jali_SOURCE_DIR}/tools")
-set(Jali_SOURCE_CONFIG_DIR    "${Jali_SOURCE_DIR}/config")
+set(Jali_SOURCE_CONFIG_DIR   "${Jali_SOURCE_DIR}/config")
 set(Jali_PYTHON_DIR          "${Jali_SOURCE_DIR}/tools/py_lib")
 
 # Set the module search path so find_package and include commands
@@ -185,6 +191,6 @@ install(TARGETS ${jali_target_list}
 install(EXPORT JaliTargets
   FILE JaliTargets.cmake
   NAMESPACE Jali::
-  DESTINATION lib/cmake/Jali
+  DESTINATION lib/cmake/jali
   )
   
