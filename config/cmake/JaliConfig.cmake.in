@@ -72,7 +72,7 @@ set(Jali_CXX_COMPILER      @CMAKE_CXX_COMPILER@ CACHE FILEPATH "DEPRECATED: C++ 
 set(Jali_Fortran_COMPILER  @CMAKE_Fortran_COMPILER@ CACHE FILEPATH "DEPRECATED: Fortran Compiler used to compile - why do we even need this")
 
 set(Jali_C_COMPILER_FLAGS  "@CMAKE_C_FLAGS@ ${CMAKE_C_FLAGS_${CMAKE_BUILD_TYPE}}" CACHE STRING "DEPRECATED: C compiler flags used")
-set(Jali_CXX_COMPILER_FLAGS  "@CMAKE_CXX_FLAGS@ ${CMAKE_CXX_FLAGS_${CMAKE_BUILD_TYPE}}" CACHE STRING "DEPRECATED: C++ compiler flags used"))
+set(Jali_CXX_COMPILER_FLAGS  "@CMAKE_CXX_FLAGS@ ${CMAKE_CXX_FLAGS_${CMAKE_BUILD_TYPE}}" CACHE STRING "DEPRECATED: C++ compiler flags used")
 set(Jali_Fortran_COMPILER_FLAGS  "@CMAKE_Fortran_FLAGS@ ${CMAKE_Fortran_FLAGS_${CMAKE_BUILD_TYPE}}" CACHE STRING "DEPRECATED: Fortran compiler flags used")
 
 # 
@@ -108,8 +108,9 @@ install(FILES
 # Find target dependencies (See Daniel Pfeifer, Effective CMake)
 # If you wish to use the modules Jali used to find its dependencies
 # include
-# @CMAKE_INSTALL_PREFIX@/lib/cmake/jali/modules
+# @CMAKE_INSTALL_PREFIX@/lib/cmake/Jali/modules
 # in the cmake module path
+
 include(CMakeFindDependencyMacro)
 if (Jali_ENABLE_MSTK_Mesh)
   find_dependency(MSTK)
