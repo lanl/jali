@@ -50,29 +50,37 @@
 cmake_minimum_required(VERSION 3.11)
 set(CMAKE_CTEST_COMMAND ${CMAKE_CTEST_COMMAND})  
 
-
-# Enable testing, ctest needs this
-# all add_test commands are ignored unless this is called!
-enable_testing()
-
 # Define the project name
 # This command will define
 #     Jali_SOURCE_DIR
 #     Jali_BINARY_DIR
 project(Jali)
 
-if (CMAKE_VERSION_MAJOR EQUAL 3 AND CMAKE_VERSION_MINOR GREATER_EQUAL 13)
-  CMAKE_POLICY(SET CMP0079 NEW)
-endif()
-
-
 set(Jali_VERSION_MAJOR 1)
 set(Jali_VERSION_MINOR 1)
 set(Jali_VERSION_PATCH 0)
 
 
+if (CMAKE_VERSION_MAJOR EQUAL 3 AND CMAKE_VERSION_MINOR GREATER_EQUAL 13)
+  CMAKE_POLICY(SET CMP0079 NEW)
+endif()
+
+enable_language(C)
+enable_language(CXX)
+
+# ENABLE C++11 support
+
+include(CheckCXXCompilerFlag)
+CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
+if(COMPILER_SUPPORTS_CXX11)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+else()
+    message(FATAL_ERROR "Compiler ${CMAKE_CXX_COMPILER} has no C++11 support.")
+endif()
+
+
+
 # Useful variables pointing to directories in the source tree
-set(Jali_SOURCE_SRC_DIR      "${Jali_SOURCE_DIR}/src")
 set(Jali_SOURCE_TOOLS_DIR    "${Jali_SOURCE_DIR}/tools")
 set(Jali_SOURCE_CONFIG_DIR   "${Jali_SOURCE_DIR}/config")
 set(Jali_PYTHON_DIR          "${Jali_SOURCE_DIR}/tools/py_lib")
@@ -86,12 +94,10 @@ set(CMAKE_MODULE_PATH
 
 message(STATUS "CMAKE MODULE PATH  ${CMAKE_MODULE_PATH}")
 
-# Addtional build options
-include(JaliOptions)
-
 
 # This will be the name of the overall target (no library named
 # libJali will be built)
+
 add_library(Jali INTERFACE)
 
 # Alias (Daniel Pfeiffer, Effective CMake) - this allows other
@@ -101,13 +107,45 @@ add_library(Jali INTERFACE)
 add_library(Jali::Jali ALIAS Jali)
 
 
-# Find Jali TPLs (MPI and UnitTest++ - others will be found in subdirs
-# as needed)
+# Mesh frameworks
+option(ENABLE_MOAB_Mesh "Enable MOAB mesh framework" OFF)
+option(ENABLE_STK_Mesh "Enable STK mesh framework" OFF)
+option(ENABLE_MSTK_Mesh "Enable MSTK mesh framework" ON)
+if (NOT ENABLE_MOAB_Mesh AND
+    NOT ENABLE_STK_Mesh AND
+    NOT ENABLE_MSTK_Mesh)
+  message(STATUS "No parallel unstructured framework enabled?")
+endif ()
+
+# Testing
+option(ENABLE_TESTS
+  "Build Jali unit tests. Requires UnitTest++" ON)     # can be overridden
+
+if (ENABLE_TESTS)
+  # Enable testing, ctest needs this
+  # all add_test commands are ignored unless this is called!
+  enable_testing()
+  
+  set(BUILD_TESTS 1)
+
+  # Some platforms require all binaries linking to MPI
+  # only run through the MPIEXEC binary
+  option(TESTS_REQUIRE_MPIEXEC "Run all tests with the MPIEXEC binary" FALSE)
+  
+  # Need this option if the PATH environment does not include '.'
+  option(TESTS_REQUIRE_FULLPATH "Append full path to test binaries" TRUE)
+endif()    
+
+
+# Find TPLs
+
 include(JaliTPL)
 
 
+# Now actually process the source
 # Recurse down and individual component libaries (error_handling,
 # geometry, state, mesh)
+
 add_subdirectory(src)
 
 target_link_libraries(Jali INTERFACE jali_error_handling)
@@ -116,68 +154,18 @@ target_link_libraries(Jali INTERFACE jali_mesh)
 target_link_libraries(Jali INTERFACE jali_mesh_factory)
 target_link_libraries(Jali INTERFACE jali_state)
 
-## The following line allows us to link third-party libraries not explicitly 
-## found by the logic in JaliTPL.cmake.
-# link_directories(${CMAKE_INSTALL_PREFIX}/tpls/lib)       NOT NEEDED?
 
-# Check the mesh framework choice
-if ( (ENABLE_Unstructured)  AND
-     (NOT ENABLE_STK_Mesh)  AND
-     (NOT ENABLE_MOAB_Mesh) AND
-     (NOT ENABLE_MSTK_Mesh)
-   )
-    message(FATAL_ERROR "Missing a mesh framework\n"
-                        "Please enable at least one of the following mesh frameworks\n"
-                        "-D ENABLE_MOAB_Mesh:BOOL=ON\n"
-                        "-D ENABLE_STK_Mesh:BOOL=ON\n"
-                        "-D ENABLE_MSTK_Mesh:BOOL=ON\n")
-endif()    
-
-
-## A property for accumulating the a global amanzi link line.
-#NONEED set_property(GLOBAL PROPERTY Jali_LINK_LINE "-L${CMAKE_INSTALL_PREFIX}/lib")
-
-# A property for accumulating Jali library targets
-#NONEED set_property(GLOBAL PROPERTY Jali_LIBRARY_TARGETS)
-#NONEED set(Jali_LINK_LINE_FILE "${Jali_BINARY_DIR}/link_line")  # A filename to write link-line to.
-#NONEED include(InstallManager)
-
-# Define a list of all enabled TPLs. Must do this AFTER all the 
-# CMakelist.txt files have been processed!
-#NONEED get_property(Jali_ENABLED_TPLS GLOBAL PROPERTY PACKAGES_FOUND)
-
-# Make the exports only _after_ doing the build
-######   create_exports()
-
-option(ENABLE_Config_Report "Print out detailed information at the end of a configuration")
-set(Jali_CONFIG_LOG "${Jali_BINARY_DIR}/jali-config.log"
-    CACHE string "Jali configuration log file")
-include(JaliConfigReport)
-
-
-# add a target to generate API documentation with Doxygen
-find_package(Doxygen)
-if(DOXYGEN_FOUND)
-  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config/doxygen/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
-  add_custom_target(doc
-    ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-    COMMENT "Generating API documentation with Doxygen" VERBATIM
-    )
-endif(DOXYGEN_FOUND)
-
-
+# Example usage code for users
 
 add_subdirectory(examples)
+
+
+# Set up targets and export
 
 set(jali_target_list jali_error_handling jali_geometry jali_state jali_mesh jali_mesh_factory jali_simple_mesh)
 if (ENABLE_MSTK_Mesh)
   list(APPEND jali_target_list jali_mstk_mesh)
 endif ()
-
-#################################################################
-# Export Targets
-#########################################################
 
 install(TARGETS ${jali_target_list}
   EXPORT JaliTargets
