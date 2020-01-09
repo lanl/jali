@@ -62,6 +62,14 @@ endif(${CMAKE_VERSION} VERSION_GREATER 3.12)
 ##############################################################################
 ENABLE_LANGUAGE(C CXX Fortran)  # Fortran for Exodus II fortran interface
 
+
+
+##############################################################################
+#-------------------------- Optional Libraries ------------------------------#
+##############################################################################
+
+
+
 find_package(MPI REQUIRED)
   
 # Warn the user if MPI information is not found
@@ -107,16 +115,8 @@ if (NOT MPI_EXEC_MAX_NUMPROCS)
   endif()
 endif()  
 
-
-##############################################################################
-#-------------------------- Optional Libraries ------------------------------#
-##############################################################################
-
-##############################################################################
 # UnitTest++ - http://unittest-cpp.sourceforge.net/
-##############################################################################
-option(ENABLE_UnitTest "Build Jali unit tests. Requires UnitTest++" ON)
-if (ENABLE_UnitTest)
+if (ENABLE_TESTS)
       # For backward compatibility allow UnitTest_DIR for a bit more time
   if (NOT UnitTest++_DIR AND UnitTest_DIR)
     set(UnitTest++_DIR ${UnitTest_DIR})
@@ -140,4 +140,13 @@ if (ENABLE_UnitTest)
   message(STATUS "Found UnitTest++: ${UnitTest++_LIBRARIES}")
 endif()    
 
-
+# add a target to generate API documentation with Doxygen
+find_package(Doxygen)
+if(DOXYGEN_FOUND)
+  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config/doxygen/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
+  add_custom_target(doc
+    ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    COMMENT "Generating API documentation with Doxygen" VERBATIM
+    )
+endif(DOXYGEN_FOUND)
