@@ -194,6 +194,7 @@ MeshFactory::create(std::string const& filename) {
   std::shared_ptr<Mesh> result;
   try {
     switch (framework_) {
+#ifdef HAVE_MSTK_MESH
       case MSTK: {        
         result =
             std::make_shared<Mesh_MSTK>(filename, comm_, geometric_model_,
@@ -213,6 +214,7 @@ MeshFactory::create(std::string const& filename) {
         return result;
         break;
       }
+#endif
       default:
         errmsg.add_data("Chosen framework cannot import meshes");
         ierr = 1;
@@ -307,6 +309,7 @@ MeshFactory::create(double const x0, double const y0, double const z0,
         }
         break;
       }
+#ifdef HAVE_MSTK_MESH
       case MSTK: {
         result =
             std::make_shared<Mesh_MSTK>(x0, y0, z0, x1, y1, z1, nx, ny, nz,
@@ -320,6 +323,7 @@ MeshFactory::create(double const x0, double const y0, double const z0,
                                         partitioner_, contiguous_gids_);
         return result;
       }
+#endif
       default:
         ierr = 1;
         errmsg.add_data("Chosen framework cannot generate meshes");
@@ -411,6 +415,7 @@ MeshFactory::create(double const x0, double const y0,
         }
         break;
       }
+#ifdef HAVE_MSTK_MESH
       case MSTK: {
         result =
             std::make_shared<Mesh_MSTK>(x0, y0, x1, y1, nx, ny,
@@ -425,6 +430,7 @@ MeshFactory::create(double const x0, double const y0,
                                         geom_type_);
         return result;
       }
+#endif
       default: {
         errmsg.add_data("Chosen framework cannnot generate meshes");        
       }
@@ -554,6 +560,7 @@ MeshFactory::create(std::shared_ptr<Mesh> const inmesh,
 
   try {
     switch (framework_) {
+#ifdef HAVE_MSTK_MESH
       case MSTK: {
         result =
             std::make_shared<Mesh_MSTK>(*inmesh,
@@ -570,6 +577,7 @@ MeshFactory::create(std::shared_ptr<Mesh> const inmesh,
                                         geom_type_);
         return result;
       }
+#endif
       default: {
         ierr = 1;
         errmsg.add_data("Chosen framework cannot extract meshes");
