@@ -101,7 +101,6 @@ if (BUILD_TESTS)
     test/test_exceptions.cc
     )
 
-  message(STATUS "UnitTest++_LIBRARIES ${UnitTest++_LIBRARIES}")
   add_Jali_test(test_error_handling test_error_handling
     KIND unit
     SOURCE test/Main.cc ${error_test_files}
