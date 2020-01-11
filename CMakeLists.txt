@@ -61,12 +61,16 @@ set(Jali_VERSION_MINOR 1)
 set(Jali_VERSION_PATCH 0)
 
 
-if (CMAKE_VERSION_MAJOR EQUAL 3 AND CMAKE_VERSION_MINOR GREATER_EQUAL 13)
-  CMAKE_POLICY(SET CMP0079 NEW)
+if (CMAKE_VERSION_MAJOR GREATER_EQUAL 3.13)
+  CMAKE_POLICY(SET CMP0079 NEW)  # allow target_link_libraries to reference
+                                 # targets from other directories
+endif()
+if (CMAKE_VERSION VERSION_GREATER_EQUAL 3.12)
+  cmake_policy(SET CMP0074 NEW)  # Don't ignore Pkg_ROOT variables
 endif()
 
-enable_language(C)
-enable_language(CXX)
+
+enable_language(C CXX)
 
 # ENABLE C++11 support
 
@@ -77,6 +81,54 @@ if(COMPILER_SUPPORTS_CXX11)
 else()
     message(FATAL_ERROR "Compiler ${CMAKE_CXX_COMPILER} has no C++11 support.")
 endif()
+
+
+
+# Jali needs MPI
+
+find_package(MPI REQUIRED)
+  
+if (MPI_FOUND)
+  set(CMAKE_C_COMPILER ${MPI_C_COMPILER} CACHE FILEPATH "MPI C wrapper to use" FORCE)
+  set(CMAKE_CXX_COMPILER ${MPI_CXX_COMPILER} CACHE FILEPATH "MPI C++ wrapper to use" FORCE)
+endif ()
+
+
+# --- Jali uses MPI_EXEC* not MPIEXEC* variables. This allows the user to 
+#     override the find package results.
+
+# - MPI execute binary
+if (MPIEXEC)
+  set(MPI_EXEC ${MPIEXEC} CACHE STRING "Custom MPI Executable specified" FORCE)
+else()
+  set(MPI_EXEC ${MPIEXEC_EXECUTABLE} CACHE STRING "MPI Executable found by FindMPI" FORCE)
+endif()
+
+
+# INTERNAL - Number of MPI ranks flag
+set(MPI_EXEC_NUMPROCS_FLAG_DFLT -n)
+if (NOT MPI_EXEC_NUMPROCS_FLAG)
+  if (MPIEXEC_NUMPROC_FLAG)
+    set(MPI_EXEC_NUMPROCS_FLAG "${MPIEXEC_NUMPROC_FLAG}" CACHE STRING "Set MPI number of procs flag from FindMPI")
+  else()
+    set(MPI_EXEC_NUMPROCS_FLAG ${MPI_EXEC_NUMPROCS_FLAG_DFLT})
+  endif()
+endif()
+  
+# INTERNAL - Maximum number of processors for the test suite Some
+# tests require too many processors and it increases the execution
+# time considerably.
+set(MPI_EXEC_MAX_NUMPROCS_DFLT 8)
+if (NOT MPI_EXEC_MAX_NUMPROCS)
+  include(ProcessorCount)
+  ProcessorCount(proc_count)
+  if (NOT proc_count EQUAL 0)
+    math(EXPR MPI_EXEC_MAX_NUMPROCS "${proc_count} * 2") 
+    message(STATUS "Detected ${proc_count} processors and will set maximum to ${MPI_EXEC_MAX_NUMPROCS}")
+  else()
+    set(MPI_EXEC_MAX_NUMPROCS ${MPI_EXEC_MAX_NUMPROCS_DFLT})
+  endif()
+endif()  
 
 
 
@@ -134,15 +186,32 @@ if (ENABLE_TESTS)
   
   # Need this option if the PATH environment does not include '.'
   option(TESTS_REQUIRE_FULLPATH "Append full path to test binaries" TRUE)
+
+  # For backward compatibility allow UnitTest_DIR for a bit more time
+  if (NOT UnitTest++_DIR AND UnitTest_DIR)
+    set(UnitTest++_DIR ${UnitTest_DIR})
+  endif ()
+
+  set(unittest_dir_save ${UnitTest++_DIR})
+  find_package(UnitTest++ QUIET CONFIG PATHS ${UnitTest++_DIR})  # Try to discover thru cmake config file
+
+  if (UnitTest++_FOUND)
+    # UnitTest++ sets a weird path for it's includes
+    set(UnitTest++_INCLUDE_DIRS ${UTPP_INCLUDE_DIRS}/UnitTest++)
+    
+    # Also it sets the target name as UnitTest++ but does not set the
+    # LIBRARIES variable
+    set(UnitTest++_LIBRARIES UnitTest++)
+  else ()
+    set(UnitTest++_DIR ${unittest_dir_save})
+    find_package(UnitTest++ QUIET REQUIRED MODULE)  # fallback to module
+  endif ()
+
+  message(STATUS "Found UnitTest++: ${UnitTest++_LIBRARIES}")
 endif()    
 
 
-# Find TPLs
-
-include(JaliTPL)
-
-
-# Now actually process the source
+# Process source directories
 # Recurse down and individual component libaries (error_handling,
 # geometry, state, mesh)
 
@@ -179,6 +248,20 @@ install(TARGETS ${jali_target_list}
 install(EXPORT JaliTargets
   FILE JaliTargets.cmake
   NAMESPACE Jali::
-  DESTINATION lib/cmake/jali
+  DESTINATION lib/cmake/Jali
   )
   
+# Install the config file after filling in variables delimited by @..@
+configure_file(${PROJECT_SOURCE_DIR}/config/cmake/JaliConfig.cmake.in
+  ${PROJECT_BINARY_DIR}/JaliConfig.cmake @ONLY)
+install(FILES ${PROJECT_BINARY_DIR}/JaliConfig.cmake
+  DESTINATION lib/cmake/Jali)
+
+# Also install any module files used for finding the dependencies
+
+install(FILES
+  ${PROJECT_SOURCE_DIR}/config/cmake/Modules/FindMETIS.cmake
+  ${PROJECT_SOURCE_DIR}/config/cmake/Modules/FindZoltan.cmake
+  ${PROJECT_SOURCE_DIR}/config/cmake/Modules/FindExodusII.cmake
+  DESTINATION lib/cmake/Jali/modules)
+
