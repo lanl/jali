@@ -85,6 +85,13 @@ add_library(Jali::jali_mstk_mesh ALIAS jali_mstk_mesh)
 
 # Find MSTK. MSTK needs to be built with ExodusII, METIS and ZOLTAN
 find_package(MSTK QUIET REQUIRED)  # defines target mstk::mstk
+set_property(TARGET ${MSTK_LIBRARIES} PROPERTY IMPORTED_GLOBAL TRUE)
+message(STATUS "Found MSTK: " ${MSTK_LIBRARIES})
+
+# Somehow the Pkg_LIBRARIES names are not persisting outside of this dir
+set(Zoltan_LIBRARIES ${Zoltan_LIBRARIES} PARENT_SCOPE)
+set(METIS_LIBRARIES ${METIS_LIBRARIES} PARENT_SCOPE)
+set(ExodusII_LIBRARIES ${ExodusII_LIBRARIES} PARENT_SCOPE)
 
 target_link_libraries(jali_mstk_mesh PUBLIC ${MSTK_LIBRARIES})
 target_link_libraries(jali_mstk_mesh PUBLIC jali_error_handling)
