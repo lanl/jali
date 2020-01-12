@@ -51,7 +51,7 @@
 #
 
 # Jali module, include files found in JALI_MODULE_PATH
-include(PrintVariable)
+# include(PrintVariable)
 
 #
 # Define a project name
@@ -60,216 +60,229 @@ include(PrintVariable)
 #   MESH_BINARY_DIR
 # Other projects (subdirectories) can reference this directory
 # through these variables.
-project(MESH)
+project(JALI_MESH)
 
-# Jali include directories
-include_directories(${DBC_SOURCE_DIR})
-include_directories(${GEOMETRY_SOURCE_DIR})
-include_directories(${ATK_SOURCE_DIR})
+set(JALI_MESH_headers
+  MeshDefs.hh
+  Mesh.hh
+  MeshTile.hh
+  MeshSet.hh
+  )
+list(TRANSFORM JALI_MESH_headers PREPEND "${JALI_MESH_SOURCE_DIR}/")
 
-include_directories(${Boost_INCLUDE_DIRS})
+set(JALI_MESH_sources
+  Mesh.cc
+  MeshTile.cc
+  MeshSet.cc
+  )
 
 
-# Check which partitioners are enabled and set some variables that
-# can be checked in the code with an ifdef statement. ENABLE_METIS,
-# ENABLE_ZOLTAN, METIS_DIR and ZOLTAN_DIR are all from Jali-tpl-config.cmake
+add_library(jali_mesh ${JALI_MESH_sources})
+set_target_properties(jali_mesh PROPERTIES PUBLIC_HEADER "${JALI_MESH_headers}")
 
-if (ENABLE_METIS)
-  message(STATUS "Adding definition Jali_HAVE_METIS")
-  add_definitions(-DJali_HAVE_METIS)
-  include_directories(${METIS_DIR}/include)
-endif ()
+# Alias (Daniel Pfeiffer, Effective CMake) - this allows other
+# projects that use Pkg as a subproject to find_package(Nmspc::Pkg)
+# which does nothing because Pkg is already part of the project
 
-if (ENABLE_ZOLTAN)
-  message(STATUS "Adding definition Jali_HAVE_ZOLTAN")
-  add_definitions(-DJali_HAVE_ZOLTAN)
-  include_directories(${ZOLTAN_DIR}/include)
-endif ()
-if ((NOT ENABLE_METIS) AND (NOT ENABLE_ZOLTAN))
-  message(STATUS "No partitioner enabled?")
-endif()
+add_library(Jali::jali_mesh ALIAS jali_mesh)
 
+
+# We should change install_interface to include/jali/jali_mesh
+# but that requires changing all client codes
+target_include_directories(jali_mesh PUBLIC
+  $<BUILD_INTERFACE:${JALI_MESH_BINARY_DIR}>
+  $<BUILD_INTERFACE:${JALI_MESH_SOURCE_DIR}>
+  $<INSTALL_INTERFACE:include>
+  )
 
 
 #
 # Library: mesh
 #
-set(mesh_link_libs geometry)
-if (ENABLE_METIS)
-  list(APPEND mesh_link_libs ${METIS_LIBRARIES})
-endif (ENABLE_METIS)
-if (ENABLE_ZOLTAN)
-  list(APPEND mesh_link_libs ${ZOLTAN_LIBRARIES})
-endif (ENABLE_ZOLTAN)
 
-add_Jali_library(mesh SOURCE Mesh.cc MeshTile.cc MeshSet.cc 
-  LINK_LIBS ${mesh_link_libs})
-
-#
-# Library: mesh_audit
-#
-#add_Jali_library(mesh_audit SOURCE MeshAudit.cc LINK_LIBS error_handling)
-
-#
-# Install Header files
-#
-file(GLOB mesh_inc_files "*.hh")
-add_install_include_file(${mesh_inc_files})
+target_link_libraries(jali_mesh PUBLIC jali_geometry)
+target_link_libraries(jali_mesh PUBLIC jali_error_handling)
 
 
+# Factory class
+add_subdirectory(mesh_factory)
 
 # Derived and support classes
 
 add_subdirectory(mesh_simple)
+target_link_libraries(jali_mesh PUBLIC jali_simple_mesh)
 
 # Mesh Frameworks
 
 # STK (Trilinos Package)
 #if (ENABLE_STK_Mesh)
 #    add_subdirectory(mesh_stk)
+#
+#  target_link_libraries(jali_mesh PUBLIC jali_stk_mesh)
+#  target_compile_defintions(jali_mesh PUBLIC HAVE_STK_MESH)
 #endif(ENABLE_STK_Mesh)    
 
 # MOAB Mesh framework
 #if (ENABLE_MOAB_Mesh)
 #    add_subdirectory(mesh_moab)
+#
+#    target_link_libraries(jali_mesh PUBLIC jali_moab_mesh)
+#    target_compile_defintions(jali_mesh PUBLIC HAVE_MOAB_MESH)
 #endif(ENABLE_MOAB_Mesh)    
 
 # MSTK Mesh framework
 if (ENABLE_MSTK_Mesh)
-    add_subdirectory(mesh_mstk)
+  add_subdirectory(mesh_mstk)
+
+  target_link_libraries(jali_mesh PUBLIC jali_mstk_mesh)
+  target_compile_definitions(jali_mesh PUBLIC HAVE_MSTK_MESH)
 endif(ENABLE_MSTK_Mesh)    
 
 
 
-# Factory class
 
-add_subdirectory(mesh_factory)
+
+# Add third party libraries as dependencies (found in JaliTPL.cmake
+# through top level CMakeList.txt)
+if (NOT METIS_LIBRARIES OR NOT TARGET ${METIS_LIBRARIES})
+  find_package(METIS QUIET REQUIRED)   # uses MSTK module
+  message(STATUS "Found Metis library: ${METIS_LIBRARY}")
+endif ()
+
+# Make METIS a dependency of jali_mesh
+target_compile_definitions(jali_mesh PUBLIC Jali_HAVE_METIS)
+target_link_libraries(jali_mesh PUBLIC ${METIS_LIBRARIES})
+
+
+if (NOT Zoltan_LIBRARIES OR NOT TARGET ${Zoltan_LIBRARIES})
+  # Starting from CMake 3.15 we can tell find_package we prefer for it
+  # to look for config files first and then fall back to modules
+  find_package(Zoltan QUIET REQUIRED)
+  message(STATUS "Found TARGET Zoltan_LIBRARIES = ${Zoltan_LIBRARIES}")
+endif()
+
+# Make Zoltan a dependency of jali_mesh
+target_compile_definitions(jali_mesh PUBLIC Jali_HAVE_ZOLTAN)
+target_link_libraries(jali_mesh PUBLIC ${Zoltan_LIBRARIES})
+
+
+if (NOT ExodusII_LIBRARIES OR NOT TARGET ${ExodusII_LIBRARIES})
+  # First seee if a config file got installed as part of the SEACAS project
+  # NOTE: NOT ABLE TO PROCESS THIS CORRECTLY
+  #  find_package(SEACASExodus QUIET CONFIG PATHS ${ExodusII_DIR})
+  
+  #  if (SEACASExodus_FOUND)
+  #    target_include_directories(${MSTKLIB} PUBLIC ${ExodusII_INCLUDE_DIRS})
+  #    target_link_libraries(${MSTKLIB} PUBLIC ${ExodusII_LIBRARIES})
+  #    message(STATUS "Found Exodus II library (from SEACAS): ${SEACAS_LIBRARIES}")
+  #  else ()
+  find_package(ExodusII QUIET REQUIRED)  # Uses custom module
+  message(STATUS "Found Exodus II library: ${ExodusII_LIBRARY}")
+endif ()
+
+# Make ExodusII a dependency of jali_mesh (strictly speaking it is not...)
+target_link_libraries(jali_mesh PUBLIC ${ExodusII_LIBRARIES})
+
 
 
 if (BUILD_TESTS)
+  
+  # Need to copy files for the tests 
+  if (NOT (${JALI_MESH_SOURCE_DIR} EQUAL ${JALI_MESH_BINARY_DIR}))
+    execute_process(COMMAND ${CMAKE_COMMAND} -E 
+      copy_directory ${JALI_MESH_SOURCE_DIR}/test ${JALI_MESH_BINARY_DIR}/test) 
+  endif()
 
-    # Include dirs for test
-    include_directories(${MESH_SOURCE_DIR})
-    include_directories(${MESH_FACTORY_SOURCE_DIR})
-    include_directories(${GEOMETRY_SOURCE_DIR})
+  # Test: mesh geometry
 
-    # Add UnitTest ExodusII include directories
-    include_directories(${UnitTest_INCLUDE_DIRS})
+  add_Jali_test(mesh_geometry test_mesh_geometry
+    KIND unit
+    SOURCE test/Main.cc test/test_mesh_geometry.cc
+    LINK_LIBS jali_mesh jali_mesh_factory ${UnitTest++_LIBRARIES})
+  
+  # Test mesh entities
 
-    # Need to copy files for the tests 
-    if (NOT (${MESH_SOURCE_DIR} EQUAL ${MESH_BINARY_DIR}))
-      execute_process(COMMAND ${CMAKE_COMMAND} -E 
-        copy_directory ${MESH_SOURCE_DIR}/test ${MESH_BINARY_DIR}/test) 
-    endif()
+  add_Jali_test(mesh_iterators test_entity_iterators
+    KIND unit
+    SOURCE test/Main.cc test/test_entity_iterators.cc
+    LINK_LIBS jali_mesh jali_mesh_factory ${UnitTest++_LIBRARIES})
+  
+  add_Jali_test(mesh_entity_counts_serial mesh_entity_counts_serial
+    KIND unit
+    SOURCE test/Main.cc test/test_entity_counts.cc
+    LINK_LIBS jali_mesh jali_mesh_factory ${UnitTest++_LIBRARIES})
+  
+  add_Jali_test(mesh_entity_counts_parallel mesh_entity_counts_parallel
+    KIND unit
+    NPROCS 4
+    SOURCE test/Main.cc test/test_entity_counts.cc
+    LINK_LIBS jali_mesh jali_mesh_factory ${UnitTest++_LIBRARIES})
+  
+  # Test side entities
+  
+  add_Jali_test(side_tests test_sides
+    KIND unit
+    SOURCE test/Main.cc test/test_sides.cc
+    LINK_LIBS jali_mesh jali_mesh_factory ${UnitTest++_LIBRARIES})
 
-    # Test link libraries
-    set(test_link_libs geometry ${mesh_link_libs} simple_mesh mesh_factory ${UnitTest_LIBRARIES})
+  # Test wedge entities
+  
+  add_Jali_test(wedge_tests test_wedges
+    KIND unit
+    SOURCE test/Main.cc test/test_wedges.cc
+    LINK_LIBS jali_mesh jali_mesh_factory ${UnitTest++_LIBRARIES})
+  
+  # Test corner entities
+  
+  add_Jali_test(corner_tests test_corners
+    KIND unit
+    SOURCE test/Main.cc test/test_corners.cc
+    LINK_LIBS jali_mesh jali_mesh_factory ${UnitTest++_LIBRARIES})
 
-    # STK (Trilinos Package)
-   if (ENABLE_STK_Mesh)
-     list(APPEND test_link_libs stk_mesh)
-   endif(ENABLE_STK_Mesh)    
+  # Test mesh tiles
+  
+  add_Jali_test(tile_tests test_one_tile
+    KIND unit
+    SOURCE test/Main.cc test/test_one_tile.cc
+    LINK_LIBS jali_mesh jali_mesh_factory ${UnitTest++_LIBRARIES})
 
-    # MOAB Mesh framework
-   if (ENABLE_MOAB_Mesh)
-     list(APPEND test_link_libs moab_mesh)
-   endif(ENABLE_MOAB_Mesh)    
-    
-    # MSTK Mesh framework
-    if (ENABLE_MSTK_Mesh)
-      list(APPEND test_link_libs mstk_mesh)
-    endif(ENABLE_MSTK_Mesh)    
+  add_Jali_test(mesh_tile_tests_serial test_meshtiles_serial
+    KIND unit
+    SOURCE test/Main.cc test/test_meshtiles.cc
+    LINK_LIBS jali_mesh jali_mesh_factory ${UnitTest++_LIBRARIES})
 
-    # Test: mesh geometry
+  add_Jali_test(mesh_tile_tests_parallel test_meshtiles_parallel
+    KIND unit
+    NPROCS 4
+    SOURCE test/Main.cc test/test_meshtiles.cc
+    LINK_LIBS jali_mesh jali_mesh_factory ${UnitTest++_LIBRARIES})
+  
+  # Test boundary ghosts
+  
+  add_Jali_test(mesh_boundary_ghost_tests_serial test_boundary_ghosts_serial
+    KIND unit
+    SOURCE test/Main.cc test/test_boundary_ghosts.cc
+    LINK_LIBS jali_mesh jali_mesh_factory ${UnitTest++_LIBRARIES})
 
-    add_Jali_test(mesh_geometry test_mesh_geometry
-                    KIND unit
-		    SOURCE test/Main.cc test/test_mesh_geometry.cc
-		    LINK_LIBS ${test_link_libs})
-
-    # Test mesh entities
-
-    add_Jali_test(mesh_iterators test_entity_iterators
-                  KIND unit
-                  SOURCE test/Main.cc test/test_entity_iterators.cc
-		  LINK_LIBS ${test_link_libs})
-
-    add_Jali_test(mesh_entity_counts_serial mesh_entity_counts_serial
-                  KIND unit
-		  SOURCE test/Main.cc test/test_entity_counts.cc
-		  LINK_LIBS ${test_link_libs})
-
-    add_Jali_test(mesh_entity_counts_parallel mesh_entity_counts_parallel
-                  KIND unit
-		  NPROCS 4
-		  SOURCE test/Main.cc test/test_entity_counts.cc
-		  LINK_LIBS ${test_link_libs})
-
-    # Test side entities
-
-    add_Jali_test(side_tests test_sides
-                  KIND unit
-		  SOURCE test/Main.cc test/test_sides.cc
-                  LINK_LIBS ${test_link_libs})
-
-    # Test wedge entities
-
-    add_Jali_test(wedge_tests test_wedges
-                  KIND unit
-		  SOURCE test/Main.cc test/test_wedges.cc
-                  LINK_LIBS ${test_link_libs})
-
-    # Test corner entities
-
-    add_Jali_test(corner_tests test_corners
-                  KIND unit
-		  SOURCE test/Main.cc test/test_corners.cc
-                  LINK_LIBS ${test_link_libs})
-
-    # Test mesh tiles
-
-    add_Jali_test(tile_tests test_one_tile
-                  KIND unit
-		  SOURCE test/Main.cc test/test_one_tile.cc
-		  LINK_LIBS ${test_link_libs})
-
-    add_Jali_test(mesh_tile_tests_serial test_meshtiles_serial
-                  KIND unit
-		  SOURCE test/Main.cc test/test_meshtiles.cc
-		  LINK_LIBS ${test_link_libs})
-
-    add_Jali_test(mesh_tile_tests_parallel test_meshtiles_parallel
-                  KIND unit
-		  NPROCS 4
-		  SOURCE test/Main.cc test/test_meshtiles.cc
-		  LINK_LIBS ${test_link_libs})
-
-    # Test boundary ghosts
-
-    add_Jali_test(mesh_boundary_ghost_tests_serial test_boundary_ghosts_serial
-                  KIND unit
-		  SOURCE test/Main.cc test/test_boundary_ghosts.cc
-		  LINK_LIBS ${test_link_libs})
-
-    add_Jali_test(mesh_boundary_ghost_tests_parallel test_boundary_ghosts_parallel
-                  KIND unit
-		  NPROCS 4
-		  SOURCE test/Main.cc test/test_boundary_ghosts.cc
-		  LINK_LIBS ${test_link_libs})
+  add_Jali_test(mesh_boundary_ghost_tests_parallel test_boundary_ghosts_parallel
+    KIND unit
+    NPROCS 4
+    SOURCE test/Main.cc test/test_boundary_ghosts.cc
+    LINK_LIBS jali_mesh jali_mesh_factory ${UnitTest++_LIBRARIES})
 
 
-    # Test mesh sets
+  # Test mesh sets
+  
+  add_Jali_test(mesh_set_tests_serial test_meshsets_serial
+    KIND unit
+    SOURCE test/Main.cc test/test_meshsets.cc
+    LINK_LIBS jali_mesh jali_mesh_factory ${UnitTest++_LIBRARIES})
 
-    add_Jali_test(mesh_set_tests_serial test_meshsets_serial
-                  KIND unit
-		  SOURCE test/Main.cc test/test_meshsets.cc
-		  LINK_LIBS ${test_link_libs})
-
-    add_Jali_test(mesh_set_tests_parallel test_meshsets_parallel
-                  KIND unit
-		  NPROCS 4
-		  SOURCE test/Main.cc test/test_meshsets.cc
-		  LINK_LIBS ${test_link_libs})
+  add_Jali_test(mesh_set_tests_parallel test_meshsets_parallel
+    KIND unit
+    NPROCS 4
+    SOURCE test/Main.cc test/test_meshsets.cc
+    LINK_LIBS jali_mesh jali_mesh_factory ${UnitTest++_LIBRARIES})
     
 
 endif()

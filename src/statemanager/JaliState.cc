@@ -46,7 +46,9 @@
 
 */
 
+#include <cassert>
 #include <memory>
+
 #include "JaliState.h"
 #include "JaliStateVector.h"
 

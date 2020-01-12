@@ -52,7 +52,6 @@
 
 #include "mpi.h"
 
-#include "dbc.hh"
 #include "errors.hh"
 #include "Mesh.hh"
 #include "MeshFactory.hh"

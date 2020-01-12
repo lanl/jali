@@ -50,12 +50,12 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // Mesh class based on MSTK framework
 
 #include <cstring>
+#include <cassert>
 
 #include "Mesh_MSTK.hh"
 
 #include <mpi.h>
 
-#include "dbc.hh"
 #include "errors.hh"
 
 
@@ -1441,7 +1441,7 @@ void Mesh_MSTK::cell_get_faces_and_dirs_unordered(const Entity_ID cellid,
 
   MEntity_ptr cell;
 
-  ASSERT(faceids != NULL);
+  assert(faceids != NULL);
 
   cell = cell_id_to_handle[cellid];
 
@@ -1539,7 +1539,7 @@ void Mesh_MSTK::cell_get_faces_and_dirs_internal(const Entity_ID cellid,
                                                  Entity_ID_List *faceids,
                                                  std::vector<dir_t> *face_dirs,
                                                  const bool ordered) const {
-  ASSERT(faces_initialized);
+  assert(faces_initialized);
 
   if (ordered)
     cell_get_faces_and_dirs_ordered(cellid, faceids, face_dirs);
@@ -1551,11 +1551,11 @@ void Mesh_MSTK::cell_get_faces_and_dirs_internal(const Entity_ID cellid,
 void Mesh_MSTK::cell_get_edges_internal(const Entity_ID cellid,
                                         Entity_ID_List *edgeids) const {
 
-  ASSERT(edges_initialized);
+  assert(edges_initialized);
 
   MEntity_ptr cell;
 
-  ASSERT(edgeids != NULL);
+  assert(edgeids != NULL);
 
   cell = cell_id_to_handle[cellid];
 
@@ -1630,17 +1630,17 @@ void Mesh_MSTK::cell_2D_get_edges_and_dirs_internal(const Entity_ID cellid,
                                                     std::vector<dir_t> *edgedirs)
     const {
 
-  ASSERT(manifold_dimension() == 2);
+  assert(manifold_dimension() == 2);
 
   if (!edgedirs)
     cell_get_edges(cellid, edgeids);
   else {
 
-    ASSERT(edges_initialized);
+    assert(edges_initialized);
 
     MEntity_ptr cell;
 
-    ASSERT(edgeids != NULL);
+    assert(edgeids != NULL);
 
     cell = cell_id_to_handle[cellid];
 
@@ -1701,7 +1701,7 @@ void Mesh_MSTK::cell_get_nodes(const Entity_ID cellid,
   MEntity_ptr cell;
   int nn, lid;
 
-  ASSERT(nodeids != NULL);
+  assert(nodeids != NULL);
 
   cell = cell_id_to_handle[cellid];
 
@@ -1758,10 +1758,10 @@ void Mesh_MSTK::face_get_edges_and_dirs_internal(const Entity_ID faceid,
                                                  std::vector<dir_t> *edge_dirs,
                                                  bool ordered) const {
 
-  ASSERT(edgeids != NULL);
+  assert(edgeids != NULL);
 
-  ASSERT(faces_initialized);
-  ASSERT(edges_initialized);
+  assert(faces_initialized);
+  assert(edges_initialized);
 
   MEntity_ptr face;
 
@@ -1838,9 +1838,9 @@ void Mesh_MSTK::face_get_nodes(const Entity_ID faceid,
   MEntity_ptr genface;
   int nn, lid;
 
-  ASSERT(faces_initialized);
+  assert(faces_initialized);
 
-  ASSERT(nodeids != NULL);
+  assert(nodeids != NULL);
 
   genface = face_id_to_handle[faceid];
 
@@ -1858,7 +1858,7 @@ void Mesh_MSTK::face_get_nodes(const Entity_ID faceid,
     */
 
     List_ptr fverts = MF_Vertices(genface, dir, 0);
-    ASSERT(fverts != NULL);
+    assert(fverts != NULL);
 
     nn = List_Num_Entries(fverts);
     nodeids->resize(nn);
@@ -1890,7 +1890,7 @@ void Mesh_MSTK::face_get_nodes(const Entity_ID faceid,
 void Mesh_MSTK::edge_get_nodes_internal(const Entity_ID edgeid,
                                         Entity_ID *nodeid0,
                                         Entity_ID *nodeid1) const {
-  ASSERT(edges_initialized);
+  assert(edges_initialized);
 
   MEdge_ptr edge = (MEdge_ptr) edge_id_to_handle[edgeid];
 
@@ -1915,7 +1915,7 @@ void Mesh_MSTK::node_get_cells(const Entity_ID nodeid,
   List_ptr cell_list;
   MEntity_ptr ment;
 
-  ASSERT(cellids != NULL);
+  assert(cellids != NULL);
 
   MVertex_ptr mv = (MVertex_ptr) vtx_id_to_handle[nodeid];
 
@@ -1925,7 +1925,7 @@ void Mesh_MSTK::node_get_cells(const Entity_ID nodeid,
     if (manifold_dimension() == 3) {
       int nvr, regionids[200];
       MV_RegionIDs(mv, &nvr, regionids);
-      ASSERT(nvr < 200);
+      assert(nvr < 200);
       cellids->resize(nvr);
       Entity_ID_List::iterator it = cellids->begin();
       for (int i = 0; i < nvr; ++i) {
@@ -1936,7 +1936,7 @@ void Mesh_MSTK::node_get_cells(const Entity_ID nodeid,
     else {
       int nvf, faceids[200];
       MV_FaceIDs(mv, &nvf, faceids);
-      ASSERT(nvf < 200);
+      assert(nvf < 200);
       cellids->resize(nvf);
       Entity_ID_List::iterator it = cellids->begin();
       for (int i = 0; i < nvf; ++i) {
@@ -2005,8 +2005,8 @@ void Mesh_MSTK::node_get_faces(const Entity_ID nodeid,
   List_ptr face_list;
   MEntity_ptr ment;
 
-  ASSERT(faces_initialized);
-  ASSERT(faceids != NULL);
+  assert(faces_initialized);
+  assert(faceids != NULL);
 
   MVertex_ptr mv = (MVertex_ptr) vtx_id_to_handle[nodeid];
 
@@ -2016,7 +2016,7 @@ void Mesh_MSTK::node_get_faces(const Entity_ID nodeid,
       int nvf, vfaceids[200];
 
       MV_FaceIDs(mv, &nvf, vfaceids);
-      ASSERT(nvf < 200);
+      assert(nvf < 200);
 
       faceids->resize(nvf);
       Entity_ID_List::iterator it = faceids->begin();
@@ -2029,7 +2029,7 @@ void Mesh_MSTK::node_get_faces(const Entity_ID nodeid,
       int nve, vedgeids[200];
 
       MV_EdgeIDs(mv, &nve, vedgeids);
-      ASSERT(nve < 200);
+      assert(nve < 200);
 
       faceids->resize(nve);
       Entity_ID_List::iterator it = faceids->begin();
@@ -2098,8 +2098,8 @@ void Mesh_MSTK::node_get_cell_faces(const Entity_ID nodeid,
   MFace_ptr mf;
   MEdge_ptr me;
 
-  ASSERT(faces_initialized);
-  ASSERT(faceids != NULL);
+  assert(faces_initialized);
+  assert(faceids != NULL);
 
   MVertex_ptr mv = (MVertex_ptr) vtx_id_to_handle[nodeid];
 
@@ -2178,8 +2178,8 @@ void Mesh_MSTK::face_get_cells_internal(const Entity_ID faceid,
                                         std::vector<Entity_ID> *cellids) const {
   int lid, n;
 
-  ASSERT(faces_initialized);
-  ASSERT(cellids != NULL);
+  assert(faces_initialized);
+  assert(cellids != NULL);
   cellids->clear();
   Entity_ID_List::iterator it = cellids->begin();
   n = 0;
@@ -2248,9 +2248,9 @@ void Mesh_MSTK::cell_get_face_adj_cells(const Entity_ID cellid,
 
   int lid;
 
-  ASSERT(faces_initialized);
+  assert(faces_initialized);
 
-  ASSERT(fadj_cellids != NULL);
+  assert(fadj_cellids != NULL);
 
   fadj_cellids->clear();
 
@@ -2339,7 +2339,7 @@ void Mesh_MSTK::cell_get_node_adj_cells(const Entity_ID cellid,
   int lid, mkid;
   List_ptr cell_list;
 
-  ASSERT(nadj_cellids != NULL);
+  assert(nadj_cellids != NULL);
 
   nadj_cellids->clear();
 
@@ -2428,7 +2428,7 @@ void Mesh_MSTK::node_get_coordinates(const Entity_ID nodeid,
   double coords[3];
   int spdim = space_dimension();
 
-  ASSERT(ncoords != NULL);
+  assert(ncoords != NULL);
 
   vtx = vtx_id_to_handle[nodeid];
 
@@ -2442,8 +2442,8 @@ void Mesh_MSTK::node_get_coordinates(const Entity_ID nodeid,
   double coords[3];
   int spdim = space_dimension();
 
-  ASSERT(ncoords != NULL);
-  ASSERT(spdim == 3);
+  assert(ncoords != NULL);
+  assert(spdim == 3);
 
   vtx = vtx_id_to_handle[nodeid];
 
@@ -2459,8 +2459,8 @@ void Mesh_MSTK::node_get_coordinates(const Entity_ID nodeid,
   double coords[3];
   int spdim = space_dimension();
 
-  ASSERT(ncoords != NULL);
-  ASSERT(spdim == 2);
+  assert(ncoords != NULL);
+  assert(spdim == 2);
 
   vtx = vtx_id_to_handle[nodeid];
 
@@ -2484,7 +2484,7 @@ void Mesh_MSTK::cell_get_coordinates(const Entity_ID cellid,
   int nn, result;
   int spdim = space_dimension(), celldim = manifold_dimension();
 
-  ASSERT(ccoords != NULL);
+  assert(ccoords != NULL);
 
   cell = cell_id_to_handle[cellid];
 
@@ -2535,8 +2535,8 @@ void Mesh_MSTK::face_get_coordinates(const Entity_ID faceid,
   double coords[3];
   int spdim = space_dimension(), celldim = manifold_dimension();
 
-  ASSERT(faces_initialized);
-  ASSERT(fcoords != NULL);
+  assert(faces_initialized);
+  assert(fcoords != NULL);
 
   genface = face_id_to_handle[faceid];
 
@@ -3177,7 +3177,7 @@ Mesh_MSTK::get_labeled_set_entities(const JaliGeometry::LabeledSetRegionPtr rgn,
 //   int spacedim = Mesh::space_dimension();
 //   const MPI_Comm comm = get_comm();
 
-//   ASSERT(setents != NULL);
+//   assert(setents != NULL);
 
 //   setents->clear();
 

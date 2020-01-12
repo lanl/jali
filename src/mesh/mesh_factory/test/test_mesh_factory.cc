@@ -49,7 +49,6 @@
 #include <iostream>
 #include <UnitTest++.h>
 
-#include "dbc.hh"
 #include "../MeshFactory.hh"
 
 // Check to see if we have some files to read
@@ -261,6 +260,7 @@ SUITE (MeshFramework)
     mesh_factory.included_entities({Jali::Entity_kind::EDGE,
             Jali::Entity_kind::FACE, Jali::Entity_kind::CELL});
 
+    mesh_factory.partitioner(Jali::Partitioner_type::BLOCK);
     mesh = mesh_factory(0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 4, 4, 4);
     CHECK(mesh);
     CHECK(mesh->num_edges());
@@ -270,7 +270,7 @@ SUITE (MeshFramework)
 
     // Turn wedges on (faces and edges are turned on when wedges are turned on)
     mesh_factory.included_entities({Jali::Entity_kind::WEDGE});
-
+    mesh_factory.partitioner(Jali::Partitioner_type::BLOCK);
     mesh = mesh_factory(0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 4, 4, 4);
     CHECK(mesh);
     CHECK(mesh->num_faces());
@@ -281,7 +281,7 @@ SUITE (MeshFramework)
 
     // Turn corners on (wedges, edges and faces get turned on as well)
     mesh_factory.included_entities({Jali::Entity_kind::CORNER});
-
+    mesh_factory.partitioner(Jali::Partitioner_type::BLOCK);
     mesh = mesh_factory(0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 4, 4, 4);
     CHECK(mesh);
     CHECK(mesh->num_faces());
@@ -296,7 +296,7 @@ SUITE (MeshFramework)
     // they are present
 
     mesh_factory.included_entities(Jali::Entity_kind::ALL_KIND);
-    
+    mesh_factory.partitioner(Jali::Partitioner_type::BLOCK);    
     mesh = mesh_factory(0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 4, 4, 4);
     CHECK(mesh);    
     CHECK(mesh->num_faces());
@@ -354,6 +354,7 @@ SUITE (MeshFramework)
 
         // Make sure we have ghost cells if we asked for them
         mesh_factory.num_ghost_layers_distmesh(1);
+        mesh_factory.partitioner(Jali::Partitioner_type::BLOCK);
         mesh = mesh_factory(0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 4, 4, 4);
         CHECK(mesh);
         
@@ -362,6 +363,7 @@ SUITE (MeshFramework)
         
         // Make sure we don't have ghost cells if we didn't ask for them
         mesh_factory.num_ghost_layers_distmesh(0);
+        mesh_factory.partitioner(Jali::Partitioner_type::BLOCK);
         mesh = mesh_factory(0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 4, 4, 4);
         CHECK(mesh);
         
@@ -371,32 +373,14 @@ SUITE (MeshFramework)
       
         // Make sure we can choose partitioners if we want to.  The
         // default partitioner is METIS. Instead we choose ZOLTAN's
-        // Recursive Coordinate Bisection algorithm to partition a
-        // mesh that is thin along the Z-direction.  The algorithm
-        // should naturally partition only along the X-Y directions
-        // and not Z
+        // Recursive Coordinate Bisection algorithm (although it will
+        // still be overridden because there is no guarantee we will
+        // get a proper block partitioning with it)
 
         mesh_factory.partitioner(Jali::Partitioner_type::ZOLTAN_RCB); 
         mesh = mesh_factory(0.0, 0.0, 0.0, 100.0, 100.0, 1.0, 4, 4, 10);
         CHECK(mesh);
 
-        // Make sure any horizontal face that has only one cell
-        // connected to it is only on the top or bottom boundary of
-        // the domain. If not, it would indicate that the partitioning
-        // took place along the Z-direction
-
-        for (auto const& f : mesh->faces()) {
-          JaliGeometry::Point fnormal = mesh->face_normal(f);
-          if (fnormal[2] == 0.0) continue;  // z-component of normal is 0
-          
-          Jali::Entity_ID_List fregs;
-          mesh->face_get_cells(f, Jali::Entity_type::PARALLEL_OWNED, &fregs);
-
-          if (fregs.size() == 2) continue;  // Not a face on a mesh boundary
-
-          JaliGeometry::Point fcen = mesh->face_centroid(f);
-          CHECK(fabs(fcen[2]) < 1.0e-06 || fabs(fcen[2]-1.0) < 1.0e-06);
-        }
         mesh.reset();
         mesh_factory.reset_options();
       }

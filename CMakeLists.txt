@@ -47,13 +47,8 @@
 #       Root CMakeLists.txt file
 #
 
-cmake_minimum_required(VERSION 3.8.0)
+cmake_minimum_required(VERSION 3.11)
 set(CMAKE_CTEST_COMMAND ${CMAKE_CTEST_COMMAND})  
-
-
-# Enable testing, ctest needs this
-# all add_test commands are ignored unless this is called!
-enable_testing()
 
 # Define the project name
 # This command will define
@@ -61,10 +56,85 @@ enable_testing()
 #     Jali_BINARY_DIR
 project(Jali)
 
+set(Jali_VERSION_MAJOR 1)
+set(Jali_VERSION_MINOR 1)
+set(Jali_VERSION_PATCH 0)
+
+
+if (CMAKE_VERSION_MAJOR GREATER_EQUAL 3.13)
+  CMAKE_POLICY(SET CMP0079 NEW)  # allow target_link_libraries to reference
+                                 # targets from other directories
+endif()
+if (CMAKE_VERSION VERSION_GREATER_EQUAL 3.12)
+  cmake_policy(SET CMP0074 NEW)  # Don't ignore Pkg_ROOT variables
+endif()
+
+
+enable_language(C CXX)
+
+# ENABLE C++11 support
+
+include(CheckCXXCompilerFlag)
+CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
+if(COMPILER_SUPPORTS_CXX11)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+else()
+    message(FATAL_ERROR "Compiler ${CMAKE_CXX_COMPILER} has no C++11 support.")
+endif()
+
+
+
+# Jali needs MPI
+
+find_package(MPI REQUIRED)
+  
+if (MPI_FOUND)
+  set(CMAKE_C_COMPILER ${MPI_C_COMPILER} CACHE FILEPATH "MPI C wrapper to use" FORCE)
+  set(CMAKE_CXX_COMPILER ${MPI_CXX_COMPILER} CACHE FILEPATH "MPI C++ wrapper to use" FORCE)
+endif ()
+
+
+# --- Jali uses MPI_EXEC* not MPIEXEC* variables. This allows the user to 
+#     override the find package results.
+
+# - MPI execute binary
+if (MPIEXEC)
+  set(MPI_EXEC ${MPIEXEC} CACHE STRING "Custom MPI Executable specified" FORCE)
+else()
+  set(MPI_EXEC ${MPIEXEC_EXECUTABLE} CACHE STRING "MPI Executable found by FindMPI" FORCE)
+endif()
+
+
+# INTERNAL - Number of MPI ranks flag
+set(MPI_EXEC_NUMPROCS_FLAG_DFLT -n)
+if (NOT MPI_EXEC_NUMPROCS_FLAG)
+  if (MPIEXEC_NUMPROC_FLAG)
+    set(MPI_EXEC_NUMPROCS_FLAG "${MPIEXEC_NUMPROC_FLAG}" CACHE STRING "Set MPI number of procs flag from FindMPI")
+  else()
+    set(MPI_EXEC_NUMPROCS_FLAG ${MPI_EXEC_NUMPROCS_FLAG_DFLT})
+  endif()
+endif()
+  
+# INTERNAL - Maximum number of processors for the test suite Some
+# tests require too many processors and it increases the execution
+# time considerably.
+set(MPI_EXEC_MAX_NUMPROCS_DFLT 8)
+if (NOT MPI_EXEC_MAX_NUMPROCS)
+  include(ProcessorCount)
+  ProcessorCount(proc_count)
+  if (NOT proc_count EQUAL 0)
+    math(EXPR MPI_EXEC_MAX_NUMPROCS "${proc_count} * 2") 
+    message(STATUS "Detected ${proc_count} processors and will set maximum to ${MPI_EXEC_MAX_NUMPROCS}")
+  else()
+    set(MPI_EXEC_MAX_NUMPROCS ${MPI_EXEC_MAX_NUMPROCS_DFLT})
+  endif()
+endif()  
+
+
+
 # Useful variables pointing to directories in the source tree
-set(Jali_SOURCE_SRC_DIR      "${Jali_SOURCE_DIR}/src")
 set(Jali_SOURCE_TOOLS_DIR    "${Jali_SOURCE_DIR}/tools")
-set(Jali_SOURCE_CONFIG_DIR    "${Jali_SOURCE_DIR}/config")
+set(Jali_SOURCE_CONFIG_DIR   "${Jali_SOURCE_DIR}/config")
 set(Jali_PYTHON_DIR          "${Jali_SOURCE_DIR}/tools/py_lib")
 
 # Set the module search path so find_package and include commands
@@ -72,86 +142,126 @@ set(Jali_PYTHON_DIR          "${Jali_SOURCE_DIR}/tools/py_lib")
 set(Jali_MODULE_PATH "${Jali_SOURCE_CONFIG_DIR}/cmake")
 set(CMAKE_MODULE_PATH 
     ${Jali_MODULE_PATH}
-    ${Jali_MODULE_PATH}/Modules
-    ${Jali_MODULE_PATH}/Utils)
+    ${Jali_MODULE_PATH}/Modules)
 
 message(STATUS "CMAKE MODULE PATH  ${CMAKE_MODULE_PATH}")
 
-# Code version defined
-#include(JaliVersion)
 
-# Addtional build options
-include(JaliOptions)
+# This will be the name of the overall target (no library named
+# libJali will be built)
 
-# Find required Jali TPL
-include(JaliTPL)
+add_library(Jali INTERFACE)
 
-# The following line allows us to link third-party libraries not explicitly 
-# found by the logic in JaliTPL.cmake.
-link_directories(${CMAKE_INSTALL_PREFIX}/tpls/lib)
+# Alias (Daniel Pfeiffer, Effective CMake) - this allows other
+# projects that use Pkg as a subproject to find_package(Nmspc::Pkg)
+# which does nothing because Pkg is already part of the project
 
-# Check the mesh framework choice
-if ( (ENABLE_Unstructured)  AND
-     (NOT ENABLE_STK_Mesh)  AND
-     (NOT ENABLE_MOAB_Mesh) AND
-     (NOT ENABLE_MSTK_Mesh)
-   )
-    message(FATAL_ERROR "Missing a mesh framework\n"
-                        "Please enable at least one of the following mesh frameworks\n"
-                        "-D ENABLE_MOAB_Mesh:BOOL=ON\n"
-                        "-D ENABLE_STK_Mesh:BOOL=ON\n"
-                        "-D ENABLE_MSTK_Mesh:BOOL=ON\n")
+add_library(Jali::Jali ALIAS Jali)
+
+
+# Mesh frameworks
+option(ENABLE_MOAB_Mesh "Enable MOAB mesh framework" OFF)
+option(ENABLE_STK_Mesh "Enable STK mesh framework" OFF)
+option(ENABLE_MSTK_Mesh "Enable MSTK mesh framework" ON)
+if (NOT ENABLE_MOAB_Mesh AND
+    NOT ENABLE_STK_Mesh AND
+    NOT ENABLE_MSTK_Mesh)
+  message(STATUS "No parallel unstructured framework enabled?")
+endif ()
+
+# Testing
+option(ENABLE_TESTS
+  "Build Jali unit tests. Requires UnitTest++" ON)     # can be overridden
+
+if (ENABLE_TESTS)
+  # Enable testing, ctest needs this
+  # all add_test commands are ignored unless this is called!
+  enable_testing()
+  
+  set(BUILD_TESTS 1)
+
+  # Some platforms require all binaries linking to MPI
+  # only run through the MPIEXEC binary
+  option(TESTS_REQUIRE_MPIEXEC "Run all tests with the MPIEXEC binary" FALSE)
+  
+  # Need this option if the PATH environment does not include '.'
+  option(TESTS_REQUIRE_FULLPATH "Append full path to test binaries" TRUE)
+
+  # For backward compatibility allow UnitTest_DIR for a bit more time
+  if (NOT UnitTest++_DIR AND UnitTest_DIR)
+    set(UnitTest++_DIR ${UnitTest_DIR})
+  endif ()
+
+  set(unittest_dir_save ${UnitTest++_DIR})
+  find_package(UnitTest++ QUIET CONFIG PATHS ${UnitTest++_DIR})  # Try to discover thru cmake config file
+
+  if (UnitTest++_FOUND)
+    # UnitTest++ sets a weird path for it's includes
+    set(UnitTest++_INCLUDE_DIRS ${UTPP_INCLUDE_DIRS}/UnitTest++)
+    
+    # Also it sets the target name as UnitTest++ but does not set the
+    # LIBRARIES variable
+    set(UnitTest++_LIBRARIES UnitTest++)
+  else ()
+    set(UnitTest++_DIR ${unittest_dir_save})
+    find_package(UnitTest++ QUIET REQUIRED MODULE)  # fallback to module
+  endif ()
+
+  message(STATUS "Found UnitTest++: ${UnitTest++_LIBRARIES}")
 endif()    
 
 
-# Some defines to indicate which partitioners are enabled
-if (Jali_TPL_METIS_ENABLED)
-  message(STATUS "Adding definition Jali_HAVE_METIS")
-  add_definitions("-DJali_HAVE_METIS")
-endif(Jali_TPL_METIS_ENABLED)
-if (Jali_TPL_Zoltan_ENABLED)
-  message(STATUS "Adding definition Jali_HAVE_ZOLTAN")
-  add_definitions("-DJali_HAVE_ZOLTAN")
-endif(Jali_TPL_Zoltan_ENABLED)
+# Process source directories
+# Recurse down and individual component libaries (error_handling,
+# geometry, state, mesh)
 
-
-
-
-# A property for accumulating the a global amanzi link line.
-set_property(GLOBAL PROPERTY Jali_LINK_LINE "-L${CMAKE_INSTALL_PREFIX}/lib")
-
-# A property for accumulating Jali library targets
-set_property(GLOBAL PROPERTY Jali_LIBRARY_TARGETS)
-set(Jali_LINK_LINE_FILE "${Jali_BINARY_DIR}/link_line")  # A filename to write link-line to.
-include(InstallManager)
-
-# Source files for all binaries and libraries found under src
 add_subdirectory(src)
 
-# Define a list of all enabled TPLs. Must do this AFTER all the 
-# CMakelist.txt files have been processed!
-get_property(Jali_ENABLED_TPLS GLOBAL PROPERTY PACKAGES_FOUND)
-
-# Make the exports only _after_ doing the build
-create_exports()
-
-option(ENABLE_Config_Report "Print out detailed information at the end of a configuration")
-set(Jali_CONFIG_LOG "${Jali_BINARY_DIR}/jali-config.log"
-    CACHE string "Jali configuration log file")
-include(JaliConfigReport)
+target_link_libraries(Jali INTERFACE jali_error_handling)
+target_link_libraries(Jali INTERFACE jali_geometry)
+target_link_libraries(Jali INTERFACE jali_mesh)
+target_link_libraries(Jali INTERFACE jali_mesh_factory)
+target_link_libraries(Jali INTERFACE jali_state)
 
 
-# add a target to generate API documentation with Doxygen
-find_package(Doxygen)
-if(DOXYGEN_FOUND)
-  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config/doxygen/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
-  add_custom_target(doc
-    ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-    COMMENT "Generating API documentation with Doxygen" VERBATIM
-    )
-endif(DOXYGEN_FOUND)
-
-
+# Example usage code for users
 
 add_subdirectory(examples)
+
+
+# Set up targets and export
+
+set(jali_target_list jali_error_handling jali_geometry jali_state jali_mesh jali_mesh_factory jali_simple_mesh)
+if (ENABLE_MSTK_Mesh)
+  list(APPEND jali_target_list jali_mstk_mesh)
+endif ()
+
+install(TARGETS ${jali_target_list}
+  EXPORT JaliTargets
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
+  PUBLIC_HEADER DESTINATION include
+  INCLUDES DESTINATION include
+  )
+
+install(EXPORT JaliTargets
+  FILE JaliTargets.cmake
+  NAMESPACE Jali::
+  DESTINATION lib/cmake/Jali
+  )
+  
+# Install the config file after filling in variables delimited by @..@
+configure_file(${PROJECT_SOURCE_DIR}/config/cmake/JaliConfig.cmake.in
+  ${PROJECT_BINARY_DIR}/JaliConfig.cmake @ONLY)
+install(FILES ${PROJECT_BINARY_DIR}/JaliConfig.cmake
+  DESTINATION lib/cmake/Jali)
+
+# Also install any module files used for finding the dependencies
+
+install(FILES
+  ${PROJECT_SOURCE_DIR}/config/cmake/Modules/FindMETIS.cmake
+  ${PROJECT_SOURCE_DIR}/config/cmake/Modules/FindZoltan.cmake
+  ${PROJECT_SOURCE_DIR}/config/cmake/Modules/FindExodusII.cmake
+  DESTINATION lib/cmake/Jali/modules)
+

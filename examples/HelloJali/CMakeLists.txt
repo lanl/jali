@@ -51,5 +51,7 @@
 #
 
 add_executable(HelloJali HelloJali.cc)
+target_link_libraries(HelloJali Jali::Jali)
+
 
   

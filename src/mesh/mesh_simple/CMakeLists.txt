@@ -50,7 +50,7 @@
 #
 
 # Jali module, include files found in JALI_MODULE_PATH
-include(PrintVariable)
+# include(PrintVariable)
 
 
 #
@@ -62,44 +62,54 @@ include(PrintVariable)
 # through these variables.
 project(MESH_SIMPLE)
 
-# Jali include directories
-include_directories(${MESH_SOURCE_DIR})
-include_directories(${GEOMETRY_SOURCE_DIR})
-
-# External (TPL) include directories
-
 # Library: simple_mesh
-file(GLOB simple_mesh_source_files "*.cc")
-file(GLOB simple_inc_files "*.hh")
-add_Jali_library(simple_mesh
-                   SOURCE ${simple_mesh_source_files} HEADERS ${simple_inc_files}
-                   LINK_LIBS mesh geometry error_handling)
+set(MESH_SIMPLE_headers
+  Mesh_simple.hh)
+list(TRANSFORM MESH_SIMPLE_headers PREPEND "${MESH_SIMPLE_SOURCE_DIR}/")
+
+set(MESH_SIMPLE_sources
+  Mesh_simple.cc)
+
+add_library(jali_simple_mesh ${MESH_SIMPLE_sources})
+set_target_properties(jali_simple_mesh PROPERTIES PUBLIC_HEADER "${MESH_SIMPLE_headers}")
+
+# Alias (Daniel Pfeiffer, Effective CMake) - this allows other
+# projects that use Pkg as a subproject to find_package(Nmspc::Pkg)
+# which does nothing because Pkg is already part of the project
+
+add_library(Jali::jali_simple_mesh ALIAS jali_simple_mesh)
+
+
+target_include_directories(jali_simple_mesh PUBLIC
+  $<BUILD_INTERFACE:${MESH_SIMPLE_BINARY_DIR}>
+  $<BUILD_INTERFACE:${MESH_SIMPLE_SOURCE_DIR}>
+  $<INSTALL_INTERFACE:include>
+  )
+
+target_link_libraries(jali_simple_mesh PUBLIC jali_error_handling)
+target_link_libraries(jali_simple_mesh PUBLIC jali_geometry)
+target_link_libraries(jali_simple_mesh PUBLIC jali_mesh)
 
 if (BUILD_TESTS)
 
-    # Add UnitTest include directories
-    include_directories(${UnitTest_INCLUDE_DIRS})
+  # Need to copy files for the tests 
+  if (NOT (${MESH_SIMPLE_SOURCE_DIR} EQUAL ${MESH_SIMPLE_BINARY_DIR}))
+    execute_process(COMMAND ${CMAKE_COMMAND} -E 
+      copy_directory ${MESH_SIMPLE_SOURCE_DIR}/test ${MESH_SIMPLE_BINARY_DIR}/test) 
+  endif()
 
-    # Test uses Epetra
-
-   # Need to copy files for the tests 
-    if (NOT (${MESH_SIMPLE_SOURCE_DIR} EQUAL ${MESH_SIMPLE_BINARY_DIR}))
-        execute_process(COMMAND ${CMAKE_COMMAND} -E 
-          copy_directory ${MESH_SIMPLE_SOURCE_DIR}/test ${MESH_SIMPLE_BINARY_DIR}/test) 
-    endif()
-
-    # Test: simple_mesh
-    add_Jali_test(simple_mesh test_simple_mesh
-                    KIND unit
-		    SOURCE
-                          test/Main.cc 
-                          test/test_maps.cc 
-                          test/test_cell_numbering.cc 
-                          test/test_face_adj_cells.cc 
-                          test/test_node_adj_cells.cc 
-                          test/test_node_cell_faces.cc
-			  test/test_geometry.cc
-                    LINK_LIBS simple_mesh ${UnitTest_LIBRARIES})
+  # Test: simple_mesh
+  add_Jali_test(simple_mesh test_simple_mesh
+    KIND unit
+    SOURCE
+    test/Main.cc 
+    test/test_maps.cc 
+    test/test_cell_numbering.cc 
+    test/test_face_adj_cells.cc 
+    test/test_node_adj_cells.cc 
+    test/test_node_cell_faces.cc
+    test/test_geometry.cc
+    LINK_LIBS jali_simple_mesh ${UnitTest++_LIBRARIES})
 
 endif()
 

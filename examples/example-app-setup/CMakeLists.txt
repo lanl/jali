@@ -111,7 +111,7 @@ foreach (Jali_library ${Jali_LIBRARIES})
 endforeach()
 
 add_executable(testmesh src/main.cc)
-include_directories(${PROJECT_SOURCE_DIR}/include ${Jali_INCLUDE_DIRS} ${Jali_TPL_INCLUDE_DIRS})
+target_include_directories(test_mesh ${PROJECT_SOURCE_DIR}/include ${Jali_INCLUDE_DIRS} ${Jali_TPL_INCLUDE_DIRS})
 target_link_libraries(testmesh ${Jali_LIBRARIES} ${Jali_TPL_LIBRARIES})
 
 if ("${CMAKE_MAJOR_VERSION}" GREATER 2 AND "{CMAKE_PATCH_VERSION}" GREATER 0)

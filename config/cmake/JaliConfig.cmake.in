@@ -1,0 +1,169 @@
+# Copyright (c) 2019, Triad National Security, LLC
+# All rights reserved.
+
+# Copyright 2019. Triad National Security, LLC. This software was
+# produced under U.S. Government contract 89233218CNA000001 for Los
+# Alamos National Laboratory (LANL), which is operated by Triad
+# National Security, LLC for the U.S. Department of Energy. 
+# All rights in the program are reserved by Triad National Security,
+# LLC, and the U.S. Department of Energy/National Nuclear Security
+# Administration. The Government is granted for itself and others acting
+# on its behalf a nonexclusive, paid-up, irrevocable worldwide license
+# in this material to reproduce, prepare derivative works, distribute
+# copies to the public, perform publicly and display publicly, and to
+# permit others to do so
+ 
+# 
+# This is open source software distributed under the 3-clause BSD license.
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are
+# met:
+# 
+# 1. Redistributions of source code must retain the above copyright notice,
+#    this list of conditions and the following disclaimer.
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in the
+#    documentation and/or other materials provided with the distribution.
+# 3. Neither the name of Triad National Security, LLC, Los Alamos
+#    National Laboratory, LANL, the U.S. Government, nor the names of its
+#    contributors may be used to endorse or promote products derived from this
+#    software without specific prior written permission.
+# 
+ 
+# THIS SOFTWARE IS PROVIDED BY TRIAD NATIONAL SECURITY, LLC AND
+# CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING,
+# BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+# FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
+# TRIAD NATIONAL SECURITY, LLC OR CONTRIBUTORS BE LIABLE FOR ANY
+# DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+# GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
+# IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+# OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+# ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+# ############################################################################ #
+#
+#  Jali Configuration File 
+#  To import into other CMake projects
+#
+# ############################################################################ #
+
+#
+# Directories
+#
+set(Jali_BUILD_DIR  @Jali_BINARY_DIR@ CACHE FILEPATH "DEPRECATED: Directory Jali is built in")
+set(Jali_SOURCE_DIR @Jali_SOURCE_DIR@ CACHE FILEPATH "DEPRECATED: Directory of Jali source")
+
+set(Jali_INSTALL_PREFIX @CMAKE_INSTALL_PREFIX@ CACHE FILEPATH "DEPRECATED: Where Jali is installed")
+set(Jali_INCLUDE_DIR    @CMAKE_INSTALL_PREFIX@/include CACHE FILEPATH "DEPRECATED: Where Jali include files are installed")
+set(Jali_LIBRARY_DIR    @CMAKE_INSTALL_PREFIX@/lib CACHE FILEPATH "DEPRECATED: Where Jali libraries are installed")
+set(Jali_BINARY_DIR     @CMAKE_INSTALL_PREFIX@/bin CACHE FILEPATH "DEPRECATED: Whre Jali executables are installed")
+
+set(Jali_INCLUDE_DIRS   @Jali_INCLUDE_DIRS@ CACHE FILEPATH "DEPRECATED: An alias for Jali_INCLUDE_DIR?")
+set(Jali_LIBRARY_DIRS   @Jali_LIBRARY_DIRS@ CACHE FILEPATH "DEPRECATED: An alias for Jali_LIBRARY_DIR?")
+
+#
+# Compilation 
+#
+set(Jali_C_COMPILER        @CMAKE_C_COMPILER@ CACHE FILEPATH "DEPRECATED: C Compiler used to compile Jali")
+set(Jali_CXX_COMPILER      @CMAKE_CXX_COMPILER@ CACHE FILEPATH "DEPRECATED: C++ Compiler used to compile Jali")
+set(Jali_Fortran_COMPILER  @CMAKE_Fortran_COMPILER@ CACHE FILEPATH "DEPRECATED: Fortran Compiler used to compile - why do we even need this")
+
+set(Jali_C_COMPILER_FLAGS  "@CMAKE_C_FLAGS@ ${CMAKE_C_FLAGS_${CMAKE_BUILD_TYPE}}" CACHE STRING "DEPRECATED: C compiler flags used")
+set(Jali_CXX_COMPILER_FLAGS  "@CMAKE_CXX_FLAGS@ ${CMAKE_CXX_FLAGS_${CMAKE_BUILD_TYPE}}" CACHE STRING "DEPRECATED: C++ compiler flags used")
+set(Jali_Fortran_COMPILER_FLAGS  "@CMAKE_Fortran_FLAGS@ ${CMAKE_Fortran_FLAGS_${CMAKE_BUILD_TYPE}}" CACHE STRING "DEPRECATED: Fortran compiler flags used")
+
+# 
+# Code configuration options
+#
+
+# Mesh frameworks
+set(Jali_ENABLE_STK_Mesh        @ENABLE_STK_Mesh@)
+set(Jali_ENABLE_MOAB_Mesh       @ENABLE_MOAB_Mesh@)
+set(Jali_ENABLE_MSTK_Mesh       @ENABLE_MSTK_Mesh@)
+
+# Do we need these? Won't we get it when we import the Jali targets?
+set(Jali_LIBRARIES      @Jali_LIBRARIES@ CACHE STRING "Jali library targets")
+list(TRANSFORM Jali_LIBRARIES PREPEND "Jali::")
+
+#
+# Version
+#
+set(Jali_VERSION_MAJOR @Jali_VERSION_MAJOR@ CACHE STRING "Major version number of Jali")
+set(Jali_VERSION_MINOR @Jali_VERSION_MINOR@ CACHE STRING "Minor version number of Jali")
+set(Jali_VERSION_PATCH @Jali_VERSION_PATCH@ CACHE STRING "Patch version number of Jali")
+set(Jali_VERSION       "@Jali_VERSION_MAJOR@.@Jali_VERSION_MINOR@.@Jali_VERSION_PATCH@" CACHE STRING "Jali Version")
+
+
+#
+# Where we found third party libraries
+#
+
+if (METIS_DIR)
+  set(METIS_DIR @METIS_DIR@ CACHE FILEPATH "Where METIS is installed" FORCE)
+  set(METIS_ROOT @METIS_DIR@ CACHE FILEPATH "Where METIS is installed" FORCE)
+elseif (METIS_ROOT)
+  set(METIS_DIR @METIS_ROOT@ CACHE FILEPATH "Where METIS is installed" FORCE)
+  set(METIS_ROOT @METIS_ROOT@ CACHE FILEPATH "Where METIS is installed" FORCE)
+endif ()
+
+if (Zoltan_DIR)
+  set(Zoltan_DIR @Zoltan_DIR@ CACHE FILEPATH "Where Zoltan is installed" FORCE)
+  set(Zoltan_ROOT @Zoltan_DIR@ CACHE FILEPATH "Where Zoltan is installed" FORCE)
+elseif (Zoltan_ROOT)
+  set(Zoltan_DIR @Zoltan_ROOT@ CACHE FILEPATH "Where Zoltan is installed" FORCE)
+  set(Zoltan_ROOT @Zoltan_ROOT@ CACHE FILEPATH "Where Zoltan is installed" FORCE)
+endif ()
+
+if (ExodusII_DIR)
+  set(ExodusII_DIR @ExodusII_DIR@ CACHE FILEPATH "Where ExodusII is installed" FORCE)
+  set(ExodusII_ROOT @ExodusII_DIR@ CACHE FILEPATH "Where ExodusII is installed" FORCE)
+elseif (ExodusII_ROOT)
+  set(ExodusII_DIR @ExodusII_ROOT@ CACHE FILEPATH "Where ExodusII is installed" FORCE)
+  set(ExodusII_ROOT @ExodusII_ROOT@ CACHE FILEPATH "Where ExodusII is installed" FORCE)
+endif ()
+
+
+if (CMAKE_VERSION VERSION_GREATER_EQUAL 3.12)
+  cmake_policy(SET CMP0074 NEW)
+endif ()
+
+if (CMAKE_VERSION VERSION_GREATER_EQUAL 3.15)
+  set(CMAKE_FIND_PACKAGE_PREFER_CONFIG TRUE)
+endif ()
+
+
+# Find target dependencies
+
+# Temporarily modify CMAKE module path so we can find our custom
+# modules for packages that don't have config files
+
+set(SAVED_CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH})
+list(APPEND CMAKE_MODULE_PATH @CMAKE_INSTALL_PREFIX@/lib/cmake/Jali/modules)
+ 
+include(CMakeFindDependencyMacro)
+if (Jali_ENABLE_MSTK_Mesh)
+  find_dependency(MSTK)
+  set_property(TARGET ${MSTK_LIBRARIES} PROPERTY IMPORTED_GLOBAL TRUE)
+endif ()
+
+find_dependency(Boost)
+set_property(TARGET ${Boost_LIBRARIES} PROPERTY IMPORTED_GLOBAL TRUE)
+
+find_dependency(METIS)
+set_property(TARGET ${METIS_LIBRARIES} PROPERTY IMPORTED_GLOBAL TRUE)
+find_dependency(Zoltan)
+set_property(TARGET ${Zoltan_LIBRARIES} PROPERTY IMPORTED_GLOBAL TRUE)
+
+find_dependency(ExodusII)
+set_property(TARGET ${ExodusII_LIBRARIES} PROPERTY IMPORTED_GLOBAL TRUE)
+
+# Restore original CMAKE_MODULE_PATH
+set(CMAKE_MODULE_PATH ${SAVED_CMAKE_MODULE_PATH})
+
+# 
+# Exported Targets
+# File that defines the Jali exported targets
+include("@CMAKE_INSTALL_PREFIX@/lib/cmake/Jali/JaliTargets.cmake")

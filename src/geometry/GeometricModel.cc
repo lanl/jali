@@ -57,7 +57,6 @@
  */
 
 #include "GeometricModel.hh"
-#include "dbc.hh"
 #include "errors.hh"
 
 namespace JaliGeometry {

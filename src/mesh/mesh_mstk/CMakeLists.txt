@@ -50,96 +50,107 @@
 #
 
 # Jali module, include files found in JALI_MODULE_PATH
-include(PrintVariable)
+# include(PrintVariable)
 include(TestManager)
 
 #
 # Define a project name
 # After this command the following varaibles are defined
-#   MSTK_SOURCE_DIR
-#   MSTK_BINARY_DIR
+#   MSTK_MESH_SOURCE_DIR
+#   MSTK_MESH_BINARY_DIR
 # Other projects (subdirectories) can reference this directory
 # through these variables.
-project(MSTK)
+project(MSTK_MESH)
 
-# External (TPL) include directories
+set(MSTK_MESH_headers
+  Mesh_MSTK.hh)
+list(TRANSFORM MSTK_MESH_headers PREPEND "${MSTK_MESH_SOURCE_DIR}/")
 
-# Reverse the items in MSTK_INCLUDE_DIRS because when we ask the
-# include_directories command to prepend a set of directories using
-# the BEFORE keyword, it prepends each item in the MSTK_INCLUDE_DIRS
-# list, thereby effectively reversing the order of the
-# directories. For example, if we had MYDIRS=a;b;c and we specified
-# MYDIRS in the include_directories command, then the
-# INCLUDE_DIRECTORIES property for will end up with
-# c;b;a;whatever_existed_before
-
-list(REVERSE MSTK_INCLUDE_DIRS)
-include_directories(BEFORE ${MSTK_INCLUDE_DIRS})
-
-# Jali include directories
-include_directories(${DBC_SOURCE_DIR})
-include_directories(${ATK_SOURCE_DIR})
-include_directories(${MESH_SOURCE_DIR})
-include_directories(${GEOMETRY_SOURCE_DIR})
+set(MSTK_MESH_sources
+  Mesh_MSTK.cc)
 
 #
 # Library: mstk_mesh
 #
-set(mstk_mesh_files Mesh_MSTK.cc) 
-file(GLOB mstk_inc_files "*.hh")
-add_Jali_library(mstk_mesh
-                   SOURCE ${mstk_mesh_files} HEADERS ${mstk_inc_files}
-                   LINK_LIBS geometry mesh ${MSTK_LIBRARIES} ${Zoltan_LIBRARIES})
+
+add_library(jali_mstk_mesh ${MSTK_MESH_sources})
+set_target_properties(jali_mstk_mesh PROPERTIES PUBLIC_HEADER "${MSTK_MESH_headers}")
+
+# Alias (Daniel Pfeiffer, Effective CMake) - this allows other
+# projects that use Pkg as a subproject to find_package(Nmspc::Pkg)
+# which does nothing because Pkg is already part of the project
+
+add_library(Jali::jali_mstk_mesh ALIAS jali_mstk_mesh)
+
+
+# Find MSTK. MSTK needs to be built with ExodusII, METIS and ZOLTAN
+find_package(MSTK QUIET REQUIRED)  # defines target mstk::mstk
+set_property(TARGET ${MSTK_LIBRARIES} PROPERTY IMPORTED_GLOBAL TRUE)
+message(STATUS "Found MSTK: " ${MSTK_LIBRARIES})
+
+# Somehow the Pkg_LIBRARIES names are not persisting outside of this dir
+set(Zoltan_LIBRARIES ${Zoltan_LIBRARIES} PARENT_SCOPE)
+set(METIS_LIBRARIES ${METIS_LIBRARIES} PARENT_SCOPE)
+set(ExodusII_LIBRARIES ${ExodusII_LIBRARIES} PARENT_SCOPE)
+
+target_link_libraries(jali_mstk_mesh PUBLIC ${MSTK_LIBRARIES})
+target_link_libraries(jali_mstk_mesh PUBLIC jali_error_handling)
+target_link_libraries(jali_mstk_mesh PUBLIC jali_mesh)
+
+# We should change install_interface to include/jali/mstk_mesh but
+# that requires changing all client codes
+target_include_directories(jali_mstk_mesh PUBLIC
+  $<BUILD_INTERFACE:${MSTK_MESH_BINARY_DIR}>
+  $<BUILD_INTERFACE:${MSTK_MESH_SOURCE_DIR}>
+  $<INSTALL_INTERFACE:include>
+  )
 
 if (BUILD_TESTS)
     
-    # Add UnitTest ExodusII include directories
-    include_directories(${UnitTest_INCLUDE_DIRS})
+  # Need to copy files for the tests 
+  if (NOT (${MSTK_MESH_SOURCE_DIR} EQUAL ${MSTK_MESH_BINARY_DIR}))
+    execute_process(COMMAND ${CMAKE_COMMAND} -E 
+      copy_directory ${MSTK_MESH_SOURCE_DIR}/test ${MSTK_MESH_BINARY_DIR}/test) 
+  endif()
+  
 
-    # Need to copy files for the tests 
-    if (NOT (${MSTK_SOURCE_DIR} EQUAL ${MSTK_BINARY_DIR}))
-        execute_process(COMMAND ${CMAKE_COMMAND} -E 
-          copy_directory ${MSTK_SOURCE_DIR}/test ${MSTK_BINARY_DIR}/test) 
-    endif()
-
-
-    # Test: mstk_mesh
-    add_Jali_test(mstk_mesh test_mstk_mesh
-                    KIND int
-                    SOURCE
-                         test/Main.cc 
-                         test/test_hex_1x1x1.cc
-                         test/test_hex_2x2x1.cc
-                         test/test_hex_3x3x3.cc
-                         test/test_read_fractures.cc
-                         test/test_hex_gen_3x3x3.cc
-                         test/test_quad_gen_3x3.cc
-			 test/test_write_read_fields.cc
-			 test/test_block_partition.cc
-                    LINK_LIBS mstk_mesh ${UnitTest_LIBRARIES}) 
-
-    # Test: mstk_mesh_parallel
-    add_Jali_test(mstk_mesh_parallel test_parallel_mstk_mesh
-                    KIND unit
-                    NPROCS 4
-                    SOURCE
-                         test/Main.cc
-                         test/test_hex_3x3x3_4P.cc
-    			 test/test_hex_3x3x3_par_read_4P.cc
-                         test/test_quad_gen_5x5_par.cc
-                         test/test_hex_gen_5x5x5_par.cc
-			 test/test_edges_4P.cc
-                    LINK_LIBS mstk_mesh ${UnitTest_LIBRARIES})
-
-    # Test: mstk_mesh_parallel
-    add_Jali_test(mstk_mesh_parallel8 test_parallel8_mstk_mesh
-                    KIND unit
-                    NPROCS 8
-                    SOURCE
-                         test/Main.cc
-                         test/test_quad_gen_5x5_par.cc
-                         test/test_hex_gen_5x5x5_par.cc
-                    LINK_LIBS mstk_mesh ${UnitTest_LIBRARIES})
+  # Test: mstk_mesh
+  add_Jali_test(mstk_mesh test_mstk_mesh
+    KIND int
+    SOURCE
+    test/Main.cc 
+    test/test_hex_1x1x1.cc
+    test/test_hex_2x2x1.cc
+    test/test_hex_3x3x3.cc
+    test/test_read_fractures.cc
+    test/test_hex_gen_3x3x3.cc
+    test/test_quad_gen_3x3.cc
+    test/test_write_read_fields.cc
+    test/test_block_partition.cc
+    LINK_LIBS jali_mstk_mesh ${UnitTest++_LIBRARIES}) 
+  
+  # Test: mstk_mesh_parallel
+  add_Jali_test(mstk_mesh_parallel test_parallel_mstk_mesh
+    KIND unit
+    NPROCS 4
+    SOURCE
+    test/Main.cc
+    test/test_hex_3x3x3_4P.cc
+    test/test_hex_3x3x3_par_read_4P.cc
+    test/test_quad_gen_5x5_par.cc
+    test/test_hex_gen_5x5x5_par.cc
+    test/test_edges_4P.cc
+    LINK_LIBS jali_mstk_mesh ${UnitTest++_LIBRARIES})
+  
+  # Test: mstk_mesh_parallel
+  add_Jali_test(mstk_mesh_parallel8 test_parallel8_mstk_mesh
+    KIND unit
+    NPROCS 8
+    SOURCE
+    test/Main.cc
+    test/test_quad_gen_5x5_par.cc
+    test/test_hex_gen_5x5x5_par.cc
+    LINK_LIBS jali_mstk_mesh ${UnitTest++_LIBRARIES})
 
 endif()
 

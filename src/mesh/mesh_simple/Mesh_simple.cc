@@ -45,13 +45,13 @@ OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "Mesh_simple.hh"
-
 #include <algorithm>
+#include <cassert>
+
+#include "Mesh_simple.hh"
 
 #include "mpi.h"   // only for MPI_COMM_WORLD in Mesh constructor
 
-#include "dbc.hh"
 #include "errors.hh"
 
 namespace Jali {
@@ -98,9 +98,8 @@ Mesh_simple::Mesh_simple(double x0, double y0, double z0,
 }
 
 
-// Have to define this dummy routine because we are not able to
-// eliminate the need in FrameworkTraits.cc which uses boost
-// functionality extensively
+// Have to define this dummy routine compiler does not know which mesh
+// framework will be called at runtime
 
 Mesh_simple::Mesh_simple(double x0, double y0,
                          double x1, double y1,
@@ -765,7 +764,7 @@ void Mesh_simple::node_set_coordinates(const Jali::Entity_ID local_node_id,
   unsigned int offset = (unsigned int) spdim*local_node_id;
 
 
-  ASSERT(ncoord != NULL);
+  assert(ncoord != NULL);
 
   std::vector<double>::iterator destination_begin = coordinates_.begin()
       + offset;

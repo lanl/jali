@@ -64,6 +64,7 @@
 #include <vector>
 #include <string>
 #include <memory>
+#include <cassert>
 #include <boost/iterator/permutation_iterator.hpp>
 
 #include "Mesh.hh"    // Jali mesh header

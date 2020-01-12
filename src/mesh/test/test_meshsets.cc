@@ -724,7 +724,7 @@ TEST(MESH_SETS_3D_INIT) {
     }
 
     
-    // Check that the mesh returns the zero faces for the right plane
+    // Check that the mesh returns zero faces for the right plane
     // (we promised we wouldn't query them) but the correct number of nodes 
 
     mesh->get_set_entities("plane2", Jali::Entity_kind::FACE,
