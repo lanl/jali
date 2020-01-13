@@ -289,8 +289,6 @@ TEST(MESH_WEDGES_2D) {
         std::vector<JaliGeometry::Point> wcoords2;
         mesh->wedge_get_coordinates(w, &wcoords2, true);
 
-        bool flipped = true;
-
         if (wcoords[1][0] == wcoords2[2][0] &&
             wcoords[1][1] == wcoords2[2][1] &&
             wcoords[2][0] == wcoords2[1][0] &&

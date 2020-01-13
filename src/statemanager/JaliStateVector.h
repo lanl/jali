@@ -809,10 +809,8 @@ class MultiStateVector : public MultiStateVectorBase<DomainType> {
       std::vector<int> const& entities = mset->entities();
       int numents = entities.size();
       (*mydata_)[m].resize(numents);
-      for (int i = 0; i < numents; i++) {
-        int c = entities[i];   // cell of material set
+      for (int i = 0; i < numents; i++)
         (*mydata_)[m][i] = initval;   // rectangular to compact storage
-      }
     }
   }
 

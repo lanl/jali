@@ -6,8 +6,7 @@
 
 TEST(MSTK_NON_MANIFOLD_SURFS) {
 
-  int i, j, k, err, nc, nf, nv;
-  Jali::Entity_ID faces[6], nodes[8];
+  int nc, nf;
 
   // Load a mesh that has two surfaces intersecting in a non-manifold fashion
 

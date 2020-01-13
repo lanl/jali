@@ -375,7 +375,6 @@ TEST(Jali_MultiStateVector_Cells_Mesh) {
   // indexing scheme to address the entries
 
   std::vector<double> & matvec = myvec1.get_matdata(0);
-  int cloc = cell_matindex[0][4];
   matvec[cell_matindex[0][1]] = 1.0/3.0;
   matvec[cell_matindex[0][4]] = 1.0/3.0;
   matvec[cell_matindex[0][7]] = 1.0/3.0;

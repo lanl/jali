@@ -188,6 +188,7 @@ TEST(MSTK_WRITE_READ_FIELDS) {
   CHECK(inmesh);
 
   int space_dim = inmesh->space_dimension();
+  CHECK_EQUAL(space_dim, outmesh->space_dimension());
   CHECK_EQUAL(nv,inmesh->num_entities(Jali::Entity_kind::NODE,
                                       Jali::Entity_type::ALL));
   CHECK_EQUAL(nc,inmesh->num_entities(Jali::Entity_kind::CELL,

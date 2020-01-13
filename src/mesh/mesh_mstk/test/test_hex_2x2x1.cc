@@ -56,7 +56,7 @@
 
 TEST(MSTK_HEX_2x2x1) {
 
-  int i, j, k, err, nc, nf, nv;
+  int i, j, k, nc, nf, nv;
   std::vector<Jali::Entity_ID> faces(6), cnodes(8), fnodes(6), expfacenodes(4);
   std::vector<Jali::dir_t> facedirs(6);
   std::vector<JaliGeometry::Point> ccoords(8), fcoords(4);

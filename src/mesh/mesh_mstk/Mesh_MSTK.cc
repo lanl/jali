@@ -68,7 +68,6 @@ void Mesh_MSTK::init_mesh_from_file_(std::string const filename,
 
   mesh = MESH_New(F1);
 
-  int len = filename.size();
   if (filename.find(".exo") != std::string::npos) {  // Exodus file
 
     // Read the mesh on processor 0
@@ -83,7 +82,6 @@ void Mesh_MSTK::init_mesh_from_file_(std::string const filename,
     if (numprocs > 1) {
       // Distribute the mesh to all the processors
       int topo_dim = MESH_Num_Regions(mesh) ? 3 : 2;
-      int num_ghost_layers = 1;
       int with_attr = 1;  // Redistribute any attributes and sets
 
       // MSTK does not know about INDEX, BLOCK partitioners
@@ -178,19 +176,10 @@ Mesh_MSTK::Mesh_MSTK(const std::string filename, const MPI_Comm& incomm,
   // Assume three dimensional problem if constructor called without
   // the space_dimension parameter
 
-  int ok = 0;
-
   // Pre-processing (init, MPI queries etc)
 
   int space_dim = 3;
   pre_create_steps_(space_dim, gm);
-
-
-
-  if (myprocid == 0) {
-    int DebugWait = 0;
-    while (DebugWait) {}
-  }
 
   init_mesh_from_file_(filename);
 
@@ -562,8 +551,7 @@ Mesh_MSTK::Mesh_MSTK(const std::shared_ptr<Mesh> inmesh,
     // access the set in Jali so that the set gets created in 'inmesh'
     // if it already does not exist
 
-    int setsize = inmesh->get_set_size(setnames[i], setkind,
-                                       Entity_type::PARALLEL_OWNED);
+    inmesh->get_set_size(setnames[i], setkind, Entity_type::PARALLEL_OWNED);
 
     // Now retrieve the entities in the set from MSTK
 
@@ -627,8 +615,7 @@ Mesh_MSTK::Mesh_MSTK(const Mesh& inmesh,
     // access the set in Jali so that the set gets created in 'inmesh'
     // if it already does not exist
 
-    int setsize = inmesh.get_set_size(setnames[i], setkind,
-                                      Entity_type::PARALLEL_OWNED);
+    inmesh.get_set_size(setnames[i], setkind, Entity_type::PARALLEL_OWNED);
 
     //  Now retrieve the entities in the set from MSTK
 
@@ -726,7 +713,7 @@ void Mesh_MSTK::extract_mstk_mesh(const Mesh_MSTK& inmesh,
                                   const int num_ghost_layers_distmesh,
                                   const bool boundary_ghosts_requested,
                                   const Partitioner_type partitioner) {
-  int ok, ival = 0, idx;
+  int ival = 0, idx;
   double rval = 0., xyz[3];
   void *pval;
 
@@ -2088,8 +2075,6 @@ void Mesh_MSTK::node_get_cell_faces(const Entity_ID nodeid,
                                     const Entity_type ptype,
                                     std::vector<Entity_ID> *faceids) const {
   int idx, lid, n;
-  List_ptr cell_list;
-  MEntity_ptr ment;
   MRegion_ptr mr;
   MFace_ptr mf;
   MEdge_ptr me;
@@ -2172,7 +2157,6 @@ void Mesh_MSTK::node_get_cell_faces(const Entity_ID nodeid,
 void Mesh_MSTK::face_get_cells_internal(const Entity_ID faceid,
                                         const Entity_type ptype,
                                         std::vector<Entity_ID> *cellids) const {
-  int lid;
 
   assert(faces_initialized);
   assert(cellids != NULL);
@@ -2330,7 +2314,6 @@ void Mesh_MSTK::cell_get_node_adj_cells(const Entity_ID cellid,
                                         std::vector<Entity_ID> *nadj_cellids)
     const {
 
-  int lid, mkid;
   List_ptr cell_list;
 
   assert(nadj_cellids != NULL);
@@ -2355,13 +2338,13 @@ void Mesh_MSTK::cell_get_node_adj_cells(const Entity_ID cellid,
           if (MEnt_PType(mr2) == PGHOST) {
             if (ptype == Entity_type::PARALLEL_GHOST ||
                 ptype == Entity_type::ALL) {
-              lid = MEnt_ID(mr2);
+              int lid = MEnt_ID(mr2);
               nadj_cellids->push_back(lid-1);
             }
           } else {
             if (ptype == Entity_type::PARALLEL_OWNED ||
                 ptype == Entity_type::ALL) {
-              lid = MEnt_ID(mr2);
+              int lid = MEnt_ID(mr2);
               nadj_cellids->push_back(lid-1);
             }
           }
@@ -2389,13 +2372,13 @@ void Mesh_MSTK::cell_get_node_adj_cells(const Entity_ID cellid,
           if (MEnt_PType(mf2) == PGHOST) {
             if (ptype == Entity_type::PARALLEL_GHOST ||
                 ptype == Entity_type::ALL) {
-              lid = MEnt_ID(mf2);
+              int lid = MEnt_ID(mf2);
               nadj_cellids->push_back(lid-1);
             }
           } else {
             if (ptype == Entity_type::PARALLEL_OWNED ||
                 ptype == Entity_type::ALL) {
-              lid = MEnt_ID(mf2);
+              int lid = MEnt_ID(mf2);
               nadj_cellids->push_back(lid-1);
             }
           }
@@ -2475,7 +2458,7 @@ void Mesh_MSTK::cell_get_coordinates(const Entity_ID cellid,
     const {
   MEntity_ptr cell;
   double coords[3];
-  int nn, result;
+  int nn;
   int spdim = space_dimension(), celldim = manifold_dimension();
 
   assert(ccoords != NULL);
@@ -3041,10 +3024,6 @@ Mesh_MSTK::get_labeled_set_entities(const JaliGeometry::LabeledSetRegionPtr rgn,
                                     Entity_ID_List *owned_entities,
                                     Entity_ID_List *ghost_entities) const {
 
-  int celldim = Mesh::manifold_dimension();
-  int spacedim = Mesh::space_dimension();
-  JaliGeometry::GeometricModelPtr gm = Mesh::geometric_model();
-
   // Modify region/set name by prefixing it with the type of entity requested
 
   std::string internal_name = internal_name_of_set(rgn, kind);
@@ -3352,7 +3331,6 @@ Entity_ID Mesh_MSTK::entity_get_parent(const Entity_kind kind,
 
 Entity_ID Mesh_MSTK::GID(const Entity_ID lid, const Entity_kind kind) const {
   MEntity_ptr ent;
-  unsigned int gid;
 
   switch (kind) {
   case Entity_kind::NODE:
@@ -3627,7 +3605,7 @@ void Mesh_MSTK::init_cells() {
 // ID to handle/pointer map for vertices
 
 void Mesh_MSTK::init_vertex_id2handle_maps() {
-  int i, lid, nv, idx;
+  int lid, nv, idx;
   MVertex_ptr vtx;
 
   // If the mesh is dynamic, then this code has to be revisited
@@ -3659,7 +3637,7 @@ void Mesh_MSTK::init_vertex_id2handle_maps() {
 // ID to handle/pointer map for edges
 
 void Mesh_MSTK::init_edge_id2handle_maps() {
-  int i, lid, ne, idx;
+  int lid, ne, idx;
   MEdge_ptr edge;
 
   // If the mesh is dynamic, then this code has to be revisited
@@ -3690,7 +3668,7 @@ void Mesh_MSTK::init_edge_id2handle_maps() {
 // ID to handle/pointer map for faces
 
 void Mesh_MSTK::init_face_id2handle_maps() {
-  int i, lid, nf, idx;
+  int lid, nf, idx;
   MEntity_ptr genface;  // Mesh face in 3D, edge in 2D
 
   // If the mesh is dynamic, then this code has to be revisited
@@ -3721,7 +3699,7 @@ void Mesh_MSTK::init_face_id2handle_maps() {
 // ID to handle/pointer map for cells
 
 void Mesh_MSTK::init_cell_id2handle_maps() {
-  int i, lid, nc, idx;
+  int lid, nc, idx;
   MEntity_ptr gencell;  // Mesh region in 3D, face in 2D
 
   // If the mesh is dynamic, then this code has to be revisited
@@ -3803,15 +3781,9 @@ void Mesh_MSTK::init_pedge_lists() {
 
 
 void Mesh_MSTK::init_pedge_dirs() {
-  MRegion_ptr region0, region1;
-  MFace_ptr face, face0, face1;
   MEdge_ptr edge;
   MAttrib_ptr attev0, attev1;
   int idx;
-  int local_regid0, local_regid1;
-  int remote_regid0, remote_regid1;
-  int local_faceid0, local_faceid1;
-  int remote_faceid0, remote_faceid1;
 
   int ne = MESH_Num_Edges(mesh);
 
@@ -4041,8 +4013,6 @@ void Mesh_MSTK::init_pface_dirs_2() {
       MVertex_ptr ev0 = ME_Vertex(edge, 0);
       MVertex_ptr ev1 = ME_Vertex(edge, 1);
 
-      int evgid0 = MV_GlobalID(ev0);
-      int evgid1 = MV_GlobalID(ev1);
       MEnt_Set_AttVal(edge, attev0, MEnt_GlobalID(ev0), 0.0, NULL);
       MEnt_Set_AttVal(edge, attev1, MEnt_GlobalID(ev1), 0.0, NULL);
     }
@@ -4144,7 +4114,6 @@ void Mesh_MSTK::init_pcell_lists() {
 
 void Mesh_MSTK::init_set_info() {
   MSet_ptr mset;
-  char setname[256];
 
   JaliGeometry::GeometricModelPtr gm = Mesh::geometric_model();
 
@@ -4246,17 +4215,13 @@ void Mesh_MSTK::init_set_info() {
 
 void Mesh_MSTK::collapse_degen_edges() {
   const int topoflag = 0;  // Don't worry about violation of model classification
-  int idx, idx2, evgid0, evgid1;
+  int idx, evgid0, evgid1;
   MVertex_ptr vertex, ev0, ev1, vkeep, vdel;
   MEdge_ptr edge;
   MFace_ptr face;
-  MRegion_ptr region;
   List_ptr deleted_ents_all = List_New(10);
   List_ptr merged_entity_pairs_all = List_New(10);
   double len2;
-  int ival;
-  void *pval;
-  Cell_type celltype;
   std::vector<int> merged_ents_info;
 
   idx = 0;
@@ -4985,7 +4950,7 @@ int Mesh_MSTK::generate_regular_mesh(Mesh_ptr regmesh, double x0, double y0,
                                      int NX, int NY) {
   int i, j, dir[4], globalid;
   int IG, JG, IOFFSET = 0, JOFFSET = 0;
-  double xyz[3], llx, lly, urx, ury, dx, dy, DX, DY;
+  double xyz[3], dx, dy, DX, DY;
   MVertex_ptr **verts, v0, v1, mv;
   MEdge_ptr fedges[4], me;
   MFace_ptr mf;
@@ -5232,7 +5197,6 @@ void Mesh_MSTK::pre_create_steps_(const int space_dimension,
 void Mesh_MSTK::inherit_labeled_sets(MAttrib_ptr copyatt,
                                      List_ptr src_entities) {
   int idx, idx2, diffdim;
-  char setname[256];
 
   JaliGeometry::GeometricModelPtr gm = Mesh::geometric_model();
 
@@ -5434,7 +5398,6 @@ bool Mesh_MSTK::get_field(std::string field_name, Entity_kind on_what,
     }
     if (ment == NULL) continue;  // not needed since nent=0 but here anyway
 
-    int ival;
     double rval;
     void *pval;
     MEnt_Get_AttVal(ment, mattrib, &(data[i]), &rval, &pval);
@@ -5480,7 +5443,6 @@ bool Mesh_MSTK::get_field(std::string field_name, Entity_kind on_what,
     if (ment == NULL) continue;  // not needed since nent=0 but here anyway
 
     int ival;
-    double rval;
     void *pval;
     MEnt_Get_AttVal(ment, mattrib, &ival, &(data[i]), &pval);
   }  // for

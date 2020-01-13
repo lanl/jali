@@ -55,8 +55,7 @@
 
 TEST(MSTK_HEX_GEN_3x3x3) {
 
-  int i, j, k, err, nc, nf, nv;
-  Jali::Set_ID faces[6], nodes[8];
+  int nc, nf, nv;
 
   int NV = 64;
   int NF = 108;

@@ -59,14 +59,13 @@
 TEST(MSTK_HEX1)
 {
 
-  int i, j, k, err, nc, nv;
+  int i, j, k, nc, nv;
   std::vector<Jali::Entity_ID> faces(6), facenodes(4), cellnodes(8),
       expfacenodes(4);
   std::vector<Jali::dir_t> facedirs(6);
   std::vector<JaliGeometry::Point> ccoords(8), fcoords(4);
 
   int NV = 8;
-  int NF = 6;
   int NC = 1;
   double xyz[12][3] = {{0, 0, 0},
                        {1, 0, 0},
@@ -76,7 +75,6 @@ TEST(MSTK_HEX1)
                        {1, 0, 1},
                        {0, 1, 1},
                        {1, 1, 1}};
-  Jali::Entity_ID local_cellnodes[8] = {0, 1, 2, 3, 4, 5, 6, 7};
   Jali::Entity_ID local_facenodes[6][4] = {{0, 1, 5, 4},
                                            {1, 2, 6, 5},
                                            {2, 3, 7, 6},

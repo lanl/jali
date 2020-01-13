@@ -308,11 +308,11 @@ void initialize_data(const std::shared_ptr<Mesh> mesh,
   // Note that we did not send in the second template parameter Mesh -
   // it is the default
 
-  UniStateVector<std::array<double, 3>>& velocity =
-      state->add<std::array<double, 3>, Mesh, UniStateVector>(velocity_name,
-                                                              mesh,
-                                                              Entity_kind::NODE,
-                                                              Entity_type::ALL,
-                                                              initarray);
+  // UniStateVector<std::array<double, 3>>& velocity =
+  state->add<std::array<double, 3>, Mesh, UniStateVector>(velocity_name,
+                                                          mesh,
+                                                          Entity_kind::NODE,
+                                                          Entity_type::ALL,
+                                                          initarray);
 }
 

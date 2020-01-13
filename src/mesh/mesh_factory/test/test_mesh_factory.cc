@@ -117,7 +117,6 @@ SUITE (MeshFramework)
   {
     int nproc;
     MPI_Comm_size(MPI_COMM_WORLD, &nproc);
-    bool parallel(nproc > 1);
 
     std::shared_ptr<Jali::Mesh> mesh;
     Jali::MeshFactory mesh_factory(MPI_COMM_WORLD);
@@ -164,7 +163,6 @@ SUITE (MeshFramework)
   TEST (ReadSimple) {
     int nproc;
     MPI_Comm_size(MPI_COMM_WORLD, &nproc);
-    bool parallel(nproc > 1);
 
     std::shared_ptr<Jali::Mesh> mesh;
     Jali::MeshFactory mesh_factory(MPI_COMM_WORLD);
@@ -183,7 +181,6 @@ SUITE (MeshFramework)
   TEST (ReadMOABHDF5) {
     int nproc;
     MPI_Comm_size(MPI_COMM_WORLD, &nproc);
-    bool parallel(nproc > 1);
 
     std::shared_ptr<Jali::Mesh> mesh;
     Jali::MeshFactory mesh_factory(MPI_COMM_WORLD);
@@ -201,7 +198,6 @@ SUITE (MeshFramework)
   TEST (ReadExodus) {
     int nproc;
     MPI_Comm_size(MPI_COMM_WORLD, &nproc);
-    bool parallel(nproc > 1);
 
     std::shared_ptr<Jali::Mesh> mesh;
     Jali::MeshFactory mesh_factory(MPI_COMM_WORLD);

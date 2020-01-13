@@ -99,7 +99,6 @@ TEST(MESH_TILES_MPI) {
     Jali::MeshFactory factory(MPI_COMM_WORLD);
     std::shared_ptr<Jali::Mesh> mesh;
 
-    bool faces_requested = true;
     bool edges_requested = (the_framework == Jali::MSTK) ? true : false;
     bool sides_requested = (the_framework == Jali::MSTK) ? true : false;
     bool wedges_requested = (the_framework == Jali::MSTK) ? true : false;
@@ -181,7 +180,6 @@ TEST(MESH_TILES_MPI) {
     // Check that the master tile of a ghost cell really owns the cell
       
     for (auto const& t : meshtiles) {
-      int tileID = t->ID();
       for (auto const& c : t->cells<Jali::Entity_type::PARALLEL_GHOST>()) {
         Jali::Entity_type ptype =
             mesh->entity_get_type(Jali::Entity_kind::CELL, c);
@@ -228,7 +226,6 @@ TEST(MESH_TILES_MPI) {
     // Check that the master tile of a ghost node really owns the node
       
     for (auto const& t : meshtiles) {
-      int tileID = t->ID();
       for (auto const& n : t->nodes<Jali::Entity_type::PARALLEL_GHOST>()) {
         Jali::Entity_type ptype =
             mesh->entity_get_type(Jali::Entity_kind::NODE, n);
@@ -281,7 +278,6 @@ TEST(MESH_TILES_MPI) {
     // Check that the master tile of a ghost face really owns the face
       
     for (auto const& t : meshtiles) {
-      int tileID = t->ID();
       for (auto const& f : t->faces<Jali::Entity_type::PARALLEL_GHOST>()) {
         Jali::Entity_type ptype =
             mesh->entity_get_type(Jali::Entity_kind::FACE, f);
@@ -334,7 +330,6 @@ TEST(MESH_TILES_MPI) {
       // Check that the master tile of a ghost edge really owns the edge
       
       for (auto const& t : meshtiles) {
-        int tileID = t->ID();
         for (auto const& e : t->edges<Jali::Entity_type::PARALLEL_GHOST>()) {
           Jali::Entity_type ptype =
               mesh->entity_get_type(Jali::Entity_kind::EDGE, e);
@@ -385,7 +380,6 @@ TEST(MESH_TILES_MPI) {
       // Check that the master tile of a ghost side really owns the side
       
       for (auto const& t : meshtiles) {
-        int tileID = t->ID();
         for (auto const& s : t->sides<Jali::Entity_type::PARALLEL_GHOST>()) {
           Jali::Entity_type ptype =
               mesh->entity_get_type(Jali::Entity_kind::SIDE, s);
@@ -435,7 +429,6 @@ TEST(MESH_TILES_MPI) {
       // Check that the master tile of a ghost wedge really owns the wedge
       
       for (auto const& t : meshtiles) {
-        int tileID = t->ID();
         for (auto const& w : t->wedges<Jali::Entity_type::PARALLEL_GHOST>()) {
           Jali::Entity_type ptype =
               mesh->entity_get_type(Jali::Entity_kind::WEDGE, w);
@@ -486,7 +479,6 @@ TEST(MESH_TILES_MPI) {
       // Check that the master tile of a ghost corner really owns the corner
       
       for (auto const& t : meshtiles) {
-        int tileID = t->ID();
         for (auto const& cn : t->corners<Jali::Entity_type::PARALLEL_GHOST>()) {
           Jali::Entity_type ptype =
               mesh->entity_get_type(Jali::Entity_kind::CORNER, cn);
@@ -529,8 +521,6 @@ TEST(MESH_TILES_SETS) {
     // Create the mesh
     Jali::MeshFactory factory(MPI_COMM_WORLD);
     std::shared_ptr<Jali::Mesh> mesh;
-
-    bool faces_requested = true;
 
     int ierr = 0;
     int aerr = 0;
@@ -607,10 +597,8 @@ TEST(MESH_TILES_SETS) {
 
     // Do all the tiles have the same number of cells?
 
-    for (auto const& t : meshtiles) {
-      int tileID = t->ID();
+    for (auto const& t : meshtiles)
       CHECK_EQUAL(4, t->num_cells<Jali::Entity_type::PARALLEL_OWNED>());
-    }
 
     // Check that we are able to retrieve set entities on the tiles
     // and that they are the right entities
@@ -618,8 +606,6 @@ TEST(MESH_TILES_SETS) {
     std::vector<int> cell_owner(mesh->num_cells(), -1);
     std::vector<int> cell_num_owners(mesh->num_cells(), 0);
     for (auto const& t : meshtiles) {
-      int tileID = t->ID();
-
       // Bounding box of tile
 
       JaliGeometry::Point tilelo(99.0, 99.0);

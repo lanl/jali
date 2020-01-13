@@ -321,7 +321,6 @@ void Mesh_simple::update_internals_1d_() {
 
   // populate entity ids arrays in the base class so that iterators work
 
-  int lid;
   std::vector<int>::iterator it;
 
   Mesh::nodeids_owned_.resize(num_nodes_);
@@ -603,7 +602,6 @@ void Mesh_simple::update_internals_3d_() {
 
   // populate entity ids arrays in the base class so that iterators work
 
-  int lid;
   std::vector<int>::iterator it;
 
   Mesh::nodeids_owned_.resize(num_nodes_);

@@ -234,9 +234,6 @@ void Mesh::cache_side_info() const {
 
   cell_side_ids.resize(ncells);
 
-  int nnodes_owned = num_nodes<Entity_type::PARALLEL_OWNED>();
-  int nnodes_ghost = num_nodes<Entity_type::PARALLEL_GHOST>();
-  int nnodes = nnodes_owned + nnodes_ghost;
 
   int num_sides_all = 0;
   int num_sides_owned = 0;
@@ -432,14 +429,6 @@ void Mesh::cache_side_info() const {
 // Gather and cache wedge information
 
 void Mesh::cache_wedge_info() const {
-  int ncells_owned = num_cells<Entity_type::PARALLEL_OWNED>();
-  int ncells_ghost = num_cells<Entity_type::PARALLEL_GHOST>();
-  int ncells_boundary_ghost = num_cells<Entity_type::BOUNDARY_GHOST>();
-  int ncells = ncells_owned + ncells_ghost + ncells_boundary_ghost;
-
-  int nnodes_owned = num_nodes<Entity_type::PARALLEL_OWNED>();
-  int nnodes_ghost = num_nodes<Entity_type::PARALLEL_GHOST>();
-  int nnodes = nnodes_owned + nnodes_ghost;
 
   int nsides_owned = num_sides<Entity_type::PARALLEL_OWNED>();
   int nsides_ghost = num_sides<Entity_type::PARALLEL_GHOST>();
@@ -887,8 +876,6 @@ void Mesh::cell_get_edges(const Entity_ID cellid,
   //
 
   assert(cell2edge_info_cached);
-
-  Entity_ID_List &cedgeids = cell_edge_ids[cellid];
 
   *edgeids = cell_edge_ids[cellid];  // copy operation
 
@@ -2397,8 +2384,6 @@ void Mesh::init_sets_from_geometric_model(
   for (int i = 0; i < ngr; i++) {
     JaliGeometry::RegionPtr rgn = geometric_model_->Region_i(i);
 
-    unsigned int rdim = rgn->dimension();
-      
     if (rgn->type() == JaliGeometry::Region_type::LABELEDSET) {
       // The entity type is predetermined
       JaliGeometry::LabeledSetRegionPtr lsrgn =
@@ -2515,8 +2500,6 @@ std::vector<std::shared_ptr<MeshSet>> const& Mesh::sets() const {
 
 bool Mesh::valid_region_name(std::string name, Entity_kind kind) const {
   if (!geometric_model_) return false;
-
-  unsigned int gdim = geometric_model_->dimension();
 
   unsigned int ngr = geometric_model_->Num_Regions();
   for (int i = 0; i < ngr; i++) {
@@ -2837,7 +2820,6 @@ std::shared_ptr<MeshSet> Mesh::build_set_from_region(const std::string setname,
           JaliGeometry::Point fcen = face_centroid(iface);
           if (region->inside(face_centroid(iface))) {
             Entity_type ftype = entity_get_type(Entity_kind::FACE, iface);
-            int gid = GID(iface, Entity_kind::FACE);
             if (ftype == Entity_type::PARALLEL_OWNED)
               owned_faces.push_back(iface);
             else if (ftype == Entity_type::PARALLEL_GHOST)
@@ -3203,7 +3185,6 @@ void Mesh::get_partitioning_with_metis(int const num_parts,
   // Build the adjacency info
 
   int ncells_owned = num_cells<Entity_type::PARALLEL_OWNED>();
-  int nfaces_owned = num_faces<Entity_type::PARALLEL_OWNED>();
   int ncells_all = num_cells<Entity_type::ALL>();
   int nfaces_all = num_faces<Entity_type::ALL>();
   idx_t *xadj = new idx_t[ncells_all+1];  // offset indicator into adjacency
@@ -3226,11 +3207,9 @@ void Mesh::get_partitioning_with_metis(int const num_parts,
 
   // Partition the graph
 
-  idx_t wtflag = 0;  // No weights
   idx_t *vwt = nullptr;
   idx_t *adjwt = nullptr;
 
-  int numflag = 0;  // C style numbering of cells (nodes of the dual graph)
   idx_t ngraphvtx = ncells_owned;
   idx_t nparts = static_cast<idx_t>(num_parts);
   

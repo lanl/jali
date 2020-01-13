@@ -168,7 +168,6 @@ TEST(MESH_SETS_3D) {
     Jali::MeshFactory factory(MPI_COMM_WORLD);
     std::shared_ptr<Jali::Mesh> mesh;
     
-    bool faces_requested = true;
     bool edges_requested = (the_framework == Jali::MSTK) ? true : false;
     bool sides_requested = false;
     bool wedges_requested = false;
@@ -525,7 +524,6 @@ TEST(MESH_SETS_3D_INIT) {
     Jali::MeshFactory factory(MPI_COMM_WORLD);
     std::shared_ptr<Jali::Mesh> mesh;
     
-    bool faces_requested = true;
     bool edges_requested = (the_framework == Jali::MSTK) ? true : false;
     bool sides_requested = false;
     bool wedges_requested = false;
@@ -854,7 +852,6 @@ TEST(MESH_SETS_LABELED_3D) {
     Jali::MeshFactory factory(MPI_COMM_WORLD);
     std::shared_ptr<Jali::Mesh> mesh;
 
-    bool faces_requested = true;
     bool edges_requested = false;
     bool sides_requested = false;
     bool wedges_requested = false;

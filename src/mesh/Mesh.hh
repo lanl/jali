@@ -1329,12 +1329,12 @@ class Mesh {
                                  int const tileid) {
     cell_master_tile_ID_[cellid] = tileid;
   }
-  void set_master_tile_ID_of_wedge(Entity_ID const wedgeid,
-                                   int const tileid) {}
-  void set_master_tile_ID_of_side(Entity_ID const sideid,
-                                   int const tileid) {}
-  void set_master_tile_ID_of_corner(Entity_ID const cornerid,
-                                    int const tileid) {}
+  //  void set_master_tile_ID_of_wedge(Entity_ID const wedgeid,
+  //                                   int const tileid) {}
+  //  void set_master_tile_ID_of_side(Entity_ID const sideid,
+  //                                   int const tileid) {}
+  //  void set_master_tile_ID_of_corner(Entity_ID const cornerid,
+  //                                    int const tileid) {}
 
   //! @brief Get the partitioning of a regular mesh such that each
   //! partition is a rectangular block

@@ -82,7 +82,6 @@ struct Vec2d {
 TEST(Jali_State_Var_Types) {
 
   constexpr int n_cells = 4;
-  int n_nodes = 9;
   float ftest[] = {1.1, 2.2, 3.3, 4.4};
   int itest[] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
   Vec2d vtest[n_cells];
@@ -170,7 +169,6 @@ TEST(Jali_State_On_Mesh) {
 
   // Add the first vector to state using the state vector object (deep copy)
 
-  int add_status;
   Jali::UniStateVector<double, Jali::Mesh>& addvec1 = mystate->add(myvec1);
   CHECK_EQUAL(addvec1.size(), myvec1.size());
   for (int i = 0; i < addvec1.size(); ++i)
