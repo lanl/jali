@@ -714,7 +714,7 @@ TEST(ONE_MESH_TILE) {
         CHECK_EQUAL(expected_all_corners.size(), nent);
 
         auto const& tile_all_corners = tile->corners();
-        int j = 0;
+        j = 0;
         for (auto const& cn : expected_all_corners) {
           if (std::find(tile_all_corners.begin(), tile_all_corners.end(), cn)
               != tile_all_corners.end())

@@ -246,16 +246,16 @@ TEST(Jali_MultiStateVector_Cells_Mesh) {
   //     |        |    :   |        |
   //     *--------*----:---*--------*
 
-  std::vector<std::vector<int>> matcells = {{0, 1, 3, 4, 6, 7},
-                                            {1, 2, 4, 5},
-                                            {4, 5, 7, 8}};
+  std::vector<std::vector<int>> matcells_in = {{0, 1, 3, 4, 6, 7},
+                                               {1, 2, 4, 5},
+                                               {4, 5, 7, 8}};
   std::vector<std::vector<int>> cell_matindex = {{0, 1, -1, 2, 3, -1, 4, 5, -1},
                                                  {-1, 0, 1, -1, 2, 3, -1, -1, -1},
                                                  {-1, -1, -1, -1, 0, 1, -1, 2, 3}};
 
-  state->add_material("steel", matcells[0]);
-  state->add_material("aluminum", matcells[1]);
-  state->add_material("air", matcells[2]);
+  state->add_material("steel", matcells_in[0]);
+  state->add_material("aluminum", matcells_in[1]);
+  state->add_material("air", matcells_in[2]);
 
   // Create a multi-material state vector corresponding to volume
   // fractions of materials as shown in fig above. 'vfm' is laid out in
@@ -346,7 +346,7 @@ TEST(Jali_MultiStateVector_Cells_Mesh) {
     std::vector<double> & matvec = myvec1.get_matdata(m);
     for (int c = 0; c < matvec.size(); c++) {
       CHECK_EQUAL(matvf[m][c], matvec[c]);
-      double cellvol = mesh->cell_volume(matcells[m][c]);
+      double cellvol = mesh->cell_volume(matcells_in[m][c]);
       matvol += matvec[c]*cellvol;
     }
     if (m == 0)
@@ -391,11 +391,11 @@ TEST(Jali_MultiStateVector_Cells_Mesh) {
   vol = 0.0;  // sum of material volumes over the mesh
   for (int m = 0; m < 3; m++) {
     double matvol = 0.0;  // material volume
-    std::vector<double> & matvec = myvec1.get_matdata(m);
-    for (int c = 0; c < matvec.size(); c++) {
-      CHECK_EQUAL(matvf[m][c], matvec[c]);
-      double cellvol = mesh->cell_volume(matcells[m][c]);
-      matvol += matvec[c]*cellvol;
+    std::vector<double> & matvec_out = myvec1.get_matdata(m);
+    for (int c = 0; c < matvec_out.size(); c++) {
+      CHECK_EQUAL(matvf[m][c], matvec_out[c]);
+      double cellvol = mesh->cell_volume(matcells_in[m][c]);
+      matvol += matvec_out[c]*cellvol;
     }
     if (m == 0)
       CHECK_CLOSE(4.0, matvol, 1.0e-8);

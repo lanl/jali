@@ -734,26 +734,30 @@ void Mesh::face_get_cells(const Entity_ID faceid, const Entity_type ptype,
   cellids->clear();
 
   switch (ptype) {
-  case Entity_type::ALL:
-    for (int i = 0; i < 2; i++) {
-      Entity_ID c = face_cell_ids[faceid][i];
-      if (c != -1) cellids->push_back(c);
+    case Entity_type::ALL: {
+      for (int i = 0; i < 2; i++) {
+        Entity_ID c = face_cell_ids[faceid][i];
+        if (c != -1) cellids->push_back(c);
+      }
+      break;
     }
-    break;
-  case Entity_type::PARALLEL_OWNED:
-    for (int i = 0; i < 2; i++) {
-      Entity_ID c = face_cell_ids[faceid][i];
-      if (c != -1 && cell_type[c] == Entity_type::PARALLEL_OWNED)
-        cellids->push_back(c);
+    case Entity_type::PARALLEL_OWNED: {
+      for (int i = 0; i < 2; i++) {
+        Entity_ID c = face_cell_ids[faceid][i];
+        if (c != -1 && cell_type[c] == Entity_type::PARALLEL_OWNED)
+          cellids->push_back(c);
+      }
+      break;
     }
-    break;
-  case Entity_type::PARALLEL_GHOST:
-    for (int i = 0; i < 2; i++) {
-      Entity_ID c = face_cell_ids[faceid][i];
-      if (c != -1 && cell_type[c] == Entity_type::PARALLEL_GHOST)
-        cellids->push_back(c);
+    case Entity_type::PARALLEL_GHOST: {
+      for (int i = 0; i < 2; i++) {
+        Entity_ID c = face_cell_ids[faceid][i];
+        if (c != -1 && cell_type[c] == Entity_type::PARALLEL_GHOST)
+          cellids->push_back(c);
+      }
+      break;
     }
-    break;
+    default: {}      
   }
 
 #else
@@ -769,20 +773,24 @@ void Mesh::face_get_cells(const Entity_ID faceid, const Entity_type ptype,
   cellids->clear();
 
   switch (ptype) {
-  case Entity_type::ALL:
-    for (int i = 0; i < fcells.size(); i++)
-      cellids->push_back(fcells[i]);
-    break;
-  case Entity_type::PARALLEL_OWNED:
-    for (int i = 0; i < fcells.size(); i++)
-      if (cell_type[fcells[i]] == Entity_type::PARALLEL_OWNED)
+    case Entity_type::ALL: {
+      for (int i = 0; i < fcells.size(); i++)
         cellids->push_back(fcells[i]);
-    break;
-  case Entity_type::PARALLEL_GHOST:
-    for (int i = 0; i < fcells.size(); i++)
-      if (cell_type[fcells[i]] == Entity_type::PARALLEL_GHOST)
-        cellids->push_back(fcells[i]);
-    break;
+      break;
+    }
+    case Entity_type::PARALLEL_OWNED: {
+      for (int i = 0; i < fcells.size(); i++)
+        if (cell_type[fcells[i]] == Entity_type::PARALLEL_OWNED)
+          cellids->push_back(fcells[i]);
+      break;
+    }
+    case Entity_type::PARALLEL_GHOST: {
+      for (int i = 0; i < fcells.size(); i++)
+        if (cell_type[fcells[i]] == Entity_type::PARALLEL_GHOST)
+          cellids->push_back(fcells[i]);
+      break;
+    }
+    default: {}
   }
 
 #endif
@@ -1163,19 +1171,19 @@ int Mesh::compute_cell_geometry(const Entity_ID cellid, double *volume,
     // without (but we have yet to put in the code for the standard
     // node ordering and computation for these special elements)
 
-    Entity_ID_List faces;
+    Entity_ID_List cfaces;
     std::vector<unsigned int> nfnodes;
     std::vector<dir_t> fdirs;
     std::vector<JaliGeometry::Point> ccoords, cfcoords, fcoords;
 
-    cell_get_faces_and_dirs(cellid, &faces, &fdirs);
+    cell_get_faces_and_dirs(cellid, &cfaces, &fdirs);
 
-    int nf = faces.size();
+    int nf = cfaces.size();
     nfnodes.resize(nf);
 
     for (int j = 0; j < nf; j++) {
 
-      face_get_coordinates(faces[j], &fcoords);
+      face_get_coordinates(cfaces[j], &fcoords);
       nfnodes[j] = fcoords.size();
 
       if (fdirs[j] == 1) {
@@ -2725,12 +2733,12 @@ std::shared_ptr<MeshSet> Mesh::build_set_from_region(const std::string setname,
           }
         }
 
-        Entity_ID_List cells;
-        node_get_cells(minnode, Entity_type::ALL, &cells);
+        Entity_ID_List cells1;
+        node_get_cells(minnode, Entity_type::ALL, &cells1);
 
-        int ncells = cells.size();
+        int ncells = cells1.size();
         for (int ic = 0; ic < ncells; ic++) {
-          Entity_ID icell = cells[ic];
+          Entity_ID icell = cells1[ic];
 
           // Check if point is contained in cell
           if (point_in_cell(rgnpnt, icell)) {
@@ -2958,6 +2966,7 @@ std::shared_ptr<MeshSet> Mesh::build_set_from_region(const std::string setname,
 
       break;
     }
+    default: {}
   }
 
 
@@ -3044,20 +3053,20 @@ bool Mesh::point_in_cell(const JaliGeometry::Point &p,
     // calculation routine
 
     int nf;
-    Entity_ID_List faces;
+    Entity_ID_List cfaces;
     std::vector<unsigned int> nfnodes;
     std::vector<dir_t> fdirs;
     std::vector<JaliGeometry::Point> cfcoords;
 
-    cell_get_faces_and_dirs(cellid, &faces, &fdirs);
+    cell_get_faces_and_dirs(cellid, &cfaces, &fdirs);
 
-    nf = faces.size();
+    nf = cfaces.size();
     nfnodes.resize(nf);
 
     for (int j = 0; j < nf; j++) {
       std::vector<JaliGeometry::Point> fcoords;
 
-      face_get_coordinates(faces[j], &fcoords);
+      face_get_coordinates(cfaces[j], &fcoords);
       nfnodes[j] = fcoords.size();
 
       if (fdirs[j] == 1) {
@@ -3246,7 +3255,7 @@ void Mesh::get_partitioning_with_metis(int const num_parts,
                         adjwt, &nparts, tpwts, ubvec, metisopts,
                         &nedgecut, idxpart);
 
-  for (int i = 0; i < ncells_owned; ++i) {
+  for (i = 0; i < ncells_owned; ++i) {
     int ipart = idxpart[i];
     (*partitions)[ipart].push_back(i);
   }
@@ -3570,7 +3579,7 @@ int Mesh::block_partition_regular_mesh(int const dim,
               bnumcells[ib][2] == 0) continue;  // Blanked out block
           
           double diff = blimits[ib][2*dir+1] - blimits[ib][2*dir];
-          double delta = diff/bnumcells[ib][dir];
+          double szdelta = diff/bnumcells[ib][dir];
           int ncells1 = bnumcells[ib][dir]/2;
           int ncells2 = bnumcells[ib][dir] - ncells1;
           if (ncells1 == 0 || ncells2 == 0) continue;
@@ -3595,7 +3604,7 @@ int Mesh::block_partition_regular_mesh(int const dim,
           /* overwrite the data in the direction of the refinement */
           bnumcells[ib1][dir] = ncells1;
           blimits[ib1][2*dir] = blimits[ib][2*dir];
-          blimits[ib1][2*dir+1] = blimits[ib][2*dir] + ncells1*delta;
+          blimits[ib1][2*dir+1] = blimits[ib][2*dir] + ncells1*szdelta;
           
           // copy the initial block details over
           int ib2 = nblocks + nnewblocks + 1;
@@ -3606,7 +3615,7 @@ int Mesh::block_partition_regular_mesh(int const dim,
           }
           /* overwrite the data in the direction of the refinement */
           bnumcells[ib2][dir] = ncells2;
-          blimits[ib2][2*dir] = blimits[ib][2*dir] + ncells1*delta;
+          blimits[ib2][2*dir] = blimits[ib][2*dir] + ncells1*szdelta;
           blimits[ib2][2*dir+1] = blimits[ib][2*dir+1];
           
           // Blank out the original block

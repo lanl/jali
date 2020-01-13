@@ -180,13 +180,13 @@ int main(int argc, char *argv[]) {
   //     *--------*----:---*--------*--------*
 
   // cells in the materials (for initialization)
-  std::vector<std::vector<int>> matcells = {{0, 1, 2, 3, 4, 5, 6, 7},
-                                            {4, 5, 6, 8, 9, 10, 12, 13, 14},
-                                            {6, 7, 10, 11, 14, 15}};
+  std::vector<std::vector<int>> matcells_in = {{0, 1, 2, 3, 4, 5, 6, 7},
+                                               {4, 5, 6, 8, 9, 10, 12, 13, 14},
+                                               {6, 7, 10, 11, 14, 15}};
 
-  mystate->add_material("steel1", matcells[0]);
-  mystate->add_material("aluminum1", matcells[1]);
-  mystate->add_material("aluminum2", matcells[2]);
+  mystate->add_material("steel1", matcells_in[0]);
+  mystate->add_material("aluminum1", matcells_in[1]);
+  mystate->add_material("aluminum2", matcells_in[2]);
 
   int nmats = mystate->num_materials();
 
@@ -312,7 +312,11 @@ int main(int argc, char *argv[]) {
   UniStateVector<double, Jali::Mesh> myvec_copy1;
   bool found = mystate->get("myzonevar", mymesh, Entity_kind::CELL,
                             Entity_type::ALL, &myvec_copy1);
-
+  if (!found) {    
+    std::cerr << "Could not retrieve state vector myzonevar?\n" << std::endl;
+    exit(-1);
+  }
+  
   int ndata = myvec_copy1.size();
   if (myvec.size() != myvec_copy1.size()) {
     std::cerr << "Stored and retrieved vectors have different sizes?" <<

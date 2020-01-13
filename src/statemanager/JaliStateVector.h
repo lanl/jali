@@ -99,7 +99,7 @@ class StateVectorBase {
                            std::shared_ptr<State> state,
                            Entity_kind kind,
                            Entity_type type) :
-      mystate_(state), myname_(name), entity_kind_(kind), entity_type_(type) {}
+      myname_(name), mystate_(state), entity_kind_(kind), entity_type_(type) {}
 
 
   //! Destructor

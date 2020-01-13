@@ -144,7 +144,7 @@ bool framework_extracts(MeshFramework_t const& f, bool const parallel,
 
 void MeshFactory::reset_options(void) {
   /// The framework to use for creating the mesh
-  MeshFramework_t framework_ = default_framework_;
+  framework_ = default_framework_;
 
   // What type of entities to include/exclude in the meshes to be created
   // (nodes must ALWAYS be present)
@@ -511,6 +511,7 @@ MeshFactory::create(std::vector<double> const& x) {
           ierr = 1;
           errmsg.add_data("Simple framework cannot generate parallel 1D mesh");
         }
+        break;
       }
       default: {
         ierr = 1;

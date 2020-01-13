@@ -200,8 +200,6 @@ TEST(MESH_TILES_MPI) {
     for (auto const& t : meshtiles) {
       // a tile with no interior nodes that is surrounded by other
       // tiles processed before can have no owned nodes
-      CHECK(t->num_nodes<Jali::Entity_type::PARALLEL_OWNED>() >= 0);
-
       CHECK(t->num_nodes<Jali::Entity_type::PARALLEL_GHOST>() > 0);
       CHECK_EQUAL(t->num_nodes<Jali::Entity_type::PARALLEL_OWNED>() +
                   t->num_nodes<Jali::Entity_type::PARALLEL_GHOST>(),
@@ -304,7 +302,7 @@ TEST(MESH_TILES_MPI) {
       for (auto const& t : meshtiles) {
         // a tile with no interior nodes that is surrounded by other
         // tiles processed before can have no owned nodes
-        CHECK(t->num_edges<Jali::Entity_type::PARALLEL_OWNED>() >=0);
+        CHECK(t->num_edges<Jali::Entity_type::PARALLEL_OWNED>() > 0);
 
         CHECK(t->num_edges<Jali::Entity_type::PARALLEL_GHOST>() > 0);
         CHECK_EQUAL(t->num_edges<Jali::Entity_type::PARALLEL_OWNED>() + 
@@ -515,9 +513,9 @@ TEST(MESH_TILES_SETS) {
   const Jali::MeshFramework_t frameworks[] = {Jali::MSTK, Jali::Simple};
   const char *framework_names[] = {"MSTK", "Simple"};
   const int numframeworks = sizeof(frameworks)/sizeof(Jali::MeshFramework_t);
-  for (int i = 0; i < numframeworks; i++) {
+  for (int fr = 0; fr < numframeworks; fr++) {
     // Set the framework
-    Jali::MeshFramework_t the_framework = frameworks[i];
+    Jali::MeshFramework_t the_framework = frameworks[fr];
     if (!Jali::framework_available(the_framework)) continue;
 
     int dim = 2;
@@ -525,7 +523,7 @@ TEST(MESH_TILES_SETS) {
     if (!Jali::framework_generates(the_framework, parallel, dim))
       continue;
 
-    std::cerr << "Testing mesh tile with " << framework_names[i] <<
+    std::cerr << "Testing mesh tile with " << framework_names[fr] <<
         std::endl;
 
     // Create the mesh

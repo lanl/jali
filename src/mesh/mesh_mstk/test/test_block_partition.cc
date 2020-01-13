@@ -64,8 +64,8 @@ class Mesh_MSTK_Test_Protected : public Mesh_MSTK {
   Mesh_MSTK_Test_Protected(double const x0, double const y0, double const z0,
                            double const x1, double const y1, double const z1,
                            int const nx, int const ny, int const nz,
-                           MPI_Comm const& comm) :
-      Mesh_MSTK(x0, y0, z0, x1, y1, z1, nx, ny, nz, comm) {}
+                           MPI_Comm const& incomm) :
+      Mesh_MSTK(x0, y0, z0, x1, y1, z1, nx, ny, nz, incomm) {}
 
   // Destructor
 

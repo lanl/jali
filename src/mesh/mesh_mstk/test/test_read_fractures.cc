@@ -16,9 +16,10 @@ TEST(MSTK_NON_MANIFOLD_SURFS) {
 
   nf = mesh->num_entities(Jali::Entity_kind::FACE,
                           Jali::Entity_type::PARALLEL_OWNED);
-
+  CHECK(nf > 0);
+  
   nc = mesh->num_entities(Jali::Entity_kind::CELL,
                           Jali::Entity_type::PARALLEL_OWNED);
-
+  CHECK(nc > 0);
 }
 

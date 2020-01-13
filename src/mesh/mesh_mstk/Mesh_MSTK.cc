@@ -172,7 +172,7 @@ Mesh_MSTK::Mesh_MSTK(const std::string filename, const MPI_Comm& incomm,
     contiguous_gids_(contiguous_gids)
 {
 
-  int numprocs;
+  MPI_Comm_rank(mpicomm, &myprocid);
   MPI_Comm_size(mpicomm, &numprocs);
 
   // Assume three dimensional problem if constructor called without
@@ -183,7 +183,7 @@ Mesh_MSTK::Mesh_MSTK(const std::string filename, const MPI_Comm& incomm,
   // Pre-processing (init, MPI queries etc)
 
   int space_dim = 3;
-  pre_create_steps_(space_dim, mpicomm, gm);
+  pre_create_steps_(space_dim, gm);
 
 
 
@@ -277,7 +277,7 @@ Mesh_MSTK::Mesh_MSTK(const double x0, const double y0, const double z0,
   int ok;
 
   int space_dimension = 3;
-  pre_create_steps_(space_dimension, mpicomm, gm);
+  pre_create_steps_(space_dimension, gm);
 
   // Discretizations can use this info if they want
   Mesh::set_mesh_type(Mesh_type::RECTANGULAR);
@@ -291,9 +291,9 @@ Mesh_MSTK::Mesh_MSTK(const double x0, const double y0, const double z0,
     set_manifold_dimension(3);
 
     myprocid = 0;
+    assert(ok);
   } else {
 
-    int numprocs;
     MPI_Comm_size(mpicomm, &numprocs);
     MPI_Comm_rank(mpicomm, &myprocid);
 
@@ -322,9 +322,9 @@ Mesh_MSTK::Mesh_MSTK(const double x0, const double y0, const double z0,
     std::vector<std::array<double, 6>> blocklimits;
     std::vector<std::array<int, 3>> blocknumcells;
 
-    int ok = block_partition_regular_mesh(topo_dim, domain, num_cells_in_dir,
-                                          numprocs,
-                                          &blocklimits, &blocknumcells);
+    ok = block_partition_regular_mesh(topo_dim, domain, num_cells_in_dir,
+                                      numprocs,
+                                      &blocklimits, &blocknumcells);
 
     if (!ok) {
       std::stringstream mesg_stream;
@@ -422,7 +422,7 @@ Mesh_MSTK::Mesh_MSTK(const double x0, const double y0,
 
   int ok;
   int space_dim = 2;
-  pre_create_steps_(space_dim, incomm, gm);
+  pre_create_steps_(space_dim, gm);
 
   // Discretizations can use this info if they want
   Mesh::set_mesh_type(Mesh_type::RECTANGULAR);
@@ -438,12 +438,10 @@ Mesh_MSTK::Mesh_MSTK(const double x0, const double y0,
     ok = generate_regular_mesh(mesh, x0, y0, x1, y1, nx, ny);
 
     myprocid = 0;
+    assert(ok);
   } else {
-    int numprocs;
     MPI_Comm_size(mpicomm, &numprocs);
     MPI_Comm_rank(mpicomm, &myprocid);
-
-    int topo_dim = 2;  // What is the topological dimension of the mesh
 
     // Get a block partitioning of the domain without actually
     // creating the mesh.  Run this on every processor as its cheap
@@ -461,9 +459,9 @@ Mesh_MSTK::Mesh_MSTK(const double x0, const double y0,
     std::vector<std::array<double, 6>> blocklimits;
     std::vector<std::array<int, 3>> blocknumcells;
 
-    int ok = block_partition_regular_mesh(topo_dim, domain, num_cells_in_dir,
-                                          numprocs,
-                                          &blocklimits, &blocknumcells);
+    ok = block_partition_regular_mesh(topo_dim, domain, num_cells_in_dir,
+                                      numprocs,
+                                      &blocklimits, &blocknumcells);
 
     if (!ok) {
       std::stringstream mesg_stream;
@@ -760,11 +758,9 @@ void Mesh_MSTK::extract_mstk_mesh(const Mesh_MSTK& inmesh,
   // Pre-processing (init, MPI queries etc)
 
   if (flatten)
-    pre_create_steps_(inmesh.space_dimension()-1, inmesh.get_comm(),
-                      inmesh.geometric_model());
+    pre_create_steps_(inmesh.space_dimension()-1, inmesh.geometric_model());
   else
-    pre_create_steps_(inmesh.space_dimension(), inmesh.get_comm(),
-                      inmesh.geometric_model());
+    pre_create_steps_(inmesh.space_dimension(), inmesh.geometric_model());
 
   if (myprocid == 0) {
     int DebugWait = 0;
@@ -2176,13 +2172,11 @@ void Mesh_MSTK::node_get_cell_faces(const Entity_ID nodeid,
 void Mesh_MSTK::face_get_cells_internal(const Entity_ID faceid,
                                         const Entity_type ptype,
                                         std::vector<Entity_ID> *cellids) const {
-  int lid, n;
+  int lid;
 
   assert(faces_initialized);
   assert(cellids != NULL);
   cellids->clear();
-  Entity_ID_List::iterator it = cellids->begin();
-  n = 0;
 
   if (manifold_dimension() == 3) {
     MFace_ptr mf = (MFace_ptr) face_id_to_handle[faceid];
@@ -3138,6 +3132,7 @@ Mesh_MSTK::get_labeled_set_entities(const JaliGeometry::LabeledSetRegionPtr rgn,
       }
       break;
     }
+    default: { /* nothing to do */ }
   }
 
 #ifdef DEBUG
@@ -3336,6 +3331,8 @@ Entity_ID Mesh_MSTK::entity_get_parent(const Entity_kind kind,
       if (!vparentatt) return 0;
       att = vparentatt;
       ment = (MEntity_ptr) vtx_id_to_handle[entid];
+      break;
+    default:
       break;
   }
 
@@ -4280,19 +4277,15 @@ void Mesh_MSTK::collapse_degen_edges() {
          same for master and slave edges and their nodes, we will not
          have conflict between processors */
 
-      int vdelid = 0;
-
       ev0 = ME_Vertex(edge, 0); evgid0 = MEnt_GlobalID(ev0);
       ev1 = ME_Vertex(edge, 1); evgid1 = MEnt_GlobalID(ev1);
 
       if (evgid0 < evgid1) {
         vkeep = ev0;
         vdel = ev1;
-        vdelid = MV_ID(vdel);
       } else {
         vkeep = ev1;
         vdel = ev0;
-        vdelid = MV_ID(vdel);
       }
 
       List_ptr deleted_ents = NULL, merged_entity_pairs = NULL;
@@ -4302,7 +4295,6 @@ void Mesh_MSTK::collapse_degen_edges() {
       if (!vkeep) {
         vkeep = vdel;
         vdel = (vkeep == ev0) ? ev1 : ev0;
-        vdelid = MV_ID(vdel);
 
         vkeep = ME_Collapse(edge, vkeep, topoflag, &deleted_ents,
                             &merged_entity_pairs);
@@ -4410,7 +4402,7 @@ void Mesh_MSTK::collapse_degen_edges() {
 
   // Go through all mesh sets and replace any merged entities
 
-  MEntity_ptr delent, keepent;
+  MEntity_ptr delent;
   int nsets = MESH_Num_MSets(mesh);
   idx = 0;
   while ((delent = List_Next_Entry(merged_entity_pairs_all, &idx))) {
@@ -4539,13 +4531,9 @@ Cell_type Mesh_MSTK::MFace_Celltype(MFace_ptr face) {
 }
 
 Cell_type Mesh_MSTK::MRegion_Celltype(MRegion_ptr region) {
-  List_ptr rverts, rfaces;
+  List_ptr rfaces;
   MFace_ptr face;
-  int nrv, nrf, idx2, nquads;
-
-  rverts = MR_Vertices(region);
-  nrv = List_Num_Entries(rverts);
-  List_Delete(rverts);
+  int nrf, idx2, nquads;
 
   nrf = MR_Num_Faces(region);
 
@@ -4646,7 +4634,7 @@ void Mesh_MSTK::label_celltype() {
 
 */
    
-int Mesh_MSTK::generate_regular_mesh(Mesh_ptr mesh, double x0, double y0,
+int Mesh_MSTK::generate_regular_mesh(Mesh_ptr regmesh, double x0, double y0,
                                      double z0, double x1, double y1,
                                      double z1, int nx, int ny, int nz,
                                      double X0, double Y0, double Z0,
@@ -4755,7 +4743,7 @@ int Mesh_MSTK::generate_regular_mesh(Mesh_ptr mesh, double x0, double y0,
         kk =  (k%nz) ? 1 : (k ? 2 : 0);
         KG = KOFFSET + k;  // global k-index
 
-        mv = MV_New(mesh);
+        mv = MV_New(regmesh);
         MV_Set_Coords(mv, xyz);
         verts[i][j][k] = mv;
 
@@ -4783,7 +4771,7 @@ int Mesh_MSTK::generate_regular_mesh(Mesh_ptr mesh, double x0, double y0,
       JG = JOFFSET + j;
       for (k = 0; k < nz; ++k) {
 	KG = KOFFSET + k;
-        me = ME_New(mesh);
+        me = ME_New(regmesh);
 
         everts[0] = verts[i][j][k];
         everts[1] = verts[i][j][k+1];
@@ -4812,7 +4800,7 @@ int Mesh_MSTK::generate_regular_mesh(Mesh_ptr mesh, double x0, double y0,
       JG = JOFFSET + j;
       for (k = 0; k < nz+1; ++k) {
         KG = KOFFSET + k;
-        me = ME_New(mesh);
+        me = ME_New(regmesh);
 
         everts[0] = verts[i][j][k];
         everts[1] = verts[i][j+1][k];
@@ -4841,7 +4829,7 @@ int Mesh_MSTK::generate_regular_mesh(Mesh_ptr mesh, double x0, double y0,
       KG = KOFFSET + k;
       for (j = 0; j < ny+1; ++j) {
         JG = JOFFSET + j;
-        me = ME_New(mesh);
+        me = ME_New(regmesh);
 
         everts[0] = verts[i][j][k];
         everts[1] = verts[i+1][j][k];
@@ -4874,7 +4862,7 @@ int Mesh_MSTK::generate_regular_mesh(Mesh_ptr mesh, double x0, double y0,
       JG = JOFFSET + j;
       for (k = 0; k < nz; ++k) {
 	KG = KOFFSET + k;
-        mf = MF_New(mesh);
+        mf = MF_New(regmesh);
 
         fverts[0] = verts[i][j][k];
         fverts[1] = verts[i][j+1][k];
@@ -4903,7 +4891,7 @@ int Mesh_MSTK::generate_regular_mesh(Mesh_ptr mesh, double x0, double y0,
       JG = JOFFSET + j;
       for (k = 0; k < nz; ++k) {
 	KG = KOFFSET + k;
-        mf = MF_New(mesh);
+        mf = MF_New(regmesh);
 
         fverts[0] = verts[i][j][k];
         fverts[1] = verts[i+1][j][k];
@@ -4932,7 +4920,7 @@ int Mesh_MSTK::generate_regular_mesh(Mesh_ptr mesh, double x0, double y0,
       JG = JOFFSET + j;
       for (k = 0; k < nz+1; ++k) {
         KG = KOFFSET + k;
-        mf = MF_New(mesh);
+        mf = MF_New(regmesh);
 
         fverts[0] = verts[i][j][k];
         fverts[1] = verts[i+1][j][k];
@@ -4963,7 +4951,7 @@ int Mesh_MSTK::generate_regular_mesh(Mesh_ptr mesh, double x0, double y0,
       JG = JOFFSET + j;
       for (k = 0; k < nz; ++k) {
 	KG = KOFFSET + k;
-        mr = MR_New(mesh);
+        mr = MR_New(regmesh);
         MR_Set_GEntID(mr, 1);
 
         rverts[0] = verts[i][j][k];       rverts[1] = verts[i+1][j][k];
@@ -4990,7 +4978,7 @@ int Mesh_MSTK::generate_regular_mesh(Mesh_ptr mesh, double x0, double y0,
 }
 
 
-int Mesh_MSTK::generate_regular_mesh(Mesh_ptr mesh, double x0, double y0,
+int Mesh_MSTK::generate_regular_mesh(Mesh_ptr regmesh, double x0, double y0,
                                      double x1, double y1, int nx, int ny,
                                      double X0, double Y0,
                                      double X1, double Y1,
@@ -5028,7 +5016,7 @@ int Mesh_MSTK::generate_regular_mesh(Mesh_ptr mesh, double x0, double y0,
       xyz[1] = (j == ny) ? y1 : y0 + j*dy;
       JG = JOFFSET + j;
       
-      mv = MV_New(mesh);
+      mv = MV_New(regmesh);
       MV_Set_Coords(mv, xyz);
 
       if (i == 0) {
@@ -5080,7 +5068,7 @@ int Mesh_MSTK::generate_regular_mesh(Mesh_ptr mesh, double x0, double y0,
       JG = JOFFSET + j;
       int LOFFSET = IG*NY + IG*(NY+1);
 
-      mf = MF_New(mesh);
+      mf = MF_New(regmesh);
 
       /* edge 0 - bottom edge */
       v0 = verts[i][j];
@@ -5089,7 +5077,7 @@ int Mesh_MSTK::generate_regular_mesh(Mesh_ptr mesh, double x0, double y0,
       if (fedges[0])
         dir[0] = (ME_Vertex(fedges[0], 0) == v0) ? 1 : 0;
       else {
-        me = ME_New(mesh);
+        me = ME_New(regmesh);
 
         ME_Set_Vertex(me, 0, v0);
         ME_Set_Vertex(me, 1, v1);
@@ -5117,7 +5105,7 @@ int Mesh_MSTK::generate_regular_mesh(Mesh_ptr mesh, double x0, double y0,
       if (fedges[1])
         dir[1] = (ME_Vertex(fedges[1], 0) == v0) ? 1 : 0;
       else {
-        me = ME_New(mesh);
+        me = ME_New(regmesh);
 
         ME_Set_Vertex(me, 0, v0);
         ME_Set_Vertex(me, 1, v1);
@@ -5146,7 +5134,7 @@ int Mesh_MSTK::generate_regular_mesh(Mesh_ptr mesh, double x0, double y0,
       if (fedges[2])
         dir[2] = (ME_Vertex(fedges[2], 0) == v0) ? 1 : 0;
       else {
-        me = ME_New(mesh);
+        me = ME_New(regmesh);
 
         ME_Set_Vertex(me, 0, v0);
         ME_Set_Vertex(me, 1, v1);
@@ -5174,7 +5162,7 @@ int Mesh_MSTK::generate_regular_mesh(Mesh_ptr mesh, double x0, double y0,
       if (fedges[3])
         dir[3] = (ME_Vertex(fedges[3], 0) == v0) ? 1 : 0;
       else {
-        me = ME_New(mesh);
+        me = ME_New(regmesh);
 
         ME_Set_Vertex(me, 0, v0);
         ME_Set_Vertex(me, 1, v1);
@@ -5214,7 +5202,6 @@ int Mesh_MSTK::generate_regular_mesh(Mesh_ptr mesh, double x0, double y0,
 }
 
 void Mesh_MSTK::pre_create_steps_(const int space_dimension,
-                                  const MPI_Comm& mpicomm,
                                   const JaliGeometry::GeometricModelPtr& gm) {
   clear_internals_();
 
@@ -5245,7 +5232,6 @@ void Mesh_MSTK::pre_create_steps_(const int space_dimension,
 void Mesh_MSTK::inherit_labeled_sets(MAttrib_ptr copyatt,
                                      List_ptr src_entities) {
   int idx, idx2, diffdim;
-  MSet_ptr mset;
   char setname[256];
 
   JaliGeometry::GeometricModelPtr gm = Mesh::geometric_model();
@@ -5303,7 +5289,7 @@ void Mesh_MSTK::inherit_labeled_sets(MAttrib_ptr copyatt,
 
       if (diffdim > 0) {
         int found = 0;
-        int idx = 0;
+        idx = 0;
         MEntity_ptr ent;
         while ((ent = List_Next_Entry(src_entities, &idx))) {
           if (MSet_Contains(mset_parent, ent)) {

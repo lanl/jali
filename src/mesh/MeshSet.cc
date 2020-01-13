@@ -166,13 +166,13 @@ void MeshSet::rem_entity(Entity_ID const& mesh_entity) {
 
 // Add a group of entities to meshset (no check for duplicates)
 
-void MeshSet::add_entities(std::vector<Entity_ID> const& entities) {
+void MeshSet::add_entities(std::vector<Entity_ID> const& in_entities) {
   int nowned_old = entityids_owned_.size();
   int nghost_old = entityids_ghost_.size();
-  int nall = entities.size();
+  int nall = in_entities.size();
   int nowned = 0;
   int nghost = 0;
-  for (auto const& mesh_entity : entities) {
+  for (auto const& mesh_entity : in_entities) {
     Entity_type etype = mesh_.entity_get_type(kind_, mesh_entity);
     if (etype == Entity_type::PARALLEL_OWNED)
       nowned++;
@@ -180,13 +180,13 @@ void MeshSet::add_entities(std::vector<Entity_ID> const& entities) {
       nghost++;
   }
   if (nall == nowned)
-    entityids_owned_.insert(entityids_owned_.end(), entities.begin(),
-                            entities.end());
+    entityids_owned_.insert(entityids_owned_.end(), in_entities.begin(),
+                            in_entities.end());
   else if (nall == nghost)
-    entityids_owned_.insert(entityids_ghost_.end(), entities.begin(),
-                            entities.end());
+    entityids_owned_.insert(entityids_ghost_.end(), in_entities.begin(),
+                            in_entities.end());
   else
-    for (auto const& mesh_entity : entities)
+    for (auto const& mesh_entity : in_entities)
       add_entity(mesh_entity);
   
   // entityids_all should always have owned entities first and ghost
@@ -200,8 +200,8 @@ void MeshSet::add_entities(std::vector<Entity_ID> const& entities) {
                     entityids_ghost_.end());
     entityids_all_.swap(tmp_list);
   } else
-    entityids_all_.insert(entityids_all_.begin(), entities.begin(),
-                          entities.end());
+    entityids_all_.insert(entityids_all_.begin(), in_entities.begin(),
+                          in_entities.end());
 
   if (have_reverse_map_) {  // have to update mesh to subset map
     // new owned entities should have gone in after old owned entities
@@ -220,13 +220,13 @@ void MeshSet::add_entities(std::vector<Entity_ID> const& entities) {
 
 // Remove a group of entities from a subset
 
-void MeshSet::rem_entities(std::vector<Entity_ID> const& entities) {
+void MeshSet::rem_entities(std::vector<Entity_ID> const& in_entities) {
   // Replace each to-be-removed entry with an entry from the end of
   // the list.  Then shrink the lists.
   
   int size = entityids_owned_.size();
   int ndel = 0;
-  for (auto const& mesh_entity : entities) {
+  for (auto const& mesh_entity : in_entities) {
     Entity_type etype = mesh_.entity_get_type(kind_, mesh_entity);
     if (etype == Entity_type::PARALLEL_OWNED) {
       auto const& it = std::find(entityids_owned_.begin(),
@@ -241,7 +241,7 @@ void MeshSet::rem_entities(std::vector<Entity_ID> const& entities) {
   
   size = entityids_ghost_.size();
   ndel = 0;
-  for (auto const& mesh_entity : entities) {
+  for (auto const& mesh_entity : in_entities) {
     auto const& it = std::find(entityids_ghost_.begin(),
                                entityids_ghost_.end(), mesh_entity);
     if (it != entityids_ghost_.end()) {
@@ -253,7 +253,7 @@ void MeshSet::rem_entities(std::vector<Entity_ID> const& entities) {
   
   size = entityids_all_.size();
   ndel = 0;
-  for (auto const& mesh_entity : entities) {
+  for (auto const& mesh_entity : in_entities) {
     auto const& it = std::find(entityids_all_.begin(),
                                entityids_all_.end(), mesh_entity);
     if (it != entityids_all_.end()) {

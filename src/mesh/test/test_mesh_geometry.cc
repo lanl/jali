@@ -79,11 +79,11 @@ TEST(MESH_GEOMETRY_PLANAR)
   const char *framework_names[] = {"MSTK"};
   const int numframeworks = sizeof(frameworks)/sizeof(Jali::MeshFramework_t);
   Jali::MeshFramework_t the_framework;
-  for (int i = 0; i < numframeworks; i++) {
-    the_framework = frameworks[i];
+  for (int fr = 0; fr < numframeworks; fr++) {
+    the_framework = frameworks[fr];
     if (!Jali::framework_available(the_framework)) continue;
 
-    std::cerr << "Testing geometry operators with " << framework_names[i] <<
+    std::cerr << "Testing geometry operators with " << framework_names[fr] <<
         "\n";
 
     // Create the mesh
@@ -246,7 +246,7 @@ TEST(MESH_GEOMETRY_PLANAR)
 
       CHECK_EQUAL(found, true);
     }
-  } // for each framework i
+  } // for each framework fr
 
 }
 
@@ -266,12 +266,12 @@ TEST(MESH_GEOMETRY_SURFACE) {
   const char *framework_names[] = {"MSTK"};
   const int numframeworks = sizeof(frameworks)/sizeof(Jali::MeshFramework_t);
   Jali::MeshFramework_t the_framework;
-  for (int i = 0; i < numframeworks; i++) {
+  for (int fr = 0; fr < numframeworks; fr++) {
     // Set the framework
-    the_framework = frameworks[i];
+    the_framework = frameworks[fr];
     if (!Jali::framework_available(the_framework)) continue;
 
-    std::cerr << "Testing geometry operators with " << framework_names[i] <<
+    std::cerr << "Testing geometry operators with " << framework_names[fr] <<
         "\n";
 
     // Create the mesh
@@ -433,7 +433,7 @@ TEST(MESH_GEOMETRY_SURFACE) {
 
       CHECK(found);
     }
-  }  // for each framework i
+  }  // for each framework fr
 
 }
 
@@ -450,10 +450,10 @@ TEST(MESH_GEOMETRY_SOLID) {
   const char *framework_names[] = {"MSTK", "Simple"};
   const int numframeworks = sizeof(frameworks)/sizeof(Jali::MeshFramework_t);
   Jali::MeshFramework_t the_framework;
-  for (int i = 0; i < numframeworks; i++) {
-    the_framework = frameworks[i];
+  for (int fr = 0; fr < numframeworks; fr++) {
+    the_framework = frameworks[fr];
     if (!Jali::framework_available(the_framework)) continue;
-    std::cerr << "Testing geometry operators with " << framework_names[i] <<
+    std::cerr << "Testing geometry operators with " << framework_names[fr] <<
         std::endl;
 
     // Create the mesh
@@ -704,7 +704,7 @@ TEST(MESH_GEOMETRY_SOLID) {
       double val = L22(normal_sum);
       CHECK_CLOSE(val, 0.0, 1.0e-20);
     }
-  }  // for each framework i
+  }  // for each framework fr
 
 }
 

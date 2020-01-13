@@ -59,7 +59,7 @@ namespace Jali {
 Mesh_simple::Mesh_simple(double x0, double y0, double z0,
                          double x1, double y1, double z1,
                          int nx, int ny, int nz,
-                         const MPI_Comm& comm,
+                         const MPI_Comm& mycomm,
                          const JaliGeometry::GeometricModelPtr gm,
                          const bool request_faces,
                          const bool request_edges,
@@ -80,7 +80,7 @@ Mesh_simple::Mesh_simple(double x0, double y0, double z0,
   Mesh(request_faces, request_edges, request_sides, request_wedges,
        request_corners, num_tiles_ini, num_ghost_layers_tile,
        num_ghost_layers_distmesh, boundary_ghosts_requested,
-       partitioner, JaliGeometry::Geom_type::CARTESIAN, comm) {
+       partitioner, JaliGeometry::Geom_type::CARTESIAN, mycomm) {
 
   assert(!boundary_ghosts_requested);  // Cannot yet make boundary ghosts
 
@@ -104,7 +104,7 @@ Mesh_simple::Mesh_simple(double x0, double y0, double z0,
 Mesh_simple::Mesh_simple(double x0, double y0,
                          double x1, double y1,
                          int nx, int ny,
-                         const MPI_Comm& comm,
+                         const MPI_Comm& mycomm,
                          const JaliGeometry::GeometricModelPtr &gm,
                          const bool request_faces,
                          const bool request_edges,
@@ -125,7 +125,7 @@ Mesh_simple::Mesh_simple(double x0, double y0,
 // logic
 
 Mesh_simple::Mesh_simple(const std::vector<double>& x,
-                         const MPI_Comm& comm,
+                         const MPI_Comm& mycomm,
                          const JaliGeometry::GeometricModelPtr &gm,
                          const bool request_faces,
                          const bool request_edges,
@@ -145,7 +145,7 @@ Mesh_simple::Mesh_simple(const std::vector<double>& x,
   Mesh(request_faces, request_edges, request_sides, request_wedges,
        request_corners, num_tiles_ini, num_ghost_layers_tile,
        num_ghost_layers_distmesh, boundary_ghosts_requested,
-       partitioner, geom_type, comm) {
+       partitioner, geom_type, mycomm) {
   set_space_dimension(1);
   set_manifold_dimension(1);
 
@@ -331,9 +331,9 @@ void Mesh_simple::update_internals_1d_() {
   Mesh::nodeids_all_ = Mesh::nodeids_owned_;
 
   if (Mesh::edges_requested) {
-    int num_edges = num_cells_+1;  // edges are same as faces and nodes in 1D
-    Mesh::edgeids_owned_.resize(num_edges);
-    for (int i = 0; i < num_edges; ++i)
+    int nedges = num_cells_+1;  // edges are same as faces and nodes in 1D
+    Mesh::edgeids_owned_.resize(nedges);
+    for (int i = 0; i < nedges; ++i)
       edgeids_owned_[i] = i;
     Mesh::edgeids_ghost_.resize(0);
     Mesh::edgeids_all_ = Mesh::edgeids_owned_;

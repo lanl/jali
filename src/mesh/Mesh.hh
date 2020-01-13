@@ -1245,8 +1245,8 @@ class Mesh {
   //! \brief Store a field on the mesh - cannot template as its virtual
 
   //! Store a field on the mesh. If the return value is false, it
-  //! means that the mesh already has a field of that name but its of
-  //! a different type or its on a different type of entity - DESIGNED
+  //! means that the mesh already has a field of that name but it's of
+  //! a different type or it's on a different type of entity - DESIGNED
   //! TO BE CALLED ONLY BY THE JALI STATE MANAGER FOR INITIALIZATION
   //! OF MESH STATE FROM THE MESH FILE
 
