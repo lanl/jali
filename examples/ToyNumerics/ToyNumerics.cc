@@ -122,8 +122,8 @@ int main(int argc, char *argv[]) {
   }
 
 
-  // Spatial dimension of points in the mesh - since this is a 3D mesh, this
-  // should be 3
+  // Spatial dimension of points in the mesh - since this is a 3D
+  // mesh, this should be 3
 
   int spdim = mymesh->space_dimension();
 
@@ -132,6 +132,8 @@ int main(int argc, char *argv[]) {
   // mesh, this should be 3
 
   int celldim = mymesh->manifold_dimension();
+
+  assert (celldim == spdim);
 
 
   // Create a state manager for handling data associated with mesh entities
@@ -175,8 +177,8 @@ int main(int argc, char *argv[]) {
       Entity_ID_List nbrs;
       mymesh->cell_get_node_adj_cells(c, Entity_type::ALL, &nbrs);
 
-      for (auto const & nc : nbrs)
-        ave_density[c] += rhovec[nc];
+      for (auto const & cnbr : nbrs)
+        ave_density[c] += rhovec[cnbr];
       ave_density[c] /= nbrs.size();
     }
   }
@@ -277,9 +279,6 @@ int main(int argc, char *argv[]) {
 void initialize_data(const std::shared_ptr<Mesh> mesh,
                      std::shared_ptr<State> state) {
 
-  // number of cells in the mesh - ALL means OWNED+GHOST
-  int nc = mesh->num_cells<Entity_type::ALL>();
-
   // Add a state vector, called "rho99", of densities on cells.
   // This says to create a vector named "rhoMetal" on each cell
   // initialized to 0.0
@@ -302,7 +301,6 @@ void initialize_data(const std::shared_ptr<Mesh> mesh,
   // Add a state vector for velocities
 
   int dim = mesh->space_dimension();
-  int nn = mesh->num_nodes<Entity_type::ALL>();
 
   std::array<double, 3> initarray;
   for (int i = 0; i < dim; ++i) initarray[i] = 0.0;
@@ -310,11 +308,11 @@ void initialize_data(const std::shared_ptr<Mesh> mesh,
   // Note that we did not send in the second template parameter Mesh -
   // it is the default
 
-  UniStateVector<std::array<double, 3>>& velocity =
-      state->add<std::array<double, 3>, Mesh, UniStateVector>(velocity_name,
-                                                              mesh,
-                                                              Entity_kind::NODE,
-                                                              Entity_type::ALL,
-                                                              initarray);
+  // UniStateVector<std::array<double, 3>>& velocity =
+  state->add<std::array<double, 3>, Mesh, UniStateVector>(velocity_name,
+                                                          mesh,
+                                                          Entity_kind::NODE,
+                                                          Entity_type::ALL,
+                                                          initarray);
 }
 

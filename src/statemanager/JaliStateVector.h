@@ -99,7 +99,7 @@ class StateVectorBase {
                            std::shared_ptr<State> state,
                            Entity_kind kind,
                            Entity_type type) :
-      mystate_(state), myname_(name), entity_kind_(kind), entity_type_(type) {}
+      myname_(name), mystate_(state), entity_kind_(kind), entity_type_(type) {}
 
 
   //! Destructor
@@ -809,10 +809,8 @@ class MultiStateVector : public MultiStateVectorBase<DomainType> {
       std::vector<int> const& entities = mset->entities();
       int numents = entities.size();
       (*mydata_)[m].resize(numents);
-      for (int i = 0; i < numents; i++) {
-        int c = entities[i];   // cell of material set
+      for (int i = 0; i < numents; i++)
         (*mydata_)[m][i] = initval;   // rectangular to compact storage
-      }
     }
   }
 

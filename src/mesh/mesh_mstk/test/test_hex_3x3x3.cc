@@ -53,10 +53,8 @@
 
 TEST(MSTK_HEX_3x3x3) {
 
-  int i, j, k, err, nc, nf, nv;
-  Jali::Entity_ID faces[6], nodes[8];
+  int nc, nf;
 
-  int NV = 64;
   int NF = 108;
   int NC = 27;
 

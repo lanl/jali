@@ -144,7 +144,7 @@ bool framework_extracts(MeshFramework_t const& f, bool const parallel,
 
 void MeshFactory::reset_options(void) {
   /// The framework to use for creating the mesh
-  MeshFramework_t framework_ = default_framework_;
+  framework_ = default_framework_;
 
   // What type of entities to include/exclude in the meshes to be created
   // (nodes must ALWAYS be present)
@@ -257,8 +257,6 @@ MeshFactory::create(double const x0, double const y0, double const z0,
   Errors::Message errmsg("MeshFactory::create - Unable to create 3D mesh");
   int ierr = 0, aerr = 0;
 
-  unsigned int dim = 3;
-
   if (geometric_model_ && (geometric_model_->dimension() != 3)) {
     Errors::Message mesg("Geometric model and mesh dimension do not match");
     Exceptions::Jali_throw(mesg);
@@ -363,8 +361,6 @@ MeshFactory::create(double const x0, double const y0,
   Errors::Message errmsg("MeshFactory::create: error: ");
   int ierr = 0, aerr = 0;
 
-  unsigned int dim = 2;
-
   if (geometric_model_ && (geometric_model_->dimension() != 2)) {
     Errors::Message mesg("Geometric model and mesh dimension do not match");
     Exceptions::Jali_throw(mesg);
@@ -462,8 +458,6 @@ MeshFactory::create(std::vector<double> const& x) {
   Errors::Message errmsg("MeshFactory::create: error: ");
   int ierr = 0, aerr = 0;
 
-  unsigned int dim = 1;
-
   if (geometric_model_ && (geometric_model_->dimension() != 1)) {
     ierr = 1;
     errmsg.add_data("Geometric model and mesh dimension do not match");
@@ -511,6 +505,7 @@ MeshFactory::create(std::vector<double> const& x) {
           ierr = 1;
           errmsg.add_data("Simple framework cannot generate parallel 1D mesh");
         }
+        break;
       }
       default: {
         ierr = 1;
@@ -554,7 +549,6 @@ MeshFactory::create(std::shared_ptr<Mesh> const inmesh,
   Errors::Message errmsg("MeshFactory::create: error: ");
   int ierr = 0, aerr = 0;
 
-  int dim = inmesh->manifold_dimension();
   int numprocs;
   MPI_Comm_size(comm_, &numprocs);
 

@@ -152,23 +152,22 @@ TEST(MESH_SETS_3D) {
   const char *framework_names[] = {"MSTK", "Simple"};
   const int numframeworks = sizeof(frameworks)/sizeof(Jali::MeshFramework_t);
   Jali::MeshFramework_t the_framework;
-  for (int i = 0; i < numframeworks; i++) {
+  for (int fr = 0; fr < numframeworks; fr++) {
     // Set the framework
-    the_framework = frameworks[i];
+    the_framework = frameworks[fr];
     if (!Jali::framework_available(the_framework)) continue;
     
     bool parallel = (nproc > 1);
     if (!Jali::framework_generates(the_framework, parallel, dim))
       continue;
     
-    std::cerr << "Testing mesh sets with " << framework_names[i] <<
+    std::cerr << "Testing mesh sets with " << framework_names[fr] <<
         std::endl;
     
     // Create the mesh
     Jali::MeshFactory factory(MPI_COMM_WORLD);
     std::shared_ptr<Jali::Mesh> mesh;
     
-    bool faces_requested = true;
     bool edges_requested = (the_framework == Jali::MSTK) ? true : false;
     bool sides_requested = false;
     bool wedges_requested = false;
@@ -525,7 +524,6 @@ TEST(MESH_SETS_3D_INIT) {
     Jali::MeshFactory factory(MPI_COMM_WORLD);
     std::shared_ptr<Jali::Mesh> mesh;
     
-    bool faces_requested = true;
     bool edges_requested = (the_framework == Jali::MSTK) ? true : false;
     bool sides_requested = false;
     bool wedges_requested = false;
@@ -854,7 +852,6 @@ TEST(MESH_SETS_LABELED_3D) {
     Jali::MeshFactory factory(MPI_COMM_WORLD);
     std::shared_ptr<Jali::Mesh> mesh;
 
-    bool faces_requested = true;
     bool edges_requested = false;
     bool sides_requested = false;
     bool wedges_requested = false;

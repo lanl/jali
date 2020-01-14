@@ -82,7 +82,6 @@ struct Vec2d {
 TEST(Jali_State_Var_Types) {
 
   constexpr int n_cells = 4;
-  int n_nodes = 9;
   float ftest[] = {1.1, 2.2, 3.3, 4.4};
   int itest[] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
   Vec2d vtest[n_cells];
@@ -170,7 +169,6 @@ TEST(Jali_State_On_Mesh) {
 
   // Add the first vector to state using the state vector object (deep copy)
 
-  int add_status;
   Jali::UniStateVector<double, Jali::Mesh>& addvec1 = mystate->add(myvec1);
   CHECK_EQUAL(addvec1.size(), myvec1.size());
   for (int i = 0; i < addvec1.size(); ++i)
@@ -519,23 +517,23 @@ TEST(Jali_MMState_On_Mesh) {
   //     |        |    :   |        |
   //     *--------*----:---*--------*
 
-  std::vector<std::vector<int>> matcells = {{0, 1, 2, 3, 4, 5},
-                                            {3, 4, 6, 7},
-                                            {4, 5, 7, 8}};
+  std::vector<std::vector<int>> matcells_in = {{0, 1, 2, 3, 4, 5},
+                                               {3, 4, 6, 7},
+                                               {4, 5, 7, 8}};
   std::vector<std::vector<int>> cellmats = {{0}, {0}, {0},
                                             {0, 1}, {0, 1, 2}, {0, 2},
                                             {1}, {1, 2}, {2}};
 
-  mystate->add_material("steel1", matcells[0]);
-  mystate->add_material("aluminum1", matcells[1]);
+  mystate->add_material("steel1", matcells_in[0]);
+  mystate->add_material("aluminum1", matcells_in[1]);
 
   int nmats = mystate->num_materials();
   CHECK_EQUAL(2, nmats);
 
-  mystate->add_material("aluminum1", matcells[2]);  // Name reused
+  mystate->add_material("aluminum1", matcells_in[2]);  // Name reused
   CHECK_EQUAL(nmats, mystate->num_materials());  // no change expected
 
-  mystate->add_material("aluminum2", matcells[2]);  // Unique ID and name
+  mystate->add_material("aluminum2", matcells_in[2]);  // Unique ID and name
   nmats++;
   CHECK_EQUAL(nmats, mystate->num_materials());  // should have incremented
 
@@ -745,8 +743,8 @@ TEST(Jali_MMState_On_Mesh) {
   // Set the density of material 3 to be the same as material 0
   rho_in[3] = rho_in[0];
 
-  std::vector<double>& rhomatvec = rhomat.get_matdata(3);
-  for (auto & rho : rhomatvec)
+  std::vector<double>& rhomatvec3 = rhomat.get_matdata(3);
+  for (auto & rho : rhomatvec3)
     rho = rho_in[3];
 
   // Adjust the volume fractions of material 0 in the input vector
@@ -991,11 +989,9 @@ TEST(Jali_State_Define_MeshTiles) {
       int tileID2 = mymesh->master_tile_ID_of_cell(c);
       auto const& meshtile2 = meshtiles[tileID2];
       auto const& tilecells2_owned = meshtile2->cells<Jali::Entity_type::PARALLEL_OWNED>();
-      bool found2 = false;
       int k = 0;
       for (auto const& c2 : tilecells2_owned) {
         if (c == c2) {
-          found2 = true;
           tilevec1[tileID][j] = tilevec1[tileID2][k];
           break;
         }
@@ -1020,11 +1016,9 @@ TEST(Jali_State_Define_MeshTiles) {
       int tileID2 = mymesh->master_tile_ID_of_corner(cn);
       auto const& meshtile2 = meshtiles[tileID2];
       auto const& tilecorners2_owned = meshtile2->corners<Jali::Entity_type::PARALLEL_OWNED>();
-      bool found2 = false;
       int k = 0;
       for (auto const& cn2 : tilecorners2_owned) {
         if (cn == cn2) {
-          found2 = true;
           tilevec2[tileID][j] = tilevec2[tileID2][k];
           break;
         }
@@ -1045,11 +1039,9 @@ TEST(Jali_State_Define_MeshTiles) {
       int tileID2 = mymesh->master_tile_ID_of_cell(c);
       auto const& meshtile2 = meshtiles[tileID2];
       auto const& tilecells2_owned = meshtile2->cells<Jali::Entity_type::PARALLEL_OWNED>();
-      bool found2 = false;
       int k = 0;
       for (auto const& c2 : tilecells2_owned) {
         if (c == c2) {
-          found2 = true;
           tilearray3[tileID][j] = tilearray3[tileID2][k];
           break;
         }

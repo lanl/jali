@@ -101,37 +101,22 @@ set(Jali_VERSION       "@Jali_VERSION_MAJOR@.@Jali_VERSION_MINOR@.@Jali_VERSION_
 # Where we found third party libraries
 #
 
-if (METIS_DIR)
-  set(METIS_DIR @METIS_DIR@ CACHE FILEPATH "Where METIS is installed" FORCE)
-  set(METIS_ROOT @METIS_DIR@ CACHE FILEPATH "Where METIS is installed" FORCE)
-elseif (METIS_ROOT)
-  set(METIS_DIR @METIS_ROOT@ CACHE FILEPATH "Where METIS is installed" FORCE)
-  set(METIS_ROOT @METIS_ROOT@ CACHE FILEPATH "Where METIS is installed" FORCE)
-endif ()
+set(METIS_DIR @METIS_DIR@ CACHE FILEPATH "Where METIS is installed" FORCE)
+set(METIS_ROOT @METIS_ROOT@ CACHE FILEPATH "Where METIS is installed" FORCE)
 
-if (Zoltan_DIR)
-  set(Zoltan_DIR @Zoltan_DIR@ CACHE FILEPATH "Where Zoltan is installed" FORCE)
-  set(Zoltan_ROOT @Zoltan_DIR@ CACHE FILEPATH "Where Zoltan is installed" FORCE)
-elseif (Zoltan_ROOT)
-  set(Zoltan_DIR @Zoltan_ROOT@ CACHE FILEPATH "Where Zoltan is installed" FORCE)
-  set(Zoltan_ROOT @Zoltan_ROOT@ CACHE FILEPATH "Where Zoltan is installed" FORCE)
-endif ()
+set(Zoltan_DIR @Zoltan_DIR@ CACHE FILEPATH "Where Zoltan is installed" FORCE)
+set(Zoltan_ROOT @Zoltan_ROOT@ CACHE FILEPATH "Where Zoltan is installed" FORCE)
 
-if (ExodusII_DIR)
-  set(ExodusII_DIR @ExodusII_DIR@ CACHE FILEPATH "Where ExodusII is installed" FORCE)
-  set(ExodusII_ROOT @ExodusII_DIR@ CACHE FILEPATH "Where ExodusII is installed" FORCE)
-elseif (ExodusII_ROOT)
-  set(ExodusII_DIR @ExodusII_ROOT@ CACHE FILEPATH "Where ExodusII is installed" FORCE)
-  set(ExodusII_ROOT @ExodusII_ROOT@ CACHE FILEPATH "Where ExodusII is installed" FORCE)
-endif ()
+set(ExodusII_DIR @ExodusII_DIR@ CACHE FILEPATH "Where ExodusII is installed" FORCE)
+set(ExodusII_ROOT @ExodusII_ROOT@ CACHE FILEPATH "Where ExodusII is installed" FORCE)
 
 
 if (CMAKE_VERSION VERSION_GREATER_EQUAL 3.12)
-  cmake_policy(SET CMP0074 NEW)
+  cmake_policy(SET CMP0074 NEW)  # find_package honors Pkg_ROOT variables 
 endif ()
 
 if (CMAKE_VERSION VERSION_GREATER_EQUAL 3.15)
-  set(CMAKE_FIND_PACKAGE_PREFER_CONFIG TRUE)
+  set(CMAKE_FIND_PACKAGE_PREFER_CONFIG TRUE)  # search for PkgConfig.cmake files first
 endif ()
 
 
@@ -146,19 +131,29 @@ list(APPEND CMAKE_MODULE_PATH @CMAKE_INSTALL_PREFIX@/lib/cmake/Jali/modules)
 include(CMakeFindDependencyMacro)
 if (Jali_ENABLE_MSTK_Mesh)
   find_dependency(MSTK)
-  set_property(TARGET ${MSTK_LIBRARIES} PROPERTY IMPORTED_GLOBAL TRUE)
+  if (TARGET ${MSTK_LIBRARIES})
+    set_property(TARGET ${MSTK_LIBRARIES} PROPERTY IMPORTED_GLOBAL TRUE)
+  endif ()
 endif ()
 
 find_dependency(Boost)
-set_property(TARGET ${Boost_LIBRARIES} PROPERTY IMPORTED_GLOBAL TRUE)
+if (TARGET ${Boost_LIBRARIES})
+  set_property(TARGET ${Boost_LIBRARIES} PROPERTY IMPORTED_GLOBAL TRUE)
+endif ()
 
 find_dependency(METIS)
-set_property(TARGET ${METIS_LIBRARIES} PROPERTY IMPORTED_GLOBAL TRUE)
+if (TARGET ${METIS_LIBRARIES})
+  set_property(TARGET ${METIS_LIBRARIES} PROPERTY IMPORTED_GLOBAL TRUE)
+endif ()
 find_dependency(Zoltan)
-set_property(TARGET ${Zoltan_LIBRARIES} PROPERTY IMPORTED_GLOBAL TRUE)
+if (TARGET ${Zoltan_LIBRARIES})
+  set_property(TARGET ${Zoltan_LIBRARIES} PROPERTY IMPORTED_GLOBAL TRUE)
+endif ()
 
 find_dependency(ExodusII)
-set_property(TARGET ${ExodusII_LIBRARIES} PROPERTY IMPORTED_GLOBAL TRUE)
+if (TARGET ${ExodusII})
+  set_property(TARGET ${ExodusII_LIBRARIES} PROPERTY IMPORTED_GLOBAL TRUE)
+endif ()
 
 # Restore original CMAKE_MODULE_PATH
 set(CMAKE_MODULE_PATH ${SAVED_CMAKE_MODULE_PATH})

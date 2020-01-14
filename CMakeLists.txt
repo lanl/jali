@@ -198,10 +198,14 @@ if (ENABLE_TESTS)
   if (UnitTest++_FOUND)
     # UnitTest++ sets a weird path for it's includes
     set(UnitTest++_INCLUDE_DIRS ${UTPP_INCLUDE_DIRS}/UnitTest++)
-    
+
     # Also it sets the target name as UnitTest++ but does not set the
     # LIBRARIES variable
     set(UnitTest++_LIBRARIES UnitTest++)
+
+    # Finally it does not connect the include directories to the target
+    set_target_properties(UnitTest++ PROPERTIES
+      INTERFACE_INCLUDE_DIRECTORIES ${UnitTest++_INCLUDE_DIRS})
   else ()
     set(UnitTest++_DIR ${unittest_dir_save})
     find_package(UnitTest++ QUIET REQUIRED MODULE)  # fallback to module
@@ -252,6 +256,15 @@ install(EXPORT JaliTargets
   )
   
 # Install the config file after filling in variables delimited by @..@
+if (METIS_DIR AND NOT METIS_ROOT)
+  set(METIS_ROOT ${METIS_DIR})
+endif ()
+if (Zoltan_DIR AND NOT Zoltan_ROOT)
+  set(Zoltan_ROOT ${Zoltan_DIR})
+endif ()
+if (ExodusII_DIR AND NOT ExodusII_ROOT)
+  set(ExodusII_ROOT ${ExodusII_DIR})
+endif ()
 configure_file(${PROJECT_SOURCE_DIR}/config/cmake/JaliConfig.cmake.in
   ${PROJECT_BINARY_DIR}/JaliConfig.cmake @ONLY)
 install(FILES ${PROJECT_BINARY_DIR}/JaliConfig.cmake

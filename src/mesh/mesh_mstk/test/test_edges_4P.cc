@@ -102,9 +102,9 @@ TEST(MSTK_EDGES_2D) {
     mesh->cell_get_edges(c, &cedges);
     mesh->cell_get_faces_and_dirs(c, &cfaces, &cfdirs);
 
-    for (int e = 0; e < cedges.size(); ++e) {
-      CHECK_EQUAL(mesh->GID(cedges[e], Jali::Entity_kind::EDGE),
-                  mesh->GID(cfaces[e], Jali::Entity_kind::FACE));
+    for (int ie = 0; ie < cedges.size(); ++ie) {
+      CHECK_EQUAL(mesh->GID(cedges[ie], Jali::Entity_kind::EDGE),
+                  mesh->GID(cfaces[ie], Jali::Entity_kind::FACE));
     }
 
 
@@ -120,20 +120,20 @@ TEST(MSTK_EDGES_2D) {
 
       mesh->face_to_cell_edge_map(cfaces[f], c, &map);
 
-      for (int e = 0; e < fedges.size(); ++e)
-        CHECK_EQUAL(fedges[e], cedges[map[e]]);
+      for (int ie = 0; ie < fedges.size(); ++ie)
+        CHECK_EQUAL(fedges[ie], cedges[map[ie]]);
     }
   }
 
   // owing to how we constructed the mesh, the length of horizontal edges
   // should be 0.5 and vertical edges 0.25
 
-  for (int e = 0; e < ne_owned; ++e) {
+  for (int ie = 0; ie < ne_owned; ++ie) {
     JaliGeometry::Point evec(2);
     double elen;
 
-    evec = mesh->edge_vector(e);
-    elen = mesh->edge_length(e);
+    evec = mesh->edge_vector(ie);
+    elen = mesh->edge_length(ie);
     if (evec[1] == 0.0) {
       CHECK_EQUAL(0.5, elen);
       CHECK_EQUAL(elen, norm(evec));
@@ -205,8 +205,8 @@ TEST(MSTK_EDGES_3D) {
       std::vector<int> map;
       mesh->face_to_cell_edge_map(cfaces[f], c, &map);
 
-      for (int e = 0; e < fedges.size(); ++e)
-        CHECK_EQUAL(fedges[e], cedges[map[e]]);
+      for (int ie = 0; ie < fedges.size(); ++ie)
+        CHECK_EQUAL(fedges[ie], cedges[map[ie]]);
     }
   }
 
@@ -214,12 +214,12 @@ TEST(MSTK_EDGES_3D) {
   // should be 0.5, y-direction edges should
   // 0.25 and z-direction edges should be 1.0
 
-  for (int e = 0; e < ne_owned; ++e) {
+  for (int ie = 0; ie < ne_owned; ++ie) {
     JaliGeometry::Point evec(2);
     double elen;
 
-    evec = mesh->edge_vector(e);
-    elen = mesh->edge_length(e);
+    evec = mesh->edge_vector(ie);
+    elen = mesh->edge_length(ie);
     if (evec[0] != 0.0  && evec[1] == 0.0) {
       CHECK_EQUAL(0.5, elen);
       CHECK_EQUAL(elen, norm(evec));

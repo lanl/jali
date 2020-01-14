@@ -68,8 +68,8 @@ class Mesh_MSTK_Test_Protected : public Mesh_MSTK {
   Mesh_MSTK_Test_Protected(const double x0, const double y0, const double z0,
                            const double x1, const double y1, const double z1,
                            const int nx, const int ny, const int nz,
-                           const MPI_Comm& comm) :
-      Mesh_MSTK(x0, y0, z0, x1, y1, z1, nx, ny, nz, comm) {
+                           const MPI_Comm& incomm) :
+      Mesh_MSTK(x0, y0, z0, x1, y1, z1, nx, ny, nz, incomm) {
   }
 
 
@@ -188,6 +188,7 @@ TEST(MSTK_WRITE_READ_FIELDS) {
   CHECK(inmesh);
 
   int space_dim = inmesh->space_dimension();
+  CHECK_EQUAL(space_dim, outmesh->space_dimension());
   CHECK_EQUAL(nv,inmesh->num_entities(Jali::Entity_kind::NODE,
                                       Jali::Entity_type::ALL));
   CHECK_EQUAL(nc,inmesh->num_entities(Jali::Entity_kind::CELL,

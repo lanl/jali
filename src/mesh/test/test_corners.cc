@@ -219,9 +219,9 @@ TEST(MESH_CORNERS_2D) {
         // to the alternate form of the corner volume
 
         double cnvolume2 = 0.0;
-        for (int i = 0; i < 4; i++) {
-          JaliGeometry::Point vec0 = cncoords[(i+1)%4] - cncoords[i];
-          JaliGeometry::Point vec1 = cncen - cncoords[i];
+        for (int j = 0; j < 4; j++) {
+          JaliGeometry::Point vec0 = cncoords[(j+1)%4] - cncoords[j];
+          JaliGeometry::Point vec1 = cncen - cncoords[j];
           JaliGeometry::Point cpvec = vec0^vec1;
           double trivol = 0.5*cpvec[0];
           cnvolume2 += trivol;

@@ -70,6 +70,7 @@ void set_exception_behavior_abort();
 void set_exception_behavior(Exception_action);
 Exception_action exception_behavior();
 
+template <typename E> void Jali_throw(const E& exception);
 }  // namespace Exceptions
 
 

@@ -106,7 +106,7 @@ int main(int argc, char *argv[]) {
     std::cerr << "Cell " << c << ":" << std::endl;
     std::cerr << "  Faces:";
     for (auto const & f : cfaces)
-      std::cerr << " " << c;
+      std::cerr << " " << f;
     std::cerr << std::endl;
 
     std::cerr << "  Dirs:";

@@ -543,7 +543,7 @@ class Mesh_MSTK : public Mesh {
 
   void clear_internals_();
 
-  void pre_create_steps_(const int space_dimension, const MPI_Comm& incomm,
+  void pre_create_steps_(const int space_dimension,
                          const JaliGeometry::GeometricModelPtr& gm);
   void post_create_steps_();
 
