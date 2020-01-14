@@ -156,8 +156,8 @@ TEST(MESH_SIDES_2D) {
 
         // Make sure the side knows which edge its associated with
 
-        Jali::Entity_ID e = mesh->side_get_edge(s);
-        CHECK(e >= 0);
+        Jali::Entity_ID edg = mesh->side_get_edge(s);
+        CHECK(edg >= 0);
 
         // Make sure the side knows which face its associated with
 
@@ -200,7 +200,7 @@ TEST(MESH_SIDES_2D) {
         if (s2 != -1) {
           CHECK_EQUAL(s, mesh->side_get_opposite_side(s2));
           CHECK_EQUAL(f, mesh->side_get_face(s2));
-          CHECK_EQUAL(e, mesh->side_get_edge(s2));
+          CHECK_EQUAL(edg, mesh->side_get_edge(s2));
           CHECK_EQUAL(n0, mesh->side_get_node(s2, 1));
           CHECK_EQUAL(n1, mesh->side_get_node(s2, 0));
           CHECK(c != mesh->side_get_cell(s2));
@@ -304,11 +304,11 @@ TEST(MESH_SIDES_3D) {
 
       mesh = factory(0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 2, 2, 2);
 
-    } catch (const Errors::Message& e) {
-      std::cerr << ": mesh error: " << e.what() << std::endl;
+    } catch (const Errors::Message& ex) {
+      std::cerr << ": mesh error: " << ex.what() << std::endl;
       ierr++;
-    } catch (const std::exception& e) {
-      std::cerr << ": error: " << e.what() << std::endl;
+    } catch (const std::exception& ex) {
+      std::cerr << ": error: " << ex.what() << std::endl;
       ierr++;
     }
 
@@ -338,8 +338,8 @@ TEST(MESH_SIDES_3D) {
 
         // Make sure the side knows which edge its associated with
 
-        Jali::Entity_ID e = mesh->side_get_edge(s);
-        CHECK(e >= 0);
+        Jali::Entity_ID edg = mesh->side_get_edge(s);
+        CHECK(edg >= 0);
 
         JaliGeometry::Point ecen = mesh->edge_centroid(e);
 
@@ -382,7 +382,7 @@ TEST(MESH_SIDES_3D) {
         if (s2 != -1) {
           CHECK_EQUAL(s, mesh->side_get_opposite_side(s2));
           CHECK_EQUAL(f, mesh->side_get_face(s2));
-          CHECK_EQUAL(e, mesh->side_get_edge(s2));
+          CHECK_EQUAL(edg, mesh->side_get_edge(s2));
           CHECK_EQUAL(n0, mesh->side_get_node(s2, 1));
           CHECK_EQUAL(n1, mesh->side_get_node(s2, 0));
           CHECK(c != mesh->side_get_cell(s2));

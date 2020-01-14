@@ -108,9 +108,9 @@ SUITE (Messages)
                 throw m;
             }
         }
-        catch (Exceptions::Jali_exception &e)
+        catch (Exceptions::Jali_exception &ex)
         {
-            CHECK_EQUAL ("FAILED.CAUGHT.", e.what ());
+            CHECK_EQUAL ("FAILED.CAUGHT.", ex.what ());
         }
 
     }

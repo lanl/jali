@@ -155,8 +155,8 @@ TEST(MESH_WEDGES_2D) {
 
         // Make sure the wedge knows which edge its associated with
 
-        Jali::Entity_ID e = mesh->wedge_get_edge(w);
-        CHECK(e >= 0);
+        Jali::Entity_ID edg = mesh->wedge_get_edge(w);
+        CHECK(edg >= 0);
 
         // Make sure the wedge knows which face its associated with
 
@@ -206,7 +206,7 @@ TEST(MESH_WEDGES_2D) {
         if (w2 != -1) {
           CHECK_EQUAL(w, mesh->wedge_get_opposite_wedge(w2));
           CHECK_EQUAL(f, mesh->wedge_get_face(w2));
-          CHECK_EQUAL(e, mesh->wedge_get_edge(w2));
+          CHECK_EQUAL(edg, mesh->wedge_get_edge(w2));
           CHECK_EQUAL(n, mesh->wedge_get_node(w2));
           CHECK(c != mesh->wedge_get_cell(w2));
 
@@ -235,7 +235,7 @@ TEST(MESH_WEDGES_2D) {
         Jali::Entity_ID w3 = mesh->wedge_get_adjacent_wedge(w);
         CHECK_EQUAL(w, mesh->wedge_get_adjacent_wedge(w3));
         CHECK_EQUAL(f, mesh->wedge_get_face(w3));
-        CHECK_EQUAL(e, mesh->wedge_get_edge(w3));
+        CHECK_EQUAL(edg, mesh->wedge_get_edge(w3));
         CHECK_EQUAL(c, mesh->wedge_get_cell(w3));
 
         // Also make sure the two wedges have equal and coincident
@@ -389,7 +389,7 @@ TEST(MESH_WEDGES_3D) {
 
         // Make sure the wedge knows which edge its associated with
 
-        Jali::Entity_ID e = mesh->wedge_get_edge(w);
+        Jali::Entity_ID edg = mesh->wedge_get_edge(w);
         CHECK(e >= 0);
 
         JaliGeometry::Point ecen = mesh->edge_centroid(e);
@@ -430,7 +430,7 @@ TEST(MESH_WEDGES_3D) {
         // opposite node
 
         int edir;
-        JaliGeometry::Point evec = mesh->edge_vector(e, false, n, &edir);
+        JaliGeometry::Point evec = mesh->edge_vector(edg, false, n, &edir);
         dp = normal1*evec;
         CHECK(dp > 0);
 
@@ -442,7 +442,7 @@ TEST(MESH_WEDGES_3D) {
         if (w2 != -1) {
           CHECK_EQUAL(w, mesh->wedge_get_opposite_wedge(w2));
           CHECK_EQUAL(f, mesh->wedge_get_face(w2));
-          CHECK_EQUAL(e, mesh->wedge_get_edge(w2));
+          CHECK_EQUAL(edg, mesh->wedge_get_edge(w2));
           CHECK_EQUAL(n, mesh->wedge_get_node(w2));
           CHECK(c != mesh->wedge_get_cell(w2));
 
@@ -471,7 +471,7 @@ TEST(MESH_WEDGES_3D) {
         Jali::Entity_ID w3 = mesh->wedge_get_adjacent_wedge(w);
         CHECK_EQUAL(w, mesh->wedge_get_adjacent_wedge(w3));
         CHECK_EQUAL(f, mesh->wedge_get_face(w3));
-        CHECK_EQUAL(e, mesh->wedge_get_edge(w3));
+        CHECK_EQUAL(edg, mesh->wedge_get_edge(w3));
         CHECK_EQUAL(c, mesh->wedge_get_cell(w3));
 
         // Also make sure the two wedges have equal and coincident

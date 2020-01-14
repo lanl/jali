@@ -317,26 +317,26 @@ TEST(MESH_TILES_MPI) {
           edge_num_owners[e]++;
         }
       }
-      for (auto const& e : mesh->edges()) {
+      for (auto const& edg : mesh->edges()) {
         Jali::Entity_type ptype =
-            mesh->entity_get_type(Jali::Entity_kind::EDGE, e);
+            mesh->entity_get_type(Jali::Entity_kind::EDGE, edg);
         if (ptype == Jali::Entity_type::PARALLEL_GHOST)
           continue;  // Processor ghost, no tile on this proc owns it
 
-        CHECK(edge_owner[e] >= 0 && edge_owner[e] < num_tiles_requested);
-        CHECK_EQUAL(1, edge_num_owners[e]);
+        CHECK(edge_owner[edg] >= 0 && edge_owner[edg] < num_tiles_requested);
+        CHECK_EQUAL(1, edge_num_owners[edg]);
       }
 
       // Check that the master tile of a ghost edge really owns the edge
       
       for (auto const& t : meshtiles) {
-        for (auto const& e : t->edges<Jali::Entity_type::PARALLEL_GHOST>()) {
+        for (auto const& edg : t->edges<Jali::Entity_type::PARALLEL_GHOST>()) {
           Jali::Entity_type ptype =
-              mesh->entity_get_type(Jali::Entity_kind::EDGE, e);
+              mesh->entity_get_type(Jali::Entity_kind::EDGE, edg);
           if (ptype == Jali::Entity_type::PARALLEL_GHOST)
             continue;  // Processor ghost, no tile on this proc owns it
 
-          CHECK_EQUAL(edge_owner[e], mesh->master_tile_ID_of_edge(e));
+          CHECK_EQUAL(edge_owner[edg], mesh->master_tile_ID_of_edge(edg));
         }
       }
     }
