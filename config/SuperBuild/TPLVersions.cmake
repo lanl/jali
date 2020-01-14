@@ -84,6 +84,7 @@
 #   1.0.9       - MSTK updated to 2.27 and UnitTest++ updated to 1.6.0
 #   1.1.0       - MSTK updated to 3.0.3, UnitTest++ to 2.0.0, Trilinos to 12.10.1, HDF5 1.8.18, Seacas to #173a1e6, zlib to 1.2.11, Boost to 1.63.0, NetCDF to 4.5.0, MOAB to 5.0.0,
 #   1.2.0       - MSTK updated to 3.1.1
+#   1.3.0       - MSTK updated to 3.3.1
 
 include(CMakeParseArguments)
 
@@ -136,7 +137,7 @@ endmacro(Jali_tpl_version_write)
 set (JALI_TPLS_DOWNLOAD_URL "https://raw.githubusercontent.com/amanzi/amanzi-tpls/master/src")
 
 set (JALI_TPLS_VERSION_MAJOR 1)
-set (JALI_TPLS_VERSION_MINOR 1)
+set (JALI_TPLS_VERSION_MINOR 3)
 set (JALI_TPLS_VERSION_PATCH 0)
 set (JALI_TPLS_VERSION ${JALI_TPLS_VERSION}.${JALI_TPLS_VERSION_MINOR}.${JALI_TPLS_VERSION_PATCH})
 #   Not sure how to create a meaningful hash key for the collection
@@ -266,7 +267,7 @@ set(ExodusII_MD5_SUM       cfd240dbc1251b08fb1d0ee2de40a44c)
 # TPL: MSTK
 #
 set(MSTK_VERSION_MAJOR 3)
-set(MSTK_VERSION_MINOR 1)
+set(MSTK_VERSION_MINOR 3)
 set(MSTK_VERSION_PATCH 1)
 if (MSTK_VERSION_PATCH)
   set(MSTK_VERSION ${MSTK_VERSION_MAJOR}_${MSTK_VERSION_MINOR}_${MSTK_VERSION_PATCH})
@@ -274,9 +275,9 @@ else (MSTK_VERSION_PATCH)
   set(MSTK_VERSION ${MSTK_VERSION_MAJOR}_${MSTK_VERSION_MINOR})
 endif (MSTK_VERSION_PATCH)
 set(MSTK_URL_STRING     "https://github.com/MeshToolkit/MSTK/archive")
-set(MSTK_ARCHIVE_FILE   v${MSTK_VERSION}.tar.gz)
+set(MSTK_ARCHIVE_FILE   ${MSTK_VERSION}.tar.gz)
 set(MSTK_SAVEAS_FILE    MSTK-${MSTK_VERSION}.tar.gz)
-set(MSTK_MD5_SUM        f0040ab3d040189af57130de9addf89e)
+set(MSTK_MD5_SUM        5441d46ac1e2127eb5dd9a40a37da415)
 
 #
 # TPL: MOAB
