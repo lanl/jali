@@ -198,10 +198,14 @@ if (ENABLE_TESTS)
   if (UnitTest++_FOUND)
     # UnitTest++ sets a weird path for it's includes
     set(UnitTest++_INCLUDE_DIRS ${UTPP_INCLUDE_DIRS}/UnitTest++)
-    
+
     # Also it sets the target name as UnitTest++ but does not set the
     # LIBRARIES variable
     set(UnitTest++_LIBRARIES UnitTest++)
+
+    # Finally it does not connect the include directories to the target
+    set_target_properties(UnitTest++ PROPERTIES
+      INTERFACE_INCLUDE_DIRECTORIES ${UnitTest++_INCLUDE_DIRS})
   else ()
     set(UnitTest++_DIR ${unittest_dir_save})
     find_package(UnitTest++ QUIET REQUIRED MODULE)  # fallback to module
