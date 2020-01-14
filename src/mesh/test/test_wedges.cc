@@ -390,9 +390,9 @@ TEST(MESH_WEDGES_3D) {
         // Make sure the wedge knows which edge its associated with
 
         Jali::Entity_ID edg = mesh->wedge_get_edge(w);
-        CHECK(e >= 0);
+        CHECK(edg >= 0);
 
-        JaliGeometry::Point ecen = mesh->edge_centroid(e);
+        JaliGeometry::Point ecen = mesh->edge_centroid(edg);
 
         // Make sure the wedge knows which face its associated with
 

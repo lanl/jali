@@ -341,7 +341,7 @@ TEST(MESH_SIDES_3D) {
         Jali::Entity_ID edg = mesh->side_get_edge(s);
         CHECK(edg >= 0);
 
-        JaliGeometry::Point ecen = mesh->edge_centroid(e);
+        JaliGeometry::Point ecen = mesh->edge_centroid(edg);
 
         // Make sure the side knows which face its associated with
 
