@@ -93,6 +93,15 @@ target_include_directories(jali_error_handling PUBLIC
   $<INSTALL_INTERFACE:include>
   )
 
+install(TARGETS jali_error_handling
+  EXPORT JaliTargets
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
+  PUBLIC_HEADER DESTINATION include
+  INCLUDES DESTINATION include
+  )
+
 if (BUILD_TESTS)
 
   # Create the error test suite

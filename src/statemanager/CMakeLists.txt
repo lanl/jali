@@ -100,6 +100,15 @@ target_include_directories(jali_state PUBLIC ${Boost_INCLUDE_DIRS})
 # Make the error handling and mesh targets a dependency of this target
 target_link_libraries(jali_state PUBLIC jali_error_handling jali_mesh)
 
+install(TARGETS jali_state
+  EXPORT JaliTargets
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
+  PUBLIC_HEADER DESTINATION include
+  INCLUDES DESTINATION include
+  )
+
 if (BUILD_TESTS)
 
   # Include dirs for test

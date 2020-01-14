@@ -184,6 +184,14 @@ endif ()
 target_link_libraries(jali_mesh PUBLIC ${ExodusII_LIBRARIES})
 
 
+install(TARGETS jali_mesh
+  EXPORT JaliTargets
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
+  PUBLIC_HEADER DESTINATION include
+  INCLUDES DESTINATION include
+  )
 
 if (BUILD_TESTS)
   
