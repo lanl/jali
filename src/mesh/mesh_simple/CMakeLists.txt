@@ -90,6 +90,15 @@ target_link_libraries(jali_simple_mesh PUBLIC jali_error_handling)
 target_link_libraries(jali_simple_mesh PUBLIC jali_geometry)
 target_link_libraries(jali_simple_mesh PUBLIC jali_mesh)
 
+install(TARGETS jali_simple_mesh
+  EXPORT JaliTargets
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
+  PUBLIC_HEADER DESTINATION include
+  INCLUDES DESTINATION include
+  )
+
 if (BUILD_TESTS)
 
   # Need to copy files for the tests 

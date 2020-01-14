@@ -105,6 +105,15 @@ target_include_directories(jali_mstk_mesh PUBLIC
   $<INSTALL_INTERFACE:include>
   )
 
+install(TARGETS jali_mstk_mesh
+  EXPORT JaliTargets
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
+  PUBLIC_HEADER DESTINATION include
+  INCLUDES DESTINATION include
+  )
+
 if (BUILD_TESTS)
     
   # Need to copy files for the tests 

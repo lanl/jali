@@ -115,6 +115,15 @@ target_include_directories(jali_geometry PUBLIC
 # Make the error handling library a dependency of this target
 target_link_libraries(jali_geometry PUBLIC jali_error_handling)
 
+install(TARGETS jali_geometry
+  EXPORT JaliTargets
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
+  PUBLIC_HEADER DESTINATION include
+  INCLUDES DESTINATION include
+  )
+
 #
 # Unit tests
 #
