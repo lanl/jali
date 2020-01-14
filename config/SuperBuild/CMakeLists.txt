@@ -51,7 +51,7 @@
 # Set minimum required version of CMake
 # NB: Must go before project() call.
 #
-cmake_minimum_required(VERSION 3.8.0)
+cmake_minimum_required(VERSION 3.11)
 
 #
 # Language standard
