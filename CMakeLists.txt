@@ -58,7 +58,7 @@ project(Jali)
 
 set(Jali_VERSION_MAJOR 1)
 set(Jali_VERSION_MINOR 1)
-set(Jali_VERSION_PATCH 0)
+set(Jali_VERSION_PATCH 1)
 
 
 if (CMAKE_VERSION_MAJOR GREATER_EQUAL 3.13)
@@ -143,9 +143,6 @@ set(Jali_MODULE_PATH "${Jali_SOURCE_CONFIG_DIR}/cmake")
 set(CMAKE_MODULE_PATH 
     ${Jali_MODULE_PATH}
     ${Jali_MODULE_PATH}/Modules)
-
-message(STATUS "CMAKE MODULE PATH  ${CMAKE_MODULE_PATH}")
-
 
 # This will be the name of the overall target (no library named
 # libJali will be built)
@@ -232,6 +229,23 @@ target_link_libraries(Jali INTERFACE jali_state)
 
 add_subdirectory(examples)
 
+
+# Set up targets and export
+
+set(Jali_LIBRARIES jali_error_handling jali_geometry jali_state jali_mesh jali_mesh_factory jali_simple_mesh)
+if (ENABLE_MSTK_Mesh)
+  list(APPEND Jali_LIBRARIES jali_mstk_mesh)
+endif ()
+
+install(TARGETS ${Jali_LIBRARIES}
+  EXPORT JaliTargets
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
+  PUBLIC_HEADER DESTINATION include
+  INCLUDES DESTINATION include
+  )
+
 # Export the targets built up in subdirectories
 
 install(EXPORT JaliTargets
@@ -240,7 +254,6 @@ install(EXPORT JaliTargets
   DESTINATION lib/cmake/Jali
   )
   
-# Install the config file after filling in variables delimited by @..@
 if (METIS_DIR AND NOT METIS_ROOT)
   set(METIS_ROOT ${METIS_DIR})
 endif ()
@@ -250,10 +263,20 @@ endif ()
 if (ExodusII_DIR AND NOT ExodusII_ROOT)
   set(ExodusII_ROOT ${ExodusII_DIR})
 endif ()
+
+# Install the config file after filling in variables delimited by @..@
 configure_file(${PROJECT_SOURCE_DIR}/config/cmake/JaliConfig.cmake.in
-  ${PROJECT_BINARY_DIR}/JaliConfig.cmake @ONLY)
-install(FILES ${PROJECT_BINARY_DIR}/JaliConfig.cmake
-  DESTINATION lib/cmake/Jali)
+  JaliConfig.cmake @ONLY)
+install(FILES JaliConfig.cmake DESTINATION lib/cmake/Jali)
+
+
+# write out a version file
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(JaliConfigVersion.cmake
+  VERSION "${Jali_VERSION_MAJOR}.${Jali_VERSION_MINOR}.${Jali_VERSION_PATCH}"
+  COMPATIBILITY SameMajorVersion)
+install(FILES JaliConfigVersion.cmake DESTINATION lib/cmake/Jali)
+
 
 # Also install any module files used for finding the dependencies
 

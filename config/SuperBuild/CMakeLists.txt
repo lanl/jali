@@ -189,33 +189,28 @@ FortranCInterface_VERIFY()
 # ############################################################################ #
 
 
-include(CheckMPISourceCompiles)
-check_mpi_source_compiles(MPI_WRAPPERS_IN_USE)
-if (NOT MPI_WRAPPERS_IN_USE)
+find_package(MPI REQUIRED)
   
-  find_package(MPI REQUIRED)
-  
-  # Warn the user if MPI information is not found
-  if (NOT MPI_C_FOUND)
-    message(WARNING "Failed to locate MPI C include and library files")
-  endif()
-  if (NOT MPI_CXX_FOUND)
-    message(WARNING "Failed to locate MPI C++ include and library files")
-  endif()
+# Warn the user if MPI information is not found
+if (NOT MPI_C_FOUND)
+  message(WARNING "Failed to locate MPI C include and library files")
+endif()
+if (NOT MPI_CXX_FOUND)
+  message(WARNING "Failed to locate MPI C++ include and library files")
+endif()
 
-  # We have to compile Jali and Jali TPLs with MPI - so forcibly set the compilers to the MPI wrappers 
-  set(CMAKE_C_COMPILER ${MPI_C_COMPILER} CACHE FILEPATH "MPI C wrapper to use" FORCE)
-  set(CMAKE_CXX_COMPILER ${MPI_CXX_COMPILER} CACHE FILEPATH "MPI C++ wrapper to use" FORCE)
-  set(CMAKE_Fortran_COMPILER ${MPI_Fortran_COMPILER} CACHE FILEPATH "MPI Fortran wrapper to use" FORCE)
+# We have to compile Jali and Jali TPLs with MPI - so forcibly set the compilers to the MPI wrappers 
+set(CMAKE_C_COMPILER ${MPI_C_COMPILER} CACHE FILEPATH "MPI C wrapper to use" FORCE)
+set(CMAKE_CXX_COMPILER ${MPI_CXX_COMPILER} CACHE FILEPATH "MPI C++ wrapper to use" FORCE)
+set(CMAKE_Fortran_COMPILER ${MPI_Fortran_COMPILER} CACHE FILEPATH "MPI Fortran wrapper to use" FORCE)
   
-  # The FindMPI package uses FindPackageHandleStandardArgs
-  # to MPI_<lang>_FOUND. For consistency, set MPI_FORTRAN_FOUND
-  # to MPI_Fortran_FOUND
-  set(MPI_Fortran_FOUND ${MPI_FORTRAN_FOUND})
-  
-  if (NOT MPI_Fortran_FOUND)
-    message(WARNING "Failed to locate MPI Fortran include and library files")
-  endif()
+# The FindMPI package uses FindPackageHandleStandardArgs
+# to MPI_<lang>_FOUND. For consistency, set MPI_FORTRAN_FOUND
+# to MPI_Fortran_FOUND
+set(MPI_Fortran_FOUND ${MPI_FORTRAN_FOUND})
+
+if (NOT MPI_Fortran_FOUND)
+  message(WARNING "Failed to locate MPI Fortran include and library files")
 endif()
 
 # - Number of MPI ranks flag
