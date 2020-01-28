@@ -246,6 +246,8 @@ install(TARGETS ${Jali_LIBRARIES}
   INCLUDES DESTINATION include
   )
 
+# Export the targets built up in subdirectories
+
 install(EXPORT JaliTargets
   FILE JaliTargets.cmake
   NAMESPACE Jali::
