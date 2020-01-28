@@ -144,9 +144,6 @@ set(CMAKE_MODULE_PATH
     ${Jali_MODULE_PATH}
     ${Jali_MODULE_PATH}/Modules)
 
-message(STATUS "CMAKE MODULE PATH  ${CMAKE_MODULE_PATH}")
-
-
 # This will be the name of the overall target (no library named
 # libJali will be built)
 
@@ -235,12 +232,12 @@ add_subdirectory(examples)
 
 # Set up targets and export
 
-set(jali_target_list jali_error_handling jali_geometry jali_state jali_mesh jali_mesh_factory jali_simple_mesh)
+set(Jali_LIBRARIES jali_error_handling jali_geometry jali_state jali_mesh jali_mesh_factory jali_simple_mesh)
 if (ENABLE_MSTK_Mesh)
-  list(APPEND jali_target_list jali_mstk_mesh)
+  list(APPEND Jali_LIBRARIES jali_mstk_mesh)
 endif ()
 
-install(TARGETS ${jali_target_list}
+install(TARGETS ${Jali_LIBRARIES}
   EXPORT JaliTargets
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
