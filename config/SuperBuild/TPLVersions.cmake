@@ -84,7 +84,7 @@
 #   1.0.9       - MSTK updated to 2.27 and UnitTest++ updated to 1.6.0
 #   1.1.0       - MSTK updated to 3.0.3, UnitTest++ to 2.0.0, Trilinos to 12.10.1, HDF5 1.8.18, Seacas to #173a1e6, zlib to 1.2.11, Boost to 1.63.0, NetCDF to 4.5.0, MOAB to 5.0.0,
 #   1.2.0       - MSTK updated to 3.1.1
-#   1.3.0       - MSTK updated to 3.3.1
+#   1.3.0       - MSTK updated to 3.3.2
 
 include(CMakeParseArguments)
 
@@ -270,14 +270,14 @@ set(MSTK_VERSION_MAJOR 3)
 set(MSTK_VERSION_MINOR 3)
 set(MSTK_VERSION_PATCH 1)
 if (MSTK_VERSION_PATCH)
-  set(MSTK_VERSION ${MSTK_VERSION_MAJOR}_${MSTK_VERSION_MINOR}_${MSTK_VERSION_PATCH})
+  set(MSTK_VERSION ${MSTK_VERSION_MAJOR}.${MSTK_VERSION_MINOR}.${MSTK_VERSION_PATCH})
 else (MSTK_VERSION_PATCH)
-  set(MSTK_VERSION ${MSTK_VERSION_MAJOR}_${MSTK_VERSION_MINOR})
+  set(MSTK_VERSION ${MSTK_VERSION_MAJOR}.${MSTK_VERSION_MINOR})
 endif (MSTK_VERSION_PATCH)
 set(MSTK_URL_STRING     "https://github.com/MeshToolkit/MSTK/archive")
 set(MSTK_ARCHIVE_FILE   ${MSTK_VERSION}.tar.gz)
 set(MSTK_SAVEAS_FILE    MSTK-${MSTK_VERSION}.tar.gz)
-set(MSTK_MD5_SUM        5441d46ac1e2127eb5dd9a40a37da415)
+set(MSTK_MD5_SUM        7eada5433663b2bd870c21ad3808b96e)
 
 #
 # TPL: MOAB
