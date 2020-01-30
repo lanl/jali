@@ -264,7 +264,7 @@ endif ()
 # Install the config file after filling in variables delimited by @..@
 configure_file(${PROJECT_SOURCE_DIR}/config/cmake/JaliConfig.cmake.in
   JaliConfig.cmake @ONLY)
-install(FILES JaliConfig.cmake DESTINATION lib/cmake/Jali)
+install(FILES ${PROJECT_BINARY_DIR}/JaliConfig.cmake DESTINATION lib/cmake/Jali)
 
 
 # write out a version file
@@ -272,7 +272,7 @@ include(CMakePackageConfigHelpers)
 write_basic_package_version_file(JaliConfigVersion.cmake
   VERSION "${Jali_VERSION_MAJOR}.${Jali_VERSION_MINOR}.${Jali_VERSION_PATCH}"
   COMPATIBILITY SameMajorVersion)
-install(FILES JaliConfigVersion.cmake DESTINATION lib/cmake/Jali)
+install(FILES ${PROJECT_BINARY_DIR}/JaliConfigVersion.cmake DESTINATION lib/cmake/Jali)
 
 
 # Also install any module files used for finding the dependencies
