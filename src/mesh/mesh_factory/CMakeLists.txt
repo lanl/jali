@@ -96,6 +96,16 @@ target_link_libraries(jali_mesh_factory PUBLIC jali_error_handling)
 target_link_libraries(jali_mesh_factory PUBLIC jali_mesh)
 
 
+install(TARGETS jali_mesh_factory
+  EXPORT JaliTargets
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
+  PUBLIC_HEADER DESTINATION include
+  INCLUDES DESTINATION include
+  )
+
+
 if (BUILD_TESTS)
 
   # some test file locations defined as macros

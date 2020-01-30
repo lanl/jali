@@ -1,6 +1,6 @@
 # Copyright: 2019- Triad National Security, LLC
 #
-# METIS Find Module for Jali
+# METIS Find Module for MSTK
 #
 # Usage: To search a particular path you can specify the path in
 # CMAKE_PREFIX_PATH, in the CMake variable METIS_DIR or environment
@@ -12,7 +12,6 @@
 # METIS_LIBRARY        (FILE)   METIS library (libzoltan.a, libzoltan.so)
 # METIS_LIBRARIES      (LIST)   List of METIS targets (METIS::METIS)
 # METIS_ROOT           (PATH)   Top level directory where METIS is installed
-# METIS_DIR            (PATH)   Top level directory where METIS is installed
 #
 # #############################################################################
 
@@ -21,7 +20,6 @@
 
 find_package(PkgConfig)
 pkg_check_modules(PC_METIS QUIET metis)
-
 
 
 # Search for include files
@@ -65,13 +63,13 @@ endif ()
 
 set(METIS_VERSION PC_METIS_VERSION})  # No guarantee
 
+# Not sure if this is the right way to do it, but this is to help
+# other upstream packages that attempt to find the METIS package
+# due to transitive dependencies
 if (NOT METIS_ROOT)
-  set(METIS_DIR "${METIS_INCLUDE_DIR}/.." CACHE PATH "Top level dir of METIS installation" FORCE)
+  set(METIS_DIR "${METIS_INCLUDE_DIR}/.." CACHE PATH "Top level dir of METIS installation" FORCE)  # Can be eliminated for cmake version >= 3.12
   set(METIS_ROOT "${METIS_INCLUDE_DIR}/.." CACHE PATH "Top level dir of METIS installation" FORCE)
 endif ()
-
-message(WARNING "From Jali/FindMETIS.cmake METIS_ROOT ${METIS_ROOT}")
-message(WARNING "From Jali/FindMETIS.cmake METIS_LIBRARIES ${METIS_LIBRARIES}")
 
 # Finish setting standard variables if everything is found
 include(FindPackageHandleStandardArgs)
@@ -81,6 +79,7 @@ find_package_handle_standard_args(METIS
 
 
 # Create METIS target
+
 if (METIS_FOUND AND NOT TARGET METIS::METIS)
   set(METIS_LIBRARIES METIS::METIS)
   add_library(${METIS_LIBRARIES} UNKNOWN IMPORTED)
