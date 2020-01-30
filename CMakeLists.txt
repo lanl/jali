@@ -232,10 +232,7 @@ add_subdirectory(examples)
 
 # Set up targets and export
 
-set(Jali_LIBRARIES jali_error_handling jali_geometry jali_state jali_mesh jali_mesh_factory jali_simple_mesh)
-if (ENABLE_MSTK_Mesh)
-  list(APPEND Jali_LIBRARIES jali_mstk_mesh)
-endif ()
+set(Jali_LIBRARIES Jali)
 
 install(TARGETS ${Jali_LIBRARIES}
   EXPORT JaliTargets
