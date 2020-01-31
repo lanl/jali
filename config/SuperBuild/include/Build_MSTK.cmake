@@ -57,29 +57,11 @@ jali_tpl_version_write(FILENAME ${TPL_VERSIONS_INCLUDE_FILE}
                          PREFIX MSTK
                          VERSION ${MSTK_VERSION_MAJOR} ${MSTK_VERSION_MINOR} ${MSTK_VERSION_PATCH})
 
-# --- Patch the original code
-#set(MSTK_patch_file mstk-findhdf5.patch)
-#set(MSTK_sh_patch ${MSTK_prefix_dir}/mstk-patch-step.sh)
-#configure_file(${SuperBuild_TEMPLATE_FILES_DIR}/mstk-patch-step.sh.in
-#               ${MSTK_sh_patch}
-#               @ONLY)
-#
-## configure the CMake patch step
-#set(MSTK_cmake_patch ${MSTK_prefix_dir}/mstk-patch-step.cmake)
-#configure_file(${SuperBuild_TEMPLATE_FILES_DIR}/mstk-patch-step.cmake.in
-#               ${MSTK_cmake_patch}
-#               @ONLY)
-#
-## set the patch command
-#set(MSTK_PATCH_COMMAND ${CMAKE_COMMAND} -P ${MSTK_cmake_patch})
 
 # --- Define the configure parameters
 # compile flags
-set(mstk_cflags_list -I${TPL_INSTALL_PREFIX}/include ${Jali_COMMON_CFLAGS})
+set(mstk_cflags_list ${Jali_COMMON_CFLAGS})
 build_whitespace_string(mstk_cflags ${mstk_cflags_list})
-
-set(mstk_ldflags_list -L${TPL_INSTALL_PREFIX}/lib ${MPI_C_LIBRARIES})
-build_whitespace_string(mstk_ldflags ${mstk_ldflags_list})
 
 
 # The CMake cache args
@@ -100,11 +82,10 @@ set(MSTK_CMAKE_CACHE_ARGS
                     -DHDF5_NO_SYSTEM_PATHS:BOOL=TRUE
                     -DNetCDF_ROOT:PATH=${TPL_INSTALL_PREFIX} 
                     -DExodusII_ROOT:PATH=${TPL_INSTALL_PREFIX} 
-                    -DZOLTAN_ROOT:PATH=${Zoltan_INSTALL_PREFIX}
+                    -DZoltan_ROOT:PATH=${Zoltan_INSTALL_PREFIX}
                     -DMETIS_ROOT:PATH=${TPL_INSTALL_PREFIX} 
                     -DENABLE_Tests:BOOL=FALSE
-                    -DINSTALL_DIR:PATH=<INSTALL_DIR>
-                    -DINSTALL_ADD_VERSION:BOOL=FALSE)
+                    -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>)
 
 # --- Add external project build and tie to the MSTK build target
 ExternalProject_Add(${MSTK_BUILD_TARGET}
