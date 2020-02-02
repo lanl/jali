@@ -87,37 +87,12 @@ add_library(Jali::jali_mstk_mesh ALIAS jali_mstk_mesh)
 find_package(MSTK QUIET REQUIRED)  # defines target mstk::mstk
 set_property(TARGET ${MSTK_LIBRARIES} PROPERTY IMPORTED_GLOBAL TRUE)
 if (MSTK_ROOT)
-  set(MSTK_ROOT "${MSTK_ROOT}" CACHE STRING "MSTK installation directory" FORCE)
+  set(MSTK_ROOT ${MSTK_ROOT} CACHE PATH "MSTK installation directory" FORCE)
 else ()
   get_filename_component(MSTK_ROOT "${MSTK_INCLUDE_DIR}/.." ABSOLUTE)
-  set(MSTK_ROOT ${MSTK_ROOT} CACHE STRING "MSTK installation directory" FORCE)
+  set(MSTK_ROOT ${MSTK_ROOT} CACHE PATH "MSTK installation directory" FORCE)
 endif ()
 
-# Somehow the Pkg_LIBRARIES and Pkg_ROOT names for dependencies found
-# through MSTK are not persisting outside of this dir So set them to
-# be cache variables by force? or set them in parent_scope? which is
-# better?
-
-set(Zoltan_LIBRARIES ${Zoltan_LIBRARIES} PARENT_SCOPE)
-if (Zoltan_ROOT)
-  set(Zoltan_ROOT "${Zoltan_ROOT}" PARENT_SCOPE)
-else ()
-  set(Zoltan_ROOT "${Zoltan_INCLUDE_DIR}/.." PARENT_SCOPE)
-endif ()
-
-set(METIS_LIBRARIES ${METIS_LIBRARIES} PARENT_SCOPE)
-if (METIS_ROOT)
-  set(METIS_ROOT "${METIS_ROOT}" PARENT_SCOPE)
-else ()
-  set(METIS_ROOT "${METIS_INCLUDE_DIR}/.." PARENT_SCOPE)
-endif ()
-
-set(ExodusII_LIBRARIES ${ExodusII_LIBRARIES} PARENT_SCOPE)
-if (ExodusII_ROOT)
-  set(ExodusII_ROOT "${MSTK_ROOT}" PARENT_SCOPE)
-else ()
-  set(ExodusII_ROOT "${MSTK_INCLUDE_DIR}/.." PARENT_SCOPE)
-endif ()
 
 target_link_libraries(jali_mstk_mesh PUBLIC ${MSTK_LIBRARIES})
 target_link_libraries(jali_mstk_mesh PUBLIC jali_error_handling)
