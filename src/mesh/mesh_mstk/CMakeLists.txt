@@ -87,9 +87,9 @@ add_library(Jali::jali_mstk_mesh ALIAS jali_mstk_mesh)
 find_package(MSTK QUIET REQUIRED)  # defines target mstk::mstk
 set_property(TARGET ${MSTK_LIBRARIES} PROPERTY IMPORTED_GLOBAL TRUE)
 if (MSTK_ROOT)
-  set(MSTK_ROOT "${MSTK_ROOT}" PARENT_SCOPE)
+  set(MSTK_ROOT "${MSTK_ROOT}" CACHE STRING "MSTK installation directory" FORCE)
 else ()
-  set(MSTK_ROOT "${MSTK_INCLUDE_DIR}/.." PARENT_SCOPE)
+  get_filename_component(MSTK_ROOT "${MSTK_INCLUDE_DIR}/.." ABSOLUTE CACHE "MSTK installation directory" FORCE)
 endif ()
 message(STATUS "Found MSTK: " ${MSTK_LIBRARIES})
 
