@@ -89,9 +89,9 @@ set_property(TARGET ${MSTK_LIBRARIES} PROPERTY IMPORTED_GLOBAL TRUE)
 if (MSTK_ROOT)
   set(MSTK_ROOT "${MSTK_ROOT}" CACHE STRING "MSTK installation directory" FORCE)
 else ()
-  get_filename_component(MSTK_ROOT "${MSTK_INCLUDE_DIR}/.." ABSOLUTE CACHE "MSTK installation directory" FORCE)
+  get_filename_component(MSTK_ROOT "${MSTK_INCLUDE_DIR}/.." ABSOLUTE)
+  set(MSTK_ROOT ${MSTK_ROOT} CACHE STRING "MSTK installation directory" FORCE)
 endif ()
-message(STATUS "Found MSTK: " ${MSTK_LIBRARIES})
 
 # Somehow the Pkg_LIBRARIES and Pkg_ROOT names for dependencies found
 # through MSTK are not persisting outside of this dir So set them to
