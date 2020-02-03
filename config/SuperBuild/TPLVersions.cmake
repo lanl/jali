@@ -277,7 +277,7 @@ endif (MSTK_VERSION_PATCH)
 set(MSTK_URL_STRING     "https://github.com/MeshToolkit/MSTK/archive")
 set(MSTK_ARCHIVE_FILE   ${MSTK_VERSION}.tar.gz)
 set(MSTK_SAVEAS_FILE    MSTK-${MSTK_VERSION}.tar.gz)
-set(MSTK_MD5_SUM        7eada5433663b2bd870c21ad3808b96e)
+set(MSTK_MD5_SUM        37c2616d10b953ce1f4eb239d35a1b93)
 
 #
 # TPL: MOAB
