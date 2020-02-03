@@ -37,7 +37,7 @@ script:
      wget https://github.com/MeshToolkit/mstk/archive/3.3.2.tar.gz &&
      tar xvzf 3.3.2.tar.gz &&
      cd MSTK-3.3.2 &&
-     mkdir mstk-build &&
+     mkdir mstk-build && cd mstk-build &&
      cmake
      -DCMAKE_BUILD_TYPE=Release
      -DCMAKE_INSTALL_PREFIX=$HOME/MSTK-3.3.2-install
