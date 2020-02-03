@@ -1,0 +1,75 @@
+language: c
+
+sudo: required
+dist: bionic
+
+addons:
+  apt:
+    packages:
+      - libopenmpi-dev
+      - openmpi-bin
+      - libmetis-dev
+      - libhdf5-openmpi-dev
+      - libnetcdf-dev
+      - libexodusii-dev
+      - libexodusii5
+      - libnemesis3
+      - libunittest++-dev
+      - libtrilinos-zoltan-dev
+env:
+  global:
+    - CCACHE_CPP2=yes
+  matrix:
+    - PARALLEL=ON
+
+before_install:
+  - test -n $CC && unset CC
+  - test -n $CXX && unset CXX
+
+after_failure:
+  - echo $TRAVIS_TEST_RESULT
+  - cat Testing/Temporary/LastTest.log
+
+script:
+  - >
+     mkdir build &&
+     cd build &&
+     wget https://github.com/MeshToolkit/mstk/archive/3.3.2.tar.gz &&
+     tar xvzf 3.3.2.tar.gz &&
+     cd MSTK-3.3.2 &&
+     mkdir mstk-build && cd mstk-build &&
+     cmake
+     -DCMAKE_BUILD_TYPE=Release
+     -DCMAKE_INSTALL_PREFIX=$HOME/MSTK-3.3.2-install
+     -DENABLE_PARALLE=$PARALLEL
+     -DENABLE_METIS=yes
+     -DENABLE_ExodusII=yes
+     -DENABLE_Zoltan=yes
+     -DENABLE_Tests=yes
+     .. &&
+     make VERBOSE=1 -j2 &&
+     make test &&
+     make install &&
+     cmake 
+     -DCMAKE_PREFIX_PATH=$HOME/MSTK-3.3.2-install
+     -DCMAKE_INSTALL_PREFIX=$HOME/Jali
+     -DCMAKE_BUILD_TYPE=Release
+     -DENABLE_MSTK=yes
+     -DENABLE_Tests=yes
+     ..    && 
+     make VERBOSE=1 -j2 &&
+     make test &&
+     make install DESTDIR=$HOME
+
+cache:
+  - ccache
+
+compiler:
+  - gcc
+  - clang
+
+notifications:
+  email:
+    - raovgarimella@gmail.com
+  on_success: never
+  on_failure: always
