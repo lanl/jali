@@ -15,13 +15,12 @@ addons:
       - libexodusii5
       - libnemesis3
       - libunittest++-dev
-      - libtrilinos-all-dev
+      - libtrilinos-zoltan-dev
 env:
   global:
     - CCACHE_CPP2=yes
   matrix:
     - PARALLEL=ON
-    - PARALLEL=OFF
 
 before_install:
   - test -n $CC && unset CC
