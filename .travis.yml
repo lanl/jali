@@ -52,7 +52,7 @@ script:
      make install &&
      cmake 
      -DCMAKE_PREFIX_PATH=$HOME/MSTK-3.3.2-install
-     -DCMAKE_INSTALL_PREFIX
+     -DCMAKE_INSTALL_PREFIX=$HOME/Jali
      -DCMAKE_BUILD_TYPE=Release
      -DENABLE_MSTK=yes
      -DENABLE_Tests=yes
