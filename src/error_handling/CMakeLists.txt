@@ -79,6 +79,13 @@ set(ERROR_sources
 add_library(jali_error_handling ${ERROR_sources})
 set_target_properties(jali_error_handling PROPERTIES PUBLIC_HEADER "${ERROR_headers}")
 
+# Lets make MPI::MPI_CXX a dependency of error handling so it
+# propagates to all other libraries (external propagation of this
+# dependency is through the Jali::Jali target)
+
+target_link_libraries(jali_error_handling PUBLIC MPI::MPI_CXX)
+target_compile_definitions(jali_error_handling PUBLIC OMPI_SKIP_MPICXX)
+
 # Alias (Daniel Pfeiffer, Effective CMake) - this allows other
 # projects that use Pkg as a subproject to find_package(Nmspc::Pkg)
 # which does nothing because Pkg is already part of the project
