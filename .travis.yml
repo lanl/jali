@@ -50,6 +50,7 @@ script:
      make VERBOSE=1 -j2 &&
      make test &&
      make install &&
+     cd .. &&
      cmake 
      -DCMAKE_PREFIX_PATH=$HOME/MSTK-3.3.2-install
      -DCMAKE_INSTALL_PREFIX=$HOME/Jali
