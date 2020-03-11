@@ -41,7 +41,7 @@ script:
      cmake
      -DCMAKE_BUILD_TYPE=Release
      -DCMAKE_INSTALL_PREFIX=$HOME/MSTK-3.3.2-install
-     -DENABLE_PARALLE=$PARALLEL
+     -DENABLE_PARALLEL=$PARALLEL
      -DENABLE_METIS=yes
      -DENABLE_ExodusII=yes
      -DENABLE_Zoltan=yes
