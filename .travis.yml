@@ -44,7 +44,7 @@ script:
      -DENABLE_PARALLEL=$PARALLEL
      -DENABLE_METIS=yes
      -DENABLE_ExodusII=yes
-     -DENABLE_Zoltan=yes
+     -DENABLE_ZOLTAN=yes
      -DENABLE_Tests=yes
      .. &&
      make VERBOSE=1 -j2 &&
