@@ -16,6 +16,7 @@ addons:
       - libnemesis3
       - libunittest++-dev
       - libtrilinos-zoltan-dev
+      - libboost-all-dev
 env:
   global:
     - CCACHE_CPP2=yes
@@ -34,27 +35,30 @@ script:
   - >
      mkdir build &&
      cd build &&
-     wget https://github.com/MeshToolkit/mstk/archive/3.3.2.tar.gz &&
-     tar xvzf 3.3.2.tar.gz &&
-     cd MSTK-3.3.2 &&
+     wget https://github.com/MeshToolkit/mstk/archive/3.3.3.tar.gz &&
+     tar xvzf 3.3.3.tar.gz &&
+     cd MSTK-3.3.3 &&
      mkdir mstk-build && cd mstk-build &&
      cmake
      -DCMAKE_BUILD_TYPE=Release
-     -DCMAKE_INSTALL_PREFIX=$HOME/MSTK-3.3.2-install
-     -DENABLE_PARALLE=$PARALLEL
+     -DCMAKE_PREFIX_PATH=/usr/include/trilinos
+     -DCMAKE_INSTALL_PREFIX=$HOME/MSTK-3.3.3-install
+     -DENABLE_PARALLEL=$PARALLEL
      -DENABLE_METIS=yes
      -DENABLE_ExodusII=yes
-     -DENABLE_Zoltan=yes
+     -DENABLE_ZOLTAN=yes
      -DENABLE_Tests=yes
      .. &&
      make VERBOSE=1 -j2 &&
      make test &&
      make install &&
+     cd ../.. &&
      cmake 
-     -DCMAKE_PREFIX_PATH=$HOME/MSTK-3.3.2-install
+     -DCMAKE_PREFIX_PATH="$HOME/MSTK-3.3.3-install;/usr/include/trilinos"
      -DCMAKE_INSTALL_PREFIX=$HOME/Jali
      -DCMAKE_BUILD_TYPE=Release
      -DENABLE_MSTK=yes
+     -DBOOST_ROOT=/usr/include
      -DENABLE_Tests=yes
      ..    && 
      make VERBOSE=1 -j2 &&

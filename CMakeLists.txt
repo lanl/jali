@@ -69,7 +69,6 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL 3.12)
   cmake_policy(SET CMP0074 NEW)  # Don't ignore Pkg_ROOT variables
 endif()
 
-
 enable_language(C CXX)
 
 # ENABLE C++11 support
@@ -84,13 +83,26 @@ endif()
 
 
 
+# This will be the name of the overall target (no library named
+# libJali will be built)
+
+add_library(Jali INTERFACE)
+
+# Alias (Daniel Pfeiffer, Effective CMake) - this allows other
+# projects that use Pkg as a subproject to find_package(Nmspc::Pkg)
+# which does nothing because Pkg is already part of the project
+
+add_library(Jali::Jali ALIAS Jali)
+
+
+
 # Jali needs MPI
 
 find_package(MPI REQUIRED)
   
 if (MPI_FOUND)
-  set(CMAKE_C_COMPILER ${MPI_C_COMPILER} CACHE FILEPATH "MPI C wrapper to use" FORCE)
-  set(CMAKE_CXX_COMPILER ${MPI_CXX_COMPILER} CACHE FILEPATH "MPI C++ wrapper to use" FORCE)
+  target_link_libraries(Jali INTERFACE MPI::MPI_CXX)
+  target_compile_definitions(Jali INTERFACE OMPI_SKIP_MPICXX)
 endif ()
 
 
@@ -143,17 +155,6 @@ set(Jali_MODULE_PATH "${Jali_SOURCE_CONFIG_DIR}/cmake")
 set(CMAKE_MODULE_PATH 
     ${Jali_MODULE_PATH}
     ${Jali_MODULE_PATH}/Modules)
-
-# This will be the name of the overall target (no library named
-# libJali will be built)
-
-add_library(Jali INTERFACE)
-
-# Alias (Daniel Pfeiffer, Effective CMake) - this allows other
-# projects that use Pkg as a subproject to find_package(Nmspc::Pkg)
-# which does nothing because Pkg is already part of the project
-
-add_library(Jali::Jali ALIAS Jali)
 
 
 # Mesh frameworks
