@@ -16,6 +16,7 @@ addons:
       - libnemesis3
       - libunittest++-dev
       - libtrilinos-zoltan-dev
+      - libboost-all-dev
 env:
   global:
     - CCACHE_CPP2=yes
@@ -57,6 +58,7 @@ script:
      -DCMAKE_INSTALL_PREFIX=$HOME/Jali
      -DCMAKE_BUILD_TYPE=Release
      -DENABLE_MSTK=yes
+     -DBOOST_ROOT=/usr/include
      -DENABLE_Tests=yes
      ..    && 
      make VERBOSE=1 -j2 &&
