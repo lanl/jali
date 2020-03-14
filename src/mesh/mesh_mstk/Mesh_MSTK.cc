@@ -4677,9 +4677,9 @@ int Mesh_MSTK::generate_regular_mesh(Mesh_ptr regmesh, double x0, double y0,
     DY = (Y1-Y0)/NY;
     DZ = (Z1-Z0)/NZ;
 
-    IOFFSET = ceil((x0 - X0)/DX);
-    JOFFSET = ceil((y0 - Y0)/DY);
-    KOFFSET = ceil((z0 - Z0)/DZ);
+    IOFFSET = static_cast<int>((x0 - X0)/DX + 0.5);
+    JOFFSET = static_cast<int>((y0 - Y0)/DY + 0.5);
+    KOFFSET = static_cast<int>((z0 - Z0)/DZ + 0.5);
   } else {
     NX = nx;
     NY = ny;
@@ -4961,13 +4961,26 @@ int Mesh_MSTK::generate_regular_mesh(Mesh_ptr regmesh, double x0, double y0,
   if (NX && NY) {
     DX = (X1 - X0)/NX;
     DY = (Y1 - Y0)/NY;
-    IOFFSET = ceil((x0 - X0)/DX);
-    JOFFSET = ceil((y0 - Y0)/DY);
+    IOFFSET = static_cast<int>((x0 - X0)/DX + 0.5);
+    JOFFSET = static_cast<int>((y0 - Y0)/DY + 0.5);
   } else {
     NX = nx;
     NY = ny;
   }
 
+  int rank, nprocs;
+  MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  for (int r = 0; r < nprocs; r++) {
+    if (r == rank) {
+      std::cerr << "Rank " << rank << " I0 = " << IOFFSET <<
+          " J0 = " << JOFFSET << " x0 = " << x0 << " y0 = " << y0 <<
+          " DX = " << DX << " DY = " << DY << " (x0-X0)/DX =" << (x0-X0)/DX <<
+          " (y0-Y0)/DY =" << (y0-Y0)/DY << "\n";
+    }
+    MPI_Barrier(MPI_COMM_WORLD);
+  }
+  
   verts = (MVertex_ptr **) malloc((nx+1)*sizeof(MVertex_ptr *));
   for (i = 0; i < nx+1; ++i)
     verts[i] = (MVertex_ptr *) malloc((ny+1)*sizeof(MVertex_ptr));
