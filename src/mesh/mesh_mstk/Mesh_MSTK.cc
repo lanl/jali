@@ -4677,9 +4677,6 @@ int Mesh_MSTK::generate_regular_mesh(Mesh_ptr regmesh, double x0, double y0,
     DY = (Y1-Y0)/NY;
     DZ = (Z1-Z0)/NZ;
 
-    // IOFFSET = ceil((x0 - X0)/DX);
-    // JOFFSET = ceil((y0 - Y0)/DY);
-    // KOFFSET = ceil((z0 - Z0)/DZ);
     IOFFSET = static_cast<int>((x0 - X0)/DX + 0.5);
     JOFFSET = static_cast<int>((y0 - Y0)/DY + 0.5);
     KOFFSET = static_cast<int>((z0 - Z0)/DZ + 0.5);
@@ -4964,8 +4961,6 @@ int Mesh_MSTK::generate_regular_mesh(Mesh_ptr regmesh, double x0, double y0,
   if (NX && NY) {
     DX = (X1 - X0)/NX;
     DY = (Y1 - Y0)/NY;
-    // IOFFSET = ceil((x0-X0)/DX);
-    // JOFFSET = ceil((y0-Y0)/DY);
     IOFFSET = static_cast<int>((x0 - X0)/DX + 0.5);
     JOFFSET = static_cast<int>((y0 - Y0)/DY + 0.5);
   } else {
