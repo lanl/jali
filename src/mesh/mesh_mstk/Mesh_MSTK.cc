@@ -4677,9 +4677,9 @@ int Mesh_MSTK::generate_regular_mesh(Mesh_ptr regmesh, double x0, double y0,
     DY = (Y1-Y0)/NY;
     DZ = (Z1-Z0)/NZ;
 
-    IOFFSET = ceil((x0 - X0)/DX);
-    JOFFSET = ceil((y0 - Y0)/DY);
-    KOFFSET = ceil((z0 - Z0)/DZ);
+    IOFFSET = static_cast<int>((x0 - X0)/DX + 0.5);
+    JOFFSET = static_cast<int>((y0 - Y0)/DY + 0.5);
+    KOFFSET = static_cast<int>((z0 - Z0)/DZ + 0.5);
   } else {
     NX = nx;
     NY = ny;
@@ -4695,18 +4695,18 @@ int Mesh_MSTK::generate_regular_mesh(Mesh_ptr regmesh, double x0, double y0,
 
   for (i = 0; i < nx+1; ++i) {
     xyz[0] = (i == nx) ? x1 : x0 + i*dx;
-    ii = (i%nx) ? 1 : (i ? 2 : 0);
     IG = IOFFSET + i;  // global i-index
+    ii = (IG%NX) ? 1 : (IG ? 2 : 0);
 
     for (j = 0; j < ny+1; ++j) {
       xyz[1] = (j == ny) ? y1 : y0 + j*dy;
-      jj = (j%ny) ? 1 : (j ? 2 : 0);
       JG = JOFFSET + j;  // global j-index
+      jj = (JG%NY) ? 1 : (JG ? 2 : 0);
       
       for (k = 0; k < nz+1; ++k) {
         xyz[2] = (k == nz) ? z1 : z0 + k*dz;
-        kk =  (k%nz) ? 1 : (k ? 2 : 0);
         KG = KOFFSET + k;  // global k-index
+        kk =  (KG%NZ) ? 1 : (KG ? 2 : 0);
 
         mv = MV_New(regmesh);
         MV_Set_Coords(mv, xyz);
@@ -4743,8 +4743,8 @@ int Mesh_MSTK::generate_regular_mesh(Mesh_ptr regmesh, double x0, double y0,
         ME_Set_Vertex(me, 0, everts[0]);
         ME_Set_Vertex(me, 1, everts[1]);
 
-        ii = (i%nx) ? 1 : (i ? 2 : 0);
-        jj = (j%ny) ? 1 : (j ? 2 : 0);
+        ii = (IG%NX) ? 1 : (IG ? 2 : 0);
+        jj = (JG%NY) ? 1 : (JG ? 2 : 0);
         gdim = egdim_tmpl[ii][jj];
         gid = egid_tmpl2[ii][jj];
 
@@ -4772,8 +4772,8 @@ int Mesh_MSTK::generate_regular_mesh(Mesh_ptr regmesh, double x0, double y0,
         ME_Set_Vertex(me, 0, everts[0]);
         ME_Set_Vertex(me, 1, everts[1]);
 
-        ii = (i%nx) ? 1 : (i ? 2 : 0);
-        kk = (k%nz) ? 1 : (k ? 2 : 0);
+        ii = (IG%NX) ? 1 : (IG ? 2 : 0);
+        kk = (KG%NZ) ? 1 : (KG ? 2 : 0);
         gdim = egdim_tmpl[ii][kk];
         gid = egid_tmpl1[ii][kk];
 
@@ -4801,8 +4801,8 @@ int Mesh_MSTK::generate_regular_mesh(Mesh_ptr regmesh, double x0, double y0,
         ME_Set_Vertex(me, 0, everts[0]);
         ME_Set_Vertex(me, 1, everts[1]);
 
-        jj = (j%ny) ? 1 : (j ? 2 : 0);
-        kk = (k%nz) ? 1 : (k ? 2 : 0);
+        jj = (JG%NY) ? 1 : (JG ? 2 : 0);
+        kk = (KG%NZ) ? 1 : (KG ? 2 : 0);
         gdim = egdim_tmpl[jj][kk];
         gid = egid_tmpl0[jj][kk];
 
@@ -4835,7 +4835,7 @@ int Mesh_MSTK::generate_regular_mesh(Mesh_ptr regmesh, double x0, double y0,
         fverts[3] = verts[i][j][k+1];
         MF_Set_Vertices(mf, 4, fverts);
 
-        ii = (i%nx) ? 1 : (i ? 2 : 0);
+        ii = (IG%NX) ? 1 : (IG ? 2 : 0);
         gdim = fgdim_tmpl[ii];
         gid = fgid_tmpl0[ii];
 
@@ -4864,7 +4864,7 @@ int Mesh_MSTK::generate_regular_mesh(Mesh_ptr regmesh, double x0, double y0,
         fverts[3] = verts[i][j][k+1];
         MF_Set_Vertices(mf, 4, fverts);
 
-        jj = (j%ny) ? 1 : (j ? 2 : 0);
+        jj = (JG%NY) ? 1 : (JG ? 2 : 0);
         gdim = fgdim_tmpl[jj];
         gid = fgid_tmpl1[jj];
 
@@ -4893,7 +4893,7 @@ int Mesh_MSTK::generate_regular_mesh(Mesh_ptr regmesh, double x0, double y0,
         fverts[3] = verts[i][j+1][k];
         MF_Set_Vertices(mf, 4, fverts);
 
-        kk = (k%nz) ? 1 : (k ? 2 : 0);
+        kk = (KG%NZ) ? 1 : (KG ? 2 : 0);
         gdim = fgdim_tmpl[kk];
         gid = fgid_tmpl2[kk];
 
@@ -4961,13 +4961,26 @@ int Mesh_MSTK::generate_regular_mesh(Mesh_ptr regmesh, double x0, double y0,
   if (NX && NY) {
     DX = (X1 - X0)/NX;
     DY = (Y1 - Y0)/NY;
-    IOFFSET = ceil((x0 - X0)/DX);
-    JOFFSET = ceil((y0 - Y0)/DY);
+    IOFFSET = static_cast<int>((x0 - X0)/DX + 0.5);
+    JOFFSET = static_cast<int>((y0 - Y0)/DY + 0.5);
   } else {
     NX = nx;
     NY = ny;
   }
 
+  int rank, nprocs;
+  MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  for (int r = 0; r < nprocs; r++) {
+    if (r == rank) {
+      std::cerr << "Rank " << rank << " I0 = " << IOFFSET <<
+          " J0 = " << JOFFSET << " x0 = " << x0 << " y0 = " << y0 <<
+          " DX = " << DX << " DY = " << DY << " (x0-X0)/DX =" << (x0-X0)/DX <<
+          " (y0-Y0)/DY =" << (y0-Y0)/DY << "\n";
+    }
+    MPI_Barrier(MPI_COMM_WORLD);
+  }
+  
   verts = (MVertex_ptr **) malloc((nx+1)*sizeof(MVertex_ptr *));
   for (i = 0; i < nx+1; ++i)
     verts[i] = (MVertex_ptr *) malloc((ny+1)*sizeof(MVertex_ptr));
@@ -4975,31 +4988,31 @@ int Mesh_MSTK::generate_regular_mesh(Mesh_ptr regmesh, double x0, double y0,
   xyz[2] = 0.0;
   for (i = 0; i < nx+1; ++i) {
     xyz[0] = (i == nx) ? x1 : x0 + i*dx;
-    IG = IOFFSET + i;
+    IG = IOFFSET + i;  // global i-index
     
     for (j = 0; j < ny+1; ++j) {
       xyz[1] = (j == ny) ? y1 : y0 + j*dy;
-      JG = JOFFSET + j;
+      JG = JOFFSET + j;  // global j-index
       
       mv = MV_New(regmesh);
       MV_Set_Coords(mv, xyz);
 
-      if (i == 0) {
-        if (j == 0) {
+      if (IG == 0) {
+        if (JG == 0) {
           MV_Set_GEntDim(mv, 0);
           MV_Set_GEntID(mv, 1);
-        } else if (j == ny) {
+        } else if (JG == NY) {
           MV_Set_GEntDim(mv, 0);
           MV_Set_GEntID(mv, 4);
         } else {
           MV_Set_GEntDim(mv, 1);
           MV_Set_GEntID(mv, 4);
         }
-      } else if (i == nx) {
-        if (j == 0) {
+      } else if (IG == NX) {
+        if (JG == 0) {
           MV_Set_GEntDim(mv, 0);
           MV_Set_GEntID(mv, 2);
-        } else if (j == ny) {
+        } else if (JG == NY) {
           MV_Set_GEntDim(mv, 0);
           MV_Set_GEntID(mv, 3);
         } else {
@@ -5007,10 +5020,10 @@ int Mesh_MSTK::generate_regular_mesh(Mesh_ptr regmesh, double x0, double y0,
           MV_Set_GEntID(mv, 2);
         }
       } else {
-        if (j == 0) {
+        if (JG == 0) {
           MV_Set_GEntDim(mv, 1);
           MV_Set_GEntID(mv, 1);
-        } else if (j == ny) {
+        } else if (JG == NY) {
           MV_Set_GEntDim(mv, 1);
           MV_Set_GEntID(mv, 3);
         } else {
@@ -5047,7 +5060,7 @@ int Mesh_MSTK::generate_regular_mesh(Mesh_ptr regmesh, double x0, double y0,
         ME_Set_Vertex(me, 0, v0);
         ME_Set_Vertex(me, 1, v1);
 
-        if (j == 0) {
+        if (JG == 0) {
           ME_Set_GEntDim(me, 1);
           ME_Set_GEntID(me, 1);
         } else {
@@ -5075,7 +5088,7 @@ int Mesh_MSTK::generate_regular_mesh(Mesh_ptr regmesh, double x0, double y0,
         ME_Set_Vertex(me, 0, v0);
         ME_Set_Vertex(me, 1, v1);
 
-        if (i+1 == nx) {
+        if (IG == NX-1) {
           ME_Set_GEntDim(me, 1);
           ME_Set_GEntID(me, 2);
         }
@@ -5104,7 +5117,7 @@ int Mesh_MSTK::generate_regular_mesh(Mesh_ptr regmesh, double x0, double y0,
         ME_Set_Vertex(me, 0, v0);
         ME_Set_Vertex(me, 1, v1);
 
-        if (j+1 == nx) {
+        if (JG == NY-1) {
           ME_Set_GEntDim(me, 1);
           ME_Set_GEntID(me, 3);
         } else {
@@ -5132,7 +5145,7 @@ int Mesh_MSTK::generate_regular_mesh(Mesh_ptr regmesh, double x0, double y0,
         ME_Set_Vertex(me, 0, v0);
         ME_Set_Vertex(me, 1, v1);
 
-        if (i == 0) {
+        if (IG == 0) {
           ME_Set_GEntDim(me, 1);
           ME_Set_GEntID(me, 4);
         }

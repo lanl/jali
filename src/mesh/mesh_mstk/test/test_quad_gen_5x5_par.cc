@@ -116,6 +116,7 @@ TEST(MSTK_QUAD_GEN_5x5_par) {
     JaliGeometry::Point diff = pnt - serialpnts[gid];
     CHECK(JaliGeometry::L22(diff) < 1.0e-16);
   }
-  
+
+  CHECK(parmesh.run_internal_mstk_checks());
 }
 
