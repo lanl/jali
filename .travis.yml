@@ -54,7 +54,7 @@ script:
      make install &&
      cd ../.. &&
      cmake 
-     -DCMAKE_PREFIX_PATH="$HOME/MSTK-3.3.3-install;/usr/include/trilinos"
+     -DCMAKE_PREFIX_PATH="$HOME/MSTK-3.3.4-install;/usr/include/trilinos"
      -DCMAKE_INSTALL_PREFIX=$HOME/Jali
      -DCMAKE_BUILD_TYPE=Release
      -DENABLE_MSTK=yes
