@@ -136,7 +136,6 @@ if (BUILD_TESTS)
     test/test_hex_gen_3x3x3.cc
     test/test_quad_gen_3x3.cc
     test/test_write_read_fields.cc
-    test/test_block_partition.cc
     LINK_LIBS jali_mstk_mesh ${UnitTest++_LIBRARIES}) 
   
   # Test: mstk_mesh_parallel
@@ -151,7 +150,7 @@ if (BUILD_TESTS)
     test/test_hex_gen_5x5x5_par.cc
     test/test_edges_4P.cc
     LINK_LIBS jali_mstk_mesh ${UnitTest++_LIBRARIES})
-  
+    
   # Test: mstk_mesh_parallel
   add_Jali_test(mstk_mesh_parallel8 test_parallel8_mstk_mesh
     KIND unit
