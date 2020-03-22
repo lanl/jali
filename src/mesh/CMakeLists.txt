@@ -67,6 +67,7 @@ set(JALI_MESH_headers
   Mesh.hh
   MeshTile.hh
   MeshSet.hh
+  block_partition.hh
   )
 list(TRANSFORM JALI_MESH_headers PREPEND "${JALI_MESH_SOURCE_DIR}/")
 
@@ -74,6 +75,7 @@ set(JALI_MESH_sources
   Mesh.cc
   MeshTile.cc
   MeshSet.cc
+  block_partition.cc
   )
 
 
@@ -291,7 +293,12 @@ if (BUILD_TESTS)
     NPROCS 4
     SOURCE test/Main.cc test/test_meshsets.cc
     LINK_LIBS jali_mesh jali_mesh_factory ${UnitTest++_LIBRARIES})
-    
+
+  # test block partitioning
+  add_Jali_test(block_partitioning block_partitioning
+    KIND unit
+    SOURCE test/Main.cc test/test_block_partition.cc
+    LINK_LIBS jali_mesh ${UnitTest++_LIBRARIES})
 
 endif()
   

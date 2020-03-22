@@ -596,20 +596,61 @@ class Mesh_MSTK : public Mesh {
   other_internal_name_of_set(const JaliGeometry::RegionPtr r,
                              const Entity_kind entity_kind) const;
 
+  /*!
+    Generate a structured 3D mesh with regularly spaced points along
+    coordinate directions
+    
+    @param mesh  Mesh object to be populated
+    @param X0    Min X coordinate of global domain
+    @param Y0    Min Y coordinate of global domain
+    @param Z0,   Min Z coordinate of global domain
+    @param X1    Max X coordinate of global domain
+    @param Y1    Max Y coordinate of global domain
+    @param Z1    Max Z coordinate of global domain
+    @param NX    Global number of cells in X direction
+    @param NY    Global number of cells in Y direction
+    @param NZ    Global number of cells in Z direction
+    
+    Optional for serial mesh
+    @param i0    Start node/cell index of partition (defaults to 0 for serial mesh)
+    @param j0    Start node/cell index of partition (defaults to 0 for serial mesh)
+    @param k0    Start node/cell index of partition (defaults to 0 for serial mesh)
+    @param nx    Number of cells in X direction of partition (defaults to NX for serial mesh)
+    @param ny    Number of cells in X direction of partition (defaults to NY for serial mesh)
+    @param nz    Number of cells in X direction of partition (defaults to NZ for serial mesh)
+  */
+   
+    
   int  generate_regular_mesh(Mesh_ptr mesh,
-			     double x0, double y0, double z0,
-                             double x1, double y1, double z1,
-			     int nx, int ny, int nz,
-			     double X0 = 0.0, double Y0 = 0.0, double Z0 = 0.0,
-			     double X1 = 0.0, double Y1 = 0.0, double Z1 = 0.0,
-			     int NX = 0, int NY = 0, int NZ = 0);
+			     double X0, double Y0, double Z0,
+			     double X1, double Y1, double Z1,
+			     int NX, int NY, int NZ,
+                             int i0=0, int j0=0, int k0=0,
+                             int nx=0, int ny=0, int nz=0);
 
+  /*!
+    Generate a structured 2D mesh with regularly spaced points along
+    coordinate directions
+    
+    @param mesh  Mesh object to be populated
+    @param X0    Min X coordinate of global domain
+    @param Y0    Min Y coordinate of global domain
+    @param X1    Max X coordinate of global domain
+    @param Y1    Max Y coordinate of global domain
+    @param NX    Global number of cells in X direction
+    @param NY    Global number of cells in Y direction
+    
+    Optional for serial mesh
+    @param i0    Start node/cell index of partition (defaults to 0 for serial mesh)
+    @param j0    Start node/cell index of partition (defaults to 0 for serial mesh)
+    @param nx    Number of cells in X direction of partition (defaults to NX for serial mesh)
+    @param ny    Number of cells in X direction of partition (defaults to NY for serial mesh)
+  */
+   
   int  generate_regular_mesh(Mesh_ptr mesh,
-			     double x0, double y0, double x1, double y1,
-			     int nx, int ny,
-			     double X0 = 0.0, double Y0 = 0.0,
-			     double X1 = 0.0, double Y1 = 0.0,
-			     int NX = 0, int NY = 0);
+			     double X0, double Y0, double X1, double Y1,
+			     int NX, int NY,
+                             int i0=0, int j0=0, int nx=0, int ny=0);
 
   void extract_mstk_mesh(const Mesh_MSTK& inmesh,
                          const List_ptr entity_ids,

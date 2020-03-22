@@ -49,52 +49,34 @@
 #include <UnitTest++.h>
 
 #include <iostream>
+#include <cstdlib>  // for std::abs
+#include <cmath>    // for std::abs after C++17
 
-#include "../Mesh_MSTK.hh"
-
-// Special class just for testing protected function of the base mesh
-// class - block_partition_regular_mesh
-
-namespace Jali {
-class Mesh_MSTK_Test_Protected : public Mesh_MSTK {
- public:
-
-  // Simplified constructor that generates a 3D mesh
-
-  Mesh_MSTK_Test_Protected(double const x0, double const y0, double const z0,
-                           double const x1, double const y1, double const z1,
-                           int const nx, int const ny, int const nz,
-                           MPI_Comm const& incomm) :
-      Mesh_MSTK(x0, y0, z0, x1, y1, z1, nx, ny, nz, incomm) {}
-
-  // Destructor
-
-  ~Mesh_MSTK_Test_Protected() {}
-
-  // function to test
-  int block_partition_regular_mesh(int dim, double *domain,
-                                   int *num_cells_in_dir,
-                                   int num_blocks_requested,
-                                   std::vector<std::array<double, 6>> *blocklimits,
-                                   std::vector<std::array<int, 3>> *blocknumcells) {
-    return Mesh_MSTK::block_partition_regular_mesh(dim, domain,
-                                                   num_cells_in_dir,
-                                                   num_blocks_requested,
-                                                   blocklimits, blocknumcells);
-  }
-
-};  // end class Mesh_MSTK_Test_Protected
-}  // end namespace Jali
+#include "block_partition.hh"
 
 int check_block_partitioning(int const dim, double const * const domain,
                              int const * const num_cells_in_dir,
                              int const num_blocks,
-                             std::vector<std::array<double, 6>> const& blocklimits,
-                             std::vector<std::array<int, 3>> const& blocknumcells) {
+                             std::vector<std::array<int, 3>> const& block_start_indices,
+                             std::vector<std::array<int, 3>> const& block_num_cells) {
 
-  if (blocklimits.size() != num_blocks) return 0;
-  if (blocknumcells.size() != num_blocks) return 0;
+  if (block_start_indices.size() != num_blocks) return 0;
+  if (block_num_cells.size() != num_blocks) return 0;
 
+  // Calculate the coordinate bounds for the blocks
+  std::array<double, 3> szdelta = {0.0, 0.0, 0.0};
+  for (int dir = 0; dir < dim; dir++)
+    szdelta[dir] = (domain[2*dir+1]-domain[2*dir])/num_cells_in_dir[dir];
+  
+  std::array<double, 6> darray = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  std::vector<std::array<double, 6>> blocklimits(num_blocks, darray);
+  for (int ib = 0; ib < num_blocks; ib++) {
+    for (int dir = 0; dir < dim; dir++) {
+      blocklimits[ib][2*dir]   = domain[2*dir] + block_start_indices[ib][dir]*szdelta[dir];
+      blocklimits[ib][2*dir+1] = blocklimits[ib][2*dir] + block_num_cells[ib][dir]*szdelta[dir];
+    }
+  }
+  
   // Minimum sanity check - sum of volumes of blocks should be the
   // volume of the original domain - doesn't preclude blocks on top of
   // each other
@@ -102,6 +84,7 @@ int check_block_partitioning(int const dim, double const * const domain,
   double total_volume = 1.0;
   for (int dir = 0; dir < dim; dir++)
     total_volume *= (domain[2*dir+1]-domain[2*dir]);
+
   double volume_sum = 0.0;
   for (int ib = 0; ib < num_blocks; ib++) {
     double block_volume = 1.0;
@@ -109,7 +92,7 @@ int check_block_partitioning(int const dim, double const * const domain,
       block_volume *= (blocklimits[ib][2*dir+1] - blocklimits[ib][2*dir]);
     volume_sum += block_volume;
   }
-  double reldiff = fabs(volume_sum-total_volume)/total_volume;
+  double reldiff = std::abs(volume_sum-total_volume)/total_volume;
   if (reldiff > 1.0e-09) {
     CHECK(reldiff > 1.0e-09); // so it prints a message
     return 0;
@@ -123,7 +106,7 @@ int check_block_partitioning(int const dim, double const * const domain,
   for (int ib = 0; ib < num_blocks; ib++) {
     int ncells_block = 1;
     for (int dir = 0; dir < dim; dir++)
-      ncells_block *= blocknumcells[ib][dir];
+      ncells_block *= block_num_cells[ib][dir];
     ncells_sum += ncells_block;
   }
   if (ncells_sum != ncells) {
@@ -228,20 +211,11 @@ int check_block_partitioning(int const dim, double const * const domain,
 }
 
 TEST(BLOCK_PARTITION) {
-
-  // Generate a mesh consisting of 3x3x3 elements or whatever -
-  // doesn't matter since we won't get a partitioning based on the
-  // actual mesh - its just a way to access the method
-
-  Jali::Mesh_MSTK_Test_Protected *mesh =
-      new Jali::Mesh_MSTK_Test_Protected(0.0, 0.0, 0.0, 1.0, 1.0, 1.0,
-                                         3, 3, 3, MPI_COMM_WORLD);
-
   {
     // Partition a 1D domain
     int dim = 1;
 
-    std::vector<std::array<double, 6>> blocklimits;
+    std::vector<std::array<int, 3>> blocklimits;
     std::vector<std::array<int, 3>> blocknumcells;
 
     // Domain is [0.0,1.0]
@@ -252,9 +226,9 @@ TEST(BLOCK_PARTITION) {
 
     int nparts = 4;
 
-    int ok = mesh->block_partition_regular_mesh(dim, domain, num_cells_in_dir,
-                                               nparts,
-                                               &blocklimits, &blocknumcells);
+    int ok = Jali::block_partition_regular_mesh(dim, domain, num_cells_in_dir,
+                                                nparts,
+                                                &blocklimits, &blocknumcells);
     CHECK(ok);
 
     ok = check_block_partitioning(dim, domain, num_cells_in_dir, nparts,
@@ -264,9 +238,9 @@ TEST(BLOCK_PARTITION) {
     // 15 cells to force irregular partition
     num_cells_in_dir[0] = 15;
 
-    ok = mesh->block_partition_regular_mesh(dim, domain, num_cells_in_dir,
-                                           nparts,
-                                           &blocklimits, &blocknumcells);
+    ok = Jali::block_partition_regular_mesh(dim, domain, num_cells_in_dir,
+                                            nparts,
+                                            &blocklimits, &blocknumcells);
     CHECK(ok);
 
     ok = check_block_partitioning(dim, domain, num_cells_in_dir, nparts,
@@ -278,7 +252,7 @@ TEST(BLOCK_PARTITION) {
     // Partition a 2D domain
     int dim = 2;
 
-    std::vector<std::array<double, 6>> blocklimits;
+    std::vector<std::array<int, 3>> blocklimits;
     std::vector<std::array<int, 3>> blocknumcells;
 
     // Domain is [0.0,1.0]x[0.0,1.0]
@@ -289,7 +263,7 @@ TEST(BLOCK_PARTITION) {
 
     int nparts = 4;
 
-    int ok = mesh->block_partition_regular_mesh(dim, domain, num_cells_in_dir,
+    int ok = Jali::block_partition_regular_mesh(dim, domain, num_cells_in_dir,
                                                 nparts,
                                                 &blocklimits, &blocknumcells);
     CHECK(ok);
@@ -301,11 +275,11 @@ TEST(BLOCK_PARTITION) {
     // larger number of partitions to force irregular partitioning
     nparts = 16;
 
-    ok = mesh->block_partition_regular_mesh(dim, domain, num_cells_in_dir,
+    ok = Jali::block_partition_regular_mesh(dim, domain, num_cells_in_dir,
                                             nparts,
                                             &blocklimits, &blocknumcells);
     CHECK(ok);
-
+    
     ok = check_block_partitioning(dim, domain, num_cells_in_dir, nparts,
                                   blocklimits, blocknumcells);
     CHECK(ok);
@@ -315,7 +289,7 @@ TEST(BLOCK_PARTITION) {
     // Partition a 3D domain
     int dim = 3;
 
-    std::vector<std::array<double, 6>> blocklimits;
+    std::vector<std::array<int, 3>> blocklimits;
     std::vector<std::array<int, 3>> blocknumcells;
 
     // Domain is [0.0,1.0]x[0.0,1.0]x[0.0,2.0]
@@ -326,7 +300,7 @@ TEST(BLOCK_PARTITION) {
 
     int nparts = 8;
 
-    int ok = mesh->block_partition_regular_mesh(dim, domain, num_cells_in_dir,
+    int ok = Jali::block_partition_regular_mesh(dim, domain, num_cells_in_dir,
                                                 nparts,
                                                 &blocklimits, &blocknumcells);
     CHECK(ok);
@@ -334,21 +308,20 @@ TEST(BLOCK_PARTITION) {
     ok = check_block_partitioning(dim, domain, num_cells_in_dir, nparts,
                                   blocklimits, blocknumcells);
     CHECK(ok);
-
+    
     // More partitions and irregular cells to force irregular partition
     num_cells_in_dir[0] = 15;
     nparts = 32;
 
-    ok = mesh->block_partition_regular_mesh(dim, domain, num_cells_in_dir,
+    ok = Jali::block_partition_regular_mesh(dim, domain, num_cells_in_dir,
                                             nparts,
                                             &blocklimits, &blocknumcells);
     CHECK(ok);
-
+    
     ok = check_block_partitioning(dim, domain, num_cells_in_dir, nparts,
                                   blocklimits, blocknumcells);
     CHECK(ok);
   }
 
-  delete(mesh);
 }
 
