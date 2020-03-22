@@ -85,6 +85,7 @@
 #   1.1.0       - MSTK updated to 3.0.3, UnitTest++ to 2.0.0, Trilinos to 12.10.1, HDF5 1.8.18, Seacas to #173a1e6, zlib to 1.2.11, Boost to 1.63.0, NetCDF to 4.5.0, MOAB to 5.0.0,
 #   1.2.0       - MSTK updated to 3.1.1
 #   1.3.0       - MSTK updated to 3.3.2
+#   1.4.0       - MSTK updated to 3.3.4
 
 include(CMakeParseArguments)
 
@@ -268,7 +269,7 @@ set(ExodusII_MD5_SUM       cfd240dbc1251b08fb1d0ee2de40a44c)
 #
 set(MSTK_VERSION_MAJOR 3)
 set(MSTK_VERSION_MINOR 3)
-set(MSTK_VERSION_PATCH 2)
+set(MSTK_VERSION_PATCH 4)
 if (MSTK_VERSION_PATCH)
   set(MSTK_VERSION ${MSTK_VERSION_MAJOR}.${MSTK_VERSION_MINOR}.${MSTK_VERSION_PATCH})
 else (MSTK_VERSION_PATCH)
@@ -277,7 +278,7 @@ endif (MSTK_VERSION_PATCH)
 set(MSTK_URL_STRING     "https://github.com/MeshToolkit/MSTK/archive")
 set(MSTK_ARCHIVE_FILE   ${MSTK_VERSION}.tar.gz)
 set(MSTK_SAVEAS_FILE    MSTK-${MSTK_VERSION}.tar.gz)
-set(MSTK_MD5_SUM        37c2616d10b953ce1f4eb239d35a1b93)
+set(MSTK_MD5_SUM        5ba0a5e18c14a34ac00a4047c9e7c9d9)
 
 #
 # TPL: MOAB
