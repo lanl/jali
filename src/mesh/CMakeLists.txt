@@ -167,6 +167,10 @@ endif()
 target_compile_definitions(jali_mesh PUBLIC Jali_HAVE_ZOLTAN)
 target_link_libraries(jali_mesh PUBLIC ${Zoltan_LIBRARIES})
 
+# Zoltan's cmake config does not write out include dir dependency for
+# the Zoltan library. So explicitly enable it
+target_include_directories(jali_mesh PUBLIC ${Zoltan_INCLUDE_DIRS})
+
 
 if (NOT ExodusII_LIBRARIES OR NOT TARGET ${ExodusII_LIBRARIES})
   # First seee if a config file got installed as part of the SEACAS project

@@ -35,14 +35,14 @@ script:
   - >
      mkdir build &&
      cd build &&
-     wget https://github.com/MeshToolkit/mstk/archive/3.3.4.tar.gz &&
-     tar xvzf 3.3.4.tar.gz &&
-     cd MSTK-3.3.4 &&
+     wget https://github.com/MeshToolkit/mstk/archive/3.3.5.tar.gz &&
+     tar xvzf 3.3.5.tar.gz &&
+     cd MSTK-3.3.5 &&
      mkdir mstk-build && cd mstk-build &&
      cmake
      -DCMAKE_BUILD_TYPE=Release
      -DCMAKE_PREFIX_PATH=/usr/include/trilinos
-     -DCMAKE_INSTALL_PREFIX=$HOME/MSTK-3.3.4-install
+     -DCMAKE_INSTALL_PREFIX=$HOME/MSTK-3.3.5-install
      -DENABLE_PARALLEL=$PARALLEL
      -DENABLE_METIS=yes
      -DENABLE_ExodusII=yes
@@ -54,7 +54,7 @@ script:
      make install &&
      cd ../.. &&
      cmake 
-     -DCMAKE_PREFIX_PATH="$HOME/MSTK-3.3.4-install;/usr/include/trilinos"
+     -DCMAKE_PREFIX_PATH="$HOME/MSTK-3.3.5-install;/usr/include/trilinos"
      -DCMAKE_INSTALL_PREFIX=$HOME/Jali
      -DCMAKE_BUILD_TYPE=Release
      -DENABLE_MSTK=yes
