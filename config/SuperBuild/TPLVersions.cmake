@@ -86,6 +86,7 @@
 #   1.2.0       - MSTK updated to 3.1.1
 #   1.3.0       - MSTK updated to 3.3.2
 #   1.4.0       - MSTK updated to 3.3.4
+#   1.5.0       - MSTK updated to 3.3.5 and Trilinos to 12.18.1
 
 include(CMakeParseArguments)
 
@@ -269,7 +270,7 @@ set(ExodusII_MD5_SUM       cfd240dbc1251b08fb1d0ee2de40a44c)
 #
 set(MSTK_VERSION_MAJOR 3)
 set(MSTK_VERSION_MINOR 3)
-set(MSTK_VERSION_PATCH 4)
+set(MSTK_VERSION_PATCH 5)
 if (MSTK_VERSION_PATCH)
   set(MSTK_VERSION ${MSTK_VERSION_MAJOR}.${MSTK_VERSION_MINOR}.${MSTK_VERSION_PATCH})
 else (MSTK_VERSION_PATCH)
@@ -278,7 +279,7 @@ endif (MSTK_VERSION_PATCH)
 set(MSTK_URL_STRING     "https://github.com/MeshToolkit/MSTK/archive")
 set(MSTK_ARCHIVE_FILE   ${MSTK_VERSION}.tar.gz)
 set(MSTK_SAVEAS_FILE    MSTK-${MSTK_VERSION}.tar.gz)
-set(MSTK_MD5_SUM        5ba0a5e18c14a34ac00a4047c9e7c9d9)
+set(MSTK_MD5_SUM        814e2d7202ac0dbc4d735d94e5548fc8)
 
 #
 # TPL: MOAB
@@ -296,13 +297,13 @@ set(MOAB_MD5_SUM        1840ca02366f4d3237d44af63e239e3b)
 # TPL: Trilinos
 #
 set(Trilinos_VERSION_MAJOR 12)
-set(Trilinos_VERSION_MINOR 10)
+set(Trilinos_VERSION_MINOR 18)
 set(Trilinos_VERSION_PATCH 1)
 set(Trilinos_VERSION ${Trilinos_VERSION_MAJOR}-${Trilinos_VERSION_MINOR}-${Trilinos_VERSION_PATCH})
 set(Trilinos_URL_STRING      "https://github.com/trilinos/Trilinos/archive")
 set(Trilinos_ARCHIVE_FILE   trilinos-release-${Trilinos_VERSION}.tar.gz)
 set(Trilinos_SAVEAS_FILE   trilinos-release-${Trilinos_VERSION}.tar.gz)
-set(Trilinos_MD5_SUM        667333dbd7c0f031d47d7c5511fd0810)
+set(Trilinos_MD5_SUM        9c1d151169949bca6cf203831e4d6aee)
 
 #
 # TPL: SEACAS
