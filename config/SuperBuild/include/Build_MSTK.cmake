@@ -70,7 +70,7 @@ set(MSTK_CMAKE_CACHE_ARGS
                     -DCMAKE_C_COMPILER:FILEPATH=${CMAKE_C_COMPILER}
                     -DCMAKE_C_FLAGS:STRING=${mstk_cflags}
                     -DCMAKE_EXE_LINKER_FLAGS:STRING=${mstk_ldflags}
-		    -DCMAKE_PREFIX_PATH:FILEPATH="${TPL_INSTALL_PREFIX};${Zoltan_INSTALL_PREFIX}"
+		    -DCMAKE_PREFIX_PATH:FILEPATH="${CMAKE_INSTALL_PREFIX};${Zoltan_INSTALL_PREFIX}"
 		    -DPREFER_STATIC_LIBRARIES:BOOL=${PREFER_STATIC_LIBRARIES}
                     -DENABLE_PARALLEL:BOOL=TRUE
 		    -DMSTK_USE_MARKERS:BOOL=FALSE  
@@ -78,12 +78,12 @@ set(MSTK_CMAKE_CACHE_ARGS
                     -DENABLE_ZOLTAN:BOOL=TRUE
                     -DENABLE_METIS:BOOL=TRUE
                     -DMETIS_MAJOR_VER:STRING=5
-                    -DHDF5_ROOT:PATH=${TPL_INSTALL_PREFIX}
+                    -DHDF5_ROOT:PATH=${CMAKE_INSTALL_PREFIX}
                     -DHDF5_NO_SYSTEM_PATHS:BOOL=TRUE
-                    -DNetCDF_ROOT:PATH=${TPL_INSTALL_PREFIX} 
-                    -DExodusII_ROOT:PATH=${TPL_INSTALL_PREFIX} 
+                    -DNetCDF_ROOT:PATH=${CMAKE_INSTALL_PREFIX} 
+                    -DExodusII_ROOT:PATH=${CMAKE_INSTALL_PREFIX} 
                     -DZoltan_ROOT:PATH=${Zoltan_INSTALL_PREFIX}
-                    -DMETIS_ROOT:PATH=${TPL_INSTALL_PREFIX} 
+                    -DMETIS_ROOT:PATH=${CMAKE_INSTALL_PREFIX} 
                     -DENABLE_Tests:BOOL=FALSE
                     -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>)
 
@@ -108,11 +108,11 @@ ExternalProject_Add(${MSTK_BUILD_TARGET}
                     BUILD_COMMAND     $(MAKE)                     # $(MAKE) enables parallel builds through make
                     BUILD_IN_SOURCE   ${MSTK_BUILD_IN_SOURCE}     # Flag for in source builds
                     # -- Install
-                    INSTALL_DIR      ${TPL_INSTALL_PREFIX}        # Install directory
+                    INSTALL_DIR      ${CMAKE_INSTALL_PREFIX}        # Install directory
                     # -- Output control
                     ${MSTK_logging_args})
 
 
 # MSTK include and library install path
-global_set(MSTK_INCLUDE_DIR "${TPL_INSTALL_PREFIX}/include")
-global_set(MSTK_LIBRARY_DIR "${TPL_INSTALL_PREFIX}/lib")
+global_set(MSTK_INCLUDE_DIR "${CMAKE_INSTALL_PREFIX}/include")
+global_set(MSTK_LIBRARY_DIR "${CMAKE_INSTALL_PREFIX}/lib")

@@ -81,10 +81,10 @@ list(APPEND HDF5_CMAKE_CACHE_ARGS "-DHDF5_BUILD_FORTRAN:BOOL=FALSE")
 list(APPEND HDF5_CMAKE_CACHE_ARGS "-DHDF5_BUILD_CPP_LIB:BOOL=FALSE")
 list(APPEND HDF5_CMAKE_CACHE_ARGS "-DHDF5_ENABLE_Z_LIB_SUPPORT:BOOL=TRUE")
 list(APPEND HDF5_CMAKE_CACHE_ARGS "-DHDF5_BUILD_HL_LIB:BOOL=TRUE")
-list(APPEND HDF5_CMAKE_CACHE_ARGS "-DCMAKE_INSTALL_PREFIX:PATH=${TPL_INSTALL_PREFIX}")
+list(APPEND HDF5_CMAKE_CACHE_ARGS "-DCMAKE_INSTALL_PREFIX:PATH=${CMAKE_INSTALL_PREFIX}")
 #-D ZLIB_INCLUDE_DIR=${ZLIB_install_dir}/include
 #-D ZLIB_LIBRARY=${ZLIB_install_dir}/lib/libz.a
-list(APPEND HDF5_CMAKE_CACHE_ARGS "-DCMAKE_PREFIX_PATH:PATH=${TPL_INSTALL_PREFIX}")
+list(APPEND HDF5_CMAKE_CACHE_ARGS "-DCMAKE_PREFIX_PATH:PATH=${CMAKE_INSTALL_PREFIX}")
 
 # --- Add external project build and tie to the HDF5 build target
 ExternalProject_Add(${HDF5_BUILD_TARGET}
@@ -111,14 +111,14 @@ ExternalProject_Add(${HDF5_BUILD_TARGET}
                     BUILD_COMMAND     $(MAKE)                     # $(MAKE) enables parallel builds through make
                     BUILD_IN_SOURCE   ${HDF5_BUILD_IN_SOURCE}     # Flag for in source builds
                     # -- Install
-                    INSTALL_DIR       ${TPL_INSTALL_PREFIX}       # Install directory
+                    INSTALL_DIR       ${CMAKE_INSTALL_PREFIX}       # Install directory
                     # -- Output control
                     ${HDF5_logging_args})
 
 # --- Useful variables for packages that depend on HDF5 (NetCDF)
 include(BuildLibraryName)
-build_library_name(hdf5 HDF5_C_LIBRARY APPEND_PATH ${TPL_INSTALL_PREFIX}/lib)
-build_library_name(hdf5_hl HDF5_HL_LIBRARY APPEND_PATH ${TPL_INSTALL_PREFIX}/lib)
+build_library_name(hdf5 HDF5_C_LIBRARY APPEND_PATH ${CMAKE_INSTALL_PREFIX}/lib)
+build_library_name(hdf5_hl HDF5_HL_LIBRARY APPEND_PATH ${CMAKE_INSTALL_PREFIX}/lib)
 set(HDF5_LIBRARIES ${HDF5_HL_LIBRARY} ${HDF5_C_LIBRARY} ${ZLIB_LIBRARIES} m dl)
-set(HDF5_INCLUDE_DIRS ${TPL_INSTALL_PREFIX}/include ${ZLIB_INCLUDE_DIRS})
+set(HDF5_INCLUDE_DIRS ${CMAKE_INSTALL_PREFIX}/include ${ZLIB_INCLUDE_DIRS})
 list(REMOVE_DUPLICATES HDF5_INCLUDE_DIRS)

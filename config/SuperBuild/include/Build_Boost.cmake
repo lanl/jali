@@ -148,7 +148,7 @@ if (compiler_id_lc)
           message(STATUS "BOOST: compiler version: ${CMAKE_CXX_COMPILER_VERSION}")
 
           if (BUILD_SHARED_LIBS)
-            set(shared_special "linkflags=\"-r ${TPL_INSTALL_PREFIX}/lib\"")
+            set(shared_special "linkflags=\"-r ${CMAKE_INSTALL_PREFIX}/lib\"")
           else()
             set(shared_special )
           endif()
@@ -213,7 +213,7 @@ ExternalProject_Add(${Boost_BUILD_TARGET}
                     BUILD_COMMAND     ${Boost_BUILD_COMMAND}       # $(MAKE) enables parallel builds through make
                     BUILD_IN_SOURCE   ${Boost_BUILD_IN_SOURCE}     # Flag for in source builds
                     # -- Install
-                    INSTALL_DIR      ${TPL_INSTALL_PREFIX}        # Install directory
+                    INSTALL_DIR      ${CMAKE_INSTALL_PREFIX}        # Install directory
                     INSTALL_COMMAND  ""
                     # -- Output control
                     ${Boost_logging_args})

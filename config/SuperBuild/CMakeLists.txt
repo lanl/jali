@@ -133,15 +133,6 @@ else()
   check_download(TEST_FILE MD5SUMS TEST_URL ${JALI_TPLS_DOWNLOAD_URL})
 endif()
 
-# TPL install location
-set(TPL_INSTALL_PREFIX_DFLT "${SuperBuild_BINARY_DIR}/external-projects")
-if (NOT TPL_INSTALL_PREFIX)
-  set(TPL_INSTALL_PREFIX ${TPL_INSTALL_PREFIX_DFLT})
-endif()
-message(STATUS "Install TPLs in ${TPL_INSTALL_PREFIX}")
-
-# also set the CMAKE_INSTALL_PREFIX accordingly
-set(CMAKE_INSTALL_PREFIX ${TPL_INSTALL_PREFIX})
 
 # Jali unstructured mesh API
 option(ENABLE_Unstructured "Enable Jali unstructured mesh capability" TRUE)
@@ -264,7 +255,7 @@ endif()
 set(CMAKE_SKIP_BUILD_RPATH FALSE)
 set(CMAKE_SKIP_INSTALL_RPATH FALSE)
 set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
-set(CMAKE_INSTALL_RPATH "${TPL_INSTALL_PREFIX}/lib")
+set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE) 
 
 set(JALI_CMAKE_CACHE_ARGS  "-DCMAKE_INSTALL_RPATH:PATH=${CMAKE_INSTALL_RPATH}")
@@ -411,53 +402,53 @@ append_set(Jali_TPL_CMAKE_ARGS
 if (ENABLE_TESTS)
   include(${SuperBuild_BUILD_FILES_DIR}/Build_UnitTest.cmake)
   append_set(Jali_TPL_CMAKE_ARGS 
-             -DUnitTest_DIR:FILEPATH=${TPL_INSTALL_PREFIX})
+             -DUnitTest_ROOT:FILEPATH=${CMAKE_INSTALL_PREFIX})
 endif()
 
 # Boost
 include(${SuperBuild_BUILD_FILES_DIR}/Build_Boost.cmake) 
 append_set(Jali_TPL_CMAKE_ARGS
-           -DBOOST_ROOT:FILEPATH=${TPL_INSTALL_PREFIX}
+           -DBOOST_ROOT:FILEPATH=${CMAKE_INSTALL_PREFIX}
            -DBoost_NO_SYSTEM_PATHS:BOOL=TRUE)
 
 # HDF5  
 include(${SuperBuild_BUILD_FILES_DIR}/Build_HDF5.cmake) 
 append_set(Jali_TPL_CMAKE_ARGS
-           -DHDF5_ROOT:FILEPATH=${TPL_INSTALL_PREFIX})
+           -DHDF5_ROOT:FILEPATH=${CMAKE_INSTALL_PREFIX})
 
 # NetCDF
 include(${SuperBuild_BUILD_FILES_DIR}/Build_NetCDF.cmake) 
 append_set(Jali_TPL_CMAKE_ARGS
-           -DNetCDF_DIR:FILEPATH=${TPL_INSTALL_PREFIX})
+           -DNetCDF_ROOT:FILEPATH=${CMAKE_INSTALL_PREFIX})
 
 # NetCDF Fortran
 #include(${SuperBuild_BUILD_FILES_DIR}/Build_NetCDF_Fortran.cmake)
 #append_set(Jali_TPL_CMAKE_ARGS
-#           -DNetCDF_FORTRAN_DIR:FILEPATH=${TPL_INSTALL_PREFIX})
+#           -DNetCDF_FORTRAN_ROOT:FILEPATH=${CMAKE_INSTALL_PREFIX})
 
 # ExodusII
 include(${SuperBuild_BUILD_FILES_DIR}/Build_ExodusII.cmake) 
 append_set(Jali_TPL_CMAKE_ARGS
-           -DExodusII_DIR:FILEPATH=${TPL_INSTALL_PREFIX})
+           -DExodusII_ROOT:FILEPATH=${CMAKE_INSTALL_PREFIX})
 
 # MOAB
 if ( ENABLE_MOAB_Mesh )
   include(${SuperBuild_BUILD_FILES_DIR}/Build_MOAB.cmake)
   append_set(Jali_TPL_CMAKE_ARGS
              -DENABLE_MOAB_Mesh:BOOL=${ENABLE_MOAB_Mesh}
-	     -DMOAB_DIR:PATH=${TPL_INSTALL_PREFIX})
+	     -DMOAB_ROOT:PATH=${CMAKE_INSTALL_PREFIX})
 endif()
 
-# METIS -- needs to go before PETSc because PETSc needs it.
 include(${SuperBuild_BUILD_FILES_DIR}/Build_METIS.cmake) 
 append_set(Jali_TPL_CMAKE_ARGS 
-           -DMETIS_DIR:FILEPATH=${METIS_DIR})
+           -DMETIS_ROOT:FILEPATH=${CMAKE_INSTALL_PREFIX})
 
 # Trilinos  
 include(${SuperBuild_BUILD_FILES_DIR}/Build_Trilinos.cmake)
 append_set(Jali_TPL_CMAKE_ARGS
            -DENABLE_STK_Mesh:BOOL=${ENABLE_STK_Mesh}
-           -DTrilinos_INSTALL_PREFIX:PATH=${Trilinos_INSTALL_PREFIX})
+           -DTrilinos_INSTALL_PREFIX:PATH=${Trilinos_INSTALL_PREFIX}
+	   -DTrilinos_ROOT:FILEPATH=${Trilinos_INSTALL_PREFIX})
 
 # SEACAS
 #include(${SuperBuild_BUILD_FILES_DIR}/Build_SEACAS.cmake)
@@ -467,8 +458,7 @@ if ( ENABLE_MSTK_Mesh )
   include(${SuperBuild_BUILD_FILES_DIR}/Build_MSTK.cmake) 
   append_set(Jali_TPL_CMAKE_ARGS
             -DENABLE_MSTK_Mesh:BOOL=${ENABLE_MSTK_Mesh}
-            -DMSTK_INCLUDE_DIR:PATH=${MSTK_INCLUDE_DIR}
-            -DMSTK_LIBRARY_DIR:PATH=${MSTK_LIBRARY_DIR})
+            -DMSTK_ROOT:PATH=${CMAKE_INSTALL_PREFIX})
 endif()
 
 # ############################################################################ #
@@ -481,7 +471,7 @@ configure_file(${SuperBuild_TEMPLATE_FILES_DIR}/${SuperBuild_Jali_CACHE_SCRIPT}.
                ${SuperBuild_BINARY_DIR}/${SuperBuild_Jali_CACHE_SCRIPT}
                @ONLY)
 install( FILES "${SuperBuild_BINARY_DIR}/${SuperBuild_Jali_CACHE_SCRIPT}"             
-         DESTINATION ${TPL_INSTALL_PREFIX}/share/cmake)
+         DESTINATION ${CMAKE_INSTALL_PREFIX}/share/cmake)
 
 #  --- Build the docs
 option(BUILD_DOCS "Build the SuperBuild documentation" FALSE)

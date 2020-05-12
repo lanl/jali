@@ -329,7 +329,7 @@ The steps to build entire suite of TPL software from the command line are
                -D CMAKE_C_COMPILER=/full/path/mpicc \
 	       -D CMAKE_CXX_COMPILER=/full/path/mpicxx \
 	       -D CMAKE_Fortran_COMPILER=/full/path/mpif90 \
-	       -D TPL_INSTALL_PREFIX=/full/path/to/tpls
+	       -D CMAKE_INSTALL_PREFIX=/full/path/to/tpls \
 	       /full/path/to/Jali/config/SuperBuild
 
     2. Build with make (in parallel if desired)::

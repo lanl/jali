@@ -125,7 +125,7 @@ ExternalProject_add(${UnitTest_BUILD_TARGET}
 		    BINARY_DIR          ${UnitTest_build_dir}         # Define the build directory
 		    BUILD_IN_SOURCE     ${UnitTest_BUILD_IN_SOURCE}   # Flag in/out source build
                     # -- Install
-                    INSTALL_DIR         ${TPL_INSTALL_PREFIX}        # Install directory
+                    INSTALL_DIR         ${CMAKE_INSTALL_PREFIX}        # Install directory
                     # -- Output control
                     ${UnitTest_logging_args})
 

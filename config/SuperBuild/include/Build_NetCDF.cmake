@@ -76,10 +76,10 @@ configure_file(${SuperBuild_TEMPLATE_FILES_DIR}/netcdf-patch-step.cmake.in
 set(NetCDF_PATCH_COMMAND ${CMAKE_COMMAND} -P ${NetCDF_cmake_patch})     
 
 # --- Define the configure command
-set(NetCDF_CMAKE_CACHE_ARGS "-DCMAKE_INSTALL_PREFIX:FILEPATH=${TPL_INSTALL_PREFIX}")
+set(NetCDF_CMAKE_CACHE_ARGS "-DCMAKE_INSTALL_PREFIX:FILEPATH=${CMAKE_INSTALL_PREFIX}")
 list(APPEND NetCDF_CMAKE_CACHE_ARGS "-DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}")
-list(APPEND NetCDF_CMAKE_CACHE_ARGS "-DCMAKE_INSTALL_LIBDIR:FILEPATH=${TPL_INSTALL_PREFIX}/lib")
-list(APPEND NetCDF_CMAKE_CACHE_ARGS "-DCMAKE_INSTALL_BINDIR:FILEPATH=${TPL_INSTALL_PREFIX}/bin")
+list(APPEND NetCDF_CMAKE_CACHE_ARGS "-DCMAKE_INSTALL_LIBDIR:FILEPATH=${CMAKE_INSTALL_PREFIX}/lib")
+list(APPEND NetCDF_CMAKE_CACHE_ARGS "-DCMAKE_INSTALL_BINDIR:FILEPATH=${CMAKE_INSTALL_PREFIX}/bin")
 list(APPEND NetCDF_CMAKE_CACHE_ARGS "-DENABLE_DAP:BOOL=FALSE")
 list(APPEND NetCDF_CMAKE_CACHE_ARGS "-DENABLE_PARALLEL4:BOOL=TRUE")
 list(APPEND NetCDF_CMAKE_CACHE_ARGS "-DHDF5_PARALLEL:BOOL=TRUE")
@@ -88,7 +88,7 @@ list(APPEND NetCDF_CMAKE_CACHE_ARGS "-DHDF5_HL_LIBRARY:FILEPATH=${HDF5_HL_LIBRAR
 list(APPEND NetCDF_CMAKE_CACHE_ARGS "-DHDF5_INCLUDE_DIR:PATH=${HDF5_INCLUDE_DIRS}")
 
 # specify preferable search path 
-list(APPEND NetCDF_CMAKE_CACHE_ARGS "-DCMAKE_PREFIX_PATH:PATH=${TPL_INSTALL_PREFIX}")
+list(APPEND NetCDF_CMAKE_CACHE_ARGS "-DCMAKE_PREFIX_PATH:PATH=${CMAKE_INSTALL_PREFIX}")
 
 # Default is to build with NetCDF4 which depends on HDF5
 option(ENABLE_NetCDF4 "Enable netCDF4 build" TRUE)
@@ -126,15 +126,15 @@ ExternalProject_Add(${NetCDF_BUILD_TARGET}
                     BUILD_COMMAND     $(MAKE)                     # $(MAKE) enables parallel builds through make
                     BUILD_IN_SOURCE   ${NetCDF_BUILD_IN_SOURCE}     # Flag for in source builds
                     # -- Install
-                    INSTALL_DIR      ${TPL_INSTALL_PREFIX}      
+                    INSTALL_DIR      ${CMAKE_INSTALL_PREFIX}      
                     # -- Output control
                     ${NetCDF_logging_args})
 
 # --- Useful variables for packages that depend on NetCDF (Trilinos, ExodusII)
 include(BuildLibraryName)
-build_library_name(netcdf NetCDF_C_LIBRARY APPEND_PATH ${TPL_INSTALL_PREFIX}/lib)
-build_library_name(netcdf_c++ NetCDF_CXX_LIBRARY APPEND_PATH ${TPL_INSTALL_PREFIX}/lib)
-set(NetCDF_INCLUDE_DIRS ${TPL_INSTALL_PREFIX}/include)
+build_library_name(netcdf NetCDF_C_LIBRARY APPEND_PATH ${CMAKE_INSTALL_PREFIX}/lib)
+build_library_name(netcdf_c++ NetCDF_CXX_LIBRARY APPEND_PATH ${CMAKE_INSTALL_PREFIX}/lib)
+set(NetCDF_INCLUDE_DIRS ${CMAKE_INSTALL_PREFIX}/include)
 set(NetCDF_C_LIBRARIES ${NetCDF_C_LIBRARY})
 if ( ENABLE_NetCDF4 )
   list(APPEND NetCDF_C_LIBRARIES ${HDF5_LIBRARIES})

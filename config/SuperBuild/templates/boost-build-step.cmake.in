@@ -44,7 +44,7 @@
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-set(command_opts --prefix=@TPL_INSTALL_PREFIX@ --build-dir=@Boost_build_dir@ @Boost_bjam_args@ --debug-configuration --debug-building)
+set(command_opts --prefix=@CMAKE_INSTALL_PREFIX@ --build-dir=@Boost_build_dir@ @Boost_bjam_args@ --debug-configuration --debug-building)
 set(command @Boost_source_dir@/bjam ${command_opts} install)
 SET(ENV{BOOST_BUILD_PATH} @Boost_build_dir@)
 execute_process(

@@ -89,12 +89,12 @@ ExternalProject_Add(${ZLIB_BUILD_TARGET}
                     BUILD_COMMAND     $(MAKE)                     # $(MAKE) enables parallel builds through make
                     BUILD_IN_SOURCE   ${ZLIB_BUILD_IN_SOURCE}     # Flag for in source builds
                     # -- Install
-                    INSTALL_DIR      ${TPL_INSTALL_PREFIX}        # Install directory
+                    INSTALL_DIR      ${CMAKE_INSTALL_PREFIX}        # Install directory
                     # -- Output control
                     ${ZLIB_logging_args})
 
 # --- Useful variables that depend on ZlIB (HDF5, NetCDF)
 include(BuildLibraryName)
-build_library_name(z ZLIB_LIBRARIES APPEND_PATH ${TPL_INSTALL_PREFIX}/lib)
-set(ZLIB_INCLUDE_DIRS ${TPL_INSTALL_PREFIX}/include)
+build_library_name(z ZLIB_LIBRARIES APPEND_PATH ${CMAKE_INSTALL_PREFIX}/lib)
+set(ZLIB_INCLUDE_DIRS ${CMAKE_INSTALL_PREFIX}/include)
 

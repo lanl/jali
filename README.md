@@ -106,17 +106,17 @@ your system):
     /bin/tcsh
     module load openmpi/2.1.2-intel_17.0.6 cmake
     setenv SOURCE `pwd`
-    setenv TPL_INSTALL_PREFIX /usr/projects/ngc/private/jali-tpl/1.1.0-intel-17.0.6-openmpi-2.1.2
+    setenv CMAKE_INSTALL_PREFIX /usr/projects/ngc/private/jali-tpl/1.1.0-intel-17.0.6-openmpi-2.1.2
     setenv JALI_INSTALL_PREFIX $SOURCE/inst-jali
     mkdir build-jali
     cd build-jali
     cmake \
-      -C $TPL_INSTALL_PREFIX/share/cmake/Jali-tpl-config.cmake \
+      -C $CMAKE_INSTALL_PREFIX/share/cmake/Jali-tpl-config.cmake \
       -D CMAKE_BUILD_TYPE=Release \
       -D CMAKE_CXX_FLAGS='-std=c++11' \
       -D CMAKE_INSTALL_PREFIX:FILEPATH=$JALI_INSTALL_PREFIX \
       -D HDF5_NO_SYSTEM_PATHS:BOOL=TRUE \
-      -D BOOST_ROOT:FILEPATH=$TPL_INSTALL_PREFIX \
+      -D BOOST_ROOT:FILEPATH=$CMAKE_INSTALL_PREFIX \
       -D ENABLE_MSTK_Mesh:BOOL=TRUE \
       -D ENABLE_STK_Mesh:BOOL=FALSE \
       -D ENABLE_MOAB_Mesh:BOOL=FALSE \
@@ -132,7 +132,7 @@ these TPLs, execute the following from the Jali root directory:
     /bin/tcsh
     module load openmpi/2.1.2-intel_17.0.6 cmake
     setenv SOURCE `pwd`
-    setenv TPL_INSTALL_PREFIX $SOURCE/inst-tpl
+    setenv CMAKE_INSTALL_PREFIX $SOURCE/inst-tpl
     setenv JALI_INSTALL_PREFIX $SOURCE/inst-jali
     mkdir build-tpl
     cd build-tpl
@@ -142,7 +142,7 @@ these TPLs, execute the following from the Jali root directory:
         -D CMAKE_Fortran_COMPILER=`which mpif90` \
         -D DISABLE_EXTERNAL_DOWNLOAD:BOOL=TRUE \
         -D TPL_DOWNLOAD_DIR:PATH=/usr/projects/ngc/private/tpl-downloads/ \
-        -D TPL_INSTALL_PREFIX=$TPL_INSTALL_PREFIX \
+        -D CMAKE_INSTALL_PREFIX=$CMAKE_INSTALL_PREFIX \
         $SOURCE/config/SuperBuild/
     make -j
     make install
@@ -150,12 +150,12 @@ these TPLs, execute the following from the Jali root directory:
     mkdir build-jali
     cd build-jali
     cmake \
-      -C $TPL_INSTALL_PREFIX/share/cmake/Jali-tpl-config.cmake \
+      -C $CMAKE_INSTALL_PREFIX/share/cmake/Jali-tpl-config.cmake \
       -D CMAKE_BUILD_TYPE=Release \
       -D CMAKE_CXX_FLAGS='-std=c++11' \
       -D CMAKE_INSTALL_PREFIX:FILEPATH=$JALI_INSTALL_PREFIX \
       -D HDF5_NO_SYSTEM_PATHS:BOOL=TRUE \
-      -D BOOST_ROOT:FILEPATH=$TPL_INSTALL_PREFIX \
+      -D BOOST_ROOT:FILEPATH=$CMAKE_INSTALL_PREFIX \
       -D ENABLE_MSTK_Mesh:BOOL=TRUE \
       -D ENABLE_STK_Mesh:BOOL=FALSE \
       -D ENABLE_MOAB_Mesh:BOOL=FALSE \
@@ -175,17 +175,17 @@ your system):
     /bin/tcsh
     module load intel/17.0.4 openmpi/2.1.2
     setenv SOURCE `pwd`
-    setenv TPL_INSTALL_PREFIX /usr/projects/ngc/private/jali-tpl/1.1.0-intel-17.0.4-openmpi-2.1.2
+    setenv CMAKE_INSTALL_PREFIX /usr/projects/ngc/private/jali-tpl/1.1.0-intel-17.0.4-openmpi-2.1.2
     setenv JALI_INSTALL_PREFIX $SOURCE/inst-jali
     mkdir build-jali
     cd build-jali
     cmake \
-      -C $TPL_INSTALL_PREFIX/share/cmake/Jali-tpl-config.cmake \
+      -C $CMAKE_INSTALL_PREFIX/share/cmake/Jali-tpl-config.cmake \
       -D CMAKE_BUILD_TYPE=Release \
       -D CMAKE_CXX_FLAGS='-std=c++11' \
       -D CMAKE_INSTALL_PREFIX:FILEPATH=$JALI_INSTALL_PREFIX \
       -D HDF5_NO_SYSTEM_PATHS:BOOL=TRUE \
-      -D BOOST_ROOT:FILEPATH=$TPL_INSTALL_PREFIX \
+      -D BOOST_ROOT:FILEPATH=$CMAKE_INSTALL_PREFIX \
       -D ENABLE_MSTK_Mesh:BOOL=TRUE \
       -D ENABLE_STK_Mesh:BOOL=FALSE \
       -D ENABLE_MOAB_Mesh:BOOL=FALSE \
@@ -201,7 +201,7 @@ these TPLs, execute the following from the Jali root directory:
     /bin/tcsh
     module load intel/17.0.4 openmpi/2.1.2
     setenv SOURCE `pwd`
-    setenv TPL_INSTALL_PREFIX $SOURCE/inst-tpl
+    setenv CMAKE_INSTALL_PREFIX $SOURCE/inst-tpl
     setenv JALI_INSTALL_PREFIX $SOURCE/inst-jali
     mkdir build-tpl
     cd build-tpl
@@ -211,7 +211,7 @@ these TPLs, execute the following from the Jali root directory:
         -D CMAKE_Fortran_COMPILER=`which mpif90` \
         -D DISABLE_EXTERNAL_DOWNLOAD:BOOL=TRUE \
         -D TPL_DOWNLOAD_DIR:PATH=/usr/projects/ngc/private/tpl-downloads/ \
-        -D TPL_INSTALL_PREFIX=$TPL_INSTALL_PREFIX \
+        -D CMAKE_INSTALL_PREFIX=$CMAKE_INSTALL_PREFIX \
         $SOURCE/config/SuperBuild/
     make -j
     make install
@@ -219,12 +219,12 @@ these TPLs, execute the following from the Jali root directory:
     mkdir build-jali
     cd build-jali
     cmake \
-      -C $TPL_INSTALL_PREFIX/share/cmake/Jali-tpl-config.cmake \
+      -C $CMAKE_INSTALL_PREFIX/share/cmake/Jali-tpl-config.cmake \
       -D CMAKE_BUILD_TYPE=Release \
       -D CMAKE_CXX_FLAGS='-std=c++11' \
       -D CMAKE_INSTALL_PREFIX:FILEPATH=$JALI_INSTALL_PREFIX \
       -D HDF5_NO_SYSTEM_PATHS:BOOL=TRUE \
-      -D BOOST_ROOT:FILEPATH=$TPL_INSTALL_PREFIX \
+      -D BOOST_ROOT:FILEPATH=$CMAKE_INSTALL_PREFIX \
       -D ENABLE_MSTK_Mesh:BOOL=TRUE \
       -D ENABLE_STK_Mesh:BOOL=FALSE \
       -D ENABLE_MOAB_Mesh:BOOL=FALSE \
@@ -245,17 +245,17 @@ your system):
     /opt/local/packages/Modules/default/init/sh
     module load intel/17.0.1 openmpi/1.10.5
     setenv SOURCE `pwd`
-    setenv TPL_INSTALL_PREFIX /usr/local/codes/ngc/private/jali-tpl/1.1.0-intel-17.0.1-openmpi-1.10.5
+    setenv CMAKE_INSTALL_PREFIX /usr/local/codes/ngc/private/jali-tpl/1.1.0-intel-17.0.1-openmpi-1.10.5
     setenv JALI_INSTALL_PREFIX $SOURCE/inst-jali
     mkdir build-jali
     cd build-jali
     cmake \
-      -C $TPL_INSTALL_PREFIX/share/cmake/Jali-tpl-config.cmake \
+      -C $CMAKE_INSTALL_PREFIX/share/cmake/Jali-tpl-config.cmake \
       -D CMAKE_BUILD_TYPE=Release \
       -D CMAKE_CXX_FLAGS='-std=c++11' \
       -D CMAKE_INSTALL_PREFIX:FILEPATH=$JALI_INSTALL_PREFIX \
       -D HDF5_NO_SYSTEM_PATHS:BOOL=TRUE \
-      -D BOOST_ROOT:FILEPATH=$TPL_INSTALL_PREFIX \
+      -D BOOST_ROOT:FILEPATH=$CMAKE_INSTALL_PREFIX \
       -D ENABLE_MSTK_Mesh:BOOL=TRUE \
       -D ENABLE_STK_Mesh:BOOL=FALSE \
       -D ENABLE_MOAB_Mesh:BOOL=FALSE \
@@ -272,7 +272,7 @@ these TPLs, execute the following from the Jali root directory:
     /opt/local/packages/Modules/default/init/sh
     module load intel/17.0.1 openmpi/1.10.5
     setenv SOURCE `pwd`
-    setenv TPL_INSTALL_PREFIX $SOURCE/inst-tpl
+    setenv CMAKE_INSTALL_PREFIX $SOURCE/inst-tpl
     setenv JALI_INSTALL_PREFIX $SOURCE/inst-jali
     mkdir build-tpl
     cd build-tpl
@@ -282,7 +282,7 @@ these TPLs, execute the following from the Jali root directory:
         -D CMAKE_Fortran_COMPILER=`which mpif90` \
         -D DISABLE_EXTERNAL_DOWNLOAD:BOOL=TRUE \
         -D TPL_DOWNLOAD_DIR:PATH=/usr/local/codes/ngc/private/tpl-downloads/ \
-        -D TPL_INSTALL_PREFIX=$TPL_INSTALL_PREFIX \
+        -D CMAKE_INSTALL_PREFIX=$CMAKE_INSTALL_PREFIX \
         $SOURCE/config/SuperBuild/
     make -j
     make install
@@ -290,12 +290,12 @@ these TPLs, execute the following from the Jali root directory:
     mkdir build-jali
     cd build-jali
     cmake \
-      -C $TPL_INSTALL_PREFIX/share/cmake/Jali-tpl-config.cmake \
+      -C $CMAKE_INSTALL_PREFIX/share/cmake/Jali-tpl-config.cmake \
       -D CMAKE_BUILD_TYPE=Release \
       -D CMAKE_CXX_FLAGS='-std=c++11' \
       -D CMAKE_INSTALL_PREFIX:FILEPATH=$JALI_INSTALL_PREFIX \
       -D HDF5_NO_SYSTEM_PATHS:BOOL=TRUE \
-      -D BOOST_ROOT:FILEPATH=$TPL_INSTALL_PREFIX \
+      -D BOOST_ROOT:FILEPATH=$CMAKE_INSTALL_PREFIX \
       -D ENABLE_MSTK_Mesh:BOOL=TRUE \
       -D ENABLE_STK_Mesh:BOOL=FALSE \
       -D ENABLE_MOAB_Mesh:BOOL=FALSE \

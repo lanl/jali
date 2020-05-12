@@ -74,7 +74,7 @@ configure_file(${SuperBuild_TEMPLATE_FILES_DIR}/netcdf-fortran-patch-step.cmake.
 set(NetCDF_Fortran_PATCH_COMMAND ${CMAKE_COMMAND} -P ${NetCDF_Fortran_cmake_patch})
 
 # --- Define the configure command
-set(NetCDF_Fortran_CMAKE_CACHE_ARGS "-DCMAKE_INSTALL_PREFIX:FILEPATH=${TPL_INSTALL_PREFIX}")
+set(NetCDF_Fortran_CMAKE_CACHE_ARGS "-DCMAKE_INSTALL_PREFIX:FILEPATH=${CMAKE_INSTALL_PREFIX}")
 list(APPEND NetCDF_Fortran_CMAKE_CACHE_ARGS "-DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}")
 list(APPEND NetCDF_Fortran_CMAKE_CACHE_ARGS "-DBUILD_SHARED_LIBS:BOOL=${BUILD_SHARED_LIBS}")
 list(APPEND NetCDF_Fortran_CMAKE_CACHE_ARGS "-DENABLE_TESTS:BOOL=FALSE")
@@ -105,7 +105,7 @@ ExternalProject_Add(${NetCDF_Fortran_BUILD_TARGET}
                     BUILD_COMMAND   $(MAKE)                       # enables parallel builds through make
                     BUILD_IN_SOURCE ${NetCDF_Fortran_BUILD_IN_SOURCE}
                     # -- Install
-                    INSTALL_DIR ${TPL_INSTALL_PREFIX}
+                    INSTALL_DIR ${CMAKE_INSTALL_PREFIX}
                     # -- Output control
                     ${NetCDF_Fortran_logging_args})
 

@@ -100,9 +100,9 @@ ExternalProject_Add(${ExodusII_BUILD_TARGET}
                     BUILD_COMMAND     $(MAKE)
                     BUILD_IN_SOURCE   ${ExodusII_BUILD_IN_SOURCE}     # Flag for in source builds
                     # -- Install
-                    INSTALL_DIR      ${TPL_INSTALL_PREFIX}            # Install directory
+                    INSTALL_DIR      ${CMAKE_INSTALL_PREFIX}            # Install directory
                     # -- Output control
                     ${ExodusII_logging_args})
 
 
-set(ExodusII_DIR ${TPL_INSTALL_PREFIX})
+set(ExodusII_DIR ${CMAKE_INSTALL_PREFIX})
