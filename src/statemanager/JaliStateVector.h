@@ -73,6 +73,14 @@ int state_get_num_materials(std::weak_ptr<State> state);
 std::shared_ptr<MeshSet> state_get_material_set(std::weak_ptr<State> state,
                                                  int matindex);
 
+//! Send a std::array to output stream
+
+template <class T, std::size_t N>
+std::ostream & operator<<(std::ostream & os, const std::array<T, N>& arr) {
+  std::copy(arr.cbegin(), arr.cend(), std::ostream_iterator<T>(os, " "));
+  return os;
+}
+
 /*!
   @class StateVectorBase jali_state_vector.h
   @brief StateVectorBase provides a base class for state vectors on meshes, mesh tiles or mesh subsets
@@ -439,14 +447,6 @@ template <class T, class DomainType>
 std::ostream & operator<<(std::ostream & os,
                           UniStateVector<T, DomainType> const & sv) {
   return sv.print(os);
-}
-
-//! Send a std::array to output stream
-
-template <class T, std::size_t N>
-std::ostream & operator<<(std::ostream & os, const std::array<T, N>& arr) {
-  std::copy(arr.cbegin(), arr.cend(), std::ostream_iterator<T>(os, " "));
-  return os;
 }
 
 
