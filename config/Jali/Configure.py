@@ -145,7 +145,6 @@ class Configure(config.base.Configure):
     # Note that we do this for all packages upon which Jali may depend, regardless of whether they are optional.  For optional 
     # packages, we determine if they actually need to be configured in the 'configure' method for that package.
     self.mpi           = framework.require('config.packages.MPI',        self)
-    self.boost         = framework.require('config.packages.boost',      self)
     self.netcdf        = framework.require('config.packages.netcdf',     self)
     self.hdf5          = framework.require('config.packages.hdf5',       self)
     self.exodusii      = framework.require('config.packages.exodusii',   self)
@@ -160,8 +159,6 @@ class Configure(config.base.Configure):
     self.blaslapack.installDirProvider  = self.dir
     self.mpi.archProvider               = self.arch
     self.mpi.installDirProvider         = self.dir
-    self.boost.archProvider             = self.arch
-    self.boost.installDirProvider       = self.dir
     self.netcdf.archProvider            = self.arch
     self.netcdf.installDirProvider      = self.dir
     self.hdf5.archProvider              = self.arch

@@ -128,11 +128,6 @@ if (Jali_ENABLE_MSTK_Mesh)
   endif ()
 endif ()
 
-find_dependency(Boost)
-if (TARGET ${Boost_LIBRARIES})
-  set_property(TARGET ${Boost_LIBRARIES} PROPERTY IMPORTED_GLOBAL TRUE)
-endif ()
-
 find_dependency(METIS)
 if (TARGET ${METIS_LIBRARIES})
   set_property(TARGET ${METIS_LIBRARIES} PROPERTY IMPORTED_GLOBAL TRUE)
