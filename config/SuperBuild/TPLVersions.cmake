@@ -87,6 +87,7 @@
 #   1.3.0       - MSTK updated to 3.3.2
 #   1.4.0       - MSTK updated to 3.3.4
 #   1.5.0       - MSTK updated to 3.3.5 and Trilinos to 12.18.1
+#   1.6.0       - Remove Boost dependency
 
 include(CMakeParseArguments)
 
@@ -202,19 +203,6 @@ set(UnitTest_URL_STRING     ${JALI_TPLS_DOWNLOAD_URL})
 set(UnitTest_ARCHIVE_FILE   unittest-cpp-${UnitTest_VERSION}.tgz)
 set(UnitTest_SAVEAS_FILE    ${UnitTest_ARCHIVE_FILE})
 set(UnitTest_MD5_SUM      29f958e355e516e7ab016b467974728d) 
-
-#
-# TPL: Boost
-#
-set(Boost_VERSION_MAJOR 1)
-set(Boost_VERSION_MINOR 63)
-set(Boost_VERSION_PATCH 0)
-set(Boost_VERSION        ${Boost_VERSION_MAJOR}.${Boost_VERSION_MINOR}.${Boost_VERSION_PATCH})
-set(Boost_VERSION_STRING ${Boost_VERSION_MAJOR}_${Boost_VERSION_MINOR}_${Boost_VERSION_PATCH})
-set(Boost_URL_STRING     ${JALI_TPLS_DOWNLOAD_URL})
-set(Boost_ARCHIVE_FILE   boost_${Boost_VERSION_STRING}.tar.bz2)
-set(Boost_SAVEAS_FILE    ${Boost_ARCHIVE_FILE})
-set(Boost_MD5_SUM        1c837ecd990bb022d07e7aab32b09847)
 
 #
 # TPL: HDF5

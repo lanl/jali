@@ -49,7 +49,7 @@
 # Build TPL: Trilinos
 #    
 # --- Define all the directories and common external project flags
-set(trilinos_depend_projects ${MPI_PROJECT} NetCDF ExodusII Boost)
+set(trilinos_depend_projects ${MPI_PROJECT} NetCDF ExodusII)
 if(ENABLE_HYPRE)
   list(APPEND trilinos_depend_projects HYPRE)
 endif()
@@ -125,16 +125,6 @@ if ( LAPACK_LIBRARIES )
 else()
   message(WARNING "LAPACK libraies not set. Trilinos will perform search.") 
 endif()
-
-# Boost
-list(APPEND Trilinos_CMAKE_TPL_ARGS
-            "-DTPL_ENABLE_BoostLib:BOOL=ON" 
-            "-DTPL_ENABLE_Boost:BOOL=ON" 
-            "-DTPL_ENABLE_GLM:BOOL=OFF" 
-            "-DTPL_BoostLib_INCLUDE_DIRS:FILEPATH=${CMAKE_INSTALL_PREFIX}/include"
-            "-DBoostLib_LIBRARY_DIRS:FILEPATH=${CMAKE_INSTALL_PREFIX}/lib"
-            "-DTPL_Boost_INCLUDE_DIRS:FILEPATH=${CMAKE_INSTALL_PREFIX}/include"
-            "-DBoost_LIBRARY_DIRS:FILEPATH=${CMAKE_INSTALL_PREFIX}/lib")
 
 # NetCDF
 list(APPEND Trilinos_CMAKE_TPL_ARGS

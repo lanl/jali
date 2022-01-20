@@ -300,7 +300,7 @@ on how to build ``ATLAS`` with a full ``LAPACK`` installation.
 http://math-atlas.sourceforge.net.
 
 
-Building TPLs and Jali Using ``Boostrap.sh``
+Building TPLs and Jali Using ``Bootstrap.sh``
 ----------------------------------------------
 
 The script ``bootstrap.sh`` is located in the ``config`` directory.
@@ -371,9 +371,9 @@ or set ENABLE_NetCDF4:BOOL=FALSE while configuring SuperBuild from the command l
 
 TPL build fails with any PGI compiler
 +++++++++++++++++++++++++++++++++++++
-We have not found a PGI C++ compiler that builds our Boost configuration
-successfully. TPL build system has successfully built with GCC 4.7, 4.8, 4.9 and
-and Intel 11.* through Intel 14.*.
+We have not found a PGI C++ compiler that builds our Boost
+configuration successfully. TPL build system has successfully built
+with GCC 4.7, 4.8, 4.9 and and Intel 11.* through Intel 14.*.
 
 Library parallelio (ASCEM-IO) missing archive index (MacOSX)
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

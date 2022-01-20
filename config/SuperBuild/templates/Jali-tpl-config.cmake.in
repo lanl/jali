@@ -109,12 +109,6 @@ set(ENABLE_METIS @ENABLE_METIS@ CACHE BOOL "ENABLE METIS Partitioning library")
 set(METIS_DIR  @METIS_DIR@ CACHE PATH "METIS installation prefix")
 
 
-# Boost
-set(BOOST_ROOT @CMAKE_INSTALL_PREFIX@ CACHE PATH "Boost installation prefix")
-set(Boost_USE_STATIC_LIBS TRUE CACHE BOOL "Use only static Boost libraries")
-set(Boost_NO_SYSTEM_PATHS TRUE CACHE BOOL "Do not search for Boost libraries in system paths")
-set(Boost_NO_BOOST_CMAKE  TRUE CACHE BOOL "Prevent FindBoost from looking for a Boost CMake config file")  
-
 # HDF5  
 set(HDF5_ROOT @CMAKE_INSTALL_PREFIX@ CACHE PATH "HDF5 installation prefix")
 set(HDF5_NO_SYSTEM_PATHS TRUE CACHE BOOL "Do not search for HDF5 libraries in system paths")

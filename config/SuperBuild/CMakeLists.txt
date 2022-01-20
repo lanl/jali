@@ -66,7 +66,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 message(STATUS "\n------------------------------------------------")
 message(STATUS "\n-- CMake: Configuring Jali TPLs build/install.\n--")
 message(STATUS "---------------------------------------------")
-project(SuperBuild C CXX Fortran)
+project(SuperBuild C CXX)
 
 
 # ############################################################################ #
@@ -170,17 +170,11 @@ option(ENABLE_TESTS "Build the Jali Test Suite" TRUE)
 
 
 # ############################################################################ #
-# Compiler checks
-# ############################################################################ #
-include(FortranCInterface)
-FortranCInterface_VERIFY()
-
-# ############################################################################ #
 # MPI Configuration 
 # ############################################################################ #
 
 
-find_package(MPI REQUIRED)
+find_package(MPI REQUIRED COMPONENTS C CXX)
   
 # Warn the user if MPI information is not found
 if (NOT MPI_C_FOUND)
@@ -193,17 +187,7 @@ endif()
 # We have to compile Jali and Jali TPLs with MPI - so forcibly set the compilers to the MPI wrappers 
 set(CMAKE_C_COMPILER ${MPI_C_COMPILER} CACHE FILEPATH "MPI C wrapper to use" FORCE)
 set(CMAKE_CXX_COMPILER ${MPI_CXX_COMPILER} CACHE FILEPATH "MPI C++ wrapper to use" FORCE)
-set(CMAKE_Fortran_COMPILER ${MPI_Fortran_COMPILER} CACHE FILEPATH "MPI Fortran wrapper to use" FORCE)
   
-# The FindMPI package uses FindPackageHandleStandardArgs
-# to MPI_<lang>_FOUND. For consistency, set MPI_FORTRAN_FOUND
-# to MPI_Fortran_FOUND
-set(MPI_Fortran_FOUND ${MPI_FORTRAN_FOUND})
-
-if (NOT MPI_Fortran_FOUND)
-  message(WARNING "Failed to locate MPI Fortran include and library files")
-endif()
-
 # - Number of MPI ranks flag
 set(MPI_EXEC_NUMPROCS_FLAG_DFLT -n)
 if (NOT MPI_EXEC_NUMPROCS_FLAG)
@@ -265,15 +249,12 @@ if (BUILD_SHARED_LIBS)
   set(_shared_flags "-fPIC")
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${_shared_flags}")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${_shared_flags}")
-  set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${_shared_flags}")
 
   set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} ${_shared_flags}")
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${_shared_flags}")
-  set(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE} ${_shared_flags}")
 
   set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} ${_shared_flags}")
   set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${_shared_flags}")
-  set(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG} ${_shared_flags}")
 endif()
 
 # ############################################################################ #
@@ -303,14 +284,6 @@ set(Jali_CMAKE_CXX_COMPILER_ARGS
      -DCMAKE_CXX_FLAGS_RELEASE:STRING=${CMAKE_CXX_FLAGS_RELEASE}
      -DCMAKE_CXX_FLAGS_RELWITHDEBINFO:STRING=${CMAKE_CXX_FLAGS_RELWITHDEBINFO})
 
-# Fortran language flags    
-set(Jali_CMAKE_Fortran_COMPILER_ARGS
-     -DCMAKE_Fortran_FLAGS:STRING=${CMAKE_Fortran_FLAGS}
-     -DCMAKE_Fortran_FLAGS_DEBUG:STRING=${CMAKE_Fortran_FLAGS_DEBUG}
-     -DCMAKE_Fortran_FLAGS_MINSIZEREL:STRING=${CMAKE_Fortran_FLAGS_MINSIZEREL}
-     -DCMAKE_Fortran_FLAGS_RELEASE:STRING=${CMAKE_Fortran_FLAGS_RELEASE}
-     -DCMAKE_Fortran_FLAGS_RELWITHDEBINFO:STRING=${CMAKE_Fortran_FLAGS_RELWITHDEBINFO})
-
 # Link flags
 set(Jali_CMAKE_LINKER_ARGS
      -DCMAKE_EXE_LINKER_FLAGS:STRING=${CMAKE_EXE_LINKER_FLAGS}
@@ -323,11 +296,9 @@ include(BuildWhitespaceString)
 string(TOUPPER "${CMAKE_BUILD_TYPE}" build_type_uc)
 set(build_c_flags ${CMAKE_C_FLAGS_${build_type_uc}})
 set(build_cxx_flags ${CMAKE_CXX_FLAGS_${build_type_uc}})
-set(build_fortran_flags ${CMAKE_Fortran_FLAGS_${build_type_uc}})
 message(STATUS "Common compile flags for build type ${CMAKE_BUILD_TYPE}")
 build_whitespace_string(Jali_COMMON_CFLAGS ${CMAKE_C_FLAGS} ${build_c_flags}) 
 build_whitespace_string(Jali_COMMON_CXXFLAGS ${CMAKE_CXX_FLAGS} ${build_cxx_flags}) 
-build_whitespace_string(Jali_COMMON_FCFLAGS ${CMAKE_Fortran_FLAGS} ${build_fortran_flags}) 
 
 # Common link flags for projects that do not use CMake
 set(Jali_COMMON_LDFLAGS)
@@ -344,7 +315,6 @@ endif()
 
 message(STATUS "\tcommon C flags\t\t${Jali_COMMON_CFLAGS}")
 message(STATUS "\tcommon C++ flags\t${Jali_COMMON_CXXFLAGS}")
-message(STATUS "\tcommon Fortran flags\t${Jali_COMMON_FCFLAGS}")
 message(STATUS "\tcommon Linker flags\t${Jali_COMMON_LDFLAGS}")
 
 
@@ -405,12 +375,6 @@ if (ENABLE_TESTS)
              -DUnitTest_ROOT:FILEPATH=${CMAKE_INSTALL_PREFIX})
 endif()
 
-# Boost
-include(${SuperBuild_BUILD_FILES_DIR}/Build_Boost.cmake) 
-append_set(Jali_TPL_CMAKE_ARGS
-           -DBOOST_ROOT:FILEPATH=${CMAKE_INSTALL_PREFIX}
-           -DBoost_NO_SYSTEM_PATHS:BOOL=TRUE)
-
 # HDF5  
 include(${SuperBuild_BUILD_FILES_DIR}/Build_HDF5.cmake) 
 append_set(Jali_TPL_CMAKE_ARGS
@@ -420,11 +384,6 @@ append_set(Jali_TPL_CMAKE_ARGS
 include(${SuperBuild_BUILD_FILES_DIR}/Build_NetCDF.cmake) 
 append_set(Jali_TPL_CMAKE_ARGS
            -DNetCDF_ROOT:FILEPATH=${CMAKE_INSTALL_PREFIX})
-
-# NetCDF Fortran
-#include(${SuperBuild_BUILD_FILES_DIR}/Build_NetCDF_Fortran.cmake)
-#append_set(Jali_TPL_CMAKE_ARGS
-#           -DNetCDF_FORTRAN_ROOT:FILEPATH=${CMAKE_INSTALL_PREFIX})
 
 # ExodusII
 include(${SuperBuild_BUILD_FILES_DIR}/Build_ExodusII.cmake) 
