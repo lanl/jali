@@ -65,7 +65,6 @@
 #include <string>
 #include <memory>
 #include <cassert>
-#include <boost/iterator/permutation_iterator.hpp>
 
 #include "Mesh.hh"    // Jali mesh header
 #include "JaliStateVector.h"
@@ -254,52 +253,6 @@ class State : public std::enable_shared_from_this<State> {
   string_iterator names_begin() {return names_.begin();}
   string_iterator names_end()   {return names_.end();}
 
-
-  /// Typedef for permutation iterators to allow iteration through only
-  /// the state vectors on a specified entity
-
-  typedef boost::permutation_iterator<
-    std::vector<std::shared_ptr<StateVectorBase>>::iterator,
-    std::vector<int>::iterator
-    >
-  permutation_type;
-
-
-  /// Permutation iterators for iterating over state vectors on a
-  /// specific entity type
-
-  permutation_type entity_begin(Jali::Entity_kind entitykind) {
-    const int ikind = static_cast<int>(entitykind);
-    return boost::make_permutation_iterator(state_vectors_.begin(),
-                                            entity_indexes_[ikind].begin());
-  }
-  permutation_type entity_end(Jali::Entity_kind entitykind) {
-    const int ikind = static_cast<int>(entitykind);
-    return boost::make_permutation_iterator(state_vectors_.begin(),
-                                            entity_indexes_[ikind].end());
-  }
-
-
-  /// Typedef for permutation iterators to allow iteration through only
-  /// the state vector _names_ on a specified entity
-
-  typedef boost::permutation_iterator< std::vector<std::string>::iterator,
-                                       std::vector<int>::iterator >
-  string_permutation;
-
-
-  /// Iterators for vector names of specific entity types
-
-  string_permutation names_entity_begin(Jali::Entity_kind entitykind) {
-    const int ikind = static_cast<int>(entitykind);
-    return boost::make_permutation_iterator(names_.begin(),
-                                            entity_indexes_[ikind].begin());
-  }
-  string_permutation names_entity_end(Jali::Entity_kind entitykind) {
-    const int ikind = static_cast<int>(entitykind);
-    return boost::make_permutation_iterator(names_.begin(),
-                                            entity_indexes_[ikind].end());
-  }
 
   /// References to state vectors
 

@@ -53,7 +53,7 @@
 
 
 # METIS recommends running with the make configure target
-#5.0.xmake config shared=0 cc=@CMAKE_C_COMPILER@ prefix=@TPL_INSTALL_PREFIX@
+#5.0.xmake config shared=0 cc=@CMAKE_C_COMPILER@ prefix=@CMAKE_INSTALL_PREFIX@
 metis_src_dir=@METIS_source_dir@
 
 mpicc_compiler=@CMAKE_C_COMPILER@

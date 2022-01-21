@@ -59,7 +59,7 @@ Jali_tpl_version_write(FILENAME ${TPL_VERSIONS_INCLUDE_FILE}
   VERSION ${METIS_VERSION_MAJOR} ${METIS_VERSION_MINOR} ${METIS_VERSION_PATCH})
 
 set(ENABLE_METIS TRUE)
-set(METIS_DIR ${TPL_INSTALL_PREFIX})
+set(METIS_DIR ${CMAKE_INSTALL_PREFIX})
 set(METIS_GKLIB_DIR ${METIS_source_dir}/GKlib)
 # --- Define the CMake configure parameters
 # Note:
@@ -91,12 +91,12 @@ ExternalProject_Add(${METIS_BUILD_TARGET}
                     BUILD_COMMAND     $(MAKE)                     # $(MAKE) enables parallel builds through make
                     BUILD_IN_SOURCE   ${METIS_BUILD_IN_SOURCE}     # Flag for in source builds
                     # -- Install
-                    INSTALL_DIR      ${TPL_INSTALL_PREFIX}        # Install directory
+                    INSTALL_DIR      ${CMAKE_INSTALL_PREFIX}        # Install directory
                     # -- Output control
                     ${METIS_logging_args})
 
 # --- Build variables needed outside this file
 include(BuildLibraryName)
-build_library_name(metis METIS_LIBRARIES APPEND_PATH ${TPL_INSTALL_PREFIX}/lib)
-set(METIS_INCLUDE_DIRS ${TPL_INSTALL_PREFIX}/include)
+build_library_name(metis METIS_LIBRARIES APPEND_PATH ${CMAKE_INSTALL_PREFIX}/lib)
+set(METIS_INCLUDE_DIRS ${CMAKE_INSTALL_PREFIX}/include)
 

@@ -54,13 +54,13 @@
 # UnitTest Makefile does not have an install target
 
 # Set the make environment variables
-export LDFLAGS='-L@TPL_INSTALL_PREFIX@/lib @CMAKE_CXX_LINK_FLAGS@'
+export LDFLAGS='-L@CMAKE_INSTALL_PREFIX@/lib @CMAKE_CXX_LINK_FLAGS@'
 export CXXFLAGS='@Jali_COMMON_CXXFLAGS@'
 
 # Directory Definitions
 unittest_src_dir=@UnitTest_source_dir@
-unittest_lib_dir=@TPL_INSTALL_PREFIX@/lib
-unittest_include_dir=@TPL_INSTALL_PREFIX@/include/unittest++
+unittest_lib_dir=@CMAKE_INSTALL_PREFIX@/lib
+unittest_include_dir=@CMAKE_INSTALL_PREFIX@/include/unittest++
 
 # Create the install directories
 if [ ! -e ${unittest_lib_dir} ]; then mkdir -p ${unittest_lib_dir}; fi

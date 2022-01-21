@@ -49,7 +49,7 @@
 # Build TPL: Trilinos
 #    
 # --- Define all the directories and common external project flags
-set(trilinos_depend_projects ${MPI_PROJECT} NetCDF ExodusII Boost)
+set(trilinos_depend_projects ${MPI_PROJECT} NetCDF ExodusII)
 if(ENABLE_HYPRE)
   list(APPEND trilinos_depend_projects HYPRE)
 endif()
@@ -126,16 +126,6 @@ else()
   message(WARNING "LAPACK libraies not set. Trilinos will perform search.") 
 endif()
 
-# Boost
-list(APPEND Trilinos_CMAKE_TPL_ARGS
-            "-DTPL_ENABLE_BoostLib:BOOL=ON" 
-            "-DTPL_ENABLE_Boost:BOOL=ON" 
-            "-DTPL_ENABLE_GLM:BOOL=OFF" 
-            "-DTPL_BoostLib_INCLUDE_DIRS:FILEPATH=${TPL_INSTALL_PREFIX}/include"
-            "-DBoostLib_LIBRARY_DIRS:FILEPATH=${TPL_INSTALL_PREFIX}/lib"
-            "-DTPL_Boost_INCLUDE_DIRS:FILEPATH=${TPL_INSTALL_PREFIX}/include"
-            "-DBoost_LIBRARY_DIRS:FILEPATH=${TPL_INSTALL_PREFIX}/lib")
-
 # NetCDF
 list(APPEND Trilinos_CMAKE_TPL_ARGS
             "-DTPL_ENABLE_Netcdf:BOOL=ON"
@@ -148,7 +138,7 @@ if( ENABLE_HYPRE )
   list(APPEND Trilinos_CMAKE_TPL_ARGS
               "-DTPL_ENABLE_HYPRE:BOOL=ON"
               "-DTPL_HYPRE_LIBRARIES:STRING=${HYPRE_LIBRARIES}"
-              "-DTPL_HYPRE_INCLUDE_DIRS:FILEPATH=${TPL_INSTALL_PREFIX}/include")
+              "-DTPL_HYPRE_INCLUDE_DIRS:FILEPATH=${CMAKE_INSTALL_PREFIX}/include")
 endif()
 
 #  - Addtional Trilinos CMake Arguments
@@ -220,7 +210,7 @@ else()
 endif()
 
 # --- Define the Trilinos location
-set(Trilinos_install_dir ${TPL_INSTALL_PREFIX}/${Trilinos_BUILD_TARGET}-${Trilinos_VERSION})
+set(Trilinos_install_dir ${CMAKE_INSTALL_PREFIX}/${Trilinos_BUILD_TARGET}-${Trilinos_VERSION})
 
 # --- Add external project build and tie to the Trilinos build target
 ExternalProject_Add(${Trilinos_BUILD_TARGET}

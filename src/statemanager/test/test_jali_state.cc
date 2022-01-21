@@ -109,21 +109,21 @@ TEST(Jali_State_Var_Types) {
   // Iterate through all cell state vectors and count them
 
   cnt = 0;
-  for (Jali::State::permutation_type it =
-           dstate->entity_begin(Jali::Entity_kind::CELL);
-       it != dstate->entity_end(Jali::Entity_kind::CELL);
-       it++)
-    cnt++;
+  for (Jali::State::iterator it = dstate->begin(); it != dstate->end(); it++) {
+    std::shared_ptr<Jali::StateVectorBase> sv = *it;
+    if (sv->entity_kind() == Jali::Entity_kind::CELL)
+      cnt++;
+  }
   CHECK_EQUAL(cnt, 2);
 
   // Iterate through all node state vectors and count them
 
   cnt = 0;
-  for (Jali::State::permutation_type it =
-           dstate->entity_begin(Jali::Entity_kind::NODE);
-       it != dstate->entity_end(Jali::Entity_kind::NODE);
-       it++)
-    cnt++;
+  for (Jali::State::iterator it = dstate->begin(); it != dstate->end(); it++) {
+    std::shared_ptr<Jali::StateVectorBase> sv = *it;
+    if (sv->entity_kind() == Jali::Entity_kind::NODE)
+      cnt++;
+  }
   CHECK_EQUAL(cnt, 1);
 
   // Iterate through all state vectors and get their type

@@ -16,7 +16,6 @@ addons:
       - libnemesis3
       - libunittest++-dev
       - libtrilinos-zoltan-dev
-      - libboost-all-dev
 env:
   global:
     - CCACHE_CPP2=yes

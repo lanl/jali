@@ -93,9 +93,6 @@ target_include_directories(jali_state PUBLIC
   $<INSTALL_INTERFACE:include>
   )
 
-find_package(Boost QUIET COMPONENTS system filesystem program_options regex REQUIRED)
-target_include_directories(jali_state PUBLIC ${Boost_INCLUDE_DIRS})
-
   
 # Make the error handling and mesh targets a dependency of this target
 target_link_libraries(jali_state PUBLIC jali_error_handling jali_mesh)

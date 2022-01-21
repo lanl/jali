@@ -65,13 +65,13 @@ Jali_tpl_version_write(FILENAME ${TPL_VERSIONS_INCLUDE_FILE}
 # --- Define the configure parameters
 
 # Compile flags
-set(seacas_cflags_list -I${TPL_INSTALL_PREFIX}/include ${Jali_COMMON_CFLAGS})
+set(seacas_cflags_list -I${CMAKE_INSTALL_PREFIX}/include ${Jali_COMMON_CFLAGS})
 build_whitespace_string(seacas_cflags ${seacas_cflags_list})
 
-set(seacas_cxxflags_list -I${TPL_INSTALL_PREFIX}/include ${Jali_COMMON_CXXFLAGS})
+set(seacas_cxxflags_list -I${CMAKE_INSTALL_PREFIX}/include ${Jali_COMMON_CXXFLAGS})
 build_whitespace_string(seacas_cflags ${seacas_cxxflags_list})
 
-set(seacas_fcflags_list -I${TPL_INSTALL_PREFIX}/include ${Jali_COMMON_FCFLAGS})
+set(seacas_fcflags_list -I${CMAKE_INSTALL_PREFIX}/include ${Jali_COMMON_FCFLAGS})
 build_whitespace_string(seacas_fcflags ${seacas_fcflags_list})
 
 set(seacas_lflags_list)
@@ -79,10 +79,10 @@ build_whitespace_string(seacas_lflags ${seacas_lflags_list})
 
 # Build the NetCDF libraries string
 include(BuildLibraryName)
-build_library_name(netcdf seacas_netcdf_library STATIC APPEND_PATH ${TPL_INSTALL_PREFIX}/lib)
-build_library_name(hdf5_hl seacas_hdf5_hl_library STATIC APPEND_PATH ${TPL_INSTALL_PREFIX}/lib)
-build_library_name(hdf5 seacas_hdf5_library STATIC APPEND_PATH ${TPL_INSTALL_PREFIX}/lib)
-build_library_name(z seacas_z_library STATIC APPEND_PATH ${TPL_INSTALL_PREFIX}/lib)
+build_library_name(netcdf seacas_netcdf_library STATIC APPEND_PATH ${CMAKE_INSTALL_PREFIX}/lib)
+build_library_name(hdf5_hl seacas_hdf5_hl_library STATIC APPEND_PATH ${CMAKE_INSTALL_PREFIX}/lib)
+build_library_name(hdf5 seacas_hdf5_library STATIC APPEND_PATH ${CMAKE_INSTALL_PREFIX}/lib)
+build_library_name(z seacas_z_library STATIC APPEND_PATH ${CMAKE_INSTALL_PREFIX}/lib)
 set(seacas_netcdf_libraries
        ${seacas_netcdf_library}
        ${seacas_hdf5_hl_library}
@@ -130,7 +130,7 @@ set(SEACAS_CMAKE_CACHE_ARGS
                     -DSEACASProj_HIDE_DEPRECATED_CODE:STRING="NO"
                     -DTPL_ENABLE_Netcdf:BOOL=TRUE
                     -DTPL_Netcdf_LIBRARIES:STRING=${seacas_netcdf_libraries}
-                    -DNetcdf_INCLUDE_DIRS:STRING=${TPL_INSTALL_PREFIX}/include
+                    -DNetcdf_INCLUDE_DIRS:STRING=${CMAKE_INSTALL_PREFIX}/include
                     -DTPL_Netcdf_PARALLEL:BOOL=TRUE
                     -DTPL_ENABLE_Matio:BOOL=FALSE
                     -DTPL_ENABLE_X11:BOOL=FALSE
@@ -168,9 +168,9 @@ ExternalProject_Add(${SEACAS_BUILD_TARGET}
                     BUILD_COMMAND     $(MAKE)                       # $(MAKE) enables parallel builds through make
                     BUILD_IN_SOURCE   ${SEACAS_BUILD_IN_SOURCE}     # Flag for in source builds
                     # -- Install
-                    INSTALL_DIR      ${TPL_INSTALL_PREFIX}/SEACAS   # Install directory, NOT in the usual place!
+                    INSTALL_DIR      ${CMAKE_INSTALL_PREFIX}/SEACAS   # Install directory, NOT in the usual place!
                     # -- Output control
                     ${SEACAS_logging_args})
 
 # --- Useful variables for other packages that depend on SEACAS
-set(SEACAS_DIR ${TPL_INSTALL_PREFIX}/SEACAS)
+set(SEACAS_DIR ${CMAKE_INSTALL_PREFIX}/SEACAS)

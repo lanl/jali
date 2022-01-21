@@ -102,28 +102,22 @@ set(BLAS_LIBRARIES @LAPACK_LIBRARIES@ CACHE FILEPATH "BLAS libraries")
 
 # UnitTest
 set(ENABLE_TESTS @ENABLE_TESTS@ CACHE BOOL "Build the tests")
-set(UnitTest_DIR @TPL_INSTALL_PREFIX@ CACHE PATH "UnitTest installation prefix")
+set(UnitTest_DIR @CMAKE_INSTALL_PREFIX@ CACHE PATH "UnitTest installation prefix")
 
 # METIS
 set(ENABLE_METIS @ENABLE_METIS@ CACHE BOOL "ENABLE METIS Partitioning library")  
 set(METIS_DIR  @METIS_DIR@ CACHE PATH "METIS installation prefix")
 
 
-# Boost
-set(BOOST_ROOT @TPL_INSTALL_PREFIX@ CACHE PATH "Boost installation prefix")
-set(Boost_USE_STATIC_LIBS TRUE CACHE BOOL "Use only static Boost libraries")
-set(Boost_NO_SYSTEM_PATHS TRUE CACHE BOOL "Do not search for Boost libraries in system paths")
-set(Boost_NO_BOOST_CMAKE  TRUE CACHE BOOL "Prevent FindBoost from looking for a Boost CMake config file")  
-
 # HDF5  
-set(HDF5_ROOT @TPL_INSTALL_PREFIX@ CACHE PATH "HDF5 installation prefix")
+set(HDF5_ROOT @CMAKE_INSTALL_PREFIX@ CACHE PATH "HDF5 installation prefix")
 set(HDF5_NO_SYSTEM_PATHS TRUE CACHE BOOL "Do not search for HDF5 libraries in system paths")
 
 # NetCDF
-set(NetCDF_DIR @TPL_INSTALL_PREFIX@ CACHE PATH "NetCDF installation prefix")
+set(NetCDF_DIR @CMAKE_INSTALL_PREFIX@ CACHE PATH "NetCDF installation prefix")
 
 # ExodusII
-set(ExodusII_DIR @TPL_INSTALL_PREFIX@ CACHE PATH "ExodusII installation prefix")
+set(ExodusII_DIR @CMAKE_INSTALL_PREFIX@ CACHE PATH "ExodusII installation prefix")
 
 # MSTK
 set(MSTK_INCLUDE_DIR @MSTK_INCLUDE_DIR@ CACHE PATH "MSTK include installation path")
@@ -135,7 +129,7 @@ set(MSTK_VERSION @MSTK_VERSION@ CACHE STRING "MSTK Version string")
 
 
 # MOAB
-set(MOAB_DIR @TPL_INSTALL_PREFIX@ CACHE PATH "MOAB installation prefix")
+set(MOAB_DIR @CMAKE_INSTALL_PREFIX@ CACHE PATH "MOAB installation prefix")
 
 # Trilinos
 set(Trilinos_INSTALL_PREFIX @Trilinos_INSTALL_PREFIX@ CACHE PATH "Trilinos installation prefix")

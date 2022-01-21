@@ -61,14 +61,14 @@ Jali_tpl_version_write(FILENAME ${TPL_VERSIONS_INCLUDE_FILE}
 # Build compiler *FLAGS strings. Pick up the CMAKE_BUILD_TYPE flags
 include(BuildWhitespaceString)
 build_whitespace_string(openmpi_cflags 
-                        -I${TPL_INSTALL_PREFIX}/include ${Jali_COMMON_CFLAGS} )
+                        -I${CMAKE_INSTALL_PREFIX}/include ${Jali_COMMON_CFLAGS} )
 build_whitespace_string(openmpi_cxxflags 
-                        -I${TPL_INSTALL_PREFIX}/include ${Jali_COMMON_CXXFLAGS} )
+                        -I${CMAKE_INSTALL_PREFIX}/include ${Jali_COMMON_CXXFLAGS} )
 build_whitespace_string(openmpi_fcflags 
-                        -I${TPL_INSTALL_PREFIX}/include ${Jali_COMMON_FCFLAGS} )
+                        -I${CMAKE_INSTALL_PREFIX}/include ${Jali_COMMON_FCFLAGS} )
 
 # --- Add RPATH to the link flags for the compiler wrappers
-set(openmpi_extra_ldflags "-Wl,-rpath,${TPL_INSTALL_PREFIX}/lib")
+set(openmpi_extra_ldflags "-Wl,-rpath,${CMAKE_INSTALL_PREFIX}/lib")
 print_variable(openmpi_extra_ldflags)
 find_package(Threads)
 
@@ -106,13 +106,13 @@ ExternalProject_Add(${OpenMPI_BUILD_TARGET}
                     BUILD_COMMAND     $(MAKE)                     # $(MAKE) enables parallel builds through make
                     BUILD_IN_SOURCE   ${OpenMPI_BUILD_IN_SOURCE}     # Flag for in source builds
                     # -- Install
-                    INSTALL_DIR      ${TPL_INSTALL_PREFIX}        # Install directory
+                    INSTALL_DIR      ${CMAKE_INSTALL_PREFIX}        # Install directory
                     # -- Output control
                     ${OpenMPI_logging_args})
 
 # --- Define variables pointing to compiler wrappers and parallel run commond
-set(MPI_C_COMPILER        ${TPL_INSTALL_PREFIX}/bin/mpicc)
-set(MPI_CXX_COMPILER      ${TPL_INSTALL_PREFIX}/bin/mpicxx)
-set(MPI_Fortran_COMPILER  ${TPL_INSTALL_PREFIX}/bin/mpif90)
-set(MPIEXEC               ${TPL_INSTALL_PREFIX}/bin/mpirun)
-set(MPI_EXEC              ${TPL_INSTALL_PREFIX}/bin/mpirun)
+set(MPI_C_COMPILER        ${CMAKE_INSTALL_PREFIX}/bin/mpicc)
+set(MPI_CXX_COMPILER      ${CMAKE_INSTALL_PREFIX}/bin/mpicxx)
+set(MPI_Fortran_COMPILER  ${CMAKE_INSTALL_PREFIX}/bin/mpif90)
+set(MPIEXEC               ${CMAKE_INSTALL_PREFIX}/bin/mpirun)
+set(MPI_EXEC              ${CMAKE_INSTALL_PREFIX}/bin/mpirun)

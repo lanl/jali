@@ -66,7 +66,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 message(STATUS "\n------------------------------------------------")
 message(STATUS "\n-- CMake: Configuring Jali TPLs build/install.\n--")
 message(STATUS "---------------------------------------------")
-project(SuperBuild C CXX Fortran)
+project(SuperBuild C CXX)
 
 
 # ############################################################################ #
@@ -133,15 +133,6 @@ else()
   check_download(TEST_FILE MD5SUMS TEST_URL ${JALI_TPLS_DOWNLOAD_URL})
 endif()
 
-# TPL install location
-set(TPL_INSTALL_PREFIX_DFLT "${SuperBuild_BINARY_DIR}/external-projects")
-if (NOT TPL_INSTALL_PREFIX)
-  set(TPL_INSTALL_PREFIX ${TPL_INSTALL_PREFIX_DFLT})
-endif()
-message(STATUS "Install TPLs in ${TPL_INSTALL_PREFIX}")
-
-# also set the CMAKE_INSTALL_PREFIX accordingly
-set(CMAKE_INSTALL_PREFIX ${TPL_INSTALL_PREFIX})
 
 # Jali unstructured mesh API
 option(ENABLE_Unstructured "Enable Jali unstructured mesh capability" TRUE)
@@ -179,17 +170,11 @@ option(ENABLE_TESTS "Build the Jali Test Suite" TRUE)
 
 
 # ############################################################################ #
-# Compiler checks
-# ############################################################################ #
-include(FortranCInterface)
-FortranCInterface_VERIFY()
-
-# ############################################################################ #
 # MPI Configuration 
 # ############################################################################ #
 
 
-find_package(MPI REQUIRED)
+find_package(MPI REQUIRED COMPONENTS C CXX)
   
 # Warn the user if MPI information is not found
 if (NOT MPI_C_FOUND)
@@ -202,17 +187,7 @@ endif()
 # We have to compile Jali and Jali TPLs with MPI - so forcibly set the compilers to the MPI wrappers 
 set(CMAKE_C_COMPILER ${MPI_C_COMPILER} CACHE FILEPATH "MPI C wrapper to use" FORCE)
 set(CMAKE_CXX_COMPILER ${MPI_CXX_COMPILER} CACHE FILEPATH "MPI C++ wrapper to use" FORCE)
-set(CMAKE_Fortran_COMPILER ${MPI_Fortran_COMPILER} CACHE FILEPATH "MPI Fortran wrapper to use" FORCE)
   
-# The FindMPI package uses FindPackageHandleStandardArgs
-# to MPI_<lang>_FOUND. For consistency, set MPI_FORTRAN_FOUND
-# to MPI_Fortran_FOUND
-set(MPI_Fortran_FOUND ${MPI_FORTRAN_FOUND})
-
-if (NOT MPI_Fortran_FOUND)
-  message(WARNING "Failed to locate MPI Fortran include and library files")
-endif()
-
 # - Number of MPI ranks flag
 set(MPI_EXEC_NUMPROCS_FLAG_DFLT -n)
 if (NOT MPI_EXEC_NUMPROCS_FLAG)
@@ -264,7 +239,7 @@ endif()
 set(CMAKE_SKIP_BUILD_RPATH FALSE)
 set(CMAKE_SKIP_INSTALL_RPATH FALSE)
 set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
-set(CMAKE_INSTALL_RPATH "${TPL_INSTALL_PREFIX}/lib")
+set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE) 
 
 set(JALI_CMAKE_CACHE_ARGS  "-DCMAKE_INSTALL_RPATH:PATH=${CMAKE_INSTALL_RPATH}")
@@ -274,15 +249,12 @@ if (BUILD_SHARED_LIBS)
   set(_shared_flags "-fPIC")
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${_shared_flags}")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${_shared_flags}")
-  set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${_shared_flags}")
 
   set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} ${_shared_flags}")
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${_shared_flags}")
-  set(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE} ${_shared_flags}")
 
   set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} ${_shared_flags}")
   set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${_shared_flags}")
-  set(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG} ${_shared_flags}")
 endif()
 
 # ############################################################################ #
@@ -312,14 +284,6 @@ set(Jali_CMAKE_CXX_COMPILER_ARGS
      -DCMAKE_CXX_FLAGS_RELEASE:STRING=${CMAKE_CXX_FLAGS_RELEASE}
      -DCMAKE_CXX_FLAGS_RELWITHDEBINFO:STRING=${CMAKE_CXX_FLAGS_RELWITHDEBINFO})
 
-# Fortran language flags    
-set(Jali_CMAKE_Fortran_COMPILER_ARGS
-     -DCMAKE_Fortran_FLAGS:STRING=${CMAKE_Fortran_FLAGS}
-     -DCMAKE_Fortran_FLAGS_DEBUG:STRING=${CMAKE_Fortran_FLAGS_DEBUG}
-     -DCMAKE_Fortran_FLAGS_MINSIZEREL:STRING=${CMAKE_Fortran_FLAGS_MINSIZEREL}
-     -DCMAKE_Fortran_FLAGS_RELEASE:STRING=${CMAKE_Fortran_FLAGS_RELEASE}
-     -DCMAKE_Fortran_FLAGS_RELWITHDEBINFO:STRING=${CMAKE_Fortran_FLAGS_RELWITHDEBINFO})
-
 # Link flags
 set(Jali_CMAKE_LINKER_ARGS
      -DCMAKE_EXE_LINKER_FLAGS:STRING=${CMAKE_EXE_LINKER_FLAGS}
@@ -332,11 +296,9 @@ include(BuildWhitespaceString)
 string(TOUPPER "${CMAKE_BUILD_TYPE}" build_type_uc)
 set(build_c_flags ${CMAKE_C_FLAGS_${build_type_uc}})
 set(build_cxx_flags ${CMAKE_CXX_FLAGS_${build_type_uc}})
-set(build_fortran_flags ${CMAKE_Fortran_FLAGS_${build_type_uc}})
 message(STATUS "Common compile flags for build type ${CMAKE_BUILD_TYPE}")
 build_whitespace_string(Jali_COMMON_CFLAGS ${CMAKE_C_FLAGS} ${build_c_flags}) 
 build_whitespace_string(Jali_COMMON_CXXFLAGS ${CMAKE_CXX_FLAGS} ${build_cxx_flags}) 
-build_whitespace_string(Jali_COMMON_FCFLAGS ${CMAKE_Fortran_FLAGS} ${build_fortran_flags}) 
 
 # Common link flags for projects that do not use CMake
 set(Jali_COMMON_LDFLAGS)
@@ -353,7 +315,6 @@ endif()
 
 message(STATUS "\tcommon C flags\t\t${Jali_COMMON_CFLAGS}")
 message(STATUS "\tcommon C++ flags\t${Jali_COMMON_CXXFLAGS}")
-message(STATUS "\tcommon Fortran flags\t${Jali_COMMON_FCFLAGS}")
 message(STATUS "\tcommon Linker flags\t${Jali_COMMON_LDFLAGS}")
 
 
@@ -411,53 +372,42 @@ append_set(Jali_TPL_CMAKE_ARGS
 if (ENABLE_TESTS)
   include(${SuperBuild_BUILD_FILES_DIR}/Build_UnitTest.cmake)
   append_set(Jali_TPL_CMAKE_ARGS 
-             -DUnitTest_DIR:FILEPATH=${TPL_INSTALL_PREFIX})
+             -DUnitTest_ROOT:FILEPATH=${CMAKE_INSTALL_PREFIX})
 endif()
-
-# Boost
-include(${SuperBuild_BUILD_FILES_DIR}/Build_Boost.cmake) 
-append_set(Jali_TPL_CMAKE_ARGS
-           -DBOOST_ROOT:FILEPATH=${TPL_INSTALL_PREFIX}
-           -DBoost_NO_SYSTEM_PATHS:BOOL=TRUE)
 
 # HDF5  
 include(${SuperBuild_BUILD_FILES_DIR}/Build_HDF5.cmake) 
 append_set(Jali_TPL_CMAKE_ARGS
-           -DHDF5_ROOT:FILEPATH=${TPL_INSTALL_PREFIX})
+           -DHDF5_ROOT:FILEPATH=${CMAKE_INSTALL_PREFIX})
 
 # NetCDF
 include(${SuperBuild_BUILD_FILES_DIR}/Build_NetCDF.cmake) 
 append_set(Jali_TPL_CMAKE_ARGS
-           -DNetCDF_DIR:FILEPATH=${TPL_INSTALL_PREFIX})
-
-# NetCDF Fortran
-#include(${SuperBuild_BUILD_FILES_DIR}/Build_NetCDF_Fortran.cmake)
-#append_set(Jali_TPL_CMAKE_ARGS
-#           -DNetCDF_FORTRAN_DIR:FILEPATH=${TPL_INSTALL_PREFIX})
+           -DNetCDF_ROOT:FILEPATH=${CMAKE_INSTALL_PREFIX})
 
 # ExodusII
 include(${SuperBuild_BUILD_FILES_DIR}/Build_ExodusII.cmake) 
 append_set(Jali_TPL_CMAKE_ARGS
-           -DExodusII_DIR:FILEPATH=${TPL_INSTALL_PREFIX})
+           -DExodusII_ROOT:FILEPATH=${CMAKE_INSTALL_PREFIX})
 
 # MOAB
 if ( ENABLE_MOAB_Mesh )
   include(${SuperBuild_BUILD_FILES_DIR}/Build_MOAB.cmake)
   append_set(Jali_TPL_CMAKE_ARGS
              -DENABLE_MOAB_Mesh:BOOL=${ENABLE_MOAB_Mesh}
-	     -DMOAB_DIR:PATH=${TPL_INSTALL_PREFIX})
+	     -DMOAB_ROOT:PATH=${CMAKE_INSTALL_PREFIX})
 endif()
 
-# METIS -- needs to go before PETSc because PETSc needs it.
 include(${SuperBuild_BUILD_FILES_DIR}/Build_METIS.cmake) 
 append_set(Jali_TPL_CMAKE_ARGS 
-           -DMETIS_DIR:FILEPATH=${METIS_DIR})
+           -DMETIS_ROOT:FILEPATH=${CMAKE_INSTALL_PREFIX})
 
 # Trilinos  
 include(${SuperBuild_BUILD_FILES_DIR}/Build_Trilinos.cmake)
 append_set(Jali_TPL_CMAKE_ARGS
            -DENABLE_STK_Mesh:BOOL=${ENABLE_STK_Mesh}
-           -DTrilinos_INSTALL_PREFIX:PATH=${Trilinos_INSTALL_PREFIX})
+           -DTrilinos_INSTALL_PREFIX:PATH=${Trilinos_INSTALL_PREFIX}
+	   -DTrilinos_ROOT:FILEPATH=${Trilinos_INSTALL_PREFIX})
 
 # SEACAS
 #include(${SuperBuild_BUILD_FILES_DIR}/Build_SEACAS.cmake)
@@ -467,8 +417,7 @@ if ( ENABLE_MSTK_Mesh )
   include(${SuperBuild_BUILD_FILES_DIR}/Build_MSTK.cmake) 
   append_set(Jali_TPL_CMAKE_ARGS
             -DENABLE_MSTK_Mesh:BOOL=${ENABLE_MSTK_Mesh}
-            -DMSTK_INCLUDE_DIR:PATH=${MSTK_INCLUDE_DIR}
-            -DMSTK_LIBRARY_DIR:PATH=${MSTK_LIBRARY_DIR})
+            -DMSTK_ROOT:PATH=${CMAKE_INSTALL_PREFIX})
 endif()
 
 # ############################################################################ #
@@ -481,7 +430,7 @@ configure_file(${SuperBuild_TEMPLATE_FILES_DIR}/${SuperBuild_Jali_CACHE_SCRIPT}.
                ${SuperBuild_BINARY_DIR}/${SuperBuild_Jali_CACHE_SCRIPT}
                @ONLY)
 install( FILES "${SuperBuild_BINARY_DIR}/${SuperBuild_Jali_CACHE_SCRIPT}"             
-         DESTINATION ${TPL_INSTALL_PREFIX}/share/cmake)
+         DESTINATION ${CMAKE_INSTALL_PREFIX}/share/cmake)
 
 #  --- Build the docs
 option(BUILD_DOCS "Build the SuperBuild documentation" FALSE)
