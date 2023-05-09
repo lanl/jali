@@ -155,22 +155,22 @@ endif ()
 target_compile_definitions(jali_mesh PUBLIC Jali_HAVE_METIS)
 target_link_libraries(jali_mesh PUBLIC ${METIS_LIBRARIES})
 
+if (ENABLE_ZOLTAN)
+  if (NOT Zoltan_LIBRARIES OR NOT TARGET ${Zoltan_LIBRARIES})
+    # Starting from CMake 3.15 we can tell find_package we prefer for it
+    # to look for config files first and then fall back to modules
+    find_package(Zoltan QUIET REQUIRED)
+    message(STATUS "Found TARGET Zoltan_LIBRARIES = ${Zoltan_LIBRARIES}")
+  endif()
 
-if (NOT Zoltan_LIBRARIES OR NOT TARGET ${Zoltan_LIBRARIES})
-  # Starting from CMake 3.15 we can tell find_package we prefer for it
-  # to look for config files first and then fall back to modules
-  find_package(Zoltan QUIET REQUIRED)
-  message(STATUS "Found TARGET Zoltan_LIBRARIES = ${Zoltan_LIBRARIES}")
-endif()
+  # Make Zoltan a dependency of jali_mesh
+  target_compile_definitions(jali_mesh PUBLIC Jali_HAVE_ZOLTAN)
+  target_link_libraries(jali_mesh PUBLIC ${Zoltan_LIBRARIES})
 
-# Make Zoltan a dependency of jali_mesh
-target_compile_definitions(jali_mesh PUBLIC Jali_HAVE_ZOLTAN)
-target_link_libraries(jali_mesh PUBLIC ${Zoltan_LIBRARIES})
-
-# Zoltan's cmake config does not write out include dir dependency for
-# the Zoltan library. So explicitly enable it
-target_include_directories(jali_mesh PUBLIC ${Zoltan_INCLUDE_DIRS})
-
+  # Zoltan's cmake config does not write out include dir dependency for
+  # the Zoltan library. So explicitly enable it
+  target_include_directories(jali_mesh PUBLIC ${Zoltan_INCLUDE_DIRS})
+endif (ENABLE_ZOLTAN)
 
 if (NOT ExodusII_LIBRARIES OR NOT TARGET ${ExodusII_LIBRARIES})
   # First seee if a config file got installed as part of the SEACAS project
