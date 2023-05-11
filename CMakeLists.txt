@@ -258,13 +258,18 @@ install(EXPORT JaliTargets
   NAMESPACE Jali::
   DESTINATION lib/cmake/Jali
   )
-  
+
 if (METIS_DIR AND NOT METIS_ROOT)
   set(METIS_ROOT ${METIS_DIR})
 endif ()
-if (Zoltan_DIR AND NOT Zoltan_ROOT)
-  set(Zoltan_ROOT ${Zoltan_DIR})
+
+option(ENABLE_ZOLTAN "Enable Zoltan" OFF)
+if (ENABLE_ZOLTAN)
+  if (Zoltan_DIR AND NOT Zoltan_ROOT)
+    set(Zoltan_ROOT ${Zoltan_DIR})
+  endif ()
 endif ()
+
 if (ExodusII_DIR AND NOT ExodusII_ROOT)
   set(ExodusII_ROOT ${ExodusII_DIR})
 endif ()

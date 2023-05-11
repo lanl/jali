@@ -68,6 +68,7 @@ set(Jali_Fortran_COMPILER_FLAGS  "@CMAKE_Fortran_FLAGS@ ${CMAKE_Fortran_FLAGS_${
 set(Jali_ENABLE_STK_Mesh        @ENABLE_STK_Mesh@)
 set(Jali_ENABLE_MOAB_Mesh       @ENABLE_MOAB_Mesh@)
 set(Jali_ENABLE_MSTK_Mesh       @ENABLE_MSTK_Mesh@)
+set(Jali_ENABLE_ZOLTAN          @ENABLE_ZOLTAN@)
 
 # Do we need these? Won't we get it when we import the Jali targets?
 set(Jali_LIBRARIES      @Jali_LIBRARIES@ CACHE STRING "Jali library targets")
@@ -132,9 +133,11 @@ find_dependency(METIS)
 if (TARGET ${METIS_LIBRARIES})
   set_property(TARGET ${METIS_LIBRARIES} PROPERTY IMPORTED_GLOBAL TRUE)
 endif ()
-find_dependency(Zoltan)
-if (TARGET ${Zoltan_LIBRARIES})
-  set_property(TARGET ${Zoltan_LIBRARIES} PROPERTY IMPORTED_GLOBAL TRUE)
+if (Jali_ENABLE_ZOLTAN)
+  find_dependency(Zoltan)
+  if (TARGET ${Zoltan_LIBRARIES})
+    set_property(TARGET ${Zoltan_LIBRARIES} PROPERTY IMPORTED_GLOBAL TRUE)
+  endif ()
 endif ()
 
 find_dependency(ExodusII)
